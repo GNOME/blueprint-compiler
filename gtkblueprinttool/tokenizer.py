@@ -55,12 +55,12 @@ _TOKENS = [
     (TokenType.OPEN_BLOCK,      r"\{"),
     (TokenType.CLOSE_BLOCK,     r"\}"),
     (TokenType.STMT_END,        r";"),
-    (TokenType.OP,              r"[:=\.=\|<>]+"),
     (TokenType.WHITESPACE,      r"\s+"),
-    (TokenType.COMMENT,         r"\/\*.*?\*\/"),
+    (TokenType.COMMENT,         r"/\*[\s\S]*\*/"),
     (TokenType.COMMENT,         r"\/\/[^\n]*"),
     (TokenType.OPEN_BRACKET,    r"\["),
     (TokenType.CLOSE_BRACKET,   r"\]"),
+    (TokenType.OP,              r"[:=\.=\|<>\+\-/\*]+"),
     (TokenType.COMMA,           r"\,"),
 ]
 _TOKENS = [(type, re.compile(regex)) for (type, regex) in _TOKENS]

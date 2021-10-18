@@ -54,7 +54,7 @@ class CompileError(PrintableError):
 
         print(f"""{_colors.RED}{_colors.BOLD}{self.category}: {self.message}{_colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{_colors.FAINT}{line_num :>4} |{_colors.CLEAR} {line}     {_colors.FAINT}|{" "*(col_num)}^{_colors.CLEAR}
+{_colors.FAINT}{line_num :>4} |{_colors.CLEAR}{line.rstrip()}\n     {_colors.FAINT}|{" "*(col_num-1)}^{_colors.CLEAR}
 """)
 
 
