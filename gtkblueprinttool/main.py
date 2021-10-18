@@ -25,6 +25,9 @@ from .pipeline import Pipeline
 from . import parser, tokenizer
 
 
+VERSION = "0.1.0"
+
+
 class BlueprintApp:
     def main(self):
         self.parser = argparse.ArgumentParser()
@@ -66,3 +69,7 @@ class BlueprintApp:
         except PrintableError as e:
             e.pretty_print(opts.input.name, data)
             sys.exit(1)
+
+
+def main():
+    BlueprintApp().main()

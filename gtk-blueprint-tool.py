@@ -19,7 +19,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from gtkblueprinttool.main import BlueprintApp
+from gtkblueprinttool import main
 
 if __name__ == "__main__":
-    BlueprintApp().main()
+    main()

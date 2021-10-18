@@ -1,0 +1,3 @@
+Name: gtk-blueprint-tool
+Description: Markup compiler for GTK user interface definitions
+Version: @VERSION@
