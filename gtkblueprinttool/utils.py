@@ -68,6 +68,8 @@ def did_you_mean(word: str, options: [str]) -> T.Optional[str]:
 
 
 def idx_to_pos(idx: int, text: str) -> (int, int):
+    if idx == 0:
+        return (0, 0)
     sp = text[:idx].splitlines(keepends=True)
     line_num = len(sp)
     col_num = len(sp[-1])

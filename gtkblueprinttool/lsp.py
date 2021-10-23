@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import json, sys
+import json, sys, traceback
 
 from .errors import PrintableError, CompileError, MultipleErrors
 from .lsp_enums import *
@@ -61,7 +61,7 @@ class LanguageServer:
                 if method in self.commands:
                     self.commands[method](self, id, params)
         except Exception as e:
-            self._log(e)
+            self._log(traceback.format_exc())
 
 
     def _send(self, data):

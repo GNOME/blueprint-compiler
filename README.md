@@ -21,10 +21,8 @@ Here is what [the libshumate demo's UI definition](https://gitlab.gnome.org/GNOM
 looks like ported to this new format:
 
 ```
-gtk 4.0;
-
-import Adw 1.0;
-import Shumate 1.0;
+using Gtk 4.0;
+using Shumate 1.0;
 
 template ShumateDemoWindow : Gtk.ApplicationWindow {
   can-focus: yes;

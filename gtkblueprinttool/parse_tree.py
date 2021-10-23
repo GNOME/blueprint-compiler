@@ -408,6 +408,21 @@ class UseNumber(ParseNode):
         return True
 
 
+class UseNumberText(ParseNode):
+    """ ParseNode that matches a number, but sets its *original text* it in a
+    key=value pair on the containing match group. """
+    def __init__(self, key):
+        self.key = key
+
+    def _parse(self, ctx: ParseContext):
+        token = ctx.next_token()
+        if token.type != TokenType.NUMBER:
+            return False
+
+        ctx.set_group_val(self.key, str(token), token)
+        return True
+
+
 class UseQuoted(ParseNode):
     """ ParseNode that matches a quoted string and sets it in a key=value pair
     on the containing match group. """
