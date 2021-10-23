@@ -39,6 +39,8 @@ class BlueprintApp:
         compile.add_argument("--output", dest="output", default="-")
         compile.add_argument("input", metavar="filename", default=sys.stdin, type=argparse.FileType('r'))
 
+        compile = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
+
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
         try:
@@ -77,6 +79,10 @@ class BlueprintApp:
         except PrintableError as e:
             e.pretty_print(opts.input.name, data)
             sys.exit(1)
+
+    def cmd_lsp(self, opts):
+        langserv = LanguageServer()
+        langserv.run()
 
 
 def main():

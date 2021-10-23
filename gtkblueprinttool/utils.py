@@ -65,3 +65,14 @@ def did_you_mean(word: str, options: [str]) -> T.Optional[str]:
     if closest[1] <= 5:
         return closest[0]
     return None
+
+
+def idx_to_pos(idx: int, text: str) -> (int, int):
+    sp = text[:idx].splitlines(keepends=True)
+    line_num = len(sp)
+    col_num = len(sp[-1])
+    return (line_num, col_num)
+
+def pos_to_idx(line: int, col: int, text: str) -> int:
+    lines = text.splitlines(keepends=True)
+    return sum([len(line) for line in lines[:line]]) + col

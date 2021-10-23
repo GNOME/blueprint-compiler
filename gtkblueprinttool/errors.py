@@ -73,14 +73,8 @@ class CompileError(PrintableError):
             self.hint("Did you check your spelling?")
             self.hint("Are your dependencies up to date?")
 
-    def line_col_from_index(self, code, index):
-        sp = code[:index].splitlines(keepends=True)
-        line_num = len(sp)
-        col_num = len(sp[-1])
-        return (line_num, col_num)
-
     def pretty_print(self, filename, code):
-        line_num, col_num = self.line_col_from_index(code, self.start + 1)
+        line_num, col_num = utils.idx_to_pos(self.start + 1, code)
         line = code.splitlines(True)[line_num-1]
 
         print(f"""{_colors.RED}{_colors.BOLD}{self.category}: {self.message}{_colors.CLEAR}
