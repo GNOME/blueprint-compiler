@@ -1,5 +1,7 @@
 test:
   script:
-    - dnf install -y python3-pip
-    - python3 -m unittest
-    - pip3 install --user .
+    - dnf install -y meson
+    - meson _build
+    - ninja -C _build
+    - ninja -C _build test
+    - ninja -C _build install
