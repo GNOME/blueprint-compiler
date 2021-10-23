@@ -20,8 +20,8 @@
 
 import unittest
 
-from ..errors import PrintableError
-from ..tokenizer import Token, TokenType, tokenize
+from gtkblueprinttool.errors import PrintableError
+from gtkblueprinttool.tokenizer import Token, TokenType, tokenize
 
 
 class TestTokenizer(unittest.TestCase):
