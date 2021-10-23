@@ -19,6 +19,7 @@
 
 
 import sys, traceback
+from . import utils
 
 
 class _colors:
@@ -37,34 +38,63 @@ class PrintableError(Exception):
 
 
 class CompileError(PrintableError):
+    """ A PrintableError with a start/end position and optional hints """
+
     category = "error"
 
-    def __init__(self, message, start, end=None):
+    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None):
         super().__init__(message)
 
         self.message = message
         self.start = start
         self.end = end
+        self.hints = hints or []
 
-    def pretty_print(self, filename, code):
-        sp = code[:self.start+1].splitlines(keepends=True)
+        if did_you_mean is not None:
+            self._did_you_mean(*did_you_mean)
+
+    def hint(self, hint: str):
+        self.hints.append(hint)
+        return self
+
+
+    def _did_you_mean(self, word: str, options: [str]):
+        if word.replace("_", "-") in options:
+            self.hint(f"use '-', not '_': `{word.replace('_', '-')}`")
+            return
+
+        recommend = utils.did_you_mean(word, options)
+        if recommend is not None:
+            if word.casefold() == recommend.casefold():
+                self.hint(f"Did you mean `{recommend}` (note the capitalization)?")
+            else:
+                self.hint(f"Did you mean `{recommend}`?")
+        else:
+            self.hint("Did you check your spelling?")
+            self.hint("Are your dependencies up to date?")
+
+    def line_col_from_index(self, code, index):
+        sp = code[:index].splitlines(keepends=True)
         line_num = len(sp)
         col_num = len(sp[-1])
+        return (line_num, col_num)
+
+    def pretty_print(self, filename, code):
+        line_num, col_num = self.line_col_from_index(code, self.start + 1)
         line = code.splitlines(True)[line_num-1]
 
         print(f"""{_colors.RED}{_colors.BOLD}{self.category}: {self.message}{_colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{_colors.FAINT}{line_num :>4} |{_colors.CLEAR}{line.rstrip()}\n     {_colors.FAINT}|{" "*(col_num-1)}^{_colors.CLEAR}
-""")
+{_colors.FAINT}{line_num :>4} |{_colors.CLEAR}{line.rstrip()}\n     {_colors.FAINT}|{" "*(col_num-1)}^{_colors.CLEAR}""")
+
+        for hint in self.hints:
+            print(f"{_colors.FAINT}hint: {hint}{_colors.CLEAR}")
+        print()
 
 
-class TokenizeError(CompileError):
-    def __init__(self, start):
-        super().__init__("Could not determine what kind of syntax is meant here", start)
-
-
-class ParseError(CompileError):
-    pass
+class AlreadyCaughtError(Exception):
+    """ Emitted when a validation has already failed and its error message
+    should not be repeated. """
 
 
 class MultipleErrors(PrintableError):

@@ -19,7 +19,7 @@
 
 
 from . import ast
-from .errors import MultipleErrors, ParseError
+from .errors import MultipleErrors
 from .parse_tree import *
 from .tokenizer import TokenType
 
@@ -31,7 +31,8 @@ def parse(tokens) -> ast.UI:
         ast.GtkDirective,
         Sequence(
             Directive("gtk"),
-            UseNumber("version", True).expected("a version number for GTK"),
+            Fail(UseNumber(None), "Version number must be in quotation marks"),
+            UseQuoted("version").expected("a version number for GTK"),
             StmtEnd().expected("`;`"),
         )
     )
@@ -41,7 +42,8 @@ def parse(tokens) -> ast.UI:
         Sequence(
             Directive("import"),
             UseIdent("namespace").expected("a GIR namespace"),
-            UseNumber("version", True).expected("a version number"),
+            Fail(UseNumber(None), "Version number must be in quotation marks"),
+            UseQuoted("version").expected("a version number"),
             StmtEnd().expected("`;`"),
         )
     ).recover()

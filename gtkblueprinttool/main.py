@@ -18,9 +18,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import argparse, sys
+import argparse, json, os, sys
 
-from .errors import PrintableError, report_compile_error
+from .errors import PrintableError, report_compile_error, MultipleErrors
+from .lsp import LanguageServer
 from .pipeline import Pipeline
 from . import parser, tokenizer
 
@@ -43,6 +44,8 @@ class BlueprintApp:
         try:
             opts = self.parser.parse_args()
             opts.func(opts)
+        except SystemExit as e:
+            raise e
         except:
             report_compile_error()
 
@@ -60,7 +63,12 @@ class BlueprintApp:
         try:
             tokens = tokenizer.tokenize(data)
             ast = parser.parse(tokens)
+
+            if len(ast.errors):
+                raise MultipleErrors(ast.errors)
+
             xml = ast.generate()
+
             if opts.output == "-":
                 print(xml)
             else:

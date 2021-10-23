@@ -21,7 +21,7 @@
 import re
 from enum import Enum
 
-from .errors import TokenizeError
+from .errors import CompileError
 
 
 class TokenType(Enum):
@@ -106,7 +106,7 @@ def _tokenize(ui_ml: str):
                 break
 
         if not matched:
-            raise TokenizeError(i)
+            raise CompileError("Could not determine what kind of syntax is meant here", i)
 
     yield Token(TokenType.EOF, i, i, ui_ml)
 

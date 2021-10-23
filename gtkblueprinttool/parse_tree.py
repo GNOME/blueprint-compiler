@@ -22,7 +22,7 @@
 from enum import Enum
 
 from .ast import AstNode
-from .errors import assert_true, CompilerBugError, CompileError, ParseError
+from .errors import assert_true, CompilerBugError, CompileError
 from .tokenizer import Token, TokenType
 
 
@@ -57,10 +57,13 @@ class ParseGroup:
     be converted to AST nodes by passing the children and key=value pairs to
     the AST node constructor. """
 
-    def __init__(self, ast_type):
+    def __init__(self, ast_type, start: int):
         self.ast_type = ast_type
         self.children = {}
         self.keys = {}
+        self.tokens = {}
+        self.start = start
+        self.end = None
 
     def add_child(self, child):
         child_type = child.ast_type.child_type
@@ -68,10 +71,11 @@ class ParseGroup:
             self.children[child_type] = []
         self.children[child_type].append(child)
 
-    def set_val(self, key, val):
+    def set_val(self, key, val, token):
         assert_true(key not in self.keys)
 
         self.keys[key] = val
+        self.tokens[key] = token
 
     def to_ast(self) -> AstNode:
         """ Creates an AST node from the match group. """
@@ -80,7 +84,12 @@ class ParseGroup:
             for child_type, children in self.children.items()
         }
         try:
-            return self.ast_type(**children, **self.keys)
+            ast = self.ast_type(**children, **self.keys)
+            ast.group = self
+            ast.child_nodes = [c for child_type in children.values() for c in child_type]
+            for child in ast.child_nodes:
+                child.parent = ast
+            return ast
         except TypeError as e:
             raise CompilerBugError(f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace.")
 
@@ -113,7 +122,10 @@ class ParseContext:
         context will be used to parse one node. If parsing is successful, the
         new context will be applied to "self". If parsing fails, the new
         context will be discarded. """
-        return ParseContext(self.tokens, self.index)
+        ctx = ParseContext(self.tokens, self.index)
+        ctx.errors = self.errors
+        ctx.warnings = self.warnings
+        return ctx
 
     def apply_child(self, other):
         """ Applies a child context to this context. """
@@ -121,10 +133,11 @@ class ParseContext:
         if other.group is not None:
             # If the other context had a match group, collect all the matched
             # values into it and then add it to our own match group.
-            for key, val in other.group_keys.items():
-                other.group.set_val(key, val)
+            for key, (val, token) in other.group_keys.items():
+                other.group.set_val(key, val, token)
             for child in other.group_children:
                 other.group.add_child(child)
+            other.group.end = other.tokens[other.index - 1].end
             self.group_children.append(other.group)
         else:
             # If the other context had no match group of its own, collect all
@@ -144,23 +157,12 @@ class ParseContext:
     def start_group(self, ast_type):
         """ Sets this context to have its own match group. """
         assert_true(self.group is None)
-        self.group = ParseGroup(ast_type)
+        self.group = ParseGroup(ast_type, self.tokens[self.index].start)
 
-    def set_group_val(self, key, value):
+    def set_group_val(self, key, value, token):
         """ Sets a matched key=value pair on the current match group. """
         assert_true(key not in self.group_keys)
-        self.group_keys[key] = value
-
-
-    def create_parse_error(self, message):
-        """ Creates a ParseError identifying the current token index. """
-        start_idx = self.start
-        while self.tokens[start_idx].type in _SKIP_TOKENS:
-            start_idx += 1
-
-        start_token = self.tokens[start_idx]
-        end_token = self.tokens[self.index]
-        return ParseError(message, start_token.start, end_token.end)
+        self.group_keys[key] = (value, token)
 
 
     def skip(self):
@@ -224,7 +226,32 @@ class Err(ParseNode):
 
     def _parse(self, ctx):
         if self.child.parse(ctx).failed():
-            raise ctx.create_parse_error(self.message)
+            start_idx = ctx.start
+            while ctx.tokens[start_idx].type in _SKIP_TOKENS:
+                start_idx += 1
+
+            start_token = ctx.tokens[start_idx]
+            end_token = ctx.tokens[ctx.index]
+            raise CompileError(self.message, start_token.start, end_token.end)
+        return True
+
+
+class Fail(ParseNode):
+    """ ParseNode that emits a compile error if it parses successfully. """
+
+    def __init__(self, child, message):
+        self.child = child
+        self.message = message
+
+    def _parse(self, ctx):
+        if self.child.parse(ctx).succeeded():
+            start_idx = ctx.start
+            while ctx.tokens[start_idx].type in _SKIP_TOKENS:
+                start_idx += 1
+
+            start_token = ctx.tokens[start_idx]
+            end_token = ctx.tokens[ctx.index]
+            raise CompileError(self.message, start_token.start, end_token.end)
         return True
 
 
@@ -250,6 +277,7 @@ class Group(ParseNode):
         self.child = child
 
     def _parse(self, ctx: ParseContext) -> bool:
+        ctx.skip()
         ctx.start_group(self.ast_type)
         return self.child.parse(ctx).succeeded()
 
@@ -367,16 +395,15 @@ class UseIdent(ParseNode):
         if token.type != TokenType.IDENT:
             return False
 
-        ctx.set_group_val(self.key, str(token))
+        ctx.set_group_val(self.key, str(token), token)
         return True
 
 
 class UseNumber(ParseNode):
     """ ParseNode that matches a number and sets it in a key=value pair on
     the containing match group. """
-    def __init__(self, key, keep_trailing_decimal=False):
+    def __init__(self, key):
         self.key = key
-        self.keep_trailing_decimal = keep_trailing_decimal
 
     def _parse(self, ctx: ParseContext):
         token = ctx.next_token()
@@ -384,9 +411,9 @@ class UseNumber(ParseNode):
             return False
 
         number = token.get_number()
-        if not self.keep_trailing_decimal and number % 1.0 == 0:
+        if number % 1.0 == 0:
             number = int(number)
-        ctx.set_group_val(self.key, number)
+        ctx.set_group_val(self.key, number, token)
         return True
 
 
@@ -405,7 +432,7 @@ class UseQuoted(ParseNode):
             .replace("\\n", "\n")
             .replace("\\\"", "\"")
             .replace("\\\\", "\\"))
-        ctx.set_group_val(self.key, string)
+        ctx.set_group_val(self.key, string, token)
         return True
 
 
@@ -418,7 +445,7 @@ class UseLiteral(ParseNode):
         self.literal = literal
 
     def _parse(self, ctx: ParseContext):
-        ctx.set_group_val(self.key, self.literal)
+        ctx.set_group_val(self.key, self.literal, None)
         return True
 
 
