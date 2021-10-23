@@ -27,6 +27,8 @@ class _colors:
     YELLOW = '\033[33m'
     FAINT = '\033[2m'
     BOLD = '\033[1m'
+    BLUE = '\033[34m'
+    UNDERLINE = '\033[4m'
     CLEAR = '\033[0m'
 
 class PrintableError(Exception):
@@ -122,6 +124,8 @@ def report_compile_error():
     print(traceback.format_exc())
     print(f"Arguments: {sys.argv}\n")
     print(f"""{_colors.BOLD}{_colors.RED}***** COMPILER BUG *****
-The gtk-blueprint-tool program has crashed. Please report the above stacktrace
-to the maintainers, along with the input file(s) if possible.{_colors.CLEAR}""")
+The gtk-blueprint-tool program has crashed. Please report the above stacktrace,
+along with the input file(s) if possible, on GitLab:
+{_colors.BOLD}{_colors.BLUE}{_colors.UNDERLINE}https://gitlab.gnome.org/jwestman/gtk-blueprint-tool/-/issues/new?issue
+{_colors.CLEAR}""")
 
