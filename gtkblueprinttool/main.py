@@ -22,7 +22,6 @@ import argparse, json, os, sys
 
 from .errors import PrintableError, report_compile_error, MultipleErrors
 from .lsp import LanguageServer
-from .pipeline import Pipeline
 from . import parser, tokenizer
 
 
