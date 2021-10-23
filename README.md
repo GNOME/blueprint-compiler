@@ -21,12 +21,12 @@ Here is what [the libshumate demo's UI definition](https://gitlab.gnome.org/GNOM
 looks like ported to this new format:
 
 ```
-@gtk 4.0;
+gtk 4.0;
 
-@import Adw 1.0;
-@import Shumate 1.0;
+import Adw 1.0;
+import Shumate 1.0;
 
-@template ShumateDemoWindow : Gtk.ApplicationWindow {
+template ShumateDemoWindow : Gtk.ApplicationWindow {
   can-focus: yes;
   title: _("Shumate Demo");
   default-width: 800;

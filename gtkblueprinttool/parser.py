@@ -30,7 +30,7 @@ def parse(tokens) -> ast.UI:
     gtk_directive = Group(
         ast.GtkDirective,
         Sequence(
-            Directive("gtk"),
+            Keyword("gtk"),
             Fail(UseNumber(None), "Version number must be in quotation marks"),
             UseQuoted("version").expected("a version number for GTK"),
             StmtEnd().expected("`;`"),
@@ -40,7 +40,7 @@ def parse(tokens) -> ast.UI:
     import_statement = Group(
         ast.Import,
         Sequence(
-            Directive("import"),
+            Keyword("import"),
             UseIdent("namespace").expected("a GIR namespace"),
             Fail(UseNumber(None), "Version number must be in quotation marks"),
             UseQuoted("version").expected("a version number"),
@@ -162,7 +162,7 @@ def parse(tokens) -> ast.UI:
     template = Group(
         ast.Template,
         Sequence(
-            Directive("template"),
+            Keyword("template"),
             UseIdent("name").expected("template class name"),
             Op(":").expected("`:`"),
             class_name.expected("parent class"),
@@ -173,7 +173,7 @@ def parse(tokens) -> ast.UI:
     ui = Group(
         ast.UI,
         Sequence(
-            gtk_directive.err("File must start with a @gtk directive (e.g. `@gtk 4.0;`)"),
+            gtk_directive.err("File must start with a gtk directive (e.g. `gtk 4.0;`)"),
             ZeroOrMore(import_statement),
             ZeroOrMore(AnyOf(
                 template,

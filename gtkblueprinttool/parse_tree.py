@@ -330,15 +330,6 @@ class Optional(ParseNode):
         return True
 
 
-class Directive(ParseNode):
-    """ ParseNode that matches a directive with the given name. """
-    def __init__(self, name):
-        self.name = name
-
-    def _parse(self, ctx: ParseContext):
-        return ctx.next_token().is_directive(self.name)
-
-
 class StaticToken(ParseNode):
     """ Base class for ParseNodes that match a token type without inspecting
     the token's contents. """
