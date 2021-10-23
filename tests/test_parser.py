@@ -45,6 +45,7 @@ class TestParser(unittest.TestCase):
         }
 
         Label {
+            style "dim-label", "my-class";
             label: "Text";
             notify::visible => on_notify_visible();
         }
@@ -109,3 +110,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(signal.handler, "on_notify_visible")
         self.assertEqual(signal.detail_name, "visible")
         self.assertFalse(signal.swapped)
+        self.assertEqual(len(obj.object_content.style), 1)
+        style = obj.object_content.style[0]
+        self.assertEqual(len(style.style_classes), 2)
+        self.assertEqual([s.name for s in style.style_classes], ["dim-label", "my-class"])

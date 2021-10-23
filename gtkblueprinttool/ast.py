@@ -266,14 +266,23 @@ class Child(AstNode):
 
 class ObjectContent(AstNode):
     child_type = "object_content"
-    def __init__(self, properties=[], signals=[], children=[]):
+    def __init__(self, properties=[], signals=[], children=[], style=[]):
         super().__init__()
         self.properties = properties
         self.signals = signals
         self.children = children
+        self.style = style
+
+    @validate()
+    def only_one_style_class(self):
+        if len(self.style) > 1:
+            raise CompileError(
+                f"Only one style directive allowed per object, but this object contains {len(self.style)}",
+                start=self.style[1].group.start,
+            )
 
     def emit_xml(self, xml: XmlEmitter):
-        for x in [*self.properties, *self.signals, *self.children]:
+        for x in [*self.properties, *self.signals, *self.children, *self.style]:
             x.emit_xml(xml)
 
 
@@ -390,3 +399,28 @@ class Signal(AstNode):
         if self.detail_name:
             name += "::" + self.detail_name
         xml.put_self_closing("signal", name=name, handler=self.handler, swapped="true" if self.swapped else None)
+
+
+class Style(AstNode):
+    child_type = "style"
+
+    def __init__(self, style_classes=None):
+        super().__init__()
+        self.style_classes = style_classes or []
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("style")
+        for style in self.style_classes:
+            style.emit_xml(xml)
+        xml.end_tag()
+
+
+class StyleClass(AstNode):
+    child_type = "style_classes"
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def emit_xml(self, xml):
+        xml.put_self_closing("class", name=self.name)

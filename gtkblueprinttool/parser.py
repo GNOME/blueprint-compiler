@@ -137,11 +137,27 @@ def parse(tokens) -> ast.UI:
         )
     )
 
+    style = Group(
+        ast.Style,
+        Sequence(
+            Keyword("style"),
+            Delimited(
+                Group(
+                    ast.StyleClass,
+                    UseQuoted("name")
+                ),
+                Comma(),
+            ),
+            StmtEnd(),
+        )
+    )
+
     object_content = Group(
         ast.ObjectContent,
         Sequence(
             OpenBlock(),
             ZeroOrMore(AnyOf(
+                style,
                 property,
                 binding,
                 signal,

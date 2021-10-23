@@ -319,6 +319,19 @@ class ZeroOrMore(ParseNode):
         return True
 
 
+class Delimited(ParseNode):
+    """ ParseNode that matches its first child any number of times (including zero
+    times) with its second child in between and optionally at the end. """
+    def __init__(self, child, delimiter):
+        self.child = child
+        self.delimiter = delimiter
+
+    def _parse(self, ctx):
+        while self.child.parse(ctx).matched() and self.delimiter.parse(ctx).matched():
+            pass
+        return True
+
+
 class Optional(ParseNode):
     """ ParseNode that matches its child zero or one times. It cannot fail to
     parse. """
@@ -361,6 +374,9 @@ class OpenParen(StaticToken):
 
 class CloseParen(StaticToken):
     token_type = TokenType.CLOSE_PAREN
+
+class Comma(StaticToken):
+    token_type = TokenType.COMMA
 
 
 class Op(ParseNode):
