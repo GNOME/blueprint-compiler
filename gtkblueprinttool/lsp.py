@@ -121,6 +121,10 @@ class LanguageServer:
         self._open_files[params.textDocument.uri] = text
         self._send_diagnostics(uri)
 
+    @command("textDocument/didClose")
+    def didClose(self, id, params):
+        del self._open_files[params.textDocument.uri]
+
     def _send_diagnostics(self, uri):
         text = self._open_files[uri]
 
