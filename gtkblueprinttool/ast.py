@@ -287,7 +287,7 @@ class ObjectContent(AstNode):
 
 class Property(AstNode):
     child_type = "properties"
-    def __init__(self, name, value=None, translatable=False, bind_source=None, bind_property=None, objects=None):
+    def __init__(self, name, value=None, translatable=False, bind_source=None, bind_property=None, objects=None, sync_create=None, after=None):
         super().__init__()
         self.name = name
         self.value = value
@@ -295,6 +295,13 @@ class Property(AstNode):
         self.bind_source = bind_source
         self.bind_property = bind_property
         self.objects = objects
+
+        bind_flags = []
+        if sync_create:
+            bind_flags.append("sync-create")
+        if after:
+            bind_flags.append("after")
+        self.bind_flags = "|".join(bind_flags) or None
 
 
     @validate()
@@ -338,6 +345,7 @@ class Property(AstNode):
             "translatable": "yes" if self.translatable else None,
             "bind-source": self.bind_source,
             "bind-property": self.bind_property,
+            "bind-flags": self.bind_flags,
         }
         if self.objects is not None:
             xml.start_tag("property", **props)

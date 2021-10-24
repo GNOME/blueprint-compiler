@@ -103,6 +103,10 @@ def parse(tokens) -> ast.UI:
             UseIdent("bind_source").expected("the ID of a source object to bind from"),
             Op("."),
             UseIdent("bind_property").expected("a property name to bind from"),
+            AnyOf(
+                Sequence(Keyword("sync-create"), UseLiteral("sync_create", True)),
+                Sequence(Keyword("after"), UseLiteral("after", True)),
+            ),
             StmtEnd().expected("`;`"),
         )
     ).recover()
