@@ -26,7 +26,7 @@ from .utils import lazy_prop
 
 PARSE_GIR = set([
     "repository", "namespace", "class", "interface", "property", "glib:signal",
-    "include",
+    "include", "implements",
 ])
 
 

@@ -77,12 +77,20 @@ def parse(tokens) -> ast.UI:
         UseQuoted("value"),
     )
 
+    object = Group(
+        ast.Object,
+        None
+    )
+
     property = Group(
         ast.Property,
         Sequence(
             UseIdent("name"),
             Op(":"),
-            value.expected("a value"),
+            AnyOf(
+                object,
+                value,
+            ).expected("a value"),
             StmtEnd().expected("`;`"),
         )
     ).recover()
@@ -120,11 +128,6 @@ def parse(tokens) -> ast.UI:
         )
     ).recover()
 
-    object = Group(
-        ast.Object,
-        None
-    )
-
     child = Group(
         ast.Child,
         Sequence(
@@ -152,6 +155,93 @@ def parse(tokens) -> ast.UI:
         )
     )
 
+    menu_contents = Sequence()
+
+    menu_section = Group(
+        ast.Menu,
+        Sequence(
+            Keyword("section"),
+            UseLiteral("tag", "section"),
+            Optional(UseIdent("id")),
+            menu_contents
+        )
+    )
+
+    menu_submenu = Group(
+        ast.Menu,
+        Sequence(
+            Keyword("submenu"),
+            UseLiteral("tag", "submenu"),
+            Optional(UseIdent("id")),
+            menu_contents
+        )
+    )
+
+    menu_attribute = Group(
+        ast.MenuAttribute,
+        Sequence(
+            UseIdent("name"),
+            Op(":"),
+            value.expected("a value"),
+            StmtEnd().expected("`;`"),
+        )
+    )
+
+    menu_item = Group(
+        ast.Menu,
+        Sequence(
+            Keyword("item"),
+            UseLiteral("tag", "item"),
+            Optional(UseIdent("id")),
+            OpenBlock().expected("`{`"),
+            ZeroOrMore(menu_attribute),
+            CloseBlock().err("Could not understand statement"),
+        )
+    )
+
+    menu_item_shorthand = Group(
+        ast.Menu,
+        Sequence(
+            Keyword("item"),
+            UseLiteral("tag", "item"),
+            Group(
+                ast.MenuAttribute,
+                Sequence(UseLiteral("name", "label"), value),
+            ),
+            Optional(Group(
+                ast.MenuAttribute,
+                Sequence(UseLiteral("name", "action"), value),
+            )),
+            Optional(Group(
+                ast.MenuAttribute,
+                Sequence(UseLiteral("name", "verb-icon-name"), value),
+            )),
+            StmtEnd().expected("`;`"),
+        )
+    )
+
+    menu_contents.children = [
+        OpenBlock().expected("`{`"),
+        ZeroOrMore(AnyOf(
+            menu_section,
+            menu_submenu,
+            menu_item_shorthand,
+            menu_item,
+            menu_attribute,
+        )),
+        CloseBlock().err("Could not understand statement"),
+    ]
+
+    menu = Group(
+        ast.Menu,
+        Sequence(
+            Keyword("menu"),
+            UseLiteral("tag", "menu"),
+            Optional(UseIdent("id")),
+            menu_contents
+        ),
+    )
+
     object_content = Group(
         ast.ObjectContent,
         Sequence(
@@ -171,7 +261,7 @@ def parse(tokens) -> ast.UI:
     object.child = Sequence(
         class_name,
         Optional(UseIdent("id")),
-        object_content.expected("block"),
+        object_content,
     )
 
     template = Group(
@@ -192,6 +282,7 @@ def parse(tokens) -> ast.UI:
             ZeroOrMore(import_statement),
             ZeroOrMore(AnyOf(
                 template,
+                menu,
                 object,
             )),
             Eof().err("Failed to parse the rest of the file"),

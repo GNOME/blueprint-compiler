@@ -44,6 +44,17 @@ class TestParser(unittest.TestCase):
             }
         }
 
+        menu my_menu {
+            section {
+                item {
+                    label: "Run";
+                    target: "run";
+                }
+            }
+            submenu {}
+            item _("Copy") copy-symbolic app.copy;
+        }
+
         Label {
             style "dim-label", "my-class";
             label: "Text";

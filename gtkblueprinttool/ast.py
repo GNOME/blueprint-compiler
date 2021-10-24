@@ -128,7 +128,7 @@ class AstNode:
 class UI(AstNode):
     """ The AST node for the entire file """
 
-    def __init__(self, gtk_directives=[], imports=[], objects=[], templates=[]):
+    def __init__(self, gtk_directives=[], imports=[], objects=[], templates=[], menus=[]):
         super().__init__()
         assert_true(len(gtk_directives) == 1)
 
@@ -136,6 +136,7 @@ class UI(AstNode):
         self.imports = imports
         self.objects = objects
         self.templates = templates
+        self.menus = menus
 
     @validate()
     def gir(self):
@@ -156,10 +157,8 @@ class UI(AstNode):
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("interface")
         self.gtk_directive.emit_xml(xml)
-        for object in self.objects:
-            object.emit_xml(xml)
-        for template in self.templates:
-            template.emit_xml(xml)
+        for x in [*self.templates, *self.objects, *self.menus]:
+            x.emit_xml(xml)
         xml.end_tag()
 
 
@@ -288,13 +287,14 @@ class ObjectContent(AstNode):
 
 class Property(AstNode):
     child_type = "properties"
-    def __init__(self, name, value=None, translatable=False, bind_source=None, bind_property=None):
+    def __init__(self, name, value=None, translatable=False, bind_source=None, bind_property=None, objects=None):
         super().__init__()
         self.name = name
         self.value = value
         self.translatable = translatable
         self.bind_source = bind_source
         self.bind_property = bind_property
+        self.objects = objects
 
 
     @validate()
@@ -339,7 +339,11 @@ class Property(AstNode):
             "bind-source": self.bind_source,
             "bind-property": self.bind_property,
         }
-        if self.value is None:
+        if self.objects is not None:
+            xml.start_tag("property", **props)
+            self.objects[0].emit_xml(xml)
+            xml.end_tag()
+        elif self.value is None:
             xml.put_self_closing("property", **props)
         else:
             xml.start_tag("property", **props)
@@ -424,3 +428,41 @@ class StyleClass(AstNode):
 
     def emit_xml(self, xml):
         xml.put_self_closing("class", name=self.name)
+
+
+class Menu(AstNode):
+    child_type = "menus"
+
+    def __init__(self, tag, id=None, menus=None, attributes=None):
+        super().__init__()
+        self.tag = tag
+        self.id = id
+        self.menus = menus or []
+        self.attributes = attributes or []
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag(self.tag, id=self.id)
+        for attr in self.attributes:
+            attr.emit_xml(xml)
+        for menu in self.menus:
+            menu.emit_xml(xml)
+        xml.end_tag()
+
+
+class MenuAttribute(AstNode):
+    child_type = "attributes"
+
+    def __init__(self, name, value, translatable=False):
+        super().__init__()
+        self.name = name
+        self.value = value
+        self.translatable = translatable
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag(
+            "attribute",
+             name=self.name,
+             translatable="yes" if self.translatable else None,
+        )
+        xml.put_text(str(self.value))
+        xml.end_tag()
