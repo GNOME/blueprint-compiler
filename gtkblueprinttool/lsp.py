@@ -21,7 +21,7 @@
 import json, sys, traceback
 
 from .errors import PrintableError, CompileError, MultipleErrors
-from .lsp_enums import *
+from .lsp_utils import *
 from . import tokenizer, parser, utils
 
 
@@ -37,7 +37,7 @@ class LanguageServer:
 
     def __init__(self):
         self.client_capabilities = {}
-        self._open_files = {}
+        self._open_files: {str: OpenFile} = {}
 
     def run(self):
         try:
@@ -94,7 +94,7 @@ class LanguageServer:
             "capabilities": {
                 "textDocumentSync": {
                     "openClose": True,
-                    "change": 1
+                    "change": TextDocumentSyncKind.Incremental,
                 }
             }
         })
@@ -106,41 +106,26 @@ class LanguageServer:
         version = doc.get("version")
         text = doc.get("text")
 
-        self._open_files[uri] = text
-        self._send_diagnostics(uri)
+        open_file = OpenFile(uri, text, version)
+        self._open_files[uri] = open_file
+        self._send_file_updates(open_file)
 
     @command("textDocument/didChange")
     def didChange(self, id, params):
-        text = self._open_files[params.textDocument.uri]
+        open_file = self._open_files[params.textDocument.uri]
 
-        for change in params.contentChanges:
-            start = utils.pos_to_idx(change.range.start.line, change.range.start.character, text)
-            end = utils.pos_to_idx(change.range.end.line, change.range.end.character, text)
-            text = text[:start] + change.text + text[end:]
-
-        self._open_files[params.textDocument.uri] = text
-        self._send_diagnostics(uri)
+        open_file.apply_changes(params.contentChanges)
+        self._send_file_updates(open_file)
 
     @command("textDocument/didClose")
     def didClose(self, id, params):
         del self._open_files[params.textDocument.uri]
 
-    def _send_diagnostics(self, uri):
-        text = self._open_files[uri]
 
-        diagnostics = []
-        try:
-            tokens = tokenizer.tokenize(text)
-            ast = parser.parse(tokens)
-            diagnostics = [self._create_diagnostic(text, err) for err in list(ast.errors)]
-        except MultipleErrors as e:
-            diagnostics += [self._create_diagnostic(text, err) for err in e.errors]
-        except CompileError as e:
-            diagnostics += [self._create_diagnostic(text, e)]
-
+    def _send_file_updates(self, open_file: OpenFile):
         self._send_notification("textDocument/publishDiagnostics", {
             "uri": uri,
-            "diagnostics": diagnostics,
+            "diagnostics": [self._create_diagnostic(open_file.text, err) for err in open_file.diagnostics],
         })
 
     def _create_diagnostic(self, text, err):

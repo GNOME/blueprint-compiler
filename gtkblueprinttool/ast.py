@@ -17,67 +17,13 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
+from .ast_utils import *
 from .errors import assert_true, AlreadyCaughtError, CompileError, CompilerBugError, MultipleErrors
 from .gir import GirContext, get_namespace
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
-
-
-class Validator():
-    def __init__(self, func, token_name=None, end_token_name=None):
-        self.func = func
-        self.token_name = token_name
-        self.end_token_name = end_token_name
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-
-        key = "_validation_result_" + self.func.__name__
-
-        if key + "_err" in instance.__dict__:
-            # If the validator has failed before, raise a generic Exception.
-            # We want anything that depends on this validation result to
-            # fail, but not report the exception twice.
-            raise AlreadyCaughtError()
-
-        if key not in instance.__dict__:
-            try:
-                instance.__dict__[key] = self.func(instance)
-            except CompileError as e:
-                # Mark the validator as already failed so we don't print the
-                # same message again
-                instance.__dict__[key + "_err"] = True
-
-                # This mess of code sets the error's start and end positions
-                # from the tokens passed to the decorator, if they have not
-                # already been set
-                if self.token_name is not None and e.start is None:
-                    group = instance.group.tokens.get(self.token_name)
-                    if self.end_token_name is not None and group is None:
-                        group = instance.group.tokens[self.end_token_name]
-                    e.start = group.start
-                if (self.token_name is not None or self.end_token_name is not None) and e.end is None:
-                    e.end = instance.group.tokens[self.end_token_name or self.token_name].end
-
-                # Re-raise the exception
-                raise e
-
-        # Return the validation result (which other validators, or the code
-        # generation phase, might depend on)
-        return instance.__dict__[key]
-
-
-def validate(*args, **kwargs):
-    """ Decorator for functions that validate an AST node. Exceptions raised
-    during validation are marked with range information from the tokens. Also
-    creates a cached property out of the function. """
-
-    def decorator(func):
-        return Validator(func, *args, **kwargs)
-
-    return decorator
 
 
 class AstNode:
@@ -100,19 +46,22 @@ class AstNode:
         return list(self._get_errors())
 
     def _get_errors(self):
-        for name in dir(type(self)):
-            item = getattr(type(self), name)
-            if isinstance(item, Validator):
-                try:
-                    getattr(self, name)
-                except AlreadyCaughtError:
-                    pass
-                except CompileError as e:
-                    yield e
+        for name, attr in self._attrs_by_type(Validator):
+            try:
+                getattr(self, name)
+            except AlreadyCaughtError:
+                pass
+            except CompileError as e:
+                yield e
 
         for child in self.child_nodes:
             yield from child._get_errors()
 
+    def _attrs_by_type(self, attr_type):
+        for name in dir(type(self)):
+            item = getattr(type(self), name)
+            if isinstance(item, attr_type):
+                yield name, item
 
     def generate(self) -> str:
         """ Generates an XML string from the node. """
@@ -123,6 +72,21 @@ class AstNode:
     def emit_xml(self, xml: XmlEmitter):
         """ Emits the XML representation of this AST node to the XmlEmitter. """
         raise NotImplementedError()
+
+    def get_docs(self, idx: int) -> T.Optional[str]:
+        for name, attr in self._attrs_by_type(Docs):
+            if attr.token_name:
+                token = self.group.tokens.get(attr.token_name)
+                if token.start <= idx < token.end:
+                    return getattr(self, name)
+            else:
+                return getattr(self, name)
+
+        for child in self.child_nodes:
+            if child.group.start <= idx < child.group.end:
+                docs = child.get_docs(idx)
+                if docs is not None:
+                    return docs
 
 
 class UI(AstNode):
@@ -239,6 +203,16 @@ class Object(AstNode):
     @validate("namespace", "class_name")
     def gir_class(self):
         return self.root.gir.get_class(self.class_name, self.namespace)
+
+
+    @docs("namespace")
+    def namespace_docs(self):
+        return self.root.gir.namespaces[self.namespace].doc
+
+    @docs("namespace")
+    def class_docs(self):
+        return self.gir_class.doc
+
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("object", **{
