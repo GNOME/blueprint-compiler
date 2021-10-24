@@ -24,9 +24,10 @@ from xml import sax
 from .utils import lazy_prop
 
 
+# To speed up parsing, we ignore all tags except these
 PARSE_GIR = set([
     "repository", "namespace", "class", "interface", "property", "glib:signal",
-    "include", "implements",
+    "include", "implements"
 ])
 
 
@@ -52,10 +53,13 @@ class Handler(sax.handler.ContentHandler):
     def __init__(self, parse_type):
         self.root = None
         self.stack = []
+        self.skipping = 0
         self._interesting_elements = parse_type
 
     def startElement(self, name, attrs):
         if name not in self._interesting_elements:
+            self.skipping += 1
+        if self.skipping > 0:
             return
 
         element = Element(name, attrs.copy())
@@ -70,11 +74,14 @@ class Handler(sax.handler.ContentHandler):
 
 
     def endElement(self, name):
-        if name in self._interesting_elements:
+        if self.skipping == 0:
             self.stack.pop()
+        if name not in self._interesting_elements:
+            self.skipping -= 1
 
     def characters(self, content):
-        self.stack[-1].cdata_chunks.append(content)
+        if not self.skipping:
+            self.stack[-1].cdata_chunks.append(content)
 
 
 def parse(filename, parse_type):

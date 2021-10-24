@@ -77,7 +77,7 @@ class AstNode:
         for name, attr in self._attrs_by_type(Docs):
             if attr.token_name:
                 token = self.group.tokens.get(attr.token_name)
-                if token.start <= idx < token.end:
+                if token and token.start <= idx < token.end:
                     return getattr(self, name)
             else:
                 return getattr(self, name)
@@ -180,6 +180,15 @@ class Template(AstNode):
         return self.root.gir.get_class(self.parent_class, self.parent_namespace)
 
 
+    @docs("namespace")
+    def namespace_docs(self):
+        return self.root.gir.namespaces[self.namespace].doc
+
+    @docs("class_name")
+    def class_docs(self):
+        return self.gir_class.doc
+
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("template", **{
             "class": self.name,
@@ -209,7 +218,7 @@ class Object(AstNode):
     def namespace_docs(self):
         return self.root.gir.namespaces[self.namespace].doc
 
-    @docs("namespace")
+    @docs("class_name")
     def class_docs(self):
         return self.gir_class.doc
 
@@ -293,7 +302,6 @@ class Property(AstNode):
         else:
             raise CompilerBugError()
 
-
     @validate("name")
     def property_exists(self):
         if self.gir_class is None:
@@ -311,6 +319,12 @@ class Property(AstNode):
                 f"Class {self.gir_class.full_name} does not contain a property called {self.name}",
                 did_you_mean=(self.name, self.gir_class.properties.keys())
             )
+
+
+    @docs("name")
+    def property_docs(self):
+        if self.gir_property is not None:
+            return self.gir_property.doc
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -360,7 +374,6 @@ class Signal(AstNode):
         else:
             raise CompilerBugError()
 
-
     @validate("name")
     def signal_exists(self):
         if self.gir_class is None:
@@ -374,11 +387,17 @@ class Signal(AstNode):
             return
 
         if self.gir_signal is None:
-            print(self.gir_class.signals.keys())
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a signal called {self.name}",
                 did_you_mean=(self.name, self.gir_class.signals.keys())
             )
+
+
+    @docs("name")
+    def signal_docs(self):
+        if self.gir_signal is not None:
+            return self.gir_signal.doc
+
 
     def emit_xml(self, xml: XmlEmitter):
         name = self.name

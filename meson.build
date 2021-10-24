@@ -15,6 +15,12 @@ configure_file(
   install_dir: join_paths(libdir, 'pkgconfig'),
 )
 
+install_data(
+  'gtk-blueprint-tool.py',
+  install_dir: get_option('bindir'),
+  rename: 'gtk-blueprint-tool',
+)
+
 meson.override_find_program('gtk-blueprint-tool', find_program('gtk-blueprint-tool.py'))
 
 if not meson.is_subproject()

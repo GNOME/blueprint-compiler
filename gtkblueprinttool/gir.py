@@ -72,10 +72,10 @@ class GirNode:
 
     @lazy_prop
     def doc(self) -> str:
-        el = self.xml.find("doc")
-        if el is None:
+        el = self.xml.get_elements("doc")
+        if len(el) != 1:
             return None
-        return el.cdata
+        return el[0].cdata.strip()
 
 
 class Property(GirNode):

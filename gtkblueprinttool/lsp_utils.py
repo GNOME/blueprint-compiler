@@ -20,13 +20,9 @@
 
 from enum import Enum
 
+from . import tokenizer, parser
+from .errors import *
 from .utils import *
-
-
-class TextDocumentSyncKind(Enum):
-    None_ = 0,
-    Full = 1,
-    Incremental = 2,
 
 
 class OpenFile:
@@ -35,7 +31,6 @@ class OpenFile:
         self.text = text
         self.version = version
 
-        self.diagnostics = []
         self._update()
 
     def apply_changes(self, changes):
@@ -50,8 +45,8 @@ class OpenFile:
         try:
             self.tokens = tokenizer.tokenize(self.text)
             self.ast = parser.parse(self.tokens)
-            self.diagnostics = [self._create_diagnostic(text, err) for err in list(ast.errors)]
+            self.diagnostics += self.ast.errors
         except MultipleErrors as e:
-            self.diagnostics += [self._create_diagnostic(text, err) for err in e.errors]
+            self.diagnostics += e.errors
         except CompileError as e:
-            self.diagnostics += [self._create_diagnostic(text, e)]
+            self.diagnostics += e

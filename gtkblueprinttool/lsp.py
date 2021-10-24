@@ -22,7 +22,7 @@ import json, sys, traceback
 
 from .errors import PrintableError, CompileError, MultipleErrors
 from .lsp_utils import *
-from . import tokenizer, parser, utils
+from . import tokenizer, parser, utils, xml_reader
 
 
 def command(json_method):
@@ -40,6 +40,10 @@ class LanguageServer:
         self._open_files: {str: OpenFile} = {}
 
     def run(self):
+        # Read <doc> tags from gir files. During normal compilation these are
+        # ignored.
+        xml_reader.PARSE_GIR.add("doc")
+
         try:
             while True:
                 line = ""
@@ -72,7 +76,10 @@ class LanguageServer:
         sys.stdout.flush()
 
     def _log(self, msg):
-        pass
+        if self.logfile is not None:
+            self.logfile.write(str(msg))
+            self.logfile.write("\n")
+            self.logfile.flush()
 
     def _send_response(self, id, result):
         self._send({
@@ -94,8 +101,9 @@ class LanguageServer:
             "capabilities": {
                 "textDocumentSync": {
                     "openClose": True,
-                    "change": TextDocumentSyncKind.Incremental,
-                }
+                    "change": 2, # incremental
+                },
+                "hoverProvider": True,
             }
         })
 
@@ -112,19 +120,33 @@ class LanguageServer:
 
     @command("textDocument/didChange")
     def didChange(self, id, params):
-        open_file = self._open_files[params.textDocument.uri]
-
-        open_file.apply_changes(params.contentChanges)
-        self._send_file_updates(open_file)
+        if params is not None:
+            open_file = self._open_files[params["textDocument"]["uri"]]
+            open_file.apply_changes(params["contentChanges"])
+            self._send_file_updates(open_file)
 
     @command("textDocument/didClose")
     def didClose(self, id, params):
-        del self._open_files[params.textDocument.uri]
+        del self._open_files[params["textDocument"]["uri"]]
+
+    @command("textDocument/hover")
+    def hover(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+        docs = open_file.ast.get_docs(utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text))
+        if docs is not None:
+            self._send_response(id, {
+                "contents": {
+                    "kind": "markdown",
+                    "value": docs,
+                }
+            })
+        else:
+            self._send_response(id, None)
 
 
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification("textDocument/publishDiagnostics", {
-            "uri": uri,
+            "uri": open_file.uri,
             "diagnostics": [self._create_diagnostic(open_file.text, err) for err in open_file.diagnostics],
         })
 

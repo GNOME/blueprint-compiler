@@ -80,6 +80,11 @@ class Docs:
         self.func = func
         self.token_name = token_name
 
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.func(instance)
+
 
 def docs(*args, **kwargs):
     """ Decorator for functions that return documentation for tokens. """
