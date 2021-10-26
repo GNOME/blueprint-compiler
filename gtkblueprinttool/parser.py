@@ -99,7 +99,8 @@ def parse(tokens) -> ast.UI:
         ast.Property,
         Sequence(
             UseIdent("name"),
-            Op(":="),
+            Op(":"),
+            Keyword("bind"),
             UseIdent("bind_source").expected("the ID of a source object to bind from"),
             Op("."),
             UseIdent("bind_property").expected("a property name to bind from"),
@@ -252,8 +253,8 @@ def parse(tokens) -> ast.UI:
             OpenBlock(),
             ZeroOrMore(AnyOf(
                 style,
-                property,
                 binding,
+                property,
                 signal,
                 child,
             )),
