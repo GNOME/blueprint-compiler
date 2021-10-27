@@ -34,7 +34,7 @@ def command(json_method):
 
 
 class LanguageServer:
-    commands: T.Dict[str, T.Callable[[LanguageServer, T.Union[str, int], T.Any], None]] = {}
+    commands: T.Dict[str, T.Callable] = {}
 
     def __init__(self):
         self.client_capabilities = {}
