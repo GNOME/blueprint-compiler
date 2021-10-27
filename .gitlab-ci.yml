@@ -1,6 +1,7 @@
 test:
   script:
-    - dnf install -y meson
+    - dnf install -y meson python3-mypy
+    - mypy gtkblueprinttool
     - meson _build
     - ninja -C _build
     - ninja -C _build test
