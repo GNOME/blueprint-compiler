@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 import json, sys, traceback
 
 from .errors import PrintableError, CompileError, MultipleErrors
@@ -33,7 +34,7 @@ def command(json_method):
 
 
 class LanguageServer:
-    commands = {}
+    commands: T.Dict[str, T.Callable[[LanguageServer, T.Union[str, int], T.Any], None]] = {}
 
     def __init__(self):
         self.client_capabilities = {}

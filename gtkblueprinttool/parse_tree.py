@@ -19,6 +19,9 @@
 
 """ Utilities for parsing an AST from a token stream. """
 
+import typing as T
+
+from collections import defaultdict
 from enum import Enum
 
 from .ast import AstNode
@@ -27,7 +30,12 @@ from .tokenizer import Token, TokenType
 
 
 _SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
-_RECOVER_TOKENS = [TokenType.COMMENT, TokenType.STMT_END, TokenType.CLOSE_BLOCK, TokenType.EOF]
+_RECOVER_TOKENS = [
+    TokenType.COMMENT,
+    TokenType.STMT_END,
+    TokenType.CLOSE_BLOCK,
+    TokenType.EOF,
+]
 
 
 class ParseResult(Enum):
@@ -59,9 +67,9 @@ class ParseGroup:
 
     def __init__(self, ast_type, start: int):
         self.ast_type = ast_type
-        self.children = {}
-        self.keys = {}
-        self.tokens = {}
+        self.children: T.Dict[str, T.List[ParseGroup]] = defaultdict()
+        self.keys: T.Dict[str, T.Any] = {}
+        self.tokens: T.Dict[str, Token] = {}
         self.start = start
         self.end = None
 
@@ -194,6 +202,9 @@ class ParseNode:
                 return ParseResult.SUCCESS
         else:
             return ParseResult.FAILURE
+
+    def _parse(self, ctx: ParseContext) -> bool:
+        raise NotImplementedError()
 
     def err(self, message):
         """ Causes this ParseNode to raise an exception if it fails to parse.
@@ -346,7 +357,7 @@ class Optional(ParseNode):
 class StaticToken(ParseNode):
     """ Base class for ParseNodes that match a token type without inspecting
     the token's contents. """
-    token_type = None
+    token_type: T.Optional[TokenType] = None
 
     def _parse(self, ctx: ParseContext) -> bool:
         return ctx.next_token().type == self.token_type

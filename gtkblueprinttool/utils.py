@@ -32,7 +32,7 @@ def lazy_prop(func):
     return real_func
 
 
-def did_you_mean(word: str, options: [str]) -> T.Optional[str]:
+def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
     if len(options) == 0:
         return None
 
@@ -67,7 +67,7 @@ def did_you_mean(word: str, options: [str]) -> T.Optional[str]:
     return None
 
 
-def idx_to_pos(idx: int, text: str) -> (int, int):
+def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
     if idx == 0:
         return (0, 0)
     sp = text[:idx].splitlines(keepends=True)

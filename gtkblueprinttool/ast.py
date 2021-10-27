@@ -88,6 +88,8 @@ class AstNode:
                 if docs is not None:
                     return docs
 
+        return None
+
 
 class UI(AstNode):
     """ The AST node for the entire file """

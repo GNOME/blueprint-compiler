@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 import sys, traceback
 from . import utils
 
@@ -60,7 +61,7 @@ class CompileError(PrintableError):
         return self
 
 
-    def _did_you_mean(self, word: str, options: [str]):
+    def _did_you_mean(self, word: str, options: T.List[str]):
         if word.replace("_", "-") in options:
             self.hint(f"use '-', not '_': `{word.replace('_', '-')}`")
             return
@@ -98,11 +99,11 @@ class MultipleErrors(PrintableError):
     a list and re-thrown using the MultipleErrors exception. It will
     pretty-print all of the errors and a count of how many errors there are. """
 
-    def __init__(self, errors: [CompileError]):
+    def __init__(self, errors: T.List[CompileError]):
         super().__init__()
         self.errors = errors
 
-    def pretty_print(self, filename, code) -> str:
+    def pretty_print(self, filename, code) -> None:
         for error in self.errors:
             error.pretty_print(filename, code)
         if len(self.errors) != 1:

@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 import re
 from enum import Enum
 
@@ -43,7 +44,7 @@ class TokenType(Enum):
     COMMA           = 15
 
 
-_TOKENS = [
+_tokens = [
     (TokenType.DIRECTIVE,       r"@[\d\w\-_]+"),
     (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
     (TokenType.QUOTED,          r'"(\\"|[^"\n])+"'),
@@ -63,7 +64,7 @@ _TOKENS = [
     (TokenType.OP,              r"[:=\.=\|<>\+\-/\*]+"),
     (TokenType.COMMA,           r"\,"),
 ]
-_TOKENS = [(type, re.compile(regex)) for (type, regex) in _TOKENS]
+_TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]
 
 
 class Token:
@@ -111,5 +112,5 @@ def _tokenize(ui_ml: str):
     yield Token(TokenType.EOF, i, i, ui_ml)
 
 
-def tokenize(data: str) -> [Token]:
+def tokenize(data: str) -> T.List[Token]:
     return list(_tokenize(data))

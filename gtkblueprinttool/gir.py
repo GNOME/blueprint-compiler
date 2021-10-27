@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 import os, sys
 
 from .errors import CompileError, CompilerBugError
@@ -24,7 +25,7 @@ from .utils import lazy_prop
 from . import xml_reader
 
 
-extra_search_paths = []
+extra_search_paths: T.List[str] = []
 _namespace_cache = {}
 
 _search_paths = []
@@ -71,7 +72,7 @@ class GirNode:
         return self.xml.get("version")
 
     @lazy_prop
-    def doc(self) -> str:
+    def doc(self) -> T.Optional[str]:
         el = self.xml.get_elements("doc")
         if len(el) != 1:
             return None
@@ -175,7 +176,7 @@ class Repository(GirNode):
         try:
             self.includes = { include["name"]: get_namespace(include["name"], include["version"]) for include in xml.get_elements("include") }
         except:
-            raise CompilerBugError(f"Failed to load dependencies of {namespace}-{version}")
+            raise CompilerBugError(f"Failed to load dependencies.")
 
     def lookup_namespace(self, name: str):
         ns = self.namespaces.get(name)
@@ -195,7 +196,7 @@ class GirContext:
     def add_namespace(self, namespace: Namespace):
         other = self.namespaces.get(namespace.name)
         if other is not None and other.version != namespace.version:
-            raise CompileError(f"Namespace {namespace}-{version} can't be imported because version {other.version} was imported earlier")
+            raise CompileError(f"Namespace {namespace.name}-{namespace.version} can't be imported because version {other.version} was imported earlier")
 
         self.namespaces[namespace.name] = namespace
 
