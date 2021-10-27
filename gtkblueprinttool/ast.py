@@ -165,7 +165,7 @@ class Import(AstNode):
 
 class Template(AstNode):
     child_type = "templates"
-    def __init__(self, name, class_name, object_content, namespace=None):
+    def __init__(self, name, class_name, object_content, namespace=None, ignore_gir=False):
         super().__init__()
         assert_true(len(object_content) == 1)
 
@@ -173,26 +173,29 @@ class Template(AstNode):
         self.parent_namespace = namespace
         self.parent_class = class_name
         self.object_content = object_content[0]
+        self.ignore_gir = ignore_gir
 
 
     @validate("namespace", "class_name")
     def gir_parent(self):
-        return self.root.gir.get_class(self.parent_class, self.parent_namespace)
+        if not self.ignore_gir:
+            return self.root.gir.get_class(self.parent_class, self.parent_namespace)
 
 
     @docs("namespace")
     def namespace_docs(self):
-        return self.root.gir.namespaces[self.namespace].doc
+        return self.root.gir.namespaces[self.parent_namespace].doc
 
     @docs("class_name")
     def class_docs(self):
-        return self.gir_class.doc
+        if self.gir_parent:
+            return self.gir_parent.doc
 
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("template", **{
             "class": self.name,
-            "parent": self.gir_parent.glib_type_name,
+            "parent": self.gir_parent.glib_type_name if self.gir_parent else self.parent_class,
         })
         self.object_content.emit_xml(xml)
         xml.end_tag()
@@ -200,7 +203,7 @@ class Template(AstNode):
 
 class Object(AstNode):
     child_type = "objects"
-    def __init__(self, class_name, object_content, namespace=None, id=None):
+    def __init__(self, class_name, object_content, namespace=None, id=None, ignore_gir=False):
         super().__init__()
         assert_true(len(object_content) == 1)
 
@@ -208,10 +211,12 @@ class Object(AstNode):
         self.class_name = class_name
         self.id = id
         self.object_content = object_content[0]
+        self.ignore_gir = ignore_gir
 
     @validate("namespace", "class_name")
     def gir_class(self):
-        return self.root.gir.get_class(self.class_name, self.namespace)
+        if not self.ignore_gir:
+            return self.root.gir.get_class(self.class_name, self.namespace)
 
 
     @docs("namespace")
@@ -220,12 +225,13 @@ class Object(AstNode):
 
     @docs("class_name")
     def class_docs(self):
-        return self.gir_class.doc
+        if self.gir_class:
+            return self.gir_class.doc
 
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("object", **{
-            "class": self.gir_class.glib_type_name,
+            "class": self.gir_class.glib_type_name if self.gir_class else self.class_name,
             "id": self.id,
         })
         self.object_content.emit_xml(xml)

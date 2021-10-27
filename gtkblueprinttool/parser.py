@@ -53,6 +53,11 @@ def parse(tokens) -> ast.UI:
             Op("."),
             UseIdent("class_name"),
         ),
+        Sequence(
+            Op("."),
+            UseIdent("class_name"),
+            UseLiteral("ignore_gir", True),
+        ),
         UseIdent("class_name"),
     )
 

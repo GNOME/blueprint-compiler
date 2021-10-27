@@ -190,7 +190,6 @@ class Repository(GirNode):
 class GirContext:
     def __init__(self):
         self.namespaces = {}
-        self.incomplete = set([])
 
 
     def add_namespace(self, namespace: Namespace):
@@ -199,12 +198,6 @@ class GirContext:
             raise CompileError(f"Namespace {namespace}-{version} can't be imported because version {other.version} was imported earlier")
 
         self.namespaces[namespace.name] = namespace
-
-
-    def add_incomplete(self, namespace: str):
-        """ Adds an "incomplete" namespace for which missing items won't cause
-        errors. """
-        self.incomplete.add(namespace)
 
 
     def get_class(self, name: str, ns:str=None) -> Class:
