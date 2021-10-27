@@ -1,14 +1,12 @@
-gtk-blueprint-tool
-==================
+Overview
+========
 
-.. title:: Overview
+gtk-blueprint-tool is a markup language and compiler for GTK 4 user interfaces.
 
 .. toctree::
-   :hidden:
    :maxdepth: 1
    :caption: Contents:
 
+   setup
    examples
 
-
-gtk-blueprint-tool is a markup language and compiler for GTK user interfaces.
