@@ -1,8 +1,29 @@
-test:
+stages:
+- build
+- pages
+
+build:
+  stage: build
   script:
-    - dnf install -y meson python3-mypy
+    - dnf install -y meson python3-mypy python3-sphinx python3-pip
+    - pip3 install furo
     - mypy gtkblueprinttool
-    - meson _build
+    - meson _build -Ddocs=true
     - ninja -C _build
     - ninja -C _build test
     - ninja -C _build install
+  artifacts:
+    paths:
+      - _build
+
+pages:
+  stage: pages
+  dependencies:
+    - build
+  script:
+    - mv _build/docs/en public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
