@@ -23,6 +23,7 @@ import argparse, json, os, sys
 from .errors import PrintableError, report_compile_error, MultipleErrors
 from .lsp import LanguageServer
 from . import parser, tokenizer
+from .xml_emitter import XmlEmitter
 
 
 VERSION = "0.1.0"
@@ -38,7 +39,11 @@ class BlueprintApp:
         compile.add_argument("--output", dest="output", default="-")
         compile.add_argument("input", metavar="filename", default=sys.stdin, type=argparse.FileType('r'))
 
-        compile = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
+        batch_compile = self.add_subcommand("batch-compile", "Compile many blueprint files at once", self.cmd_batch_compile)
+        batch_compile.add_argument("output_dir", metavar="output-dir")
+        batch_compile.add_argument("inputs", nargs="+", metavar="filenames", default=sys.stdin, type=argparse.FileType('r'))
+
+        lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
 
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
@@ -56,19 +61,15 @@ class BlueprintApp:
         parser.set_defaults(func=func)
         return parser
 
+
     def cmd_help(self, opts):
         self.parser.print_help()
+
 
     def cmd_compile(self, opts):
         data = opts.input.read()
         try:
-            tokens = tokenizer.tokenize(data)
-            ast = parser.parse(tokens)
-
-            if len(ast.errors):
-                raise MultipleErrors(ast.errors)
-
-            xml = ast.generate()
+            xml = self._compile(data)
 
             if opts.output == "-":
                 print(xml)
@@ -79,9 +80,35 @@ class BlueprintApp:
             e.pretty_print(opts.input.name, data)
             sys.exit(1)
 
+
+    def cmd_batch_compile(self, opts):
+        for file in opts.inputs:
+            data = file.read()
+
+            try:
+                xml = self._compile(data)
+
+                name = os.path.splitext(os.path.basename(file.name))[0] + ".ui"
+                with open(os.path.join(opts.output_dir, name), "w") as file:
+                    file.write(xml)
+            except PrintableError as e:
+                e.pretty_print(file.name, data)
+                sys.exit(1)
+
+
     def cmd_lsp(self, opts):
         langserv = LanguageServer()
         langserv.run()
+
+
+    def _compile(self, data: str) -> str:
+        tokens = tokenizer.tokenize(data)
+        ast = parser.parse(tokens)
+
+        if len(ast.errors):
+            raise MultipleErrors(ast.errors)
+
+        return ast.generate()
 
 
 def main():
