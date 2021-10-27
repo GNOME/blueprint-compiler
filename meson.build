@@ -2,6 +2,8 @@ project('gtk-blueprint-tool',
   version: '0.1.0',
 )
 
+subdir('docs')
+
 prefix = get_option('prefix')
 libdir = join_paths(prefix, get_option('libdir'))
 
