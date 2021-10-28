@@ -52,7 +52,7 @@ class TestParser(unittest.TestCase):
                 }
             }
             submenu {}
-            item _("Copy") copy-symbolic app.copy;
+            item _("Copy") "copy-symbolic" "app.copy";
         }
 
         Label {

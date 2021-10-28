@@ -29,4 +29,4 @@ if not meson.is_subproject()
   install_subdir('gtkblueprinttool', install_dir: py.get_install_dir())
 endif
 
-test('tests', py, args: ['-m', 'unittest'])
+subdir('tests')
