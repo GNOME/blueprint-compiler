@@ -5,8 +5,8 @@ stages:
 build:
   stage: build
   script:
-    - dnf install -y meson python3-mypy python3-sphinx python3-pip
-    - pip3 install furo
+    - dnf install -y meson python3-pip gtk4-devel gobject-introspection-devel
+    - pip3 install furo mypy sphinx
     - mypy gtkblueprinttool
     - meson _build -Ddocs=true
     - ninja -C _build
