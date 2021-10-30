@@ -21,6 +21,7 @@
 import typing as T
 import json, sys, traceback
 
+from .completions import complete
 from .errors import PrintableError, CompileError, MultipleErrors
 from .lsp_utils import *
 from . import tokenizer, parser, utils, xml_reader
@@ -33,12 +34,44 @@ def command(json_method):
     return decorator
 
 
+class OpenFile:
+    def __init__(self, uri, text, version):
+        self.uri = uri
+        self.text = text
+        self.version = version
+        self.ast = None
+        self.tokens = None
+
+        self._update()
+
+    def apply_changes(self, changes):
+        for change in changes:
+            start = utils.pos_to_idx(change["range"]["start"]["line"], change["range"]["start"]["character"], self.text)
+            end = utils.pos_to_idx(change["range"]["end"]["line"], change["range"]["end"]["character"], self.text)
+            self.text = self.text[:start] + change["text"] + self.text[end:]
+        self._update()
+
+    def _update(self):
+        self.diagnostics = []
+        try:
+            self.tokens = tokenizer.tokenize(self.text)
+            self.ast, errors = parser.parse(self.tokens)
+            if errors is not None:
+                self.diagnostics += errors.errors
+            self.diagnostics += self.ast.errors
+        except MultipleErrors as e:
+            self.diagnostics += e.errors
+        except CompileError as e:
+            self.diagnostics.append(e)
+
+
 class LanguageServer:
     commands: T.Dict[str, T.Callable] = {}
 
-    def __init__(self):
+    def __init__(self, logfile=None):
         self.client_capabilities = {}
         self._open_files: {str: OpenFile} = {}
+        self.logfile = logfile
 
     def run(self):
         # Read <doc> tags from gir files. During normal compilation these are
@@ -102,8 +135,9 @@ class LanguageServer:
             "capabilities": {
                 "textDocumentSync": {
                     "openClose": True,
-                    "change": 2, # incremental
+                    "change": TextDocumentSyncKind.Incremental,
                 },
+                "completionProvider": {},
                 "hoverProvider": True,
             }
         })
@@ -133,8 +167,8 @@ class LanguageServer:
     @command("textDocument/hover")
     def hover(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
-        docs = open_file.ast.get_docs(utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text))
-        if docs is not None:
+        docs = open_file.ast and open_file.ast.get_docs(utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text))
+        if docs:
             self._send_response(id, {
                 "contents": {
                     "kind": "markdown",
@@ -143,6 +177,18 @@ class LanguageServer:
             })
         else:
             self._send_response(id, None)
+
+    @command("textDocument/completion")
+    def completion(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        if open_file.ast is None:
+            self._send_response(id, [])
+            return
+
+        idx = utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text)
+        completions = complete(open_file.ast, open_file.tokens, idx)
+        self._send_response(id, [completion.to_json(True) for completion in completions])
 
 
     def _send_file_updates(self, open_file: OpenFile):

@@ -44,6 +44,7 @@ class BlueprintApp:
         batch_compile.add_argument("inputs", nargs="+", metavar="filenames", default=sys.stdin, type=argparse.FileType('r'))
 
         lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
+        lsp.add_argument("--logfile", dest="logfile", default=None, type=argparse.FileType('a'))
 
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
@@ -97,14 +98,16 @@ class BlueprintApp:
 
 
     def cmd_lsp(self, opts):
-        langserv = LanguageServer()
+        langserv = LanguageServer(opts.logfile)
         langserv.run()
 
 
     def _compile(self, data: str) -> str:
         tokens = tokenizer.tokenize(data)
-        ast = parser.parse(tokens)
+        ast, errors = parser.parse(tokens)
 
+        if errors:
+            raise errors
         if len(ast.errors):
             raise MultipleErrors(ast.errors)
 

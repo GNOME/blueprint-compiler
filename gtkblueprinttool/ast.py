@@ -22,6 +22,8 @@ import typing as T
 from .ast_utils import *
 from .errors import assert_true, AlreadyCaughtError, CompileError, CompilerBugError, MultipleErrors
 from .gir import GirContext, get_namespace
+from .lsp_utils import Completion, CompletionItemKind
+from .tokenizer import Token
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
 
@@ -29,10 +31,15 @@ from .xml_emitter import XmlEmitter
 class AstNode:
     """ Base class for nodes in the abstract syntax tree. """
 
+    completers: T.List = []
+
     def __init__(self):
         self.group = None
         self.parent = None
         self.child_nodes = None
+
+    def __init_subclass__(cls):
+        cls.completers = []
 
     @lazy_prop
     def root(self):
@@ -262,6 +269,17 @@ class ObjectContent(AstNode):
         self.signals = signals
         self.children = children
         self.style = style
+
+
+    @validate()
+    def gir_class(self):
+        parent = self.parent
+        if isinstance(parent, Template):
+            return parent.gir_parent
+        elif isinstance(parent, Object):
+            return parent.gir_class
+        else:
+            raise CompilerBugError()
 
     @validate()
     def only_one_style_class(self):

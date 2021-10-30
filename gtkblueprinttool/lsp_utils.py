@@ -18,35 +18,78 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from enum import Enum
+from dataclasses import dataclass
+import enum
+import typing as T
 
-from . import tokenizer, parser
 from .errors import *
 from .utils import *
 
 
-class OpenFile:
-    def __init__(self, uri, text, version):
-        self.uri = uri
-        self.text = text
-        self.version = version
+class TextDocumentSyncKind(enum.IntEnum):
+    None_ = 0
+    Full = 1
+    Incremental = 2
 
-        self._update()
+class CompletionItemTag(enum.IntEnum):
+    Deprecated = 1
 
-    def apply_changes(self, changes):
-        for change in changes:
-            start = utils.pos_to_idx(change.range.start.line, change.range.start.character, self.text)
-            end = utils.pos_to_idx(change.range.end.line, change.range.end.character, self.text)
-            self.text = self.text[:start] + change.text + self.text[end:]
-        self._update()
+class InsertTextFormat(enum.IntEnum):
+    PlainText = 1
+    Snippet = 2
 
-    def _update(self):
-        self.diagnostics = []
-        try:
-            self.tokens = tokenizer.tokenize(self.text)
-            self.ast = parser.parse(self.tokens)
-            self.diagnostics += self.ast.errors
-        except MultipleErrors as e:
-            self.diagnostics += e.errors
-        except CompileError as e:
-            self.diagnostics += e
+class CompletionItemKind(enum.IntEnum):
+    Text = 1
+    Method = 2
+    Function = 3
+    Constructor = 4
+    Field = 5
+    Variable = 6
+    Class = 7
+    Interface = 8
+    Module = 9
+    Property = 10
+    Unit = 11
+    Value = 12
+    Enum = 13
+    Keyword = 14
+    Snippet = 15
+    Color = 16
+    File = 17
+    Reference = 18
+    Folder = 19
+    EnumMember = 20
+    Constant = 21
+    Struct = 22
+    Event = 23
+    Operator = 24
+    TypeParameter = 25
+
+
+@dataclass
+class Completion:
+    label: str
+    kind: CompletionItemKind
+    signature: T.Optional[str] = None
+    deprecated: bool = False
+    docs: T.Optional[str] = None
+    text: T.Optional[str] = None
+    snippet: T.Optional[str] = None
+
+    def to_json(self, snippets: bool):
+        insert_text = self.text or self.label
+        insert_text_format = InsertTextFormat.PlainText
+        if snippets and self.snippet:
+            insert_text = self.snippet
+            insert_text_format = InsertTextFormat.Snippet
+
+        return {
+            "label": self.label,
+            "kind": self.kind,
+            "tags": [CompletionItemTag.Deprecated] if self.deprecated else None,
+            "detail": self.signature,
+            "documentation": self.docs,
+            "deprecated": self.deprecated,
+            "insertText": insert_text,
+            "insertTextFormat": insert_text_format,
+        }

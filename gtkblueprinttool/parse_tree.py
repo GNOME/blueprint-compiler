@@ -29,13 +29,7 @@ from .errors import assert_true, CompilerBugError, CompileError
 from .tokenizer import Token, TokenType
 
 
-_SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
-_RECOVER_TOKENS = [
-    TokenType.COMMENT,
-    TokenType.STMT_END,
-    TokenType.CLOSE_BLOCK,
-    TokenType.EOF,
-]
+SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
 
 
 class ParseResult(Enum):
@@ -175,7 +169,7 @@ class ParseContext:
 
     def skip(self):
         """ Skips whitespace and comments. """
-        while self.index < len(self.tokens) and self.tokens[self.index].type in _SKIP_TOKENS:
+        while self.index < len(self.tokens) and self.tokens[self.index].type in SKIP_TOKENS:
             self.index += 1
 
     def next_token(self) -> Token:
@@ -184,6 +178,15 @@ class ParseContext:
         token = self.tokens[self.index]
         self.index += 1
         return token
+
+    def peek_token(self) -> Token:
+        """ Returns the next token without advancing the iterator. """
+        self.skip()
+        token = self.tokens[self.index]
+        return token
+
+    def is_eof(self) -> Token:
+        return self.index >= len(self.tokens) or self.peek_token().type == TokenType.EOF
 
 
 class ParseNode:
@@ -216,17 +219,6 @@ class ParseNode:
         """ Convenience method for err(). """
         return self.err("Expected " + expect)
 
-    def recover(self):
-        """ Causes the parser to try to recover, even if the ParseNode raises
-        an error. Recovery will log the error so it's still displayed, but
-        skip ahead to the next token in _RECOVERY_TOKENS to try to recover
-        parsing.
-
-        This is important because it allows us to report multiple errors at
-        once in most cases, rather than making the user recompile after
-        fixing each issue. """
-        return Recover(self)
-
 
 class Err(ParseNode):
     """ ParseNode that emits a compile error if it fails to parse. """
@@ -238,7 +230,7 @@ class Err(ParseNode):
     def _parse(self, ctx):
         if self.child.parse(ctx).failed():
             start_idx = ctx.start
-            while ctx.tokens[start_idx].type in _SKIP_TOKENS:
+            while ctx.tokens[start_idx].type in SKIP_TOKENS:
                 start_idx += 1
 
             start_token = ctx.tokens[start_idx]
@@ -257,28 +249,13 @@ class Fail(ParseNode):
     def _parse(self, ctx):
         if self.child.parse(ctx).succeeded():
             start_idx = ctx.start
-            while ctx.tokens[start_idx].type in _SKIP_TOKENS:
+            while ctx.tokens[start_idx].type in SKIP_TOKENS:
                 start_idx += 1
 
             start_token = ctx.tokens[start_idx]
             end_token = ctx.tokens[ctx.index]
             raise CompileError(self.message, start_token.start, end_token.end)
         return True
-
-
-class Recover(ParseNode):
-    """ ParseNode that attempts to recover parsing if an error is emitted. """
-    def __init__(self, child):
-        self.child = child
-
-    def _parse(self, ctx: ParseContext) -> bool:
-        try:
-            return self.child.parse(ctx).succeeded()
-        except CompileError as e:
-            ctx.errors.append(e)
-            while ctx.next_token().type not in _RECOVER_TOKENS:
-                pass
-            return True
 
 
 class Group(ParseNode):
@@ -305,6 +282,29 @@ class Sequence(ParseNode):
         return True
 
 
+class Statement(ParseNode):
+    """ ParseNode that attempts to match all of its children in sequence. If any
+    child raises an error, the error will be logged but parsing will continue. """
+    def __init__(self, *children):
+        self.children = children
+
+    def _parse(self, ctx) -> bool:
+        for child in self.children:
+            try:
+                if child.parse(ctx).failed():
+                    return False
+            except CompileError as e:
+                ctx.errors.append(e)
+                return True
+
+        token = ctx.peek_token()
+        if token.type != TokenType.STMT_END:
+            ctx.errors.append(CompileError("Expected `;`", token.start, token.end))
+        else:
+            ctx.next_token()
+        return True
+
+
 class AnyOf(ParseNode):
     """ ParseNode that attempts to match exactly one of its children. Child
     nodes are attempted in order. """
@@ -318,16 +318,46 @@ class AnyOf(ParseNode):
         return False
 
 
+class Until(ParseNode):
+    """ ParseNode that repeats its child until a delimiting token is found. If
+    the child does not match, one token is skipped and the match is attempted
+    again. """
+    def __init__(self, child, delimiter):
+        self.child = child
+        self.delimiter = delimiter
+
+    def _parse(self, ctx):
+        while not self.delimiter.parse(ctx).succeeded():
+            try:
+                if not self.child.parse(ctx).matched():
+                    token = ctx.next_token()
+                    ctx.errors.append(CompileError("Unexpected token", token.start, token.end))
+            except CompileError as e:
+                ctx.errors.append(e)
+                ctx.next_token()
+
+            if ctx.is_eof():
+                return True
+
+        return True
+
+
 class ZeroOrMore(ParseNode):
     """ ParseNode that matches its child any number of times (including zero
-    times). It cannot fail to parse. """
+    times). It cannot fail to parse. If its child raises an exception, one token
+    will be skipped and parsing will continue. """
     def __init__(self, child):
         self.child = child
 
+
     def _parse(self, ctx):
-        while self.child.parse(ctx).matched():
-            pass
-        return True
+        while True:
+            try:
+                if not self.child.parse(ctx).matched():
+                    return True
+            except CompileError as e:
+                ctx.errors.append(e)
+                ctx.next_token()
 
 
 class Delimited(ParseNode):

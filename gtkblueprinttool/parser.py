@@ -24,28 +24,26 @@ from .parse_tree import *
 from .tokenizer import TokenType
 
 
-def parse(tokens) -> ast.UI:
+def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     """ Parses a list of tokens into an abstract syntax tree. """
 
     gtk_directive = Group(
         ast.GtkDirective,
-        Sequence(
-            Keyword("using"),
-            Keyword("Gtk"),
+        Statement(
+            Keyword("using").err("File must start with a \"using gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            Keyword("Gtk").err("File must start with a \"using gtk\" directive (e.g. `using Gtk 4.0;`)"),
             UseNumberText("version").expected("a version number for GTK"),
-            StmtEnd().expected("`;`"),
         )
     )
 
     import_statement = Group(
         ast.Import,
-        Sequence(
+        Statement(
             Keyword("using"),
             UseIdent("namespace").expected("a GIR namespace"),
             UseNumberText("version").expected("a version number"),
-            StmtEnd().expected("`;`"),
         )
-    ).recover()
+    )
 
     class_name = AnyOf(
         Sequence(
@@ -89,20 +87,19 @@ def parse(tokens) -> ast.UI:
 
     property = Group(
         ast.Property,
-        Sequence(
+        Statement(
             UseIdent("name"),
             Op(":"),
             AnyOf(
                 object,
                 value,
             ).expected("a value"),
-            StmtEnd().expected("`;`"),
         )
-    ).recover()
+    )
 
     binding = Group(
         ast.Property,
-        Sequence(
+        Statement(
             UseIdent("name"),
             Op(":"),
             Keyword("bind"),
@@ -113,13 +110,12 @@ def parse(tokens) -> ast.UI:
                 Sequence(Keyword("sync-create"), UseLiteral("sync_create", True)),
                 Sequence(Keyword("after"), UseLiteral("after", True)),
             ),
-            StmtEnd().expected("`;`"),
         )
-    ).recover()
+    )
 
     signal = Group(
         ast.Signal,
-        Sequence(
+        Statement(
             UseIdent("name"),
             Optional(Sequence(
                 Op("::"),
@@ -134,9 +130,8 @@ def parse(tokens) -> ast.UI:
                 Sequence(Keyword("after"), UseLiteral("after", True)),
                 Sequence(Keyword("object"), UseLiteral("object", True)),
             )),
-            StmtEnd().expected("`;`"),
         )
-    ).recover()
+    )
 
     child = Group(
         ast.Child,
@@ -152,7 +147,7 @@ def parse(tokens) -> ast.UI:
 
     style = Group(
         ast.Style,
-        Sequence(
+        Statement(
             Keyword("style"),
             Delimited(
                 Group(
@@ -161,7 +156,6 @@ def parse(tokens) -> ast.UI:
                 ),
                 Comma(),
             ),
-            StmtEnd(),
         )
     )
 
@@ -204,8 +198,7 @@ def parse(tokens) -> ast.UI:
             UseLiteral("tag", "item"),
             Optional(UseIdent("id")),
             OpenBlock().expected("`{`"),
-            ZeroOrMore(menu_attribute),
-            CloseBlock().err("Could not understand statement"),
+            Until(menu_attribute, CloseBlock()),
         )
     )
 
@@ -232,14 +225,13 @@ def parse(tokens) -> ast.UI:
 
     menu_contents.children = [
         OpenBlock().expected("`{`"),
-        ZeroOrMore(AnyOf(
+        Until(AnyOf(
             menu_section,
             menu_submenu,
             menu_item_shorthand,
             menu_item,
             menu_attribute,
-        )),
-        CloseBlock().err("Could not understand statement"),
+        ), CloseBlock()),
     ]
 
     menu = Group(
@@ -256,14 +248,13 @@ def parse(tokens) -> ast.UI:
         ast.ObjectContent,
         Sequence(
             OpenBlock(),
-            ZeroOrMore(AnyOf(
+            Until(AnyOf(
                 style,
                 binding,
                 property,
                 signal,
                 child,
-            )),
-            CloseBlock().err("Could not understand statement"),
+            ), CloseBlock()),
         )
     )
 
@@ -288,19 +279,20 @@ def parse(tokens) -> ast.UI:
     ui = Group(
         ast.UI,
         Sequence(
-            gtk_directive.err("File must start with a \"using gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            gtk_directive.err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
             ZeroOrMore(import_statement),
-            ZeroOrMore(AnyOf(
+            Until(AnyOf(
                 template,
                 menu,
                 object,
-            )),
-            Eof().err("Failed to parse the rest of the file"),
+            ), Eof()),
         )
-    ).recover()
+    )
 
     ctx = ParseContext(tokens)
     ui.parse(ctx)
-    if len(ctx.errors):
-        raise MultipleErrors(ctx.errors)
-    return ctx.last_group.to_ast()
+
+    ast_node = ctx.last_group.to_ast() if ctx.last_group else None
+    errors = MultipleErrors(ctx.errors) if len(ctx.errors) else None
+
+    return (ast_node, errors)

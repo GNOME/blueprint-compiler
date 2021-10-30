@@ -65,8 +65,9 @@ class TestParser(unittest.TestCase):
         """
 
         tokens = tokenize(f)
-        ui = parse(tokens)
+        ui, errors = parse(tokens)
         self.assertIsInstance(ui, UI)
+        self.assertIsNone(errors)
         self.assertEqual(len(ui.errors), 0)
 
         self.assertIsInstance(ui.gtk_directive, GtkDirective)
