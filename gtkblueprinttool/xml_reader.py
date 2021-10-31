@@ -27,7 +27,7 @@ from .utils import lazy_prop
 # To speed up parsing, we ignore all tags except these
 PARSE_GIR = set([
     "repository", "namespace", "class", "interface", "property", "glib:signal",
-    "include", "implements"
+    "include", "implements", "type", "parameter", "parameters",
 ])
 
 

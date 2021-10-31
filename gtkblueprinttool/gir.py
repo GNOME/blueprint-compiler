@@ -73,26 +73,66 @@ class GirNode:
 
     @lazy_prop
     def doc(self) -> T.Optional[str]:
+        sections = []
+
+        if self.signature:
+            sections.append("```\n" + self.signature + "\n```")
+
         el = self.xml.get_elements("doc")
-        if len(el) != 1:
-            return None
-        return el[0].cdata.strip()
+        if len(el) == 1:
+            sections.append(el[0].cdata.strip())
+
+        return "\n\n---\n\n".join(sections)
+
+    @property
+    def signature(self) -> T.Optional[str]:
+        return None
 
 
 class Property(GirNode):
-    pass
+    def __init__(self, klass, xml: xml_reader.Element):
+        super().__init__(xml)
+        self.klass = klass
+
+    @property
+    def type_name(self):
+        return self.xml.get_elements('type')[0]['name']
+
+    @property
+    def signature(self):
+        return f"{self.type_name} {self.klass.name}.{self.name}"
+
+
+class Parameter(GirNode):
+    def __init__(self, xml: xml_reader.Element):
+        super().__init__(xml)
+
+    @property
+    def type_name(self):
+        return self.xml.get_elements('type')[0]['name']
 
 
 class Signal(GirNode):
-    pass
+    def __init__(self, klass, xml: xml_reader.Element):
+        super().__init__(xml)
+        self.klass = klass
+        if parameters := xml.get_elements('parameters'):
+            self.params = [Parameter(child) for child in parameters[0].get_elements('parameter')]
+        else:
+            self.params = []
+
+    @property
+    def signature(self):
+        args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
+        return f"signal {self.klass.name}.{self.name} ({args})"
 
 
 class Interface(GirNode):
     def __init__(self, ns, xml: xml_reader.Element):
         super().__init__(xml)
         self.ns = ns
-        self.properties = {child["name"]: Property(child) for child in xml.get_elements("property")}
-        self.signals = {child["name"]: Signal(child) for child in xml.get_elements("glib:signal")}
+        self.properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
+        self.signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
 
 
 class Class(GirNode):
@@ -101,8 +141,17 @@ class Class(GirNode):
         self.ns = ns
         self._parent = xml["parent"]
         self.implements = [impl["name"] for impl in xml.get_elements("implements")]
-        self.own_properties = {child["name"]: Property(child) for child in xml.get_elements("property")}
-        self.own_signals = {child["name"]: Signal(child) for child in xml.get_elements("glib:signal")}
+        self.own_properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
+        self.own_signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
+
+    @property
+    def signature(self):
+        result = f"class {self.ns.name}.{self.name}"
+        if self.parent is not None:
+            result += f" : {self.parent.ns.name}.{self.parent.name}"
+        if len(self.implements):
+            result += " implements " + ", ".join(self.implements)
+        return result
 
     @lazy_prop
     def properties(self):
@@ -149,6 +198,10 @@ class Namespace(GirNode):
         self.classes = { child["name"]: Class(self, child) for child in xml.get_elements("class") }
         self.interfaces = { child["name"]: Interface(self, child) for child in xml.get_elements("interface") }
         self.version = xml["version"]
+
+    @property
+    def signature(self):
+        return f"namespace {self.name} {self.version}"
 
     def lookup_class(self, name: str):
         if "." in name:
