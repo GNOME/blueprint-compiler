@@ -263,12 +263,13 @@ class Child(AstNode):
 
 class ObjectContent(AstNode):
     child_type = "object_content"
-    def __init__(self, properties=[], signals=[], children=[], style=[]):
+    def __init__(self, properties=[], signals=[], children=[], style=[], layout=None):
         super().__init__()
         self.properties = properties
         self.signals = signals
         self.children = children
         self.style = style
+        self.layout = layout or []
 
 
     @validate()
@@ -290,7 +291,7 @@ class ObjectContent(AstNode):
             )
 
     def emit_xml(self, xml: XmlEmitter):
-        for x in [*self.properties, *self.signals, *self.children, *self.style]:
+        for x in self.child_nodes:
             x.emit_xml(xml)
 
 
@@ -476,8 +477,9 @@ class Menu(AstNode):
         xml.end_tag()
 
 
-class MenuAttribute(AstNode):
+class BaseAttribute(AstNode):
     child_type = "attributes"
+    tag_name: str = ""
 
     def __init__(self, name=None, value=None, translatable=False):
         super().__init__()
@@ -487,9 +489,33 @@ class MenuAttribute(AstNode):
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(
-            "attribute",
+            self.tag_name,
              name=self.name,
              translatable="yes" if self.translatable else None,
         )
         xml.put_text(str(self.value))
         xml.end_tag()
+
+
+class MenuAttribute(BaseAttribute):
+    child_type = "attributes"
+    tag_name = "attribute"
+
+
+class Layout(AstNode):
+    child_type = "layout"
+
+    def __init__(self, layout_props=None):
+        super().__init__()
+        self.layout_props = layout_props or []
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("layout")
+        for prop in self.layout_props:
+            prop.emit_xml(xml)
+        xml.end_tag()
+
+
+class LayoutProperty(BaseAttribute):
+    child_type = "layout_props"
+    tag_name = "property"

@@ -243,3 +243,21 @@ on one line. The action and icon are optional.
    menu {
      item _("Copy") "app.copy" "copy-symbolic";
    }
+
+
+Layout Properties
+-----------------
+
+Basic Usage
+~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.Grid {
+     Gtk.Label {
+       layout {
+         row: 0;
+         column: 1;
+       }
+     }
+   }

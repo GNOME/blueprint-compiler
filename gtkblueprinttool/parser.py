@@ -244,12 +244,31 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         ),
     )
 
+    layout_prop = Group(
+        ast.LayoutProperty,
+        Statement(
+            UseIdent("name"),
+            Op(":"),
+            value.expected("a value"),
+        )
+    )
+
+    layout = Group(
+        ast.Layout,
+        Sequence(
+            Keyword("layout"),
+            OpenBlock().expected("`{`"),
+            Until(layout_prop, CloseBlock()),
+        )
+    )
+
     object_content = Group(
         ast.ObjectContent,
         Sequence(
             OpenBlock(),
             Until(AnyOf(
                 style,
+                layout,
                 binding,
                 property,
                 signal,
