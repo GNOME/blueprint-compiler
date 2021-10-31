@@ -61,7 +61,7 @@ class ParseGroup:
 
     def __init__(self, ast_type, start: int):
         self.ast_type = ast_type
-        self.children: T.Dict[str, T.List[ParseGroup]] = defaultdict()
+        self.children: T.List[ParseGroup] = []
         self.keys: T.Dict[str, T.Any] = {}
         self.tokens: T.Dict[str, Token] = {}
         self.start = start
@@ -69,10 +69,7 @@ class ParseGroup:
         self.incomplete = False
 
     def add_child(self, child):
-        child_type = child.ast_type.child_type
-        if child_type not in self.children:
-            self.children[child_type] = []
-        self.children[child_type].append(child)
+        self.children.append(child)
 
     def set_val(self, key, val, token):
         assert_true(key not in self.keys)
@@ -82,21 +79,10 @@ class ParseGroup:
 
     def to_ast(self) -> AstNode:
         """ Creates an AST node from the match group. """
-        children = {
-            child_type: [child.to_ast() for child in children]
-            for child_type, children in self.children.items()
-        }
+        children = [child.to_ast() for child in self.children]
 
         try:
-            ast = self.ast_type(**children, **self.keys)
-            ast.incomplete = self.incomplete
-            ast.group = self
-            ast.child_nodes = [c for child_type in children.values() for c in child_type]
-
-            for child in ast.child_nodes:
-                child.parent = ast
-
-            return ast
+            return self.ast_type(self, children, self.keys, incomplete=self.incomplete)
         except TypeError as e:
             raise CompilerBugError(f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace.")
 
@@ -119,7 +105,7 @@ class ParseContext:
         self.group_keys = {}
         self.group_children = []
         self.last_group = None
-        self.group_incomplete = True
+        self.group_incomplete = False
 
         self.errors = []
         self.warnings = []
@@ -177,7 +163,6 @@ class ParseContext:
     def set_group_incomplete(self):
         """ Marks the current match group as incomplete (it could not be fully
         parsed, but the parser recovered). """
-        assert_true(key not in self.group_keys)
         self.group_incomplete = True
 
 
@@ -309,7 +294,7 @@ class Statement(ParseNode):
                     return False
             except CompileError as e:
                 ctx.errors.append(e)
-                ctx.group
+                ctx.set_group_incomplete(True)
                 return True
 
         token = ctx.peek_token()

@@ -28,7 +28,7 @@ Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 
 
 def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterator[Completion]:
-    for child in ast_node.child_nodes:
+    for child in ast_node.children:
         if child.group.start <= idx <= child.group.end:
             yield from complete(child, tokens, idx)
             return

@@ -28,123 +28,37 @@ from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
 
 
-class AstNode:
-    """ Base class for nodes in the abstract syntax tree. """
-
-    completers: T.List = []
-
-    def __init__(self):
-        self.group = None
-        self.parent = None
-        self.child_nodes = None
-        self.incomplete = False
-
-    def __init_subclass__(cls):
-        cls.completers = []
-
-    @lazy_prop
-    def root(self):
-        if self.parent is None:
-            return self
-        else:
-            return self.parent.root
-
-    @lazy_prop
-    def errors(self):
-        return list(self._get_errors())
-
-    def _get_errors(self):
-        for name, attr in self._attrs_by_type(Validator):
-            try:
-                getattr(self, name)
-            except AlreadyCaughtError:
-                pass
-            except CompileError as e:
-                yield e
-
-        for child in self.child_nodes:
-            yield from child._get_errors()
-
-    def _attrs_by_type(self, attr_type):
-        for name in dir(type(self)):
-            item = getattr(type(self), name)
-            if isinstance(item, attr_type):
-                yield name, item
-
-    def generate(self) -> str:
-        """ Generates an XML string from the node. """
-        xml = XmlEmitter()
-        self.emit_xml(xml)
-        return xml.result
-
-    def emit_xml(self, xml: XmlEmitter):
-        """ Emits the XML representation of this AST node to the XmlEmitter. """
-        raise NotImplementedError()
-
-    def get_docs(self, idx: int) -> T.Optional[str]:
-        for name, attr in self._attrs_by_type(Docs):
-            if attr.token_name:
-                token = self.group.tokens.get(attr.token_name)
-                if token and token.start <= idx < token.end:
-                    return getattr(self, name)
-            else:
-                return getattr(self, name)
-
-        for child in self.child_nodes:
-            if child.group.start <= idx < child.group.end:
-                docs = child.get_docs(idx)
-                if docs is not None:
-                    return docs
-
-        return None
-
-
 class UI(AstNode):
     """ The AST node for the entire file """
-
-    def __init__(self, gtk_directives=[], imports=[], objects=[], templates=[], menus=[]):
-        super().__init__()
-        assert_true(len(gtk_directives) == 1)
-
-        self.gtk_directive = gtk_directives[0]
-        self.imports = imports
-        self.objects = objects
-        self.templates = templates
-        self.menus = menus
 
     @validate()
     def gir(self):
         gir = GirContext()
 
-        gir.add_namespace(self.gtk_directive.gir_namespace)
-        for i in self.imports:
+        gir.add_namespace(self.children[GtkDirective][0].gir_namespace)
+        for i in self.children[Import]:
             gir.add_namespace(i.gir_namespace)
 
         return gir
 
     @validate()
     def at_most_one_template(self):
-        if len(self.templates) > 1:
+        if len(self.children[Template]) > 1:
             raise CompileError(f"Only one template may be defined per file, but this file contains {len(self.templates)}",
-                               self.templates[1].group.start)
+                               self.children[Template][1].group.start)
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("interface")
-        for x in self.child_nodes:
+        for x in self.children:
             x.emit_xml(xml)
         xml.end_tag()
 
 
 class GtkDirective(AstNode):
-    child_type = "gtk_directives"
-    def __init__(self, version=None):
-        super().__init__()
-        self.version = version
-
     @validate("version")
     def gir_namespace(self):
-        if self.version in ["4.0"]:
-            return get_namespace("Gtk", self.version)
+        if self.tokens["version"] in ["4.0"]:
+            return get_namespace("Gtk", self.tokens["version"])
         else:
             err = CompileError("Only GTK 4 is supported")
             if self.version.startswith("4"):
@@ -154,46 +68,25 @@ class GtkDirective(AstNode):
             raise err
 
     def emit_xml(self, xml: XmlEmitter):
-        xml.put_self_closing("requires", lib="gtk", version=self.version)
+        xml.put_self_closing("requires", lib="gtk", version=self.tokens["version"])
 
 
 class Import(AstNode):
-    child_type = "imports"
-    def __init__(self, namespace=None, version=None):
-        super().__init__()
-        self.namespace = namespace
-        self.version = version
-
     @validate("namespace", "version")
     def gir_namespace(self):
-        return get_namespace(self.namespace, self.version)
-
-    def emit_xml(self, xml: XmlEmitter):
-        pass
+        return get_namespace(self.tokens["namespace"], self.tokens["version"])
 
 
 class Template(AstNode):
-    child_type = "templates"
-    def __init__(self, name=None, class_name=None, object_content=None, namespace=None, ignore_gir=False):
-        super().__init__()
-        assert_true(len(object_content) == 1)
-
-        self.name = name
-        self.parent_namespace = namespace
-        self.parent_class = class_name
-        self.object_content = object_content[0]
-        self.ignore_gir = ignore_gir
-
-
     @validate("namespace", "class_name")
     def gir_parent(self):
-        if not self.ignore_gir:
-            return self.root.gir.get_class(self.parent_class, self.parent_namespace)
+        if not self.tokens["ignore_gir"]:
+            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
 
 
     @docs("namespace")
     def namespace_docs(self):
-        return self.root.gir.namespaces[self.parent_namespace].doc
+        return self.root.gir.namespaces[self.tokens["namespace"]].doc
 
     @docs("class_name")
     def class_docs(self):
@@ -203,34 +96,25 @@ class Template(AstNode):
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("template", **{
-            "class": self.name,
-            "parent": self.gir_parent.glib_type_name if self.gir_parent else self.parent_class,
+            "class": self.tokens["name"],
+            "parent": self.gir_parent.glib_type_name if self.gir_parent else self.tokens["class_name"],
         })
-        self.object_content.emit_xml(xml)
+        for child in self.children:
+            child.emit_xml(xml)
         xml.end_tag()
 
 
 class Object(AstNode):
-    child_type = "objects"
-    def __init__(self, class_name=None, object_content=None, namespace=None, id=None, ignore_gir=False):
-        super().__init__()
-        assert_true(len(object_content) == 1)
-
-        self.namespace = namespace
-        self.class_name = class_name
-        self.id = id
-        self.object_content = object_content[0]
-        self.ignore_gir = ignore_gir
-
     @validate("namespace", "class_name")
     def gir_class(self):
-        if not self.ignore_gir:
-            return self.root.gir.get_class(self.class_name, self.namespace)
+        if not self.tokens["ignore_gir"]:
+            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
 
 
     @docs("namespace")
     def namespace_docs(self):
-        return self.root.gir.namespaces[self.namespace].doc
+        return self.root.gir.namespaces[self.tokens["namespace"]].doc
+
 
     @docs("class_name")
     def class_docs(self):
@@ -239,85 +123,52 @@ class Object(AstNode):
 
 
     def emit_xml(self, xml: XmlEmitter):
+        print("Emitting object XML! ", self.gir_class)
         xml.start_tag("object", **{
-            "class": self.gir_class.glib_type_name if self.gir_class else self.class_name,
-            "id": self.id,
+            "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
+            "id": self.tokens["id"],
         })
-        self.object_content.emit_xml(xml)
+        for child in self.children:
+            child.emit_xml(xml)
         xml.end_tag()
 
 
 class Child(AstNode):
-    child_type = "children"
-    def __init__(self, objects=None, child_type=None):
-        super().__init__()
-        assert_true(len(objects) == 1)
-        self.object = objects[0]
-        self.child_type = child_type
-
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("child", type=self.child_type)
-        self.object.emit_xml(xml)
+        xml.start_tag("child", type=self.tokens["child_type"])
+        for child in self.children:
+            child.emit_xml(xml)
         xml.end_tag()
 
 
 class ObjectContent(AstNode):
-    child_type = "object_content"
-    def __init__(self, properties=[], signals=[], children=[], style=[], layout=None):
-        super().__init__()
-        self.properties = properties
-        self.signals = signals
-        self.children = children
-        self.style = style
-        self.layout = layout or []
-
-
     @validate()
     def gir_class(self):
-        parent = self.parent
-        if isinstance(parent, Template):
-            return parent.gir_parent
-        elif isinstance(parent, Object):
-            return parent.gir_class
+        if isinstance(self.parent, Template):
+            return self.parent.gir_parent
+        elif isinstance(self.parent, Object):
+            return self.parent.gir_class
         else:
             raise CompilerBugError()
 
     @validate()
     def only_one_style_class(self):
-        if len(self.style) > 1:
+        if len(self.children[Style]) > 1:
             raise CompileError(
-                f"Only one style directive allowed per object, but this object contains {len(self.style)}",
-                start=self.style[1].group.start,
+                f"Only one style directive allowed per object, but this object contains {len(self.children[Style])}",
+                start=self.children[Style][1].group.start,
             )
 
     def emit_xml(self, xml: XmlEmitter):
-        for x in self.child_nodes:
+        for x in self.children:
             x.emit_xml(xml)
 
 
 class Property(AstNode):
-    child_type = "properties"
-    def __init__(self, name=None, value=None, translatable=False, bind_source=None, bind_property=None, objects=None, sync_create=None, after=None):
-        super().__init__()
-        self.name = name
-        self.value = value
-        self.translatable = translatable
-        self.bind_source = bind_source
-        self.bind_property = bind_property
-        self.objects = objects
-
-        bind_flags = []
-        if sync_create:
-            bind_flags.append("sync-create")
-        if after:
-            bind_flags.append("after")
-        self.bind_flags = "|".join(bind_flags) or None
-
-
     @validate()
     def gir_property(self):
         if self.gir_class is not None:
-            return self.gir_class.properties.get(self.name)
+            return self.gir_class.properties.get(self.tokens["name"])
 
     @validate()
     def gir_class(self):
@@ -343,8 +194,8 @@ class Property(AstNode):
 
         if self.gir_property is None:
             raise CompileError(
-                f"Class {self.gir_class.full_name} does not contain a property called {self.name}",
-                did_you_mean=(self.name, self.gir_class.properties.keys())
+                f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
+                did_you_mean=(self.tokens["name"], self.gir_class.properties.keys())
             )
 
 
@@ -355,37 +206,34 @@ class Property(AstNode):
 
 
     def emit_xml(self, xml: XmlEmitter):
+        bind_flags = []
+        if self.tokens["sync_create"]:
+            bind_flags.append("sync-create")
+        if self.tokens["after"]:
+            bind_flags.append("after")
+        bind_flags_str = "|".join(bind_flags) or None
+
         props = {
-            "name": self.name,
-            "translatable": "yes" if self.translatable else None,
-            "bind-source": self.bind_source,
-            "bind-property": self.bind_property,
-            "bind-flags": self.bind_flags,
+            "name": self.tokens["name"],
+            "translatable": "yes" if self.tokens["translatable"] else None,
+            "bind-source": self.tokens["bind_source"],
+            "bind-property": self.tokens["bind_property"],
+            "bind-flags": bind_flags_str,
         }
-        if self.objects is not None:
+
+        if len(self.children[Object]) == 1:
             xml.start_tag("property", **props)
-            self.objects[0].emit_xml(xml)
+            self.children[Object][0].emit_xml(xml)
             xml.end_tag()
-        elif self.value is None:
+        elif self.tokens["value"] is None:
             xml.put_self_closing("property", **props)
         else:
             xml.start_tag("property", **props)
-            xml.put_text(str(self.value))
+            xml.put_text(str(self.tokens["value"]))
             xml.end_tag()
 
 
 class Signal(AstNode):
-    child_type = "signals"
-    def __init__(self, name=None, handler=None, swapped=False, after=False, object=False, detail_name=None):
-        super().__init__()
-        self.name = name
-        self.handler = handler
-        self.swapped = swapped
-        self.after = after
-        self.object = object
-        self.detail_name = detail_name
-
-
     @validate()
     def gir_signal(self):
         if self.gir_class is not None:
@@ -416,7 +264,7 @@ class Signal(AstNode):
         if self.gir_signal is None:
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a signal called {self.name}",
-                did_you_mean=(self.name, self.gir_class.signals.keys())
+                did_you_mean=(self.tokens["name"], self.gir_class.signals.keys())
             )
 
 
@@ -427,95 +275,57 @@ class Signal(AstNode):
 
 
     def emit_xml(self, xml: XmlEmitter):
-        name = self.name
-        if self.detail_name:
-            name += "::" + self.detail_name
-        xml.put_self_closing("signal", name=name, handler=self.handler, swapped="true" if self.swapped else None)
+        name = self.tokens["name"]
+        if self.tokens["detail_name"]:
+            name += "::" + self.tokens["detail_name"]
+        xml.put_self_closing("signal", name=name, handler=self.tokens["handler"], swapped="true" if self.tokens["swapped"] else None)
 
 
 class Style(AstNode):
-    child_type = "style"
-
-    def __init__(self, style_classes=None):
-        super().__init__()
-        self.style_classes = style_classes or []
-
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("style")
-        for style in self.style_classes:
-            style.emit_xml(xml)
+        for child in self.children:
+            child.emit_xml(xml)
         xml.end_tag()
 
 
 class StyleClass(AstNode):
-    child_type = "style_classes"
-
-    def __init__(self, name=None):
-        super().__init__()
-        self.name = name
-
     def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.name)
+        xml.put_self_closing("class", name=self.tokens["name"])
 
 
 class Menu(AstNode):
-    child_type = "menus"
-
-    def __init__(self, tag=None, id=None, menus=None, attributes=None):
-        super().__init__()
-        self.tag = tag
-        self.id = id
-        self.menus = menus or []
-        self.attributes = attributes or []
-
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(self.tag, id=self.id)
-        for attr in self.attributes:
-            attr.emit_xml(xml)
-        for menu in self.menus:
-            menu.emit_xml(xml)
+        xml.start_tag(self.tokens["tag"], id=self.tokens["id"])
+        for child in self.children:
+            child.emit_xml()
         xml.end_tag()
 
 
 class BaseAttribute(AstNode):
-    child_type = "attributes"
     tag_name: str = ""
-
-    def __init__(self, name=None, value=None, translatable=False):
-        super().__init__()
-        self.name = name
-        self.value = value
-        self.translatable = translatable
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(
             self.tag_name,
-             name=self.name,
-             translatable="yes" if self.translatable else None,
+            name=self.tokens["name"],
+            translatable="yes" if self.tokens["translatable"] else None,
         )
-        xml.put_text(str(self.value))
+        xml.put_text(str(self.tokens["value"]))
         xml.end_tag()
 
 
 class MenuAttribute(BaseAttribute):
-    child_type = "attributes"
     tag_name = "attribute"
 
 
 class Layout(AstNode):
-    child_type = "layout"
-
-    def __init__(self, layout_props=None):
-        super().__init__()
-        self.layout_props = layout_props or []
-
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("layout")
-        for prop in self.layout_props:
-            prop.emit_xml(xml)
+        for child in self.children:
+            child.emit_xml(xml)
         xml.end_tag()
 
 
 class LayoutProperty(BaseAttribute):
-    child_type = "layout_props"
     tag_name = "property"
