@@ -137,7 +137,7 @@ class UI(AstNode):
 
 class GtkDirective(AstNode):
     child_type = "gtk_directives"
-    def __init__(self, version):
+    def __init__(self, version=None):
         super().__init__()
         self.version = version
 
@@ -159,7 +159,7 @@ class GtkDirective(AstNode):
 
 class Import(AstNode):
     child_type = "imports"
-    def __init__(self, namespace, version):
+    def __init__(self, namespace=None, version=None):
         super().__init__()
         self.namespace = namespace
         self.version = version
@@ -174,7 +174,7 @@ class Import(AstNode):
 
 class Template(AstNode):
     child_type = "templates"
-    def __init__(self, name, class_name, object_content, namespace=None, ignore_gir=False):
+    def __init__(self, name=None, class_name=None, object_content=None, namespace=None, ignore_gir=False):
         super().__init__()
         assert_true(len(object_content) == 1)
 
@@ -212,7 +212,7 @@ class Template(AstNode):
 
 class Object(AstNode):
     child_type = "objects"
-    def __init__(self, class_name, object_content, namespace=None, id=None, ignore_gir=False):
+    def __init__(self, class_name=None, object_content=None, namespace=None, id=None, ignore_gir=False):
         super().__init__()
         assert_true(len(object_content) == 1)
 
@@ -249,7 +249,7 @@ class Object(AstNode):
 
 class Child(AstNode):
     child_type = "children"
-    def __init__(self, objects, child_type=None):
+    def __init__(self, objects=None, child_type=None):
         super().__init__()
         assert_true(len(objects) == 1)
         self.object = objects[0]
@@ -296,7 +296,7 @@ class ObjectContent(AstNode):
 
 class Property(AstNode):
     child_type = "properties"
-    def __init__(self, name, value=None, translatable=False, bind_source=None, bind_property=None, objects=None, sync_create=None, after=None):
+    def __init__(self, name=None, value=None, translatable=False, bind_source=None, bind_property=None, objects=None, sync_create=None, after=None):
         super().__init__()
         self.name = name
         self.value = value
@@ -375,7 +375,7 @@ class Property(AstNode):
 
 class Signal(AstNode):
     child_type = "signals"
-    def __init__(self, name, handler, swapped=False, after=False, object=False, detail_name=None):
+    def __init__(self, name=None, handler=None, swapped=False, after=False, object=False, detail_name=None):
         super().__init__()
         self.name = name
         self.handler = handler
@@ -449,7 +449,7 @@ class Style(AstNode):
 class StyleClass(AstNode):
     child_type = "style_classes"
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         super().__init__()
         self.name = name
 
@@ -460,7 +460,7 @@ class StyleClass(AstNode):
 class Menu(AstNode):
     child_type = "menus"
 
-    def __init__(self, tag, id=None, menus=None, attributes=None):
+    def __init__(self, tag=None, id=None, menus=None, attributes=None):
         super().__init__()
         self.tag = tag
         self.id = id
@@ -479,7 +479,7 @@ class Menu(AstNode):
 class MenuAttribute(AstNode):
     child_type = "attributes"
 
-    def __init__(self, name, value, translatable=False):
+    def __init__(self, name=None, value=None, translatable=False):
         super().__init__()
         self.name = name
         self.value = value
