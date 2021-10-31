@@ -41,6 +41,10 @@ def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterat
         if token.start < idx <= token.end:
             token_idx = i
 
+    # if the current token is an identifier, move to the token before it
+    if tokens[token_idx].type == TokenType.IDENT:
+        token_idx -= 1
+
     # collect the 5 previous non-skipped tokens
     while len(prev_tokens) < 5 and token_idx >= 0:
         token = tokens[token_idx]
@@ -79,8 +83,6 @@ class Completer:
 
         if not any_match:
             return
-
-        print("completions", match_variables, self.func)
 
         if self.ast_type is not None:
             while ast_node is not None and not isinstance(ast_node, self.ast_type):

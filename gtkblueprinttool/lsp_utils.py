@@ -83,7 +83,7 @@ class Completion:
             insert_text = self.snippet
             insert_text_format = InsertTextFormat.Snippet
 
-        return {
+        result = {
             "label": self.label,
             "kind": self.kind,
             "tags": [CompletionItemTag.Deprecated] if self.deprecated else None,
@@ -93,3 +93,4 @@ class Completion:
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
         }
+        return { k: v for k, v in result.items() if v is not None }
