@@ -30,8 +30,8 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     gtk_directive = Group(
         ast.GtkDirective,
         Statement(
-            Keyword("using").err("File must start with a \"using gtk\" directive (e.g. `using Gtk 4.0;`)"),
-            Keyword("Gtk").err("File must start with a \"using gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            Keyword("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            Keyword("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
             UseNumberText("version").expected("a version number for GTK"),
         )
     )
@@ -298,7 +298,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     ui = Group(
         ast.UI,
         Sequence(
-            gtk_directive.err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            gtk_directive,
             ZeroOrMore(import_statement),
             Until(AnyOf(
                 template,

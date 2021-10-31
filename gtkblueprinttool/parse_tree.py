@@ -66,6 +66,7 @@ class ParseGroup:
         self.tokens: T.Dict[str, Token] = {}
         self.start = start
         self.end = None
+        self.incomplete = False
 
     def add_child(self, child):
         child_type = child.ast_type.child_type
@@ -85,12 +86,16 @@ class ParseGroup:
             child_type: [child.to_ast() for child in children]
             for child_type, children in self.children.items()
         }
+
         try:
             ast = self.ast_type(**children, **self.keys)
+            ast.incomplete = self.incomplete
             ast.group = self
             ast.child_nodes = [c for child_type in children.values() for c in child_type]
+
             for child in ast.child_nodes:
                 child.parent = ast
+
             return ast
         except TypeError as e:
             raise CompilerBugError(f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace.")
@@ -114,6 +119,7 @@ class ParseContext:
         self.group_keys = {}
         self.group_children = []
         self.last_group = None
+        self.group_incomplete = True
 
         self.errors = []
         self.warnings = []
@@ -140,12 +146,14 @@ class ParseContext:
             for child in other.group_children:
                 other.group.add_child(child)
             other.group.end = other.tokens[other.index - 1].end
+            other.group.incomplete = other.group_incomplete
             self.group_children.append(other.group)
         else:
             # If the other context had no match group of its own, collect all
             # its matched values
             self.group_keys = {**self.group_keys, **other.group_keys}
             self.group_children += other.group_children
+            self.group_incomplete |= other.group_incomplete
 
         self.index = other.index
         # Propagate the last parsed group down the stack so it can be easily
@@ -165,6 +173,12 @@ class ParseContext:
         """ Sets a matched key=value pair on the current match group. """
         assert_true(key not in self.group_keys)
         self.group_keys[key] = (value, token)
+
+    def set_group_incomplete(self):
+        """ Marks the current match group as incomplete (it could not be fully
+        parsed, but the parser recovered). """
+        assert_true(key not in self.group_keys)
+        self.group_incomplete = True
 
 
     def skip(self):
@@ -295,6 +309,7 @@ class Statement(ParseNode):
                     return False
             except CompileError as e:
                 ctx.errors.append(e)
+                ctx.group
                 return True
 
         token = ctx.peek_token()

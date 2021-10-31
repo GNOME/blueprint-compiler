@@ -45,6 +45,11 @@ class Validator:
                 # same message again
                 instance.__dict__[key + "_err"] = True
 
+                # If the node is only partially complete, then an error must
+                # have already been reported at the parsing stage
+                if instance.incomplete:
+                    return None
+
                 # This mess of code sets the error's start and end positions
                 # from the tokens passed to the decorator, if they have not
                 # already been set
@@ -58,6 +63,13 @@ class Validator:
 
                 # Re-raise the exception
                 raise e
+            except Exception as e:
+                # If the node is only partially complete, then an error must
+                # have already been reported at the parsing stage
+                if instance.incomplete:
+                    return None
+                else:
+                    raise e
 
         # Return the validation result (which other validators, or the code
         # generation phase, might depend on)

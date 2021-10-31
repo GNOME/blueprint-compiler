@@ -37,6 +37,7 @@ class AstNode:
         self.group = None
         self.parent = None
         self.child_nodes = None
+        self.incomplete = False
 
     def __init_subclass__(cls):
         cls.completers = []
@@ -148,9 +149,9 @@ class GtkDirective(AstNode):
         else:
             err = CompileError("Only GTK 4 is supported")
             if self.version.startswith("4"):
-                err.hint("Expected the GIR version, not an exact version number. Use `@gtk \"4.0\";`.")
+                err.hint("Expected the GIR version, not an exact version number. Use `using Gtk 4.0;`.")
             else:
-                err.hint("Expected `@gtk \"4.0\";`")
+                err.hint("Expected `using Gtk 4.0;`")
             raise err
 
     def emit_xml(self, xml: XmlEmitter):
