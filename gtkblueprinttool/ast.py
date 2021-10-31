@@ -130,8 +130,7 @@ class UI(AstNode):
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("interface")
-        self.gtk_directive.emit_xml(xml)
-        for x in [*self.templates, *self.objects, *self.menus]:
+        for x in self.child_nodes:
             x.emit_xml(xml)
         xml.end_tag()
 
