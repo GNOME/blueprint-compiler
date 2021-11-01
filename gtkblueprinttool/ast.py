@@ -31,21 +31,39 @@ from .xml_emitter import XmlEmitter
 class UI(AstNode):
     """ The AST node for the entire file """
 
-    @validate()
+    @property
     def gir(self):
         gir = GirContext()
+        self._gir_errors = []
 
-        gir.add_namespace(self.children[GtkDirective][0].gir_namespace)
+        try:
+            gir.add_namespace(self.children[GtkDirective][0].gir_namespace)
+        except CompileError as e:
+            self._gir_errors.append(e)
+
         for i in self.children[Import]:
-            gir.add_namespace(i.gir_namespace)
+            try:
+                gir.add_namespace(i.gir_namespace)
+            except CompileError as e:
+                self._gir_errors.append(e)
 
         return gir
+
+
+    @validate()
+    def gir_errors(self):
+        # make sure gir is loaded
+        self.gir
+        if len(self._gir_errors):
+            raise MultipleErrors(self._gir_errors)
+
 
     @validate()
     def at_most_one_template(self):
         if len(self.children[Template]) > 1:
             raise CompileError(f"Only one template may be defined per file, but this file contains {len(self.templates)}",
                                self.children[Template][1].group.start)
+
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("interface")
@@ -56,16 +74,20 @@ class UI(AstNode):
 
 class GtkDirective(AstNode):
     @validate("version")
-    def gir_namespace(self):
-        if self.tokens["version"] in ["4.0"]:
-            return get_namespace("Gtk", self.tokens["version"])
-        else:
+    def gtk_version(self):
+        if self.tokens["version"] not in ["4.0"]:
             err = CompileError("Only GTK 4 is supported")
             if self.version.startswith("4"):
                 err.hint("Expected the GIR version, not an exact version number. Use `using Gtk 4.0;`.")
             else:
                 err.hint("Expected `using Gtk 4.0;`")
             raise err
+
+
+    @property
+    def gir_namespace(self):
+        return get_namespace("Gtk", self.tokens["version"])
+
 
     def emit_xml(self, xml: XmlEmitter):
         xml.put_self_closing("requires", lib="gtk", version=self.tokens["version"])
@@ -79,9 +101,13 @@ class Import(AstNode):
 
 class Template(AstNode):
     @validate("namespace", "class_name")
-    def gir_parent(self):
+    def gir_parent_exists(self):
         if not self.tokens["ignore_gir"]:
-            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
+            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
+
+    @property
+    def gir_parent(self):
+        return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
 
 
     @docs("namespace")
@@ -106,6 +132,11 @@ class Template(AstNode):
 
 class Object(AstNode):
     @validate("namespace", "class_name")
+    def gir_class_exists(self):
+        if not self.tokens["ignore_gir"]:
+            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
+
+    @property
     def gir_class(self):
         if not self.tokens["ignore_gir"]:
             return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
@@ -141,7 +172,7 @@ class Child(AstNode):
 
 
 class ObjectContent(AstNode):
-    @validate()
+    @property
     def gir_class(self):
         if isinstance(self.parent, Template):
             return self.parent.gir_parent
@@ -164,12 +195,13 @@ class ObjectContent(AstNode):
 
 
 class Property(AstNode):
-    @validate()
+    @property
     def gir_property(self):
         if self.gir_class is not None:
             return self.gir_class.properties.get(self.tokens["name"])
 
-    @validate()
+
+    @property
     def gir_class(self):
         parent = self.parent.parent
         if isinstance(parent, Template):
@@ -178,6 +210,7 @@ class Property(AstNode):
             return parent.gir_class
         else:
             raise CompilerBugError()
+
 
     @validate("name")
     def property_exists(self):
@@ -233,12 +266,13 @@ class Property(AstNode):
 
 
 class Signal(AstNode):
-    @validate()
+    @property
     def gir_signal(self):
         if self.gir_class is not None:
-            return self.gir_class.signals.get(self.name)
+            return self.gir_class.signals.get(self.tokens["name"])
 
-    @validate()
+
+    @property
     def gir_class(self):
         parent = self.parent.parent
         if isinstance(parent, Template):
@@ -247,6 +281,7 @@ class Signal(AstNode):
             return parent.gir_class
         else:
             raise CompilerBugError()
+
 
     @validate("name")
     def signal_exists(self):
@@ -262,7 +297,7 @@ class Signal(AstNode):
 
         if self.gir_signal is None:
             raise CompileError(
-                f"Class {self.gir_class.full_name} does not contain a signal called {self.name}",
+                f"Class {self.gir_class.full_name} does not contain a signal called {self.tokens['name']}",
                 did_you_mean=(self.tokens["name"], self.gir_class.signals.keys())
             )
 

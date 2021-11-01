@@ -203,6 +203,12 @@ class Namespace(GirNode):
     def signature(self):
         return f"namespace {self.name} {self.version}"
 
+
+    def get_type(self, name):
+        """ Gets a type (class, interface, enum, etc.) from this namespace. """
+        return self.classes.get(name) or self.interfaces.get(name)
+
+
     def lookup_class(self, name: str):
         if "." in name:
             ns, cls = name.split(".")
@@ -254,43 +260,43 @@ class GirContext:
         self.namespaces[namespace.name] = namespace
 
 
-    def get_class(self, name: str, ns:str=None) -> Class:
-        if ns is None:
-            options = [namespace.classes[name]
-                       for namespace in self.namespaces.values()
-                       if name in namespace.classes]
+    def get_type(self, name: str, ns: str) -> GirNode:
+        ns = ns or "Gtk"
 
-            if len(options) == 1:
-                return options[0]
-            elif len(options) == 0:
-                raise CompileError(
-                    f"No imported namespace contains a class called {name}",
-                    hints=[
-                        "Did you forget to import a namespace?",
-                        "Did you check your spelling?",
-                        "Are your dependencies up to date?",
-                    ],
-                )
-            else:
-                raise CompileError(
-                    f"Class name {name} is ambiguous",
-                    hints=[
-                        f"Specify the namespace, e.g. `{options[0].ns.name}.{name}`",
-                        f"Namespaces with a class named {name}: {', '.join([cls.ns.name for cls in options])}",
-                    ],
-                )
+        if ns not in self.namespaces:
+            return None
 
-        else:
-            if ns not in self.namespaces:
-                raise CompileError(
-                    f"Namespace `{ns}` was not imported.",
-                    did_you_mean=(ns, self.namespaces.keys()),
-                )
+        return self.namespaces[ns].get_type(name)
 
-            if name not in self.namespaces[ns].classes:
-                raise CompileError(
-                    f"Namespace {ns} does not contain a class called {name}.",
-                    did_you_mean=(name, self.namespaces[ns].classes.keys()),
-                )
 
-            return self.namespaces[ns].classes[name]
+    def get_class(self, name: str, ns: str) -> T.Optional[Class]:
+        type = self.get_type(name, ns)
+        if isinstance(type, Class):
+            return type
+
+
+    def validate_class(self, name: str, ns: str) -> Class:
+        """ Raises an exception if there is a problem looking up the given
+        class (it doesn't exist, it isn't a class, etc.) """
+
+        ns = ns or "Gtk"
+
+        if ns not in self.namespaces:
+            raise CompileError(
+                f"Namespace `{ns}` was not imported.",
+                did_you_mean=(ns, self.namespaces.keys()),
+            )
+
+        type = self.get_type(name, ns)
+
+        if type is None:
+            raise CompileError(
+                f"Namespace {ns} does not contain a class called {name}.",
+                did_you_mean=(name, self.namespaces[ns].classes.keys()),
+            )
+        elif not isinstance(type, Class):
+            raise CompileError(
+                f"{ns}.{name} is not a class.",
+                did_you_mean=(name, self.namespaces[ns].classes.keys()),
+            )
+

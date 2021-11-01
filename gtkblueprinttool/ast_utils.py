@@ -52,6 +52,7 @@ class AstNode:
 
     def __init_subclass__(cls):
         cls.completers = []
+        cls.validators = [getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")]
 
 
     @property
@@ -66,9 +67,9 @@ class AstNode:
         return list(self._get_errors())
 
     def _get_errors(self):
-        for name, attr in self._attrs_by_type(Validator):
+        for validator in self.validators:
             try:
-                getattr(self, name)
+                validator(self)
             except AlreadyCaughtError:
                 pass
             except CompileError as e:
@@ -111,70 +112,40 @@ class AstNode:
         return None
 
 
-class Validator:
-    def __init__(self, func, token_name=None, end_token_name=None):
-        self.func = func
-        self.token_name = token_name
-        self.end_token_name = end_token_name
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-
-        key = "_validation_result_" + self.func.__name__
-
-        if key + "_err" in instance.__dict__:
-            # If the validator has failed before, raise a generic Exception.
-            # We want anything that depends on this validation result to
-            # fail, but not report the exception twice.
-            raise AlreadyCaughtError()
-
-        if key not in instance.__dict__:
-            try:
-                instance.__dict__[key] = self.func(instance)
-            except CompileError as e:
-                # Mark the validator as already failed so we don't print the
-                # same message again
-                instance.__dict__[key + "_err"] = True
-
-                # If the node is only partially complete, then an error must
-                # have already been reported at the parsing stage
-                if instance.incomplete:
-                    return None
-
-                # This mess of code sets the error's start and end positions
-                # from the tokens passed to the decorator, if they have not
-                # already been set
-                if self.token_name is not None and e.start is None:
-                    group = instance.group.tokens.get(self.token_name)
-                    if self.end_token_name is not None and group is None:
-                        group = instance.group.tokens[self.end_token_name]
-                    e.start = group.start
-                if (self.token_name is not None or self.end_token_name is not None) and e.end is None:
-                    e.end = instance.group.tokens[self.end_token_name or self.token_name].end
-
-                # Re-raise the exception
-                raise e
-            except Exception as e:
-                # If the node is only partially complete, then an error must
-                # have already been reported at the parsing stage
-                if instance.incomplete:
-                    return None
-                else:
-                    raise e
-
-        # Return the validation result (which other validators, or the code
-        # generation phase, might depend on)
-        return instance.__dict__[key]
-
-
-def validate(*args, **kwargs):
+def validate(token_name=None, end_token_name=None, skip_incomplete=False):
     """ Decorator for functions that validate an AST node. Exceptions raised
     during validation are marked with range information from the tokens. Also
     creates a cached property out of the function. """
 
     def decorator(func):
-        return Validator(func, *args, **kwargs)
+        def inner(self):
+            if skip_incomplete and self.incomplete:
+                return
+
+            try:
+                func(self)
+            except CompileError as e:
+                # If the node is only partially complete, then an error must
+                # have already been reported at the parsing stage
+                if self.incomplete:
+                    return
+
+                # This mess of code sets the error's start and end positions
+                # from the tokens passed to the decorator, if they have not
+                # already been set
+                if token_name is not None and e.start is None:
+                    group = self.group.tokens.get(token_name)
+                    if end_token_name is not None and group is None:
+                        group = self.group.tokens[end_token_name]
+                    e.start = group.start
+                if (token_name is not None or end_token_name is not None) and e.end is None:
+                    e.end = self.group.tokens[end_token_name or token_name].end
+
+                # Re-raise the exception
+                raise e
+
+        inner._validator = True
+        return inner
 
     return decorator
 
