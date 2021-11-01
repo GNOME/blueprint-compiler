@@ -21,7 +21,7 @@ import typing as T
 
 from .ast_utils import *
 from .errors import assert_true, AlreadyCaughtError, CompileError, CompilerBugError, MultipleErrors
-from .gir import GirContext, get_namespace
+from . import gir
 from .lsp_utils import Completion, CompletionItemKind
 from .tokenizer import Token
 from .utils import lazy_prop
@@ -33,21 +33,21 @@ class UI(AstNode):
 
     @property
     def gir(self):
-        gir = GirContext()
+        gir_ctx = gir.GirContext()
         self._gir_errors = []
 
         try:
-            gir.add_namespace(self.children[GtkDirective][0].gir_namespace)
+            gir_ctx.add_namespace(self.children[GtkDirective][0].gir_namespace)
         except CompileError as e:
             self._gir_errors.append(e)
 
         for i in self.children[Import]:
             try:
-                gir.add_namespace(i.gir_namespace)
+                gir_ctx.add_namespace(i.gir_namespace)
             except CompileError as e:
                 self._gir_errors.append(e)
 
-        return gir
+        return gir_ctx
 
 
     @validate()
@@ -86,7 +86,7 @@ class GtkDirective(AstNode):
 
     @property
     def gir_namespace(self):
-        return get_namespace("Gtk", self.tokens["version"])
+        return gir.get_namespace("Gtk", self.tokens["version"])
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -95,8 +95,18 @@ class GtkDirective(AstNode):
 
 class Import(AstNode):
     @validate("namespace", "version")
+    def namespace_exists(self):
+        gir.get_namespace(self.tokens["namespace"], self.tokens["version"])
+
+    @property
     def gir_namespace(self):
-        return get_namespace(self.tokens["namespace"], self.tokens["version"])
+        try:
+            return gir.get_namespace(self.tokens["namespace"], self.tokens["version"])
+        except CompileError:
+            return None
+
+    def emit_xml(self, xml):
+        pass
 
 
 class Template(AstNode):

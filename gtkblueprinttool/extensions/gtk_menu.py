@@ -30,7 +30,7 @@ class Menu(AstNode):
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(self.tokens["tag"], id=self.tokens["id"])
         for child in self.children:
-            child.emit_xml()
+            child.emit_xml(xml)
         xml.end_tag()
 
 
@@ -96,7 +96,7 @@ menu_item_shorthand = Group(
         )),
         Optional(Group(
             MenuAttribute,
-            Sequence(UseLiteral("name", "verb-icon-name"), value),
+            Sequence(UseLiteral("name", "icon"), value),
         )),
         StmtEnd().expected("`;`"),
     )

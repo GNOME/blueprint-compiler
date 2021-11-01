@@ -1,0 +1,6 @@
+using Gtk 4.0;
+
+Button {
+  clicked => on_button_clicked() swapped;
+  notify::visible => on_button_notify_visible();
+}
