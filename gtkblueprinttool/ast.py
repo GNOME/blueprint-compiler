@@ -123,7 +123,6 @@ class Object(AstNode):
 
 
     def emit_xml(self, xml: XmlEmitter):
-        print("Emitting object XML! ", self.gir_class)
         xml.start_tag("object", **{
             "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
             "id": self.tokens["id"],
@@ -151,13 +150,13 @@ class ObjectContent(AstNode):
         else:
             raise CompilerBugError()
 
-    @validate()
-    def only_one_style_class(self):
-        if len(self.children[Style]) > 1:
-            raise CompileError(
-                f"Only one style directive allowed per object, but this object contains {len(self.children[Style])}",
-                start=self.children[Style][1].group.start,
-            )
+    # @validate()
+    # def only_one_style_class(self):
+    #     if len(self.children[Style]) > 1:
+    #         raise CompileError(
+    #             f"Only one style directive allowed per object, but this object contains {len(self.children[Style])}",
+    #             start=self.children[Style][1].group.start,
+    #         )
 
     def emit_xml(self, xml: XmlEmitter):
         for x in self.children:
@@ -279,53 +278,3 @@ class Signal(AstNode):
         if self.tokens["detail_name"]:
             name += "::" + self.tokens["detail_name"]
         xml.put_self_closing("signal", name=name, handler=self.tokens["handler"], swapped="true" if self.tokens["swapped"] else None)
-
-
-class Style(AstNode):
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("style")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
-class StyleClass(AstNode):
-    def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.tokens["name"])
-
-
-class Menu(AstNode):
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(self.tokens["tag"], id=self.tokens["id"])
-        for child in self.children:
-            child.emit_xml()
-        xml.end_tag()
-
-
-class BaseAttribute(AstNode):
-    tag_name: str = ""
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(
-            self.tag_name,
-            name=self.tokens["name"],
-            translatable="yes" if self.tokens["translatable"] else None,
-        )
-        xml.put_text(str(self.tokens["value"]))
-        xml.end_tag()
-
-
-class MenuAttribute(BaseAttribute):
-    tag_name = "attribute"
-
-
-class Layout(AstNode):
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("layout")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
-class LayoutProperty(BaseAttribute):
-    tag_name = "property"

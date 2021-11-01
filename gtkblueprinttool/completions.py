@@ -20,6 +20,7 @@
 import typing as T
 
 from . import ast
+from .completions_utils import *
 from .lsp_utils import Completion, CompletionItemKind
 from .parser import SKIP_TOKENS
 from .tokenizer import TokenType, Token
@@ -53,92 +54,31 @@ def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterat
         token_idx -= 1
 
     for completer in ast_node.completers:
-        yield from completer.completions(prev_tokens, ast_node)
+        yield from completer(prev_tokens, ast_node)
 
 
-class Completer:
-    def __init__(self, func):
-        self.func = func
-        self.patterns: T.List = []
-        self.ast_type: T.Type[ast.AstNode] = None
-
-    def completions(self, prev_tokens: list[Token], ast_node: ast.AstNode) -> T.Iterator[Completion]:
-        any_match = len(self.patterns) == 0
-        match_variables: T.List[str] = []
-
-        for pattern in self.patterns:
-            match_variables = []
-
-            if len(pattern) <= len(prev_tokens):
-                for i in range(0, len(pattern)):
-                    type, value = pattern[i]
-                    token = prev_tokens[i - len(pattern)]
-                    if token.type != type or (value is not None and str(token) != value):
-                        break
-                    if value is None:
-                        match_variables.append(str(token))
-                else:
-                    any_match = True
-                    break
-
-        if not any_match:
-            return
-
-        if self.ast_type is not None:
-            while ast_node is not None and not isinstance(ast_node, self.ast_type):
-                ast_node = ast_node.parent
-
-        yield from self.func(ast_node, match_variables)
-
-
-def applies_to(*ast_types):
-    """ Decorator describing which AST nodes the completer should apply in. """
-    def _decorator(func):
-        completer = Completer(func)
-        for c in ast_types:
-            c.completers.append(completer)
-        return completer
-    return _decorator
-
-def matches(patterns: T.List):
-    def _decorator(cls):
-        cls.patterns = patterns
-        return cls
-    return _decorator
-
-def ast_type(ast_type: T.Type[ast.AstNode]):
-    def _decorator(cls):
-        cls.ast_type = ast_type
-        return cls
-    return _decorator
-
-
-new_statement_patterns = [
-    [(TokenType.OPEN_BLOCK, None)],
-    [(TokenType.CLOSE_BLOCK, None)],
-    [(TokenType.STMT_END, None)],
-]
-
-
-@applies_to(ast.GtkDirective)
+@completer([ast.GtkDirective])
 def using_gtk(ast_node, match_variables):
     yield Completion("using Gtk 4.0;", CompletionItemKind.Keyword)
 
 
-@matches(new_statement_patterns)
-@ast_type(ast.UI)
-@applies_to(ast.UI, ast.ObjectContent, ast.Template)
+@completer(
+    applies_in=[ast.UI, ast.ObjectContent, ast.Template],
+    matches=new_statement_patterns
+)
 def namespace(ast_node, match_variables):
     yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
-    for ns in ast_node.imports:
+    for ns in ast_node.root.children[ast.Import]:
         yield Completion(ns.namespace, CompletionItemKind.Module, text=ns.namespace + ".")
 
 
-@matches([
-    [(TokenType.IDENT, None), (TokenType.OP, "."), (TokenType.IDENT, None)],
-    [(TokenType.IDENT, None), (TokenType.OP, ".")],
-])
-@applies_to(ast.UI, ast.ObjectContent, ast.Template)
+@completer(
+    applies_in=[ast.UI, ast.ObjectContent, ast.Template],
+    matches=[
+        [(TokenType.IDENT, None), (TokenType.OP, "."), (TokenType.IDENT, None)],
+        [(TokenType.IDENT, None), (TokenType.OP, ".")],
+    ]
+)
 def object_completer(ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get(match_variables[0])
     if ns is not None:
@@ -146,22 +86,20 @@ def object_completer(ast_node, match_variables):
             yield Completion(c.name, CompletionItemKind.Class, docs=c.doc)
 
 
-@matches(new_statement_patterns)
-@applies_to(ast.ObjectContent)
+@completer(
+    applies_in=[ast.ObjectContent],
+    matches=new_statement_patterns,
+)
 def property_completer(ast_node, match_variables):
     if ast_node.gir_class:
         for prop in ast_node.gir_class.properties:
             yield Completion(prop, CompletionItemKind.Property, snippet=f"{prop}: $0;")
 
 
-@matches(new_statement_patterns)
-@applies_to(ast.ObjectContent)
-def style_completer(ast_node, match_variables):
-    yield Completion("style", CompletionItemKind.Keyword, snippet="style \"$0\";")
-
-
-@matches(new_statement_patterns)
-@applies_to(ast.ObjectContent)
+@completer(
+    applies_in=[ast.ObjectContent],
+    matches=new_statement_patterns,
+)
 def signal_completer(ast_node, match_variables):
     if ast_node.gir_class:
         for signal in ast_node.gir_class.signals:
@@ -170,54 +108,12 @@ def signal_completer(ast_node, match_variables):
             yield Completion(signal, CompletionItemKind.Property, snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;")
 
 
-@matches(new_statement_patterns)
-@applies_to(ast.UI)
+@completer(
+    applies_in=[ast.UI],
+    matches=new_statement_patterns
+)
 def template_completer(ast_node, match_variables):
     yield Completion(
         "template", CompletionItemKind.Snippet,
         snippet="template ${1:ClassName} : ${2:ParentClass} {\n  $0\n}"
     )
-
-
-@matches(new_statement_patterns)
-@applies_to(ast.UI)
-def menu_completer(ast_node, match_variables):
-    yield Completion(
-        "menu", CompletionItemKind.Snippet,
-        snippet="menu {\n  $0\n}"
-    )
-
-
-@matches(new_statement_patterns)
-@applies_to(ast.Menu)
-def menu_content_completer(ast_node, match_variables):
-    yield Completion(
-        "submenu", CompletionItemKind.Snippet,
-        snippet="submenu {\n  $0\n}"
-    )
-    yield Completion(
-        "section", CompletionItemKind.Snippet,
-        snippet="section {\n  $0\n}"
-    )
-    yield Completion(
-        "item", CompletionItemKind.Snippet,
-        snippet="item {\n  $0\n}"
-    )
-    yield Completion(
-        "item (shorthand)", CompletionItemKind.Snippet,
-        snippet='item _("${1:Label}") "${2:action-name}" "${3:icon-name}";'
-    )
-
-    yield Completion(
-        "label", CompletionItemKind.Snippet,
-        snippet='label: $0;'
-    )
-    yield Completion(
-        "action", CompletionItemKind.Snippet,
-        snippet='action: "$0";'
-    )
-    yield Completion(
-        "icon", CompletionItemKind.Snippet,
-        snippet='icon: "$0";'
-    )
-

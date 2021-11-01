@@ -21,7 +21,9 @@
 from . import ast
 from .errors import MultipleErrors
 from .parse_tree import *
+from .parser_utils import *
 from .tokenizer import TokenType
+from .extensions import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS
 
 
 def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
@@ -45,41 +47,6 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         )
     )
 
-    class_name = AnyOf(
-        Sequence(
-            UseIdent("namespace"),
-            Op("."),
-            UseIdent("class_name"),
-        ),
-        Sequence(
-            Op("."),
-            UseIdent("class_name"),
-            UseLiteral("ignore_gir", True),
-        ),
-        UseIdent("class_name"),
-    )
-
-    value = AnyOf(
-        Sequence(
-            Keyword("_"),
-            OpenParen(),
-            UseQuoted("value").expected("a quoted string"),
-            CloseParen().expected("`)`"),
-            UseLiteral("translatable", True),
-        ),
-        Sequence(Keyword("True"), UseLiteral("value", True)),
-        Sequence(Keyword("true"), UseLiteral("value", True)),
-        Sequence(Keyword("Yes"), UseLiteral("value", True)),
-        Sequence(Keyword("yes"), UseLiteral("value", True)),
-        Sequence(Keyword("False"), UseLiteral("value", False)),
-        Sequence(Keyword("false"), UseLiteral("value", False)),
-        Sequence(Keyword("No"), UseLiteral("value", False)),
-        Sequence(Keyword("no"), UseLiteral("value", False)),
-        UseIdent("value"),
-        UseNumber("value"),
-        UseQuoted("value"),
-    )
-
     object = Group(
         ast.Object,
         None
@@ -91,6 +58,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             UseIdent("name"),
             Op(":"),
             AnyOf(
+                *OBJECT_HOOKS,
                 object,
                 value,
             ).expected("a value"),
@@ -145,130 +113,12 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         )
     )
 
-    style = Group(
-        ast.Style,
-        Statement(
-            Keyword("style"),
-            Delimited(
-                Group(
-                    ast.StyleClass,
-                    UseQuoted("name")
-                ),
-                Comma(),
-            ),
-        )
-    )
-
-    menu_contents = Sequence()
-
-    menu_section = Group(
-        ast.Menu,
-        Sequence(
-            Keyword("section"),
-            UseLiteral("tag", "section"),
-            Optional(UseIdent("id")),
-            menu_contents
-        )
-    )
-
-    menu_submenu = Group(
-        ast.Menu,
-        Sequence(
-            Keyword("submenu"),
-            UseLiteral("tag", "submenu"),
-            Optional(UseIdent("id")),
-            menu_contents
-        )
-    )
-
-    menu_attribute = Group(
-        ast.MenuAttribute,
-        Sequence(
-            UseIdent("name"),
-            Op(":"),
-            value.expected("a value"),
-            StmtEnd().expected("`;`"),
-        )
-    )
-
-    menu_item = Group(
-        ast.Menu,
-        Sequence(
-            Keyword("item"),
-            UseLiteral("tag", "item"),
-            Optional(UseIdent("id")),
-            OpenBlock().expected("`{`"),
-            Until(menu_attribute, CloseBlock()),
-        )
-    )
-
-    menu_item_shorthand = Group(
-        ast.Menu,
-        Sequence(
-            Keyword("item"),
-            UseLiteral("tag", "item"),
-            Group(
-                ast.MenuAttribute,
-                Sequence(UseLiteral("name", "label"), value),
-            ),
-            Optional(Group(
-                ast.MenuAttribute,
-                Sequence(UseLiteral("name", "action"), value),
-            )),
-            Optional(Group(
-                ast.MenuAttribute,
-                Sequence(UseLiteral("name", "verb-icon-name"), value),
-            )),
-            StmtEnd().expected("`;`"),
-        )
-    )
-
-    menu_contents.children = [
-        OpenBlock().expected("`{`"),
-        Until(AnyOf(
-            menu_section,
-            menu_submenu,
-            menu_item_shorthand,
-            menu_item,
-            menu_attribute,
-        ), CloseBlock()),
-    ]
-
-    menu = Group(
-        ast.Menu,
-        Sequence(
-            Keyword("menu"),
-            UseLiteral("tag", "menu"),
-            Optional(UseIdent("id")),
-            menu_contents
-        ),
-    )
-
-    layout_prop = Group(
-        ast.LayoutProperty,
-        Statement(
-            UseIdent("name"),
-            Op(":"),
-            value.expected("a value"),
-        )
-    )
-
-    layout = Group(
-        ast.Layout,
-        Sequence(
-            Keyword("layout"),
-            OpenBlock().expected("`{`"),
-            Until(layout_prop, CloseBlock()),
-        )
-    )
-
     object_content = Group(
         ast.ObjectContent,
         Sequence(
             OpenBlock(),
             Until(AnyOf(
-                style,
-                layout,
+                *OBJECT_CONTENT_HOOKS,
                 binding,
                 property,
                 signal,
@@ -301,8 +151,8 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             gtk_directive,
             ZeroOrMore(import_statement),
             Until(AnyOf(
+                *OBJECT_HOOKS,
                 template,
-                menu,
                 object,
             ), Eof()),
         )

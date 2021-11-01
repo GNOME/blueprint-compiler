@@ -1,0 +1,64 @@
+# gtk_styles.py
+#
+# Copyright 2021 James Westman <james@jwestman.net>
+#
+# This file is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+
+from .. import ast
+from ..ast_utils import AstNode, BaseAttribute
+from ..completions_utils import *
+from ..lsp_utils import Completion, CompletionItemKind
+from ..parse_tree import *
+from ..parser_utils import *
+from ..xml_emitter import XmlEmitter
+
+
+class Styles(AstNode):
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("style")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
+
+
+class StyleClass(AstNode):
+    def emit_xml(self, xml):
+        xml.put_self_closing("class", name=self.tokens["name"])
+
+
+styles = Group(
+    Styles,
+    Statement(
+        Keyword("style"),
+        Delimited(
+            Group(
+                StyleClass,
+                UseQuoted("name")
+            ),
+            Comma(),
+        ),
+    )
+)
+
+
+@completer(
+    applies_in=[ast.ObjectContent],
+    matches=new_statement_patterns,
+)
+def style_completer(ast_node, match_variables):
+    yield Completion("style", CompletionItemKind.Keyword, snippet="style \"$0\";")
+

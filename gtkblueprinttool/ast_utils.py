@@ -197,3 +197,18 @@ def docs(*args, **kwargs):
         return Docs(func, *args, **kwargs)
 
     return decorator
+
+
+class BaseAttribute(AstNode):
+    """ A helper class for attribute syntax of the form `name: literal_value;`"""
+
+    tag_name: str = ""
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag(
+            self.tag_name,
+            name=self.tokens["name"],
+            translatable="yes" if self.tokens["translatable"] else None,
+        )
+        xml.put_text(str(self.tokens["value"]))
+        xml.end_tag()
