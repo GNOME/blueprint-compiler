@@ -22,6 +22,7 @@ from collections import ChainMap, defaultdict
 
 from . import ast
 from .errors import *
+from .lsp_utils import SemanticToken
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
 
@@ -111,6 +112,10 @@ class AstNode:
                     return docs
 
         return None
+
+    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+        for child in self.children:
+            yield from child.get_semantic_tokens()
 
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):

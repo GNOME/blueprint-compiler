@@ -94,3 +94,14 @@ class Completion:
             "insertTextFormat": insert_text_format,
         }
         return { k: v for k, v in result.items() if v is not None }
+
+
+class SemanticTokenType(enum.IntEnum):
+    EnumMember = 0
+
+
+@dataclass
+class SemanticToken:
+    start: int
+    end: int
+    type: SemanticTokenType

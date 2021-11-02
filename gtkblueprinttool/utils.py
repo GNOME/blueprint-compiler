@@ -73,7 +73,7 @@ def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
     sp = text[:idx].splitlines(keepends=True)
     line_num = len(sp)
     col_num = len(sp[-1])
-    return (line_num, col_num)
+    return (line_num - 1, col_num)
 
 def pos_to_idx(line: int, col: int, text: str) -> int:
     lines = text.splitlines(keepends=True)

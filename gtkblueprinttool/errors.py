@@ -78,7 +78,10 @@ class CompileError(PrintableError):
 
     def pretty_print(self, filename, code):
         line_num, col_num = utils.idx_to_pos(self.start + 1, code)
-        line = code.splitlines(True)[line_num-1]
+        line = code.splitlines(True)[line_num]
+
+        # Display 1-based line numbers
+        line_num += 1
 
         print(f"""{_colors.RED}{_colors.BOLD}{self.category}: {self.message}{_colors.CLEAR}
 at {filename} line {line_num} column {col_num}:

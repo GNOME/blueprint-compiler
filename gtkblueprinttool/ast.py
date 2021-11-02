@@ -22,7 +22,7 @@ import typing as T
 from .ast_utils import *
 from .errors import assert_true, AlreadyCaughtError, CompileError, CompilerBugError, MultipleErrors
 from . import gir
-from .lsp_utils import Completion, CompletionItemKind
+from .lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from .tokenizer import Token
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
@@ -396,6 +396,12 @@ class IdentValue(Value):
                 return type.doc
         elif isinstance(type, gir.GirNode):
             return type.doc
+
+
+    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+        if isinstance(self.parent.value_type, gir.Enumeration):
+            token = self.group.tokens["value"]
+            yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
 
 
 class BaseAttribute(AstNode):

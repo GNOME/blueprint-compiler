@@ -65,6 +65,26 @@ class OpenFile:
             self.diagnostics.append(e)
 
 
+    def calc_semantic_tokens(self) -> T.List[int]:
+        tokens = list(self.ast.get_semantic_tokens())
+        token_lists = [
+            [
+                *utils.idx_to_pos(token.start, self.text), # line and column
+                token.end - token.start,        # length
+                token.type,
+                0,                              # token modifiers
+            ] for token in tokens]
+
+        # convert line, column numbers to deltas
+        for i, token_list in enumerate(token_lists[1:]):
+            token_list[0] -= token_lists[i][0]
+            if token_list[0] == 0:
+                token_list[1] -= token_lists[i][1]
+
+        # flatten the list
+        return [x for y in token_lists for x in y]
+
+
 class LanguageServer:
     commands: T.Dict[str, T.Callable] = {}
 
@@ -137,6 +157,12 @@ class LanguageServer:
                     "openClose": True,
                     "change": TextDocumentSyncKind.Incremental,
                 },
+                "semanticTokensProvider": {
+                    "legend": {
+                        "tokenTypes": ["enumMember"],
+                    },
+                    "full": True,
+                },
                 "completionProvider": {},
                 "hoverProvider": True,
             }
@@ -191,6 +217,15 @@ class LanguageServer:
         self._send_response(id, [completion.to_json(True) for completion in completions])
 
 
+    @command("textDocument/semanticTokens/full")
+    def semantic_tokens(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        self._send_response(id, {
+            "data": open_file.calc_semantic_tokens(),
+        })
+
+
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification("textDocument/publishDiagnostics", {
             "uri": open_file.uri,
@@ -202,8 +237,8 @@ class LanguageServer:
         end_l, end_c = utils.idx_to_pos(err.end or err.start, text)
         return {
             "range": {
-                "start": { "line": start_l - 1, "character": start_c },
-                "end": { "line": end_l - 1, "character": end_c },
+                "start": { "line": start_l, "character": start_c },
+                "end": { "line": end_l, "character": end_c },
             },
             "message": err.message,
             "severity": 1,
