@@ -206,12 +206,6 @@ class ObjectContent(AstNode):
 
 class Property(AstNode):
     @property
-    def gir_property(self):
-        if self.gir_class is not None:
-            return self.gir_class.properties.get(self.tokens["name"])
-
-
-    @property
     def gir_class(self):
         parent = self.parent.parent
         if isinstance(parent, Template):
@@ -220,6 +214,18 @@ class Property(AstNode):
             return parent.gir_class
         else:
             raise CompilerBugError()
+
+
+    @property
+    def gir_property(self):
+        if self.gir_class is not None:
+            return self.gir_class.properties.get(self.tokens["name"])
+
+
+    @property
+    def value_type(self):
+        if self.gir_property is not None:
+            return self.gir_property.type
 
 
     @validate("name")
@@ -248,6 +254,10 @@ class Property(AstNode):
 
 
     def emit_xml(self, xml: XmlEmitter):
+        values = self.children[Value]
+        value = values[0] if len(values) == 1 else None
+        translatable = isinstance(value, TranslatedStringValue)
+
         bind_flags = []
         if self.tokens["sync_create"]:
             bind_flags.append("sync-create")
@@ -257,7 +267,7 @@ class Property(AstNode):
 
         props = {
             "name": self.tokens["name"],
-            "translatable": "yes" if self.tokens["translatable"] else None,
+            "translatable": "true" if translatable else None,
             "bind-source": self.tokens["bind_source"],
             "bind-property": self.tokens["bind_property"],
             "bind-flags": bind_flags_str,
@@ -267,11 +277,14 @@ class Property(AstNode):
             xml.start_tag("property", **props)
             self.children[Object][0].emit_xml(xml)
             xml.end_tag()
-        elif self.tokens["value"] is None:
+        elif value is None:
             xml.put_self_closing("property", **props)
         else:
             xml.start_tag("property", **props)
-            xml.put_text(str(self.tokens["value"]))
+            if translatable:
+                xml.put_text(value.string)
+            else:
+                value.emit_xml(xml)
             xml.end_tag()
 
 
@@ -323,3 +336,82 @@ class Signal(AstNode):
         if self.tokens["detail_name"]:
             name += "::" + self.tokens["detail_name"]
         xml.put_self_closing("signal", name=name, handler=self.tokens["handler"], swapped="true" if self.tokens["swapped"] else None)
+
+
+class Value(ast.AstNode):
+    pass
+
+
+class TranslatedStringValue(Value):
+    @property
+    def string(self):
+        return self.tokens["value"]
+
+    def emit_xml(self, xml):
+        raise CompilerBugError("TranslatedStringValues must be handled by the parent AST node")
+
+
+class LiteralValue(Value):
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text(self.tokens["value"])
+
+
+class Flag(AstNode):
+    pass
+
+class FlagsValue(Value):
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text("|".join([flag.tokens["value"] for flag in self.children[Flag]]))
+
+
+class IdentValue(Value):
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text(self.tokens["value"])
+
+    @validate()
+    def validate_for_type(self):
+        type = self.parent.value_type
+        if isinstance(type, gir.Enumeration):
+            if self.tokens["value"] not in type.members:
+                raise CompileError(
+                    f"{self.tokens['value']} is not a member of {type.full_name}",
+                    did_you_mean=type.members.keys(),
+                )
+        elif isinstance(type, gir.BoolType):
+            # would have been parsed as a LiteralValue if it was correct
+            raise CompileError(
+                f"Expected 'true' or 'false' for boolean value",
+                did_you_mean=["true", "false"],
+            )
+
+
+    @docs()
+    def docs(self):
+        type = self.parent.value_type
+        if isinstance(type, gir.Enumeration):
+            if member := type.members.get(self.tokens["value"]):
+                return member.doc
+            else:
+                return type.doc
+        elif isinstance(type, gir.GirNode):
+            return type.doc
+
+
+class BaseAttribute(AstNode):
+    """ A helper class for attribute syntax of the form `name: literal_value;`"""
+
+    tag_name: str = ""
+
+    def emit_xml(self, xml: XmlEmitter):
+        value = self.children[Value][0]
+        translatable = isinstance(value, TranslatedStringValue)
+        xml.start_tag(
+            self.tag_name,
+            name=self.tokens["name"],
+            translatable="true" if translatable else None,
+        )
+        if translatable:
+            xml.put_text(value.string)
+        else:
+            value.emit_xml(xml)
+        xml.end_tag()

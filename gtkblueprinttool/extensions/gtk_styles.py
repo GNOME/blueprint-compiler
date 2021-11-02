@@ -19,7 +19,7 @@
 
 
 from .. import ast
-from ..ast_utils import AstNode, BaseAttribute
+from ..ast_utils import AstNode
 from ..completions_utils import *
 from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *

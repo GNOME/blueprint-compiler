@@ -18,7 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..ast_utils import AstNode, BaseAttribute
+from ..ast import BaseAttribute
+from ..ast_utils import AstNode
 from ..completions_utils import *
 from ..parse_tree import *
 from ..parser_utils import *

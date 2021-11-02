@@ -55,13 +55,56 @@ def get_namespace(namespace, version):
     return _namespace_cache[filename]
 
 
+class BasicType:
+    pass
+
+class BoolType(BasicType):
+    pass
+
+class IntType(BasicType):
+    pass
+
+class UIntType(BasicType):
+    pass
+
+class FloatType(BasicType):
+    pass
+
+_BASIC_TYPES = {
+    "gboolean": BoolType,
+    "gint": IntType,
+    "gint64": IntType,
+    "guint": UIntType,
+    "guint64": UIntType,
+    "gfloat": FloatType,
+    "gdouble": FloatType,
+    "float": FloatType,
+    "double": FloatType,
+}
+
 class GirNode:
-    def __init__(self, xml):
+    def __init__(self, container, xml):
+        self.container = container
         self.xml = xml
+
+    def get_containing(self, container_type):
+        if self.container is None:
+            return None
+        elif isinstance(self.container, container_type):
+            return self.container
+        else:
+            return self.container.get_containing(container_type)
 
     @lazy_prop
     def glib_type_name(self):
         return self.xml["glib:type-name"]
+
+    @lazy_prop
+    def full_name(self):
+        if self.container is None:
+            return self.name
+        else:
+            return f"{self.container.name}.{self.name}"
 
     @lazy_prop
     def name(self) -> str:
@@ -88,11 +131,18 @@ class GirNode:
     def signature(self) -> T.Optional[str]:
         return None
 
+    @property
+    def type_name(self):
+        return self.xml.get_elements('type')[0]['name']
+
+    @property
+    def type(self):
+        return self.get_containing(Namespace).lookup_type(self.type_name)
+
 
 class Property(GirNode):
     def __init__(self, klass, xml: xml_reader.Element):
-        super().__init__(xml)
-        self.klass = klass
+        super().__init__(klass, xml)
 
     @property
     def type_name(self):
@@ -100,45 +150,38 @@ class Property(GirNode):
 
     @property
     def signature(self):
-        return f"{self.type_name} {self.klass.name}.{self.name}"
+        return f"{self.type_name} {self.container.name}.{self.name}"
 
 
 class Parameter(GirNode):
-    def __init__(self, xml: xml_reader.Element):
-        super().__init__(xml)
-
-    @property
-    def type_name(self):
-        return self.xml.get_elements('type')[0]['name']
+    def __init__(self, container: GirNode, xml: xml_reader.Element):
+        super().__init__(container, xml)
 
 
 class Signal(GirNode):
     def __init__(self, klass, xml: xml_reader.Element):
-        super().__init__(xml)
-        self.klass = klass
+        super().__init__(klass, xml)
         if parameters := xml.get_elements('parameters'):
-            self.params = [Parameter(child) for child in parameters[0].get_elements('parameter')]
+            self.params = [Parameter(self, child) for child in parameters[0].get_elements('parameter')]
         else:
             self.params = []
 
     @property
     def signature(self):
         args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
-        return f"signal {self.klass.name}.{self.name} ({args})"
+        return f"signal {self.container.name}.{self.name} ({args})"
 
 
 class Interface(GirNode):
     def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(xml)
-        self.ns = ns
+        super().__init__(ns, xml)
         self.properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
         self.signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
 
 
 class Class(GirNode):
     def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(xml)
-        self.ns = ns
+        super().__init__(ns, xml)
         self._parent = xml["parent"]
         self.implements = [impl["name"] for impl in xml.get_elements("implements")]
         self.own_properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
@@ -146,9 +189,9 @@ class Class(GirNode):
 
     @property
     def signature(self):
-        result = f"class {self.ns.name}.{self.name}"
+        result = f"class {self.container.name}.{self.name}"
         if self.parent is not None:
-            result += f" : {self.parent.ns.name}.{self.parent.name}"
+            result += f" : {self.parent.container.name}.{self.parent.name}"
         if len(self.implements):
             result += " implements " + ", ".join(self.implements)
         return result
@@ -162,14 +205,10 @@ class Class(GirNode):
         return { s.name: s for s in self._enum_signals() }
 
     @lazy_prop
-    def full_name(self):
-        return f"{self.ns.name}.{self.name}"
-
-    @lazy_prop
     def parent(self):
         if self._parent is None:
             return None
-        return self.ns.lookup_class(self._parent)
+        return self.get_containing(Namespace).lookup_type(self._parent)
 
 
     def _enum_properties(self):
@@ -179,7 +218,7 @@ class Class(GirNode):
             yield from self.parent.properties.values()
 
         for impl in self.implements:
-            yield from self.ns.lookup_interface(impl).properties.values()
+            yield from self.get_containing(Namespace).lookup_type(impl).properties.values()
 
     def _enum_signals(self):
         yield from self.own_signals.values()
@@ -188,15 +227,39 @@ class Class(GirNode):
             yield from self.parent.signals.values()
 
         for impl in self.implements:
-            yield from self.ns.lookup_interface(impl).signals.values()
+            yield from self.get_containing(Namespace).lookup_type(impl).signals.values()
+
+
+class EnumMember(GirNode):
+    def __init__(self, ns, xml: xml_reader.Element):
+        super().__init__(ns, xml)
+        self._value = xml["value"]
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def signature(self):
+        return f"enum member {self.full_name} = {self.value}"
+
+
+class Enumeration(GirNode):
+    def __init__(self, ns, xml: xml_reader.Element):
+        super().__init__(ns, xml)
+        self.members = { child["name"]: EnumMember(self, child) for child in xml.get_elements("member") }
+
+    @property
+    def signature(self):
+        return f"enum {self.full_name}"
 
 
 class Namespace(GirNode):
     def __init__(self, repo, xml: xml_reader.Element):
-        super().__init__(xml)
-        self.repo = repo
+        super().__init__(repo, xml)
         self.classes = { child["name"]: Class(self, child) for child in xml.get_elements("class") }
         self.interfaces = { child["name"]: Interface(self, child) for child in xml.get_elements("interface") }
+        self.enumerations = { child["name"]: Enumeration(self, child) for child in xml.get_elements("enumeration") }
         self.version = xml["version"]
 
     @property
@@ -206,30 +269,25 @@ class Namespace(GirNode):
 
     def get_type(self, name):
         """ Gets a type (class, interface, enum, etc.) from this namespace. """
-        return self.classes.get(name) or self.interfaces.get(name)
+        return self.classes.get(name) or self.interfaces.get(name) or self.enumerations.get(name)
 
 
-    def lookup_class(self, name: str):
-        if "." in name:
-            ns, cls = name.split(".")
-            return self.repo.lookup_namespace(ns).lookup_class(cls)
+    def lookup_type(self, type_name: str):
+        """ Looks up a type in the scope of this namespace (including in the
+        namespace's dependencies). """
+
+        if type_name in _BASIC_TYPES:
+            return _BASIC_TYPES[type_name]()
+        elif "." in type_name:
+            ns, name = type_name.split(".", 1)
+            return self.get_containing(Repository).get_type(name, ns)
         else:
-            return self.classes.get(name)
-
-    def lookup_interface(self, name: str):
-        if "." in name:
-            ns, iface = name.split(".")
-            return self.repo.lookup_namespace(ns).lookup_interface(iface)
-        else:
-            return self.interfaces.get(name)
-
-    def lookup_namespace(self, ns: str):
-        return self.repo.lookup_namespace(ns)
+            return self.get_type(type_name)
 
 
 class Repository(GirNode):
     def __init__(self, xml: xml_reader.Element):
-        super().__init__(xml)
+        super().__init__(None, xml)
         self.namespaces = { child["name"]: Namespace(self, child) for child in xml.get_elements("namespace") }
 
         try:
@@ -237,14 +295,22 @@ class Repository(GirNode):
         except:
             raise CompilerBugError(f"Failed to load dependencies.")
 
-    def lookup_namespace(self, name: str):
-        ns = self.namespaces.get(name)
-        if ns is not None:
-            return ns
-        for include in self.includes.values():
-            ns = include.lookup_namespace(name)
-            if ns is not None:
-                return ns
+
+    def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
+        if namespace := self.namespaces.get(ns):
+            return namespace.get_type(name)
+        else:
+            return self.lookup_namespace(ns).get_type(name)
+
+
+    def lookup_namespace(self, ns: str):
+        """ Finds a namespace among this namespace's dependencies. """
+        if namespace := self.namespaces.get(ns):
+            return namespace
+        else:
+            for include in self.includes.values():
+                if namespace := include.get_containing(Repository).lookup_namespace(ns):
+                    return namespace
 
 
 class GirContext:
@@ -260,7 +326,7 @@ class GirContext:
         self.namespaces[namespace.name] = namespace
 
 
-    def get_type(self, name: str, ns: str) -> GirNode:
+    def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
         ns = ns or "Gtk"
 
         if ns not in self.namespaces:
@@ -273,9 +339,11 @@ class GirContext:
         type = self.get_type(name, ns)
         if isinstance(type, Class):
             return type
+        else:
+            return None
 
 
-    def validate_class(self, name: str, ns: str) -> Class:
+    def validate_class(self, name: str, ns: str):
         """ Raises an exception if there is a problem looking up the given
         class (it doesn't exist, it isn't a class, etc.) """
 

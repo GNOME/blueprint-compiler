@@ -20,6 +20,7 @@
 import typing as T
 from collections import ChainMap, defaultdict
 
+from . import ast
 from .errors import *
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
@@ -133,13 +134,19 @@ def validate(token_name=None, end_token_name=None, skip_incomplete=False):
                 # This mess of code sets the error's start and end positions
                 # from the tokens passed to the decorator, if they have not
                 # already been set
-                if token_name is not None and e.start is None:
-                    group = self.group.tokens.get(token_name)
-                    if end_token_name is not None and group is None:
-                        group = self.group.tokens[end_token_name]
-                    e.start = group.start
-                if (token_name is not None or end_token_name is not None) and e.end is None:
-                    e.end = self.group.tokens[end_token_name or token_name].end
+                if e.start is None:
+                    if token := self.group.tokens.get(token_name):
+                        e.start = token.start
+                    else:
+                        e.start = self.group.start
+
+                if e.end is None:
+                    if token := self.group.tokens.get(token_name):
+                        e.end = token.end
+                    elif token := self.group.tokens.get(end_token_name):
+                        e.end = token.end
+                    else:
+                        e.end = self.group.end
 
                 # Re-raise the exception
                 raise e
@@ -168,18 +175,3 @@ def docs(*args, **kwargs):
         return Docs(func, *args, **kwargs)
 
     return decorator
-
-
-class BaseAttribute(AstNode):
-    """ A helper class for attribute syntax of the form `name: literal_value;`"""
-
-    tag_name: str = ""
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(
-            self.tag_name,
-            name=self.tokens["name"],
-            translatable="yes" if self.tokens["translatable"] else None,
-        )
-        xml.put_text(str(self.tokens["value"]))
-        xml.end_tag()

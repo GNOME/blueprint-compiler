@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from . import ast
 from .parse_tree import *
 
 
@@ -35,23 +36,38 @@ class_name = AnyOf(
     UseIdent("class_name"),
 )
 
-value = AnyOf(
+literal = Group(
+    ast.LiteralValue,
+    AnyOf(
+        Sequence(Keyword("true"), UseLiteral("value", True)),
+        Sequence(Keyword("false"), UseLiteral("value", False)),
+        UseNumber("value"),
+        UseQuoted("value"),
+    )
+)
+
+ident_value = Group(
+    ast.IdentValue,
+    UseIdent("value"),
+)
+
+flags_value = Group(
+    ast.FlagsValue,
+    Sequence(
+        Group(ast.Flag, UseIdent("value")),
+        Op("|"),
+        Delimited(Group(ast.Flag, UseIdent("value")), Op("|")),
+    ),
+)
+
+translated_string = Group(
+    ast.TranslatedStringValue,
     Sequence(
         Keyword("_"),
         OpenParen(),
         UseQuoted("value").expected("a quoted string"),
         CloseParen().expected("`)`"),
-        UseLiteral("translatable", True),
     ),
-    Sequence(Keyword("True"), UseLiteral("value", True)),
-    Sequence(Keyword("true"), UseLiteral("value", True)),
-    Sequence(Keyword("Yes"), UseLiteral("value", True)),
-    Sequence(Keyword("yes"), UseLiteral("value", True)),
-    Sequence(Keyword("False"), UseLiteral("value", False)),
-    Sequence(Keyword("false"), UseLiteral("value", False)),
-    Sequence(Keyword("No"), UseLiteral("value", False)),
-    Sequence(Keyword("no"), UseLiteral("value", False)),
-    UseIdent("value"),
-    UseNumber("value"),
-    UseQuoted("value"),
 )
+
+value = AnyOf(translated_string, literal, flags_value, ident_value)

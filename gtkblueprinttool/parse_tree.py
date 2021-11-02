@@ -294,7 +294,7 @@ class Statement(ParseNode):
                     return False
             except CompileError as e:
                 ctx.errors.append(e)
-                ctx.set_group_incomplete(True)
+                ctx.set_group_incomplete()
                 return True
 
         token = ctx.peek_token()

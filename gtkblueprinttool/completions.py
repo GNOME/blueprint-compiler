@@ -20,6 +20,7 @@
 import typing as T
 
 from . import ast
+from . import gir
 from .completions_utils import *
 from .lsp_utils import Completion, CompletionItemKind
 from .parser import SKIP_TOKENS
@@ -28,23 +29,13 @@ from .tokenizer import TokenType, Token
 Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 
 
-def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterator[Completion]:
+def _complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int, token_idx: int) -> T.Iterator[Completion]:
     for child in ast_node.children:
-        if child.group.start <= idx <= child.group.end:
-            yield from complete(child, tokens, idx)
+        if child.group.start <= idx and (idx < child.group.end or (idx == child.group.end and child.incomplete)):
+            yield from _complete(child, tokens, idx, token_idx)
             return
 
     prev_tokens: T.List[Token] = []
-    token_idx = 0
-
-    # find the current token
-    for i, token in enumerate(tokens):
-        if token.start < idx <= token.end:
-            token_idx = i
-
-    # if the current token is an identifier, move to the token before it
-    if tokens[token_idx].type == TokenType.IDENT:
-        token_idx -= 1
 
     # collect the 5 previous non-skipped tokens
     while len(prev_tokens) < 5 and token_idx >= 0:
@@ -55,6 +46,21 @@ def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterat
 
     for completer in ast_node.completers:
         yield from completer(prev_tokens, ast_node)
+
+
+def complete(ast_node: ast.AstNode, tokens: T.List[Token], idx: int) -> T.Iterator[Completion]:
+    token_idx = 0
+    # find the current token
+    for i, token in enumerate(tokens):
+        if token.start < idx <= token.end:
+            token_idx = i
+
+    # if the current token is an identifier or whitespace, move to the token before it
+    while tokens[token_idx].type in [TokenType.IDENT, TokenType.WHITESPACE]:
+        idx = tokens[token_idx].start
+        token_idx -= 1
+
+    yield from _complete(ast_node, tokens, idx, token_idx)
 
 
 @completer([ast.GtkDirective])
@@ -97,14 +103,32 @@ def property_completer(ast_node, match_variables):
 
 
 @completer(
+    applies_in=[ast.Property],
+    matches=[
+        [(TokenType.IDENT, None), (TokenType.OP, ":")]
+    ],
+)
+def prop_value_completer(ast_node, match_variables):
+    if isinstance(ast_node.value_type, gir.Enumeration):
+        for name, member in ast_node.value_type.members.items():
+            yield Completion(name, CompletionItemKind.EnumMember, docs=member.doc)
+
+    elif isinstance(ast_node.value_type, gir.BoolType):
+        yield Completion("true", CompletionItemKind.Constant)
+        yield Completion("false", CompletionItemKind.Constant)
+
+
+@completer(
     applies_in=[ast.ObjectContent],
     matches=new_statement_patterns,
 )
 def signal_completer(ast_node, match_variables):
     if ast_node.gir_class:
         for signal in ast_node.gir_class.signals:
-            name = ("on" if not isinstance(ast_node.parent, ast.Object)
-                else "on_" + (ast_node.parent.id or ast_node.parent.class_name.lower()))
+            if not isinstance(ast_node.parent, ast.Object):
+                name = "on"
+            else:
+                name = "on_" + (ast_node.parent.tokens["id"] or ast_node.parent.tokens["class_name"].lower())
             yield Completion(signal, CompletionItemKind.Property, snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;")
 
 
