@@ -62,6 +62,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("menu")
         self.assert_sample("property")
         self.assert_sample("signal")
+        self.assert_sample("strings")
         self.assert_sample("style")
         self.assert_sample("template")
         self.assert_sample("using")

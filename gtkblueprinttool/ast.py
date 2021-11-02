@@ -43,7 +43,8 @@ class UI(AstNode):
 
         for i in self.children[Import]:
             try:
-                gir_ctx.add_namespace(i.gir_namespace)
+                if i.gir_namespace is not None:
+                    gir_ctx.add_namespace(i.gir_namespace)
             except CompileError as e:
                 self._gir_errors.append(e)
 
