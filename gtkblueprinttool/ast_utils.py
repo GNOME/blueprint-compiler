@@ -118,6 +118,12 @@ class AstNode:
             yield from child.get_semantic_tokens()
 
 
+    def iterate_children_recursive(self) -> T.Iterator["AstNode"]:
+        yield self
+        for child in self.children:
+            yield from child.iterate_children_recursive()
+
+
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
     """ Decorator for functions that validate an AST node. Exceptions raised
     during validation are marked with range information from the tokens. Also

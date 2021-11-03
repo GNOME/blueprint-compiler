@@ -51,6 +51,11 @@ class UI(AstNode):
         return gir_ctx
 
 
+    @lazy_prop
+    def objects_by_id(self):
+        return { obj.id: obj for obj in self.iterate_children_recursive() if hasattr(obj, "id") }
+
+
     @validate()
     def gir_errors(self):
         # make sure gir is loaded
@@ -64,6 +69,19 @@ class UI(AstNode):
         if len(self.children[Template]) > 1:
             raise CompileError(f"Only one template may be defined per file, but this file contains {len(self.templates)}",
                                self.children[Template][1].group.start)
+
+
+    @validate()
+    def unique_ids(self):
+        passed = {}
+        for obj in self.iterate_children_recursive():
+            if obj.tokens["id"] is None:
+                continue
+
+            if obj.tokens["id"] in passed:
+                token = obj.group.tokens["id"]
+                raise CompileError(f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end)
+            passed[obj.tokens["id"]] = obj
 
 
     def emit_xml(self, xml: XmlEmitter):

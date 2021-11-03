@@ -24,8 +24,9 @@ import traceback
 import unittest
 
 from gtkblueprinttool import tokenizer, parser
-from gtkblueprinttool.errors import PrintableError, MultipleErrors
+from gtkblueprinttool.errors import PrintableError, MultipleErrors, CompileError
 from gtkblueprinttool.tokenizer import Token, TokenType, tokenize
+from gtkblueprinttool import utils
 
 
 class TestSamples(unittest.TestCase):
@@ -54,6 +55,39 @@ class TestSamples(unittest.TestCase):
             raise AssertionError()
 
 
+    def assert_sample_error(self, name):
+        try:
+            with open((Path(__file__).parent / f"sample_errors/{name}.blp").resolve()) as f:
+                blueprint = f.read()
+            with open((Path(__file__).parent / f"sample_errors/{name}.err").resolve()) as f:
+                expected = f.read()
+
+            tokens = tokenizer.tokenize(blueprint)
+            ast, errors = parser.parse(tokens)
+
+            if errors:
+                raise errors
+            if len(ast.errors):
+                raise MultipleErrors(ast.errors)
+        except PrintableError as e:
+            def error_str(error):
+                line, col = utils.idx_to_pos(error.start, blueprint)
+                len = error.end - error.start
+                return ",".join([str(line + 1), str(col), str(len), error.message])
+
+            if isinstance(e, CompileError):
+                actual = error_str(e)
+            elif isinstance(e, MultipleErrors):
+                actual = "\n".join([error_str(error) for error in e.errors])
+            else:
+                raise AssertionError()
+
+            if actual.strip() != expected.strip():
+                diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
+                print("\n".join(diff))
+                raise AssertionError()
+
+
     def test_samples(self):
         self.assert_sample("binding")
         self.assert_sample("child_type")
@@ -66,3 +100,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("style")
         self.assert_sample("template")
         self.assert_sample("using")
+
+
+    def test_sample_errors(self):
+        self.assert_sample_error("duplicate_obj_id")
