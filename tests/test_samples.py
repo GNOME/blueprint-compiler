@@ -103,8 +103,6 @@ class TestSamples(unittest.TestCase):
 
 
     def test_sample_errors(self):
-        self.assert_sample_error("conflicting_namespaces")
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("two_templates")
-        self.assert_sample_error("using_gtk_3")
         self.assert_sample_error("using_invalid_namespace")

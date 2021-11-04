@@ -3,3 +3,7 @@ __pycache__
 /dist
 *.egg-info
 gtk-blueprint-tool.pc
+
+/.coverage
+/htmlcov
+.mypy_cache

@@ -6,8 +6,10 @@ build:
   stage: build
   script:
     - dnf install -y meson python3-pip gtk4-devel gobject-introspection-devel
-    - pip3 install furo mypy sphinx
+    - pip3 install furo mypy sphinx coverage
     - mypy gtkblueprinttool
+    - coverage run -m unittest
+    - coverage html
     - meson _build -Ddocs=true
     - ninja -C _build
     - ninja -C _build test
@@ -15,6 +17,7 @@ build:
   artifacts:
     paths:
       - _build
+      - htmlcov
 
 pages:
   stage: pages
@@ -22,6 +25,7 @@ pages:
     - build
   script:
     - mv _build/docs/en public
+    - mv htmlcov public/coverage
   artifacts:
     paths:
       - public
