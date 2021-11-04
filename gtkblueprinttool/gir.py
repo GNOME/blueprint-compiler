@@ -351,7 +351,7 @@ class GirContext:
 
         if ns not in self.namespaces:
             raise CompileError(
-                f"Namespace `{ns}` was not imported.",
+                f"Namespace {ns} was not imported",
                 did_you_mean=(ns, self.namespaces.keys()),
             )
 
@@ -359,12 +359,12 @@ class GirContext:
 
         if type is None:
             raise CompileError(
-                f"Namespace {ns} does not contain a class called {name}.",
+                f"Namespace {ns} does not contain a class called {name}",
                 did_you_mean=(name, self.namespaces[ns].classes.keys()),
             )
         elif not isinstance(type, Class):
             raise CompileError(
-                f"{ns}.{name} is not a class.",
+                f"{ns}.{name} is not a class",
                 did_you_mean=(name, self.namespaces[ns].classes.keys()),
             )
 

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <template class="TestTemplate" parent="GtkApplicationWindow"></template>
+  <template class="TestTemplate" parent="GtkApplicationWindow">
+    <property name="test-property">Hello, world</property>
+    <signal name="test-signal" handler="on_test_signal"/>
+  </template>
 </interface>

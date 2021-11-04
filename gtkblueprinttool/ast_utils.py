@@ -152,9 +152,9 @@ def validate(token_name=None, end_token_name=None, skip_incomplete=False):
                         e.start = self.group.start
 
                 if e.end is None:
-                    if token := self.group.tokens.get(token_name):
+                    if token := self.group.tokens.get(end_token_name):
                         e.end = token.end
-                    elif token := self.group.tokens.get(end_token_name):
+                    elif token := self.group.tokens.get(token_name):
                         e.end = token.end
                     else:
                         e.end = self.group.end

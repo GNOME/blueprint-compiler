@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="TestTemplate" parent="GtkLabel">
+    <property name="test-property">
+      <object class="GtkButton">
+        <property name="label">Hello, world!</property>
+      </object>
+    </property>
+  </template>
+</interface>
