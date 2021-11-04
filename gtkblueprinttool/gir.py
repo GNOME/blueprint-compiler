@@ -50,7 +50,7 @@ def get_namespace(namespace, version):
                 break
 
         if filename not in _namespace_cache:
-            raise CompileError(f"Namespace `{namespace}-{version}` could not be found.")
+            raise CompileError(f"Namespace {namespace}-{version} could not be found")
 
     return _namespace_cache[filename]
 

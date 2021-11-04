@@ -39,6 +39,8 @@ class UI(AstNode):
         try:
             gir_ctx.add_namespace(self.children[GtkDirective][0].gir_namespace)
         except CompileError as e:
+            e.start = self.children[GtkDirective][0].group.start
+            e.end = self.children[GtkDirective][0].group.end
             self._gir_errors.append(e)
 
         for i in self.children[Import]:
@@ -46,6 +48,8 @@ class UI(AstNode):
                 if i.gir_namespace is not None:
                     gir_ctx.add_namespace(i.gir_namespace)
             except CompileError as e:
+                e.start = i.group.tokens["namespace"].start
+                e.end = i.group.tokens["version"].end
                 self._gir_errors.append(e)
 
         return gir_ctx
@@ -67,8 +71,11 @@ class UI(AstNode):
     @validate()
     def at_most_one_template(self):
         if len(self.children[Template]) > 1:
-            raise CompileError(f"Only one template may be defined per file, but this file contains {len(self.templates)}",
-                               self.children[Template][1].group.start)
+            for template in self.children[Template][1:]:
+                raise CompileError(
+                    f"Only one template may be defined per file, but this file contains {len(self.children[Template])}",
+                    template.group.tokens["name"].start, template.group.tokens["name"].end,
+                )
 
 
     @validate()
@@ -96,7 +103,7 @@ class GtkDirective(AstNode):
     def gtk_version(self):
         if self.tokens["version"] not in ["4.0"]:
             err = CompileError("Only GTK 4 is supported")
-            if self.version.startswith("4"):
+            if self.tokens["version"].startswith("4"):
                 err.hint("Expected the GIR version, not an exact version number. Use `using Gtk 4.0;`.")
             else:
                 err.hint("Expected `using Gtk 4.0;`")
