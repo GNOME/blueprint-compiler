@@ -6,4 +6,5 @@ gtk-blueprint-tool.pc
 
 /.coverage
 /htmlcov
+coverage.xml
 .mypy_cache
