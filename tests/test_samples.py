@@ -92,6 +92,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("binding")
         self.assert_sample("child_type")
         self.assert_sample("flags")
+        self.assert_sample("id_prop")
         self.assert_sample("layout")
         self.assert_sample("menu")
         self.assert_sample("object_prop")
@@ -105,12 +106,15 @@ class TestSamples(unittest.TestCase):
 
 
     def test_sample_errors(self):
+        self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("invalid_bool")
         self.assert_sample_error("ns_not_imported")
         self.assert_sample_error("not_a_class")
+        self.assert_sample_error("object_dne")
+        self.assert_sample_error("obj_prop_type")
         self.assert_sample_error("property_dne")
         self.assert_sample_error("signal_dne")
         self.assert_sample_error("two_templates")

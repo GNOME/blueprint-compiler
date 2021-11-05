@@ -55,23 +55,47 @@ def get_namespace(namespace, version):
     return _namespace_cache[filename]
 
 
-class BasicType:
+class GirType:
     pass
+
+class BasicType:
+    name: str = "unknown type"
+
+    def assignable_to(self, other) -> bool:
+        raise NotImplementedError()
+
+    @property
+    def full_name(self) -> str:
+        return self.name
 
 class BoolType(BasicType):
-    pass
+    name = "bool"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, BoolType)
 
 class IntType(BasicType):
-    pass
+    name = "int"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
 
 class UIntType(BasicType):
-    pass
+    name = "uint"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
 
 class FloatType(BasicType):
-    pass
+    name = "float"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, FloatType)
+
+class StringType(BasicType):
+    name = "string"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, StringType)
 
 _BASIC_TYPES = {
     "gboolean": BoolType,
+    "int": IntType,
     "gint": IntType,
     "gint64": IntType,
     "guint": UIntType,
@@ -80,6 +104,7 @@ _BASIC_TYPES = {
     "gdouble": FloatType,
     "float": FloatType,
     "double": FloatType,
+    "utf8": StringType,
 }
 
 class GirNode:
@@ -172,14 +197,23 @@ class Signal(GirNode):
         return f"signal {self.container.name}.{self.name} ({args})"
 
 
-class Interface(GirNode):
+class Interface(GirNode, GirType):
     def __init__(self, ns, xml: xml_reader.Element):
         super().__init__(ns, xml)
         self.properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
         self.signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
+        self.prerequisites = [child["name"] for child in xml.get_elements("prerequisite")]
+
+    def assignable_to(self, other) -> bool:
+        if self == other:
+            return True
+        for pre in self.prerequisites:
+            if self.get_containing(Namespace).lookup_type(pre).assignable_to(other):
+                return True
+        return False
 
 
-class Class(GirNode):
+class Class(GirNode, GirType):
     def __init__(self, ns, xml: xml_reader.Element):
         super().__init__(ns, xml)
         self._parent = xml["parent"]
@@ -209,6 +243,17 @@ class Class(GirNode):
         if self._parent is None:
             return None
         return self.get_containing(Namespace).lookup_type(self._parent)
+
+
+    def assignable_to(self, other) -> bool:
+        if self == other:
+            return True
+        elif self.parent and self.parent.assignable_to(other):
+            return True
+        elif other in self.implements:
+            return True
+        else:
+            return False
 
 
     def _enum_properties(self):

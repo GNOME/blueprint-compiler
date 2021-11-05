@@ -57,7 +57,7 @@ class UI(AstNode):
 
     @lazy_prop
     def objects_by_id(self):
-        return { obj.id: obj for obj in self.iterate_children_recursive() if hasattr(obj, "id") }
+        return { obj.tokens["id"]: obj for obj in self.iterate_children_recursive() if obj.tokens["id"] is not None }
 
 
     @validate()
@@ -137,12 +137,12 @@ class Import(AstNode):
 
 class Template(AstNode):
     @validate("namespace", "class_name")
-    def gir_parent_exists(self):
+    def gir_class_exists(self):
         if not self.tokens["ignore_gir"]:
             self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
 
     @property
-    def gir_parent(self):
+    def gir_class(self):
         return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
 
 
@@ -152,14 +152,14 @@ class Template(AstNode):
 
     @docs("class_name")
     def class_docs(self):
-        if self.gir_parent:
-            return self.gir_parent.doc
+        if self.gir_class:
+            return self.gir_class.doc
 
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("template", **{
             "class": self.tokens["name"],
-            "parent": self.gir_parent.glib_type_name if self.gir_parent else self.tokens["class_name"],
+            "parent": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
         })
         for child in self.children:
             child.emit_xml(xml)
@@ -210,12 +210,7 @@ class Child(AstNode):
 class ObjectContent(AstNode):
     @property
     def gir_class(self):
-        if isinstance(self.parent, Template):
-            return self.parent.gir_parent
-        elif isinstance(self.parent, Object):
-            return self.parent.gir_class
-        else:
-            raise CompilerBugError()
+        return self.parent.gir_class
 
     # @validate()
     # def only_one_style_class(self):
@@ -233,13 +228,7 @@ class ObjectContent(AstNode):
 class Property(AstNode):
     @property
     def gir_class(self):
-        parent = self.parent.parent
-        if isinstance(parent, Template):
-            return parent.gir_parent
-        elif isinstance(parent, Object):
-            return parent.gir_class
-        else:
-            raise CompilerBugError()
+        return self.parent.parent.gir_class
 
 
     @property
@@ -270,6 +259,19 @@ class Property(AstNode):
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
                 did_you_mean=(self.tokens["name"], self.gir_class.properties.keys())
+            )
+
+
+    @validate()
+    def obj_property_type(self):
+        if len(self.children[Object]) == 0:
+            return
+
+        object = self.children[Object][0]
+        type = self.value_type
+        if object and type and object.gir_class and not object.gir_class.assignable_to(type):
+            raise CompileError(
+                f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
             )
 
 
@@ -323,13 +325,7 @@ class Signal(AstNode):
 
     @property
     def gir_class(self):
-        parent = self.parent.parent
-        if isinstance(parent, Template):
-            return parent.gir_parent
-        elif isinstance(parent, Object):
-            return parent.gir_class
-        else:
-            raise CompilerBugError()
+        return self.parent.parent.gir_class
 
 
     @validate("name")
@@ -397,18 +393,32 @@ class IdentValue(Value):
     @validate()
     def validate_for_type(self):
         type = self.parent.value_type
+
         if isinstance(type, gir.Enumeration):
             if self.tokens["value"] not in type.members:
                 raise CompileError(
                     f"{self.tokens['value']} is not a member of {type.full_name}",
                     did_you_mean=type.members.keys(),
                 )
+
         elif isinstance(type, gir.BoolType):
             # would have been parsed as a LiteralValue if it was correct
             raise CompileError(
                 f"Expected 'true' or 'false' for boolean value",
                 did_you_mean=["true", "false"],
             )
+
+        else:
+            object = self.root.objects_by_id.get(self.tokens["value"])
+            if object is None:
+                raise CompileError(
+                    f"Could not find object with ID {self.tokens['value']}",
+                    did_you_mean=(self.tokens['value'], self.root.objects_by_id.keys()),
+                )
+            elif object.gir_class and not object.gir_class.assignable_to(type):
+                raise CompileError(
+                    f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
+                )
 
 
     @docs()
