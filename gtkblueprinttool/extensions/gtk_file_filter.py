@@ -48,7 +48,6 @@ def create_node(tag_name: str, singular: str):
         Statement(
             Keyword(tag_name),
             UseLiteral("tag_name", tag_name),
-            Op(":"),
             OpenBracket(),
             Delimited(
                 Group(
@@ -77,7 +76,7 @@ suffixes = create_node("suffixes", "suffix")
 def file_filter_completer(ast_node, match_variables):
     file_filter = ast_node.root.gir.get_type("FileFilter", "Gtk")
     if ast_node.gir_class and ast_node.gir_class.assignable_to(file_filter):
-        yield Completion("mime-types", CompletionItemKind.Snippet, snippet="mime-types: [\"$0\"];")
-        yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns: [\"$0\"];")
-        yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes: [\"$0\"];")
+        yield Completion("mime-types", CompletionItemKind.Snippet, snippet="mime-types [\"$0\"];")
+        yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns [\"$0\"];")
+        yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes [\"$0\"];")
 
