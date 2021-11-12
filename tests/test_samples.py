@@ -112,6 +112,7 @@ class TestSamples(unittest.TestCase):
 
 
     def test_sample_errors(self):
+        self.assert_sample_error("a11y_in_non_widget")
         self.assert_sample_error("a11y_prop_dne")
         self.assert_sample_error("a11y_prop_obj_dne")
         self.assert_sample_error("a11y_prop_type")
@@ -120,6 +121,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("invalid_bool")
+        self.assert_sample_error("layout_in_non_widget")
         self.assert_sample_error("ns_not_imported")
         self.assert_sample_error("not_a_class")
         self.assert_sample_error("object_dne")

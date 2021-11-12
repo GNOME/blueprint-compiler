@@ -19,7 +19,7 @@
 
 
 from ..ast import BaseAttribute
-from ..ast_utils import AstNode
+from ..ast_utils import AstNode, validate
 from ..completions_utils import *
 from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *
@@ -28,6 +28,14 @@ from ..xml_emitter import XmlEmitter
 
 
 class Layout(AstNode):
+    @validate("layout")
+    def container_is_widget(self):
+        widget = self.root.gir.get_type("Widget", "Gtk")
+        container_type = self.parent_by_type(ast.Object).gir_class
+        if container_type and not container_type.assignable_to(widget):
+            raise CompileError(f"{container_type.full_name} is not a {widget.full_name}, so it doesn't have layout properties")
+
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("layout")
         for child in self.children:
@@ -56,7 +64,7 @@ layout_prop = Group(
 layout = Group(
     Layout,
     Sequence(
-        Keyword("layout"),
+        Keyword("layout", True),
         OpenBlock().expected("`{`"),
         Until(layout_prop, CloseBlock()),
     )
