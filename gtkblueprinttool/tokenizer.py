@@ -47,8 +47,8 @@ class TokenType(Enum):
 _tokens = [
     (TokenType.DIRECTIVE,       r"@[\d\w\-_]+"),
     (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
-    (TokenType.QUOTED,          r'"(\\"|[^"\n])+"'),
-    (TokenType.QUOTED,          r"'(\\'|[^'\n])+'"),
+    (TokenType.QUOTED,          r'"(\\"|[^"\n])*"'),
+    (TokenType.QUOTED,          r"'(\\'|[^'\n])*'"),
     (TokenType.NUMBER,          r"[-+]?[\d_]+(\.[\d_]+)?"),
     (TokenType.NUMBER,          r"0x[A-Fa-f0-9]+"),
     (TokenType.OPEN_PAREN,      r"\("),
@@ -107,7 +107,7 @@ def _tokenize(ui_ml: str):
                 break
 
         if not matched:
-            raise CompileError("Could not determine what kind of syntax is meant here", i)
+            raise CompileError("Could not determine what kind of syntax is meant here", i, i)
 
     yield Token(TokenType.EOF, i, i, ui_ml)
 
