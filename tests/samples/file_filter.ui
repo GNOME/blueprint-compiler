@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkFileFilter">
+    <property name="name">File Filter Name</property>
+    <mime-types>
+      <mime-type>text/plain</mime-type>
+      <mime-type>image/ *</mime-type>
+    </mime-types>
+    <patterns>
+      <pattern>*.txt</pattern>
+    </patterns>
+    <suffixes>
+      <suffix>png</suffix>
+    </suffixes>
+  </object>
+</interface>

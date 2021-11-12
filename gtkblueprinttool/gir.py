@@ -60,11 +60,16 @@ class GirType:
     def doc(self):
         return None
 
-class BasicType(GirType):
-    name: str = "unknown type"
-
     def assignable_to(self, other) -> bool:
         raise NotImplementedError()
+
+    @property
+    def full_name(self) -> str:
+        raise NotImplementedError()
+
+
+class BasicType(GirType):
+    name: str = "unknown type"
 
     @property
     def full_name(self) -> str:

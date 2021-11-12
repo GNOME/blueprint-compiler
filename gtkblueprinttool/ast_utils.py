@@ -64,6 +64,14 @@ class AstNode:
         else:
             return self.parent.root
 
+    def parent_by_type(self, type):
+        if self.parent is None:
+            return None
+        elif isinstance(self.parent, type):
+            return self.parent
+        else:
+            return self.parent.parent_by_type(type)
+
     @lazy_prop
     def errors(self):
         return list(self._get_errors())

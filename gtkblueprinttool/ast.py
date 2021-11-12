@@ -135,37 +135,6 @@ class Import(AstNode):
         pass
 
 
-class Template(AstNode):
-    @validate("namespace", "class_name")
-    def gir_class_exists(self):
-        if not self.tokens["ignore_gir"]:
-            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
-
-    @property
-    def gir_class(self):
-        return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
-
-
-    @docs("namespace")
-    def namespace_docs(self):
-        return self.root.gir.namespaces[self.tokens["namespace"]].doc
-
-    @docs("class_name")
-    def class_docs(self):
-        if self.gir_class:
-            return self.gir_class.doc
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("template", **{
-            "class": self.tokens["name"],
-            "parent": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
-        })
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class Object(AstNode):
     @validate("namespace")
     def gir_ns_exists(self):
@@ -204,6 +173,17 @@ class Object(AstNode):
         xml.start_tag("object", **{
             "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
             "id": self.tokens["id"],
+        })
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
+
+
+class Template(Object):
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("template", **{
+            "class": self.tokens["name"],
+            "parent": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
         })
         for child in self.children:
             child.emit_xml(xml)

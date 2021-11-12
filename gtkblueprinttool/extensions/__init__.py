@@ -5,7 +5,8 @@ from .gtk_a11y import a11y
 from .gtk_menu import menu
 from .gtk_styles import styles
 from .gtk_layout import layout
+from .gtk_file_filter import mime_types, patterns, suffixes
 
 OBJECT_HOOKS = [menu]
 
-OBJECT_CONTENT_HOOKS = [a11y, styles, layout]
+OBJECT_CONTENT_HOOKS = [a11y, styles, layout, mime_types, patterns, suffixes]

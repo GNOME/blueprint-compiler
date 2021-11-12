@@ -91,7 +91,7 @@ class Completion:
             "documentation": {
                 "kind": "markdown",
                 "value": self.docs,
-            },
+            } if self.docs else None,
             "deprecated": self.deprecated,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
