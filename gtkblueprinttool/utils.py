@@ -78,3 +78,17 @@ def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
 def pos_to_idx(line: int, col: int, text: str) -> int:
     lines = text.splitlines(keepends=True)
     return sum([len(line) for line in lines[:line]]) + col
+
+def idxs_to_range(start: int, end: int, text: str):
+    start_l, start_c = idx_to_pos(start, text)
+    end_l, end_c = idx_to_pos(end, text)
+    return {
+        "start": {
+            "line": start_l,
+            "character": start_c,
+        },
+        "end": {
+            "line": end_l,
+            "character": end_c,
+        },
+    }

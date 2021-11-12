@@ -388,9 +388,9 @@ class GirContext:
             return None
 
 
-    def validate_class(self, name: str, ns: str):
+    def validate_ns(self, ns: str):
         """ Raises an exception if there is a problem looking up the given
-        class (it doesn't exist, it isn't a class, etc.) """
+        namespace. """
 
         ns = ns or "Gtk"
 
@@ -399,6 +399,14 @@ class GirContext:
                 f"Namespace {ns} was not imported",
                 did_you_mean=(ns, self.namespaces.keys()),
             )
+
+
+    def validate_class(self, name: str, ns: str):
+        """ Raises an exception if there is a problem looking up the given
+        class (it doesn't exist, it isn't a class, etc.) """
+
+        ns = ns or "Gtk"
+        self.validate_ns(ns)
 
         type = self.get_type(name, ns)
 

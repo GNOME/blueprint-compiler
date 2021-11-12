@@ -167,10 +167,20 @@ class Template(AstNode):
 
 
 class Object(AstNode):
-    @validate("namespace", "class_name")
-    def gir_class_exists(self):
+    @validate("namespace")
+    def gir_ns_exists(self):
         if not self.tokens["ignore_gir"]:
+            self.root.gir.validate_ns(self.tokens["namespace"])
+
+    @validate("class_name")
+    def gir_class_exists(self):
+        if not self.tokens["ignore_gir"] and self.gir_ns is not None:
             self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
+
+    @property
+    def gir_ns(self):
+        if not self.tokens["ignore_gir"]:
+            return self.root.gir.namespaces.get(self.tokens["namespace"])
 
     @property
     def gir_class(self):
@@ -180,7 +190,8 @@ class Object(AstNode):
 
     @docs("namespace")
     def namespace_docs(self):
-        return self.root.gir.namespaces[self.tokens["namespace"]].doc
+        if ns := self.root.gir.namespaces.get(self.tokens["namespace"]):
+            return ns.doc
 
 
     @docs("class_name")
@@ -398,17 +409,17 @@ class IdentValue(Value):
             if self.tokens["value"] not in type.members:
                 raise CompileError(
                     f"{self.tokens['value']} is not a member of {type.full_name}",
-                    did_you_mean=type.members.keys(),
+                    did_you_mean=(self.tokens['value'], type.members.keys()),
                 )
 
         elif isinstance(type, gir.BoolType):
             # would have been parsed as a LiteralValue if it was correct
             raise CompileError(
                 f"Expected 'true' or 'false' for boolean value",
-                did_you_mean=["true", "false"],
+                did_you_mean=(self.tokens['value'], ["true", "false"]),
             )
 
-        else:
+        elif type is not None:
             object = self.root.objects_by_id.get(self.tokens["value"])
             if object is None:
                 raise CompileError(

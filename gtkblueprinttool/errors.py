@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
+from dataclasses import dataclass
 import typing as T
 import sys, traceback
 from . import utils
@@ -45,13 +45,14 @@ class CompileError(PrintableError):
 
     category = "error"
 
-    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None):
+    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None):
         super().__init__(message)
 
         self.message = message
         self.start = start
         self.end = end
         self.hints = hints or []
+        self.actions = actions or []
 
         if did_you_mean is not None:
             self._did_you_mean(*did_you_mean)
@@ -72,6 +73,7 @@ class CompileError(PrintableError):
                 self.hint(f"Did you mean `{recommend}` (note the capitalization)?")
             else:
                 self.hint(f"Did you mean `{recommend}`?")
+            self.actions.append(CodeAction(f"Change to `{recommend}`", recommend))
         else:
             self.hint("Did you check your spelling?")
             self.hint("Are your dependencies up to date?")
@@ -90,6 +92,12 @@ at {filename} line {line_num} column {col_num}:
         for hint in self.hints:
             print(f"{_colors.FAINT}hint: {hint}{_colors.CLEAR}")
         print()
+
+
+@dataclass
+class CodeAction:
+    title: str
+    replace_with: str
 
 
 class AlreadyCaughtError(Exception):

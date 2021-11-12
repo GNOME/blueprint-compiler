@@ -164,6 +164,7 @@ class LanguageServer:
                     "full": True,
                 },
                 "completionProvider": {},
+                "codeActionProvider": {},
                 "hoverProvider": True,
             }
         })
@@ -226,6 +227,35 @@ class LanguageServer:
         })
 
 
+    @command("textDocument/codeAction")
+    def code_actions(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        range_start = utils.pos_to_idx(params["range"]["start"]["line"], params["range"]["start"]["character"], open_file.text)
+        range_end = utils.pos_to_idx(params["range"]["end"]["line"], params["range"]["end"]["character"], open_file.text)
+
+        actions = [
+            {
+                "title": action.title,
+                "kind": "quickfix",
+                "diagnostics": [self._create_diagnostic(open_file.text, diagnostic)],
+                "edit": {
+                    "changes": {
+                        open_file.uri: [{
+                            "range": utils.idxs_to_range(diagnostic.start, diagnostic.end, open_file.text),
+                            "newText": action.replace_with
+                        }]
+                    }
+                }
+            }
+            for diagnostic in open_file.diagnostics
+            if not (diagnostic.end < range_start or diagnostic.start > range_end)
+            for action in diagnostic.actions
+        ]
+
+        self._send_response(id, actions)
+
+
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification("textDocument/publishDiagnostics", {
             "uri": open_file.uri,
@@ -233,13 +263,8 @@ class LanguageServer:
         })
 
     def _create_diagnostic(self, text, err):
-        start_l, start_c = utils.idx_to_pos(err.start, text)
-        end_l, end_c = utils.idx_to_pos(err.end or err.start, text)
         return {
-            "range": {
-                "start": { "line": start_l, "character": start_c },
-                "end": { "line": end_l, "character": end_c },
-            },
+            "range": utils.idxs_to_range(err.start, err.end, text),
             "message": err.message,
             "severity": 1,
         }
