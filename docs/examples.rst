@@ -261,3 +261,22 @@ Basic Usage
        }
      }
    }
+
+
+Accessibility Properties
+------------------------
+
+Basic Usage
+~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.Widget {
+     accessibility {
+       orientation: vertical;
+       labelled_by: my_label;
+       checked: true;
+     }
+   }
+
+   Gtk.Label my_label {}

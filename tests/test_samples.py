@@ -86,9 +86,13 @@ class TestSamples(unittest.TestCase):
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
+        else:
+            # Expected a compiler error but there wasn't one
+            raise AssertionError()
 
 
     def test_samples(self):
+        self.assert_sample("accessibility")
         self.assert_sample("binding")
         self.assert_sample("child_type")
         self.assert_sample("flags")
@@ -106,6 +110,9 @@ class TestSamples(unittest.TestCase):
 
 
     def test_sample_errors(self):
+        self.assert_sample_error("a11y_prop_dne")
+        self.assert_sample_error("a11y_prop_obj_dne")
+        self.assert_sample_error("a11y_prop_type")
         self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
         self.assert_sample_error("duplicate_obj_id")

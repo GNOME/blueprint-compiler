@@ -180,7 +180,7 @@ class Object(AstNode):
     @property
     def gir_ns(self):
         if not self.tokens["ignore_gir"]:
-            return self.root.gir.namespaces.get(self.tokens["namespace"])
+            return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
 
     @property
     def gir_class(self):
@@ -388,6 +388,27 @@ class LiteralValue(Value):
     def emit_xml(self, xml: XmlEmitter):
         xml.put_text(self.tokens["value"])
 
+    @validate()
+    def validate_for_type(self):
+        type = self.parent.value_type
+        if isinstance(type, gir.IntType):
+            try:
+                int(self.tokens["value"])
+            except:
+                raise CompileError(f"Cannot convert {self.tokens['value']} to integer")
+
+        elif isinstance(type, gir.FloatType):
+            try:
+                float(self.tokens["value"])
+            except:
+                raise CompileError(f"Cannot convert {self.tokens['value']} to float")
+
+        elif isinstance(type, gir.StringType):
+            pass
+
+        elif type is not None:
+            raise CompileError(f"Cannot convert {self.tokens['value']} to {type.full_name}")
+
 
 class Flag(AstNode):
     pass
@@ -413,11 +434,11 @@ class IdentValue(Value):
                 )
 
         elif isinstance(type, gir.BoolType):
-            # would have been parsed as a LiteralValue if it was correct
-            raise CompileError(
-                f"Expected 'true' or 'false' for boolean value",
-                did_you_mean=(self.tokens['value'], ["true", "false"]),
-            )
+            if self.tokens["value"] not in ["true", "false"]:
+                raise CompileError(
+                    f"Expected 'true' or 'false' for boolean value",
+                    did_you_mean=(self.tokens['value'], ["true", "false"]),
+                )
 
         elif type is not None:
             object = self.root.objects_by_id.get(self.tokens["value"])
@@ -468,3 +489,8 @@ class BaseAttribute(AstNode):
         else:
             value.emit_xml(xml)
         xml.end_tag()
+
+
+class BaseTypedAttribute(BaseAttribute):
+    """ A BaseAttribute whose parent has a value_type property that can assist
+    in validation. """

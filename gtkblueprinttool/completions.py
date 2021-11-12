@@ -103,7 +103,7 @@ def property_completer(ast_node, match_variables):
 
 
 @completer(
-    applies_in=[ast.Property],
+    applies_in=[ast.Property, ast.BaseTypedAttribute],
     matches=[
         [(TokenType.IDENT, None), (TokenType.OP, ":")]
     ],

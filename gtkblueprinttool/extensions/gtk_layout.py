@@ -21,6 +21,7 @@
 from ..ast import BaseAttribute
 from ..ast_utils import AstNode
 from ..completions_utils import *
+from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *
 from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
@@ -36,6 +37,11 @@ class Layout(AstNode):
 
 class LayoutProperty(BaseAttribute):
     tag_name = "property"
+
+    @property
+    def value_type(self):
+        # there isn't really a way to validate these
+        return None
 
 
 layout_prop = Group(
@@ -55,3 +61,14 @@ layout = Group(
         Until(layout_prop, CloseBlock()),
     )
 )
+
+
+@completer(
+    applies_in=[ast.ObjectContent],
+    matches=new_statement_patterns,
+)
+def layout_completer(ast_node, match_variables):
+    yield Completion(
+        "layout", CompletionItemKind.Snippet,
+        snippet="layout {\n  $0\n}"
+    )

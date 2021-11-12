@@ -88,7 +88,10 @@ class Completion:
             "kind": self.kind,
             "tags": [CompletionItemTag.Deprecated] if self.deprecated else None,
             "detail": self.signature,
-            "documentation": self.docs,
+            "documentation": {
+                "kind": "markdown",
+                "value": self.docs,
+            },
             "deprecated": self.deprecated,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,

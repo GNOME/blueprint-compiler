@@ -56,9 +56,11 @@ def get_namespace(namespace, version):
 
 
 class GirType:
-    pass
+    @property
+    def doc(self):
+        return None
 
-class BasicType:
+class BasicType(GirType):
     name: str = "unknown type"
 
     def assignable_to(self, other) -> bool:

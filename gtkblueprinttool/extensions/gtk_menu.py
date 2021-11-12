@@ -38,6 +38,10 @@ class Menu(AstNode):
 class MenuAttribute(BaseAttribute):
     tag_name = "attribute"
 
+    @property
+    def value_type(self):
+        return None
+
 
 menu_contents = Sequence()
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkWidget">
+    <accessibility>
+      <property name="label" translatable="true">Hello, world!</property>
+      <relation name="labelled_by">my_label</relation>
+      <state name="checked">true</state>
+    </accessibility>
+  </object>
+  <object class="GtkLabel" id="my_label"></object>
+</interface>

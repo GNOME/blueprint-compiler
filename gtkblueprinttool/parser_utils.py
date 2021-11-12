@@ -39,8 +39,6 @@ class_name = AnyOf(
 literal = Group(
     ast.LiteralValue,
     AnyOf(
-        Sequence(Keyword("true"), UseLiteral("value", True)),
-        Sequence(Keyword("false"), UseLiteral("value", False)),
         UseNumber("value"),
         UseQuoted("value"),
     )
