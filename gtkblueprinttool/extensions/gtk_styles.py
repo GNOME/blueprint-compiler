@@ -43,7 +43,9 @@ class StyleClass(AstNode):
 styles = Group(
     Styles,
     Statement(
-        Keyword("style"),
+        Keyword("styles"),
+        Op(":"),
+        OpenBracket(),
         Delimited(
             Group(
                 StyleClass,
@@ -51,6 +53,7 @@ styles = Group(
             ),
             Comma(),
         ),
+        CloseBracket(),
     )
 )
 
@@ -60,5 +63,5 @@ styles = Group(
     matches=new_statement_patterns,
 )
 def style_completer(ast_node, match_variables):
-    yield Completion("style", CompletionItemKind.Keyword, snippet="style \"$0\";")
+    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles: [\"$0\"];")
 
