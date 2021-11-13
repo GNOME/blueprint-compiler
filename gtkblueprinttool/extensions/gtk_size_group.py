@@ -77,9 +77,8 @@ widgets = Group(
 
 @completer(
     applies_in=[ast.ObjectContent],
+    applies_in_subclass=("Gtk", "SizeGroup"),
     matches=new_statement_patterns,
 )
-def file_filter_completer(ast_node, match_variables):
-    file_filter = ast_node.root.gir.get_type("SizeGroup", "Gtk")
-    if ast_node.gir_class and ast_node.gir_class.assignable_to(file_filter):
-        yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0];")
+def size_group_completer(ast_node, match_variables):
+    yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0];")

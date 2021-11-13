@@ -455,15 +455,16 @@ class BaseAttribute(AstNode):
     """ A helper class for attribute syntax of the form `name: literal_value;`"""
 
     tag_name: str = ""
+    attr_name: str = "name"
 
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
         translatable = isinstance(value, TranslatedStringValue)
-        xml.start_tag(
-            self.tag_name,
-            name=self.tokens["name"],
-            translatable="true" if translatable else None,
-        )
+        attrs = {
+            self.attr_name: self.tokens["name"],
+            "translatable": "true" if translatable else None
+        }
+        xml.start_tag(self.tag_name, **attrs)
         if translatable:
             xml.put_text(value.string)
         else:

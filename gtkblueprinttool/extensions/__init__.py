@@ -7,7 +7,8 @@ from .gtk_layout import layout
 from .gtk_menu import menu
 from .gtk_size_group import widgets
 from .gtk_styles import styles
+from .gtk_combo_box_text import items
 
 OBJECT_HOOKS = [menu]
 
-OBJECT_CONTENT_HOOKS = [a11y, styles, layout, mime_types, patterns, suffixes, widgets]
+OBJECT_CONTENT_HOOKS = [a11y, styles, layout, mime_types, patterns, suffixes, widgets, items]

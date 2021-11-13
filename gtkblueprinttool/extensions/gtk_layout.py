@@ -70,6 +70,7 @@ layout = Group(
 
 @completer(
     applies_in=[ast.ObjectContent],
+    applies_in_subclass=("Gtk", "Widget"),
     matches=new_statement_patterns,
 )
 def layout_completer(ast_node, match_variables):

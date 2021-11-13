@@ -1,4 +1,4 @@
-# gtk_styles.py
+# gtk_combo_box_text.py
 #
 # Copyright 2021 James Westman <james@jwestman.net>
 #
@@ -18,43 +18,59 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .. import ast
+from ..ast import BaseTypedAttribute
 from ..ast_utils import AstNode, validate
 from ..completions_utils import *
+from ..gir import StringType
 from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *
 from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-class Styles(AstNode):
-    @validate("styles")
-    def container_is_widget(self):
-        self.validate_parent_type("Gtk", "Widget", "style classes")
+class Items(AstNode):
+    @validate("items")
+    def container_is_combo_box_text(self):
+        self.validate_parent_type("Gtk", "ComboBoxText", "combo box items")
+
 
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("style")
+        xml.start_tag("items")
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
 
 
-class StyleClass(AstNode):
-    def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.tokens["name"])
+class Item(BaseTypedAttribute):
+    tag_name = "item"
+    attr_name = "id"
+
+    @property
+    def value_type(self):
+        return StringType()
 
 
-styles = Group(
-    Styles,
+item = Group(
+    Item,
+    Sequence(
+        Optional(
+            Sequence(
+                UseIdent("name"),
+                Op(":"),
+            )
+        ),
+        value,
+    )
+)
+
+items = Group(
+    Items,
     Statement(
-        Keyword("styles", True),
+        Keyword("items", True),
         OpenBracket(),
         Delimited(
-            Group(
-                StyleClass,
-                UseQuoted("name")
-            ),
-            Comma(),
+            item,
+            Comma()
         ),
         CloseBracket(),
     )
@@ -63,9 +79,11 @@ styles = Group(
 
 @completer(
     applies_in=[ast.ObjectContent],
-    applies_in_subclass=("Gtk", "Widget"),
+    applies_in_subclass=("Gtk", "ComboBoxText"),
     matches=new_statement_patterns,
 )
-def style_completer(ast_node, match_variables):
-    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"];")
-
+def items_completer(ast_node, match_variables):
+    yield Completion(
+        "items", CompletionItemKind.Snippet,
+        snippet="items [$0];"
+    )

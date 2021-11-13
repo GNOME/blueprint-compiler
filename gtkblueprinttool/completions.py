@@ -75,7 +75,8 @@ def using_gtk(ast_node, match_variables):
 def namespace(ast_node, match_variables):
     yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
     for ns in ast_node.root.children[ast.Import]:
-        yield Completion(ns.namespace, CompletionItemKind.Module, text=ns.namespace + ".")
+        if ns.gir_namespace is not None:
+            yield Completion(ns.gir_namespace.name, CompletionItemKind.Module, text=ns.gir_namespace.name + ".")
 
 
 @completer(
