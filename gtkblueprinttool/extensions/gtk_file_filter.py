@@ -19,7 +19,7 @@
 
 
 from .. import ast
-from ..ast_utils import AstNode
+from ..ast_utils import AstNode, validate
 from ..completions_utils import *
 from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *
@@ -28,6 +28,10 @@ from ..xml_emitter import XmlEmitter
 
 
 class Filters(AstNode):
+    @validate()
+    def container_is_file_filter(self):
+        self.validate_parent_type("Gtk", "FileFilter", "file filter properties")
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(self.tokens["tag_name"])
         for child in self.children:
@@ -46,7 +50,7 @@ def create_node(tag_name: str, singular: str):
     return Group(
         Filters,
         Statement(
-            Keyword(tag_name),
+            Keyword(tag_name, True),
             UseLiteral("tag_name", tag_name),
             OpenBracket(),
             Delimited(

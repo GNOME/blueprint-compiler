@@ -30,10 +30,7 @@ from ..xml_emitter import XmlEmitter
 class Layout(AstNode):
     @validate("layout")
     def container_is_widget(self):
-        widget = self.root.gir.get_type("Widget", "Gtk")
-        container_type = self.parent_by_type(ast.Object).gir_class
-        if container_type and not container_type.assignable_to(widget):
-            raise CompileError(f"{container_type.full_name} is not a {widget.full_name}, so it doesn't have layout properties")
+        self.validate_parent_type("Gtk", "Widget", "layout properties")
 
 
     def emit_xml(self, xml: XmlEmitter):

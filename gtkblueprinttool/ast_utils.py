@@ -72,6 +72,12 @@ class AstNode:
         else:
             return self.parent.parent_by_type(type)
 
+    def validate_parent_type(self, ns: str, name: str, err_msg: str):
+        parent = self.root.gir.get_type(name, ns)
+        container_type = self.parent_by_type(ast.Object).gir_class
+        if container_type and not container_type.assignable_to(parent):
+            raise CompileError(f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}")
+
     @lazy_prop
     def errors(self):
         return list(self._get_errors())

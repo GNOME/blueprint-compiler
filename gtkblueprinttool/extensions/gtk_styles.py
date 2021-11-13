@@ -19,7 +19,7 @@
 
 
 from .. import ast
-from ..ast_utils import AstNode
+from ..ast_utils import AstNode, validate
 from ..completions_utils import *
 from ..lsp_utils import Completion, CompletionItemKind
 from ..parse_tree import *
@@ -28,6 +28,10 @@ from ..xml_emitter import XmlEmitter
 
 
 class Styles(AstNode):
+    @validate("styles")
+    def container_is_widget(self):
+        self.validate_parent_type("Gtk", "Widget", "style classes")
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("style")
         for child in self.children:
@@ -43,7 +47,7 @@ class StyleClass(AstNode):
 styles = Group(
     Styles,
     Statement(
-        Keyword("styles"),
+        Keyword("styles", True),
         OpenBracket(),
         Delimited(
             Group(

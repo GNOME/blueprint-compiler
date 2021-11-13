@@ -28,6 +28,10 @@ from ..xml_emitter import XmlEmitter
 
 
 class Widgets(AstNode):
+    @validate("widgets")
+    def container_is_size_group(self):
+        self.validate_parent_type("Gtk", "SizeGroup", "size group properties")
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("widgets")
         for child in self.children:
@@ -57,7 +61,7 @@ class Widget(AstNode):
 widgets = Group(
     Widgets,
     Statement(
-        Keyword("widgets"),
+        Keyword("widgets", True),
         OpenBracket(),
         Delimited(
             Group(
