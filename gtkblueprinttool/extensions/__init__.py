@@ -2,13 +2,17 @@
 templates. """
 
 from .gtk_a11y import a11y
+from .gtk_combo_box_text import items
 from .gtk_file_filter import mime_types, patterns, suffixes
 from .gtk_layout import layout
 from .gtk_menu import menu
 from .gtk_size_group import widgets
+from .gtk_string_list import strings
 from .gtk_styles import styles
-from .gtk_combo_box_text import items
 
 OBJECT_HOOKS = [menu]
 
-OBJECT_CONTENT_HOOKS = [a11y, styles, layout, mime_types, patterns, suffixes, widgets, items]
+OBJECT_CONTENT_HOOKS = [
+    a11y, styles, layout, mime_types, patterns, suffixes, widgets, items,
+    strings,
+]
