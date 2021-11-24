@@ -110,6 +110,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("style")
         self.assert_sample("template")
         self.assert_sample("translated")
+        self.assert_sample("uint")
         self.assert_sample("using")
 
 
@@ -136,5 +137,6 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("size_group_obj_dne")
         self.assert_sample_error("styles_in_non_widget")
         self.assert_sample_error("two_templates")
+        self.assert_sample_error("uint")
         self.assert_sample_error("using_invalid_namespace")
         self.assert_sample_error("widgets_in_non_size_group")

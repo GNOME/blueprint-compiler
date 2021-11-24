@@ -377,6 +377,14 @@ class LiteralValue(Value):
             except:
                 raise CompileError(f"Cannot convert {self.tokens['value']} to integer")
 
+        elif isinstance(type, gir.UIntType):
+            try:
+                int(self.tokens["value"])
+                if int(self.tokens["value"]) < 0:
+                    raise Exception()
+            except:
+                raise CompileError(f"Cannot convert {self.tokens['value']} to unsigned integer")
+
         elif isinstance(type, gir.FloatType):
             try:
                 float(self.tokens["value"])
