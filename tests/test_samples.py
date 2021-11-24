@@ -23,7 +23,7 @@ from pathlib import Path
 import traceback
 import unittest
 
-from blueprintcompiler import tokenizer, parser
+from blueprintcompiler import tokenizer, parser, decompiler
 from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 from blueprintcompiler import utils
@@ -91,6 +91,25 @@ class TestSamples(unittest.TestCase):
             raise AssertionError()
 
 
+    def assert_decompile(self, name):
+        try:
+            with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
+                expected = f.read()
+
+            name = name.removesuffix("_dec")
+            ui_path = (Path(__file__).parent / f"samples/{name}.ui").resolve()
+
+            actual = decompiler.decompile(ui_path)
+
+            if actual.strip() != expected.strip():
+                diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
+                print("\n".join(diff))
+                raise AssertionError()
+        except PrintableError as e:
+            e.pretty_print(name + ".blp", blueprint)
+            raise AssertionError()
+
+
     def test_samples(self):
         self.assert_sample("accessibility")
         self.assert_sample("binding")
@@ -143,3 +162,20 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("uint")
         self.assert_sample_error("using_invalid_namespace")
         self.assert_sample_error("widgets_in_non_size_group")
+
+
+    def test_decompiler(self):
+        self.assert_decompile("accessibility_dec")
+        self.assert_decompile("binding")
+        self.assert_decompile("child_type")
+        self.assert_decompile("flags")
+        self.assert_decompile("id_prop")
+        self.assert_decompile("layout_dec")
+        self.assert_decompile("menu_dec")
+        self.assert_decompile("property")
+        self.assert_decompile("signal")
+        self.assert_decompile("strings")
+        self.assert_decompile("style_dec")
+        self.assert_decompile("template")
+        self.assert_decompile("translated")
+        self.assert_decompile("using")

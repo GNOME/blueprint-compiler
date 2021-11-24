@@ -21,16 +21,7 @@ from dataclasses import dataclass
 import typing as T
 import sys, traceback
 from . import utils
-
-
-class _colors:
-    RED = '\033[91m'
-    YELLOW = '\033[33m'
-    FAINT = '\033[2m'
-    BOLD = '\033[1m'
-    BLUE = '\033[34m'
-    UNDERLINE = '\033[4m'
-    CLEAR = '\033[0m'
+from .utils import Colors
 
 class PrintableError(Exception):
     """ Parent class for errors that can be pretty-printed for the user, e.g.
@@ -85,12 +76,12 @@ class CompileError(PrintableError):
         # Display 1-based line numbers
         line_num += 1
 
-        print(f"""{_colors.RED}{_colors.BOLD}{self.category}: {self.message}{_colors.CLEAR}
+        print(f"""{Colors.RED}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{_colors.FAINT}{line_num :>4} |{_colors.CLEAR}{line.rstrip()}\n     {_colors.FAINT}|{" "*(col_num-1)}^{_colors.CLEAR}""")
+{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}""")
 
         for hint in self.hints:
-            print(f"{_colors.FAINT}hint: {hint}{_colors.CLEAR}")
+            print(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}")
         print()
 
 
@@ -130,14 +121,14 @@ def assert_true(truth: bool, message:str=None):
         raise CompilerBugError(message)
 
 
-def report_compile_error():
+def report_bug():
     """ Report an error and ask people to report it. """
 
     print(traceback.format_exc())
     print(f"Arguments: {sys.argv}\n")
-    print(f"""{_colors.BOLD}{_colors.RED}***** COMPILER BUG *****
+    print(f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
 The blueprint-compiler program has crashed. Please report the above stacktrace,
 along with the input file(s) if possible, on GitLab:
-{_colors.BOLD}{_colors.BLUE}{_colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
-{_colors.CLEAR}""")
+{Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
+{Colors.CLEAR}""")
 

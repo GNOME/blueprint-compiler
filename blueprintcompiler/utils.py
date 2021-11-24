@@ -20,6 +20,18 @@
 import typing as T
 
 
+class Colors:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[33m'
+    FAINT = '\033[2m'
+    BOLD = '\033[1m'
+    BLUE = '\033[34m'
+    UNDERLINE = '\033[4m'
+    NO_UNDERLINE = '\033[24m'
+    CLEAR = '\033[0m'
+
+
 def lazy_prop(func):
     key = "_lazy_prop_" + func.__name__
 

@@ -27,7 +27,7 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-def _get_property_types(gir):
+def get_property_types(gir):
     # from <https://docs.gtk.org/gtk4/enum.AccessibleProperty.html>
     return {
         "autocomplete": gir.get_type("AccessibleAutocomplete", "Gtk"),
@@ -52,7 +52,7 @@ def _get_property_types(gir):
     }
 
 
-def _get_relation_types(gir):
+def get_relation_types(gir):
     # from <https://docs.gtk.org/gtk4/enum.AccessibleRelation.html>
     widget = gir.get_type("Widget", "Gtk")
     return {
@@ -77,7 +77,7 @@ def _get_relation_types(gir):
     }
 
 
-def _get_state_types(gir):
+def get_state_types(gir):
     # from <https://docs.gtk.org/gtk4/enum.AccessibleState.html>
     return {
         "busy": BoolType(),
@@ -90,11 +90,11 @@ def _get_state_types(gir):
         "selected": BoolType(),
     }
 
-def _get_types(gir):
+def get_types(gir):
     return {
-        **_get_property_types(gir),
-        **_get_relation_types(gir),
-        **_get_state_types(gir),
+        **get_property_types(gir),
+        **get_relation_types(gir),
+        **get_state_types(gir),
     }
 
 def _get_docs(gir, name):
@@ -123,22 +123,22 @@ class A11yProperty(BaseTypedAttribute):
     def tag_name(self):
         name = self.tokens["name"]
         gir = self.root.gir
-        if name in _get_property_types(gir):
+        if name in get_property_types(gir):
             return "property"
-        elif name in _get_relation_types(gir):
+        elif name in get_relation_types(gir):
             return "relation"
-        elif name in _get_state_types(gir):
+        elif name in get_state_types(gir):
             return "state"
         else:
             raise CompilerBugError()
 
     @property
     def value_type(self) -> GirType:
-        return _get_types(self.root.gir).get(self.tokens["name"])
+        return get_types(self.root.gir).get(self.tokens["name"])
 
     @validate("name")
     def is_valid_property(self):
-        types = _get_types(self.root.gir)
+        types = get_types(self.root.gir)
         if self.tokens["name"] not in types:
             raise CompileError(
                 f"'{self.tokens['name']}' is not an accessibility property, relation, or state",
@@ -147,7 +147,7 @@ class A11yProperty(BaseTypedAttribute):
 
     @docs("name")
     def prop_docs(self):
-        if self.tokens["name"] in _get_types(self.root.gir):
+        if self.tokens["name"] in get_types(self.root.gir):
             return _get_docs(self.root.gir, self.tokens["name"])
 
 
@@ -186,5 +186,5 @@ def a11y_completer(ast_node, match_variables):
     matches=new_statement_patterns,
 )
 def a11y_name_completer(ast_node, match_variables):
-    for name, type in _get_types(ast_node.root.gir).items():
+    for name, type in get_types(ast_node.root.gir).items():
         yield Completion(name, CompletionItemKind.Property, docs=_get_docs(ast_node.root.gir, type))

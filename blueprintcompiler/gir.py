@@ -143,6 +143,10 @@ class GirNode:
         return self.xml["name"]
 
     @lazy_prop
+    def cname(self) -> str:
+        return self.xml["c:type"]
+
+    @lazy_prop
     def available_in(self) -> str:
         return self.xml.get("version")
 
@@ -175,10 +179,6 @@ class GirNode:
 class Property(GirNode):
     def __init__(self, klass, xml: xml_reader.Element):
         super().__init__(klass, xml)
-
-    @property
-    def type_name(self):
-        return self.xml.get_elements('type')[0]['name']
 
     @property
     def signature(self):
@@ -296,11 +296,15 @@ class EnumMember(GirNode):
         return self.xml["glib:nick"]
 
     @property
+    def c_ident(self):
+        return self.xml["c:identifier"]
+
+    @property
     def signature(self):
         return f"enum member {self.full_name} = {self.value}"
 
 
-class Enumeration(GirNode):
+class Enumeration(GirNode, GirType):
     def __init__(self, ns, xml: xml_reader.Element):
         super().__init__(ns, xml)
         self.members = { child["name"]: EnumMember(self, child) for child in xml.get_elements("member") }
@@ -309,6 +313,36 @@ class Enumeration(GirNode):
     def signature(self):
         return f"enum {self.full_name}"
 
+    def assignable_to(self, type):
+        return type == self
+
+
+class BitfieldMember(GirNode):
+    def __init__(self, ns, xml: xml_reader.Element):
+        super().__init__(ns, xml)
+        self._value = xml["value"]
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def signature(self):
+        return f"bitfield member {self.full_name} = {bin(self.value)}"
+
+
+class Bitfield(GirNode, GirType):
+    def __init__(self, ns, xml: xml_reader.Element):
+        super().__init__(ns, xml)
+        self.members = { child["name"]: EnumMember(self, child) for child in xml.get_elements("member") }
+
+    @property
+    def signature(self):
+        return f"bitfield {self.full_name}"
+
+    def assignable_to(self, type):
+        return type == self
+
 
 class Namespace(GirNode):
     def __init__(self, repo, xml: xml_reader.Element):
@@ -316,6 +350,7 @@ class Namespace(GirNode):
         self.classes = { child["name"]: Class(self, child) for child in xml.get_elements("class") }
         self.interfaces = { child["name"]: Interface(self, child) for child in xml.get_elements("interface") }
         self.enumerations = { child["name"]: Enumeration(self, child) for child in xml.get_elements("enumeration") }
+        self.bitfields = { child["name"]: Bitfield(self, child) for child in xml.get_elements("bitfield") }
         self.version = xml["version"]
 
     @property
@@ -325,7 +360,19 @@ class Namespace(GirNode):
 
     def get_type(self, name):
         """ Gets a type (class, interface, enum, etc.) from this namespace. """
-        return self.classes.get(name) or self.interfaces.get(name) or self.enumerations.get(name)
+        return (
+            self.classes.get(name)
+            or self.interfaces.get(name)
+            or self.enumerations.get(name)
+            or self.bitfields.get(name)
+        )
+
+
+    def get_type_by_cname(self, cname: str):
+        """ Gets a type from this namespace by its C name. """
+        for item in [*self.classes.values(), *self.interfaces.values(), *self.enumerations.values()]:
+            if item.cname == cname:
+                return item
 
 
     def lookup_type(self, type_name: str):
@@ -359,6 +406,13 @@ class Repository(GirNode):
             return self.lookup_namespace(ns).get_type(name)
 
 
+    def get_type_by_cname(self, name: str) -> T.Optional[GirNode]:
+        for ns in self.namespaces.values():
+            if type := ns.get_type_by_cname(name):
+                return type
+        return None
+
+
     def lookup_namespace(self, ns: str):
         """ Finds a namespace among this namespace's dependencies. """
         if namespace := self.namespaces.get(ns):
@@ -380,6 +434,13 @@ class GirContext:
             raise CompileError(f"Namespace {namespace.name}-{namespace.version} can't be imported because version {other.version} was imported earlier")
 
         self.namespaces[namespace.name] = namespace
+
+
+    def get_type_by_cname(self, name: str) -> T.Optional[GirNode]:
+        for ns in self.namespaces.values():
+            if type := ns.get_type_by_cname(name):
+                return type
+        return None
 
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:

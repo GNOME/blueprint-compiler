@@ -19,6 +19,7 @@
 
 
 from collections import defaultdict
+import typing as T
 from xml import sax
 
 from .utils import lazy_prop
@@ -28,22 +29,22 @@ from .utils import lazy_prop
 PARSE_GIR = set([
     "repository", "namespace", "class", "interface", "property", "glib:signal",
     "include", "implements", "type", "parameter", "parameters", "enumeration",
-    "member",
+    "member", "bitfield",
 ])
 
 
 class Element:
-    def __init__(self, tag, attrs):
+    def __init__(self, tag, attrs: T.Dict[str, str]):
         self.tag = tag
         self.attrs = attrs
-        self.children = defaultdict(list)
-        self.cdata_chunks = []
+        self.children: T.Dict[str, T.List["Element"]] = defaultdict(list)
+        self.cdata_chunks: T.List[str] = []
 
     @lazy_prop
     def cdata(self):
         return ''.join(self.cdata_chunks)
 
-    def get_elements(self, name):
+    def get_elements(self, name) -> T.List["Element"]:
         return self.children.get(name, [])
 
     def __getitem__(self, key):
@@ -58,7 +59,7 @@ class Handler(sax.handler.ContentHandler):
         self._interesting_elements = parse_type
 
     def startElement(self, name, attrs):
-        if name not in self._interesting_elements:
+        if self._interesting_elements is not None and name not in self._interesting_elements:
             self.skipping += 1
         if self.skipping > 0:
             return
@@ -77,7 +78,7 @@ class Handler(sax.handler.ContentHandler):
     def endElement(self, name):
         if self.skipping == 0:
             self.stack.pop()
-        if name not in self._interesting_elements:
+        if self._interesting_elements is not None and name not in self._interesting_elements:
             self.skipping -= 1
 
     def characters(self, content):
@@ -85,7 +86,7 @@ class Handler(sax.handler.ContentHandler):
             self.stack[-1].cdata_chunks.append(content)
 
 
-def parse(filename, parse_type):
+def parse(filename, parse_type=None):
     parser = sax.make_parser()
     handler = Handler(parse_type)
     parser.setContentHandler(handler)

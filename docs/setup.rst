@@ -2,8 +2,24 @@
 Setup
 =====
 
-Use Blueprint in your project
------------------------------
+Setting up Blueprint on a new or existing project
+-------------------------------------------------
+
+Using the porting tool
+~~~~~~~~~~~~~~~~~~~~~~
+
+Clone [blueprint-compiler](https://gitlab.gnome.org/jwestman/blueprint-compiler)
+from source. You can install it using `meson _build` and `ninja -C _build install`,
+or you can leave it uninstalled.
+
+In your project's directory, run `blueprint-compiler port` (or `<path to blueprint-compiler.py> port`)
+to start the porting process. It will walk you through the steps outlined below.
+It should work for most projects, but if something goes wrong you may need to
+follow the manual steps instead.
+
+
+Manually
+~~~~~~~~
 
 blueprint-compiler works as a meson subproject.
 
@@ -26,6 +42,8 @@ blueprint-compiler works as a meson subproject.
 
       /subprojects/blueprint-compiler
 
+#. Rewrite your .ui XML files in blueprint format.
+
 #. Add this to the ``meson.build`` file where you build your GResources:
 
    .. code-block:: meson.build
@@ -44,10 +62,3 @@ blueprint-compiler works as a meson subproject.
 
       dependencies: blueprints,
 
-#. Convert your .ui XML files to blueprint format. In the future, an automatic
-   porting tool is planned.
-
-
-.. warning::
-   The blueprint compiler flattens the directory structure of the resulting XML
-   files. You may need to update your ``.gresource.xml`` file to match.

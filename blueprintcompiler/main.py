@@ -20,9 +20,10 @@
 
 import argparse, json, os, sys
 
-from .errors import PrintableError, report_compile_error, MultipleErrors
+from .errors import PrintableError, report_bug, MultipleErrors
 from .lsp import LanguageServer
-from . import parser, tokenizer
+from . import parser, tokenizer, decompiler, interactive_port
+from .utils import Colors
 from .xml_emitter import XmlEmitter
 
 
@@ -44,6 +45,8 @@ class BlueprintApp:
         batch_compile.add_argument("input_dir", metavar="input-dir")
         batch_compile.add_argument("inputs", nargs="+", metavar="filenames", default=sys.stdin, type=argparse.FileType('r'))
 
+        port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
+
         lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
         lsp.add_argument("--logfile", dest="logfile", default=None, type=argparse.FileType('a'))
 
@@ -54,8 +57,12 @@ class BlueprintApp:
             opts.func(opts)
         except SystemExit as e:
             raise e
+        except KeyboardInterrupt:
+            print(f"\n\n{Colors.RED}{Colors.BOLD}Interrupted.{Colors.CLEAR}")
+        except EOFError:
+            print(f"\n\n{Colors.RED}{Colors.BOLD}Interrupted.{Colors.CLEAR}")
         except:
-            report_compile_error()
+            report_bug()
 
 
     def add_subcommand(self, name, help, func):
@@ -112,6 +119,10 @@ class BlueprintApp:
     def cmd_lsp(self, opts):
         langserv = LanguageServer(opts.logfile)
         langserv.run()
+
+
+    def cmd_port(self, opts):
+        interactive_port.run(opts)
 
 
     def _compile(self, data: str) -> str:
