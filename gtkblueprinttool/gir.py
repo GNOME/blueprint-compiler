@@ -292,6 +292,10 @@ class EnumMember(GirNode):
         return self._value
 
     @property
+    def nick(self):
+        return self.xml["glib:nick"]
+
+    @property
     def signature(self):
         return f"enum member {self.full_name} = {self.value}"
 

@@ -408,7 +408,10 @@ class FlagsValue(Value):
 
 class IdentValue(Value):
     def emit_xml(self, xml: XmlEmitter):
-        xml.put_text(self.tokens["value"])
+        if isinstance(self.parent.value_type, gir.Enumeration):
+            xml.put_text(self.parent.value_type.members[self.tokens["value"]].nick)
+        else:
+            xml.put_text(self.tokens["value"])
 
     @validate()
     def validate_for_type(self):

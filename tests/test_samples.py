@@ -96,6 +96,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("binding")
         self.assert_sample("child_type")
         self.assert_sample("combo_box_text")
+        self.assert_sample("enum")
         self.assert_sample("file_filter")
         self.assert_sample("flags")
         self.assert_sample("id_prop")
