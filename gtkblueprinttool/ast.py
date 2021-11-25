@@ -275,7 +275,6 @@ class Property(AstNode):
     def emit_xml(self, xml: XmlEmitter):
         values = self.children[Value]
         value = values[0] if len(values) == 1 else None
-        translatable = isinstance(value, TranslatedStringValue)
 
         bind_flags = []
         if self.tokens["sync_create"]:
@@ -286,11 +285,13 @@ class Property(AstNode):
 
         props = {
             "name": self.tokens["name"],
-            "translatable": "true" if translatable else None,
             "bind-source": self.tokens["bind_source"],
             "bind-property": self.tokens["bind_property"],
             "bind-flags": bind_flags_str,
         }
+
+        if isinstance(value, TranslatedStringValue):
+            props = { **props, **value.attrs }
 
         if len(self.children[Object]) == 1:
             xml.start_tag("property", **props)
@@ -300,10 +301,7 @@ class Property(AstNode):
             xml.put_self_closing("property", **props)
         else:
             xml.start_tag("property", **props)
-            if translatable:
-                xml.put_text(value.string)
-            else:
-                value.emit_xml(xml)
+            value.emit_xml(xml)
             xml.end_tag()
 
 
@@ -357,11 +355,14 @@ class Value(ast.AstNode):
 
 class TranslatedStringValue(Value):
     @property
-    def string(self):
-        return self.tokens["value"]
+    def attrs(self):
+        attrs = { "translatable": "true" }
+        if "context" in self.tokens:
+            attrs["context"] = self.tokens["context"]
+        return attrs
 
-    def emit_xml(self, xml):
-        raise CompilerBugError("TranslatedStringValues must be handled by the parent AST node")
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text(self.tokens["value"])
 
 
 class LiteralValue(Value):
@@ -470,16 +471,13 @@ class BaseAttribute(AstNode):
 
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
-        translatable = isinstance(value, TranslatedStringValue)
-        attrs = {
-            self.attr_name: self.tokens["name"],
-            "translatable": "true" if translatable else None
-        }
+        attrs = { self.attr_name: self.tokens["name"] }
+
+        if isinstance(value, TranslatedStringValue):
+            attrs = { **attrs, **value.attrs }
+
         xml.start_tag(self.tag_name, **attrs)
-        if translatable:
-            xml.put_text(value.string)
-        else:
-            value.emit_xml(xml)
+        value.emit_xml(xml)
         xml.end_tag()
 
 

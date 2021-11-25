@@ -48,12 +48,9 @@ class Item(AstNode):
 
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
-        translatable = isinstance(value, TranslatedStringValue)
-        xml.start_tag("item", translatable="true" if translatable else None)
-        if translatable:
-            xml.put_text(value.string)
-        else:
-            value.emit_xml(xml)
+        attrs = value.attrs if isinstance(value, TranslatedStringValue) else {}
+        xml.start_tag("item", **attrs)
+        value.emit_xml(xml)
         xml.end_tag()
 
 

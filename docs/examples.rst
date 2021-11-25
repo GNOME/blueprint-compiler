@@ -91,13 +91,25 @@ Translations
 ~~~~~~~~~~~~
 
 Use ``_("...")`` to mark strings as translatable. You can put a comment for
-translators on the line above.
+translators on the line above if needed.
 
 .. code-block::
 
    Gtk.Label label {
      /* Translators: This is the main text of the welcome screen */
      label: _("Hello, world!");
+   }
+
+Use ``C_("context", "...")`` to add a *message context* to a string to
+disambiguate it, in case the same string appears in different places. Remember,
+two strings might be the same in one language but different in another depending
+on context.
+
+.. code-block::
+
+   Gtk.Label label {
+     /* Translators: This is a section in the preferences window */
+     label: C_("preferences window", "Hello, world!");
    }
 
 Referencing objects by ID

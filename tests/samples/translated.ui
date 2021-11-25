@@ -4,4 +4,7 @@
   <object class="GtkLabel">
     <property name="label" translatable="true">Hello, world!</property>
   </object>
+  <object class="GtkLabel">
+    <property name="label" translatable="true" context="translation context">Hello</property>
+  </object>
 </interface>

@@ -60,11 +60,22 @@ flags_value = Group(
 
 translated_string = Group(
     ast.TranslatedStringValue,
-    Sequence(
-        Keyword("_"),
-        OpenParen(),
-        UseQuoted("value").expected("a quoted string"),
-        CloseParen().expected("`)`"),
+    AnyOf(
+        Sequence(
+            Keyword("_"),
+            OpenParen(),
+            UseQuoted("value").expected("a quoted string"),
+            CloseParen().expected("`)`"),
+        ),
+        Sequence(
+            Keyword("C_"),
+            OpenParen(),
+            UseQuoted("context").expected("a quoted string"),
+            Comma(),
+            UseQuoted("value").expected("a quoted string"),
+            Optional(Comma()),
+            CloseParen().expected("`)`"),
+        ),
     ),
 )
 
