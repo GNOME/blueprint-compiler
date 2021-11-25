@@ -57,7 +57,7 @@ _tokens = [
     (TokenType.CLOSE_BLOCK,     r"\}"),
     (TokenType.STMT_END,        r";"),
     (TokenType.WHITESPACE,      r"\s+"),
-    (TokenType.COMMENT,         r"/\*[\s\S]*\*/"),
+    (TokenType.COMMENT,         r"\/\*[\s\S]*?\*\/"),
     (TokenType.COMMENT,         r"\/\/[^\n]*"),
     (TokenType.OPEN_BRACKET,    r"\["),
     (TokenType.CLOSE_BRACKET,   r"\]"),
