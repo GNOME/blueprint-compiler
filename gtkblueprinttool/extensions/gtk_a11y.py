@@ -164,7 +164,7 @@ a11y = Group(
     A11y,
     Sequence(
         Keyword("accessibility", True),
-        OpenBlock().expected("`{`"),
+        OpenBlock(),
         Until(a11y_prop, CloseBlock()),
     )
 )

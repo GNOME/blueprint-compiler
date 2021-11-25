@@ -112,7 +112,7 @@ menu_item_shorthand = Group(
 )
 
 menu_contents.children = [
-    OpenBlock().expected("`{`"),
+    OpenBlock(),
     Until(AnyOf(
         menu_section,
         menu_submenu,

@@ -62,7 +62,7 @@ layout = Group(
     Layout,
     Sequence(
         Keyword("layout", True),
-        OpenBlock().expected("`{`"),
+        OpenBlock(),
         Until(layout_prop, CloseBlock()),
     )
 )
