@@ -41,6 +41,7 @@ class BlueprintApp:
 
         batch_compile = self.add_subcommand("batch-compile", "Compile many blueprint files at once", self.cmd_batch_compile)
         batch_compile.add_argument("output_dir", metavar="output-dir")
+        batch_compile.add_argument("input_dir", metavar="input-dir")
         batch_compile.add_argument("inputs", nargs="+", metavar="filenames", default=sys.stdin, type=argparse.FileType('r'))
 
         lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
@@ -87,10 +88,21 @@ class BlueprintApp:
             data = file.read()
 
             try:
+                if not os.path.commonpath([file.name, opts.input_dir]):
+                    print(f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}")
+                    sys.exit(1)
+
                 xml = self._compile(data)
 
-                name = os.path.splitext(os.path.basename(file.name))[0] + ".ui"
-                with open(os.path.join(opts.output_dir, name), "w") as file:
+                path = os.path.join(
+                    opts.output_dir,
+                    os.path.relpath(
+                        os.path.splitext(file.name)[0] + ".ui",
+                        opts.input_dir
+                    )
+                )
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w") as file:
                     file.write(xml)
             except PrintableError as e:
                 e.pretty_print(file.name, data)
