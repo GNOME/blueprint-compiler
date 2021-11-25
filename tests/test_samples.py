@@ -104,6 +104,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("layout")
         self.assert_sample("menu")
         self.assert_sample("object_prop")
+        self.assert_sample("parseable")
         self.assert_sample("property")
         self.assert_sample("signal")
         self.assert_sample("size_group")

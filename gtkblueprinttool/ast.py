@@ -376,7 +376,7 @@ class LiteralValue(Value):
             try:
                 int(self.tokens["value"])
             except:
-                raise CompileError(f"Cannot convert {self.tokens['value']} to integer")
+                raise CompileError(f"Cannot convert {self.group.tokens['value']} to integer")
 
         elif isinstance(type, gir.UIntType):
             try:
@@ -384,19 +384,31 @@ class LiteralValue(Value):
                 if int(self.tokens["value"]) < 0:
                     raise Exception()
             except:
-                raise CompileError(f"Cannot convert {self.tokens['value']} to unsigned integer")
+                raise CompileError(f"Cannot convert {self.group.tokens['value']} to unsigned integer")
 
         elif isinstance(type, gir.FloatType):
             try:
                 float(self.tokens["value"])
             except:
-                raise CompileError(f"Cannot convert {self.tokens['value']} to float")
+                raise CompileError(f"Cannot convert {self.group.tokens['value']} to float")
 
         elif isinstance(type, gir.StringType):
             pass
 
+        elif isinstance(type, gir.Class) or isinstance(type, gir.Interface):
+            parseable_types = [
+                "Gdk.Paintable",
+                "Gdk.Texture",
+                "Gdk.Pixbuf",
+                "GLib.File",
+                "Gtk.ShortcutTrigger",
+                "Gtk.ShortcutAction",
+            ]
+            if type.full_name not in parseable_types:
+                raise CompileError(f"Cannot convert {self.group.tokens['value']} to {type.full_name}")
+
         elif type is not None:
-            raise CompileError(f"Cannot convert {self.tokens['value']} to {type.full_name}")
+            raise CompileError(f"Cannot convert {self.group.tokens['value']} to {type.full_name}")
 
 
 class Flag(AstNode):
