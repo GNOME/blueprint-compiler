@@ -34,6 +34,10 @@ class Menu(AstNode):
             child.emit_xml(xml)
         xml.end_tag()
 
+    @property
+    def gir_class(self):
+        return self.root.gir.namespaces["Gtk"].lookup_type("Gio.MenuModel")
+
 
 class MenuAttribute(BaseAttribute):
     tag_name = "attribute"
