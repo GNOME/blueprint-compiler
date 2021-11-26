@@ -494,7 +494,8 @@ class UseQuoted(ParseNode):
         string = (str(token)[1:-1]
             .replace("\\n", "\n")
             .replace("\\\"", "\"")
-            .replace("\\\\", "\\"))
+            .replace("\\\\", "\\")
+            .replace("\\'", "\'"))
         ctx.set_group_val(self.key, string, token)
         return True
 
