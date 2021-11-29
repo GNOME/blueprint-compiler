@@ -95,19 +95,28 @@ menu_item_shorthand = Group(
     Sequence(
         Keyword("item"),
         UseLiteral("tag", "item"),
+        OpenParen(),
         Group(
             MenuAttribute,
             Sequence(UseLiteral("name", "label"), value),
         ),
-        Optional(Group(
-            MenuAttribute,
-            Sequence(UseLiteral("name", "action"), value),
+        Optional(Sequence(
+            Comma(),
+            Optional(Sequence(
+                Group(
+                    MenuAttribute,
+                    Sequence(UseLiteral("name", "action"), value),
+                ),
+                Optional(Sequence(
+                    Comma(),
+                    Group(
+                        MenuAttribute,
+                        Sequence(UseLiteral("name", "icon"), value),
+                    ),
+                ))
+            ))
         )),
-        Optional(Group(
-            MenuAttribute,
-            Sequence(UseLiteral("name", "icon"), value),
-        )),
-        StmtEnd().expected("`;`"),
+        CloseParen().expected("')'"),
     )
 )
 
@@ -163,7 +172,7 @@ def menu_content_completer(ast_node, match_variables):
     )
     yield Completion(
         "item (shorthand)", CompletionItemKind.Snippet,
-        snippet='item _("${1:Label}") "${2:action-name}" "${3:icon-name}";'
+        snippet='item (_("${1:Label}"), "${2:action-name}", "${3:icon-name}");'
     )
 
     yield Completion(

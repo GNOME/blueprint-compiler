@@ -253,7 +253,7 @@ on one line. The action and icon are optional.
 .. code-block::
 
    menu {
-     item _("Copy") "app.copy" "copy-symbolic";
+     item (_("Copy"), "app.copy", "copy-symbolic")
    }
 
 
