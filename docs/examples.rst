@@ -211,7 +211,7 @@ Basic Usage
 .. code-block::
 
    Gtk.Label {
-     styles: ["dim-label", "title"];
+     styles: ["dim-label", "title"]
    }
 
 

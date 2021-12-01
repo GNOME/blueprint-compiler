@@ -46,7 +46,7 @@ class StyleClass(AstNode):
 
 styles = Group(
     Styles,
-    Statement(
+    Sequence(
         Keyword("styles", True),
         OpenBracket(),
         Delimited(

@@ -61,7 +61,7 @@ item = Group(
 
 strings = Group(
     Items,
-    Statement(
+    Sequence(
         Keyword("strings", True),
         OpenBracket(),
         Delimited(

@@ -60,7 +60,7 @@ class Widget(AstNode):
 
 widgets = Group(
     Widgets,
-    Statement(
+    Sequence(
         Keyword("widgets", True),
         OpenBracket(),
         Delimited(
