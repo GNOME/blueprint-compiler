@@ -23,10 +23,10 @@ from pathlib import Path
 import traceback
 import unittest
 
-from gtkblueprinttool import tokenizer, parser
-from gtkblueprinttool.errors import PrintableError, MultipleErrors, CompileError
-from gtkblueprinttool.tokenizer import Token, TokenType, tokenize
-from gtkblueprinttool import utils
+from blueprintcompiler import tokenizer, parser
+from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError
+from blueprintcompiler.tokenizer import Token, TokenType, tokenize
+from blueprintcompiler import utils
 
 
 class TestSamples(unittest.TestCase):

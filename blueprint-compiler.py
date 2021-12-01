@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# gtk-blueprint-tool.py
+# blueprint-compiler.py
 #
 # Copyright 2021 James Westman <james@jwestman.net>
 #
@@ -19,7 +19,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from gtkblueprinttool import main
+from blueprintcompilerpiler import main
 
 if __name__ == "__main__":
     main.main()

@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'gtk-blueprint-tool'
+project = 'Blueprint'
 copyright = '2021, James Westman'
 author = 'James Westman'
 

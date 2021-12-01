@@ -136,8 +136,8 @@ def report_compile_error():
     print(traceback.format_exc())
     print(f"Arguments: {sys.argv}\n")
     print(f"""{_colors.BOLD}{_colors.RED}***** COMPILER BUG *****
-The gtk-blueprint-tool program has crashed. Please report the above stacktrace,
+The blueprint-compiler program has crashed. Please report the above stacktrace,
 along with the input file(s) if possible, on GitLab:
-{_colors.BOLD}{_colors.BLUE}{_colors.UNDERLINE}https://gitlab.gnome.org/jwestman/gtk-blueprint-tool/-/issues/new?issue
+{_colors.BOLD}{_colors.BLUE}{_colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
 {_colors.CLEAR}""")
 

@@ -2,29 +2,29 @@
 Setup
 =====
 
-Use gtk-blueprint-tool in your project
---------------------------------------
+Use Blueprint in your project
+-----------------------------
 
-gtk-blueprint-tool works as a meson subproject.
+blueprint-compiler works as a meson subproject.
 
-#. Save the following file as ``subprojects/gtk-blueprint-tool.wrap``:
+#. Save the following file as ``subprojects/blueprint-compiler.wrap``:
 
    .. code-block:: cfg
 
       [wrap-git]
-      directory = gtk-blueprint-tool
-      url = https://gitlab.gnome.org/jwestman/gtk-blueprint-tool.git
+      directory = blueprint-compiler
+      url = https://gitlab.gnome.org/jwestman/blueprint-compiler.git
       revision = main
       depth = 1
 
       [provide]
-      program_names = gtk-blueprint-tool
+      program_names = blueprint-compiler
 
 #. Add this to your ``.gitignore``:
 
    .. code-block::
 
-      /subprojects/gtk-blueprint-tool
+      /subprojects/blueprint-compiler
 
 #. Add this to the ``meson.build`` file where you build your GResources:
 
@@ -35,7 +35,7 @@ gtk-blueprint-tool works as a meson subproject.
           # LIST YOUR BLUEPRINT FILES HERE
         ),
         output: '.',
-        command: [find_program('gtk-blueprint-tool'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+        command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
       )
 
 #. In the same ``meson.build`` file, add this argument to your ``gnome.compile_resources`` command:

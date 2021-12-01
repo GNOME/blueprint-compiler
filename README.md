@@ -1,6 +1,6 @@
-# gtk-blueprint-tool
+# Blueprint
 
-A prototype markup language for GTK user interface files.
+A markup language for GTK user interface files.
 
 ## Motivation
 
