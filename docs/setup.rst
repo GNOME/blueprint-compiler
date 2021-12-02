@@ -8,7 +8,7 @@ Setting up Blueprint on a new or existing project
 Using the porting tool
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Clone [blueprint-compiler](https://gitlab.gnome.org/jwestman/blueprint-compiler)
+Clone `blueprint-compiler <https://gitlab.gnome.org/jwestman/blueprint-compiler>`_
 from source. You can install it using `meson _build` and `ninja -C _build install`,
 or you can leave it uninstalled.
 
