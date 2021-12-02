@@ -19,7 +19,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from blueprintcompilerpiler import main
+from blueprintcompiler import main
 
 if __name__ == "__main__":
     main.main()
