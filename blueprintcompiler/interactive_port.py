@@ -77,6 +77,8 @@ porting tool. If you think it's a bug (which is likely), please file an issue on
 def listdir_recursive(subdir):
     files = os.listdir(subdir)
     for file in files:
+        if file in ["_build", "build"]:
+            continue
         full = os.path.join(subdir, file)
         if full == "./subprojects":
             # skip the subprojects directory
