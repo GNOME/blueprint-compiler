@@ -12,7 +12,7 @@ Clone `blueprint-compiler <https://gitlab.gnome.org/jwestman/blueprint-compiler>
 from source. You can install it using `meson _build` and `ninja -C _build install`,
 or you can leave it uninstalled.
 
-In your project's directory, run `blueprint-compiler port` (or `<path to blueprint-compiler.py> port`)
+In your project's directory, run ``blueprint-compiler port`` (or ``<path to blueprint-compiler.py> port``)
 to start the porting process. It will walk you through the steps outlined below.
 It should work for most projects, but if something goes wrong you may need to
 follow the manual steps instead.
