@@ -103,12 +103,12 @@ class LanguageServer:
                 line = ""
                 content_len = -1
                 while content_len == -1 or (line != "\n" and line != "\r\n"):
-                    line = sys.stdin.readline()
+                    line = sys.stdin.buffer.readline().decode()
                     if line == "":
                         return
                     if line.startswith("Content-Length:"):
                         content_len = int(line.split("Content-Length:")[1].strip())
-                line = sys.stdin.read(content_len)
+                line = sys.stdin.buffer.read(content_len).decode()
                 self._log("input: " + line)
 
                 data = json.loads(line)
@@ -126,7 +126,7 @@ class LanguageServer:
         data["jsonrpc"] = "2.0"
         line = json.dumps(data, separators=(",", ":")) + "\r\n"
         self._log("output: " + line)
-        sys.stdout.write(f"Content-Length: {len(line)}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}")
+        sys.stdout.write(f"Content-Length: {len(line.encode())}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}")
         sys.stdout.flush()
 
     def _log(self, msg):
