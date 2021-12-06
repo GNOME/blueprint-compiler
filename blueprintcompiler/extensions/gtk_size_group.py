@@ -81,4 +81,4 @@ widgets = Group(
     matches=new_statement_patterns,
 )
 def size_group_completer(ast_node, match_variables):
-    yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0];")
+    yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0]")

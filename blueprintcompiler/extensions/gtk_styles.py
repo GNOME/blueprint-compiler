@@ -67,5 +67,5 @@ styles = Group(
     matches=new_statement_patterns,
 )
 def style_completer(ast_node, match_variables):
-    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"];")
+    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"]")
 

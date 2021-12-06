@@ -79,7 +79,7 @@ suffixes = create_node("suffixes", "suffix")
     matches=new_statement_patterns,
 )
 def file_filter_completer(ast_node, match_variables):
-    yield Completion("mime-types", CompletionItemKind.Snippet, snippet="mime-types [\"$0\"];")
-    yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns [\"$0\"];")
-    yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes [\"$0\"];")
+    yield Completion("mime-types", CompletionItemKind.Snippet, snippet="mime-types [\"$0\"]")
+    yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns [\"$0\"]")
+    yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes [\"$0\"]")
 

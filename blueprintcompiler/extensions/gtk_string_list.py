@@ -81,5 +81,5 @@ strings = Group(
 def strings_completer(ast_node, match_variables):
     yield Completion(
         "strings", CompletionItemKind.Snippet,
-        snippet="strings [$0];"
+        snippet="strings [$0]"
     )

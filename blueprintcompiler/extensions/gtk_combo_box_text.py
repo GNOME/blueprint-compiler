@@ -85,5 +85,5 @@ items = Group(
 def items_completer(ast_node, match_variables):
     yield Completion(
         "items", CompletionItemKind.Snippet,
-        snippet="items [$0];"
+        snippet="items [$0]"
     )
