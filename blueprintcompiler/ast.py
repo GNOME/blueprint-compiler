@@ -281,6 +281,8 @@ class Property(AstNode):
             bind_flags.append("sync-create")
         if self.tokens["after"]:
             bind_flags.append("after")
+        if self.tokens["bidirectional"]:
+            bind_flags.append("bidirectional")
         bind_flags_str = "|".join(bind_flags) or None
 
         props = {

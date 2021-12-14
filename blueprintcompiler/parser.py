@@ -77,6 +77,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             ZeroOrMore(AnyOf(
                 Sequence(Keyword("sync-create"), UseLiteral("sync_create", True)),
                 Sequence(Keyword("after"), UseLiteral("after", True)),
+                Sequence(Keyword("bidirectional"), UseLiteral("bidirectional", True)),
             )),
         )
     )

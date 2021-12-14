@@ -283,6 +283,8 @@ def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=No
                 flags += " sync-create"
             if "after" in bind_flags:
                 flags += " after"
+            if "bidirectional" in bind_flags:
+                flags += " bidirectional"
         ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
     elif _truthy(translatable):
         if context is not None:
