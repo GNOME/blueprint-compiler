@@ -168,6 +168,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("accessibility_dec")
         self.assert_decompile("binding")
         self.assert_decompile("child_type")
+        self.assert_decompile("file_filter")
         self.assert_decompile("flags")
         self.assert_decompile("id_prop")
         self.assert_decompile("layout_dec")
