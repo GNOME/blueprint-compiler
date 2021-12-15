@@ -211,7 +211,7 @@ Basic Usage
 .. code-block::
 
    Gtk.Label {
-     styles: ["dim-label", "title"]
+     styles ["dim-label", "title"]
    }
 
 
@@ -292,3 +292,53 @@ Basic Usage
    }
 
    Gtk.Label my_label {}
+
+
+Widget-Specific Items
+---------------------
+
+Gtk.ComboBoxText
+~~~~~~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.ComboBoxText {
+     items [
+       item1: "Item 1",
+       item2: _("Items can be translated"),
+       "The item ID is not required",
+     ]
+   }
+
+Gtk.FileFilter
+~~~~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.FileFilter {
+     mime-types ["image/jpeg", "video/webm"]
+     patterns ["*.txt"]
+     suffixes ["png"]
+   }
+
+Gtk.SizeGroup
+~~~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.SizeGroup {
+     mode: both;
+     widgets [label1, label2]
+   }
+
+   Gtk.Label label1 {}
+   Gtk.Label label2 {}
+
+Gtk.StringList
+~~~~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.StringList {
+     strings ["Hello, world!", _("Translated string")]
+   }
