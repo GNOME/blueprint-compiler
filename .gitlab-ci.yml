@@ -14,6 +14,10 @@ build:
     - ninja -C _build
     - ninja -C _build test
     - ninja -C _build install
+    - git clone https://gitlab.gnome.org/jwestman/blueprint-regression-tests.git
+    - cd blueprint-regression-tests
+    - ./test.sh
+    - cd ..
   artifacts:
     paths:
       - _build

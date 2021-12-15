@@ -9,3 +9,4 @@ blueprint-compiler.pc
 coverage.xml
 .mypy_cache
 /subprojects/gtk-blueprint-tool
+/blueprint-regression-tests
