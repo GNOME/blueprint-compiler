@@ -86,8 +86,6 @@ class AstNode:
         for validator in self.validators:
             try:
                 validator(self)
-            except AlreadyCaughtError:
-                pass
             except CompileError as e:
                 yield e
 
@@ -140,8 +138,7 @@ class AstNode:
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
     """ Decorator for functions that validate an AST node. Exceptions raised
-    during validation are marked with range information from the tokens. Also
-    creates a cached property out of the function. """
+    during validation are marked with range information from the tokens. """
 
     def decorator(func):
         def inner(self):

@@ -20,7 +20,7 @@
 import typing as T
 
 from .ast_utils import *
-from .errors import assert_true, AlreadyCaughtError, CompileError, CompilerBugError, MultipleErrors
+from .errors import CompileError, CompilerBugError, MultipleErrors
 from . import gir
 from .lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from .tokenizer import Token

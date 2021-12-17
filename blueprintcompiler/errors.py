@@ -91,11 +91,6 @@ class CodeAction:
     replace_with: str
 
 
-class AlreadyCaughtError(Exception):
-    """ Emitted when a validation has already failed and its error message
-    should not be repeated. """
-
-
 class MultipleErrors(PrintableError):
     """ If multiple errors occur during compilation, they can be collected into
     a list and re-thrown using the MultipleErrors exception. It will
