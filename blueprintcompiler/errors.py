@@ -85,6 +85,11 @@ at {filename} line {line_num} column {col_num}:
         print()
 
 
+class UnexpectedTokenError(CompileError):
+    def __init__(self, start, end):
+        super().__init__("Unexpected tokens", start, end)
+
+
 @dataclass
 class CodeAction:
     title: str

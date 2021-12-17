@@ -25,7 +25,7 @@ from collections import defaultdict
 from enum import Enum
 
 from .ast import AstNode
-from .errors import assert_true, CompilerBugError, CompileError
+from .errors import assert_true, CompilerBugError, CompileError, UnexpectedTokenError
 from .tokenizer import Token, TokenType
 
 
@@ -184,6 +184,22 @@ class ParseContext:
         token = self.tokens[self.index]
         return token
 
+    def skip_unexpected_token(self):
+        """ Skips a token and logs an "unexpected token" error. """
+
+        self.skip()
+        start = self.tokens[self.index].start
+        self.next_token()
+        self.skip()
+        end = self.tokens[self.index - 1].end
+
+        if (len(self.errors)
+                and isinstance((err := self.errors[-1]), UnexpectedTokenError)
+                and err.end == start):
+            err.end = end
+        else:
+            self.errors.append(UnexpectedTokenError(start, end))
+
     def is_eof(self) -> Token:
         return self.index >= len(self.tokens) or self.peek_token().type == TokenType.EOF
 
@@ -330,8 +346,7 @@ class Until(ParseNode):
         while not self.delimiter.parse(ctx).succeeded():
             try:
                 if not self.child.parse(ctx).matched():
-                    token = ctx.next_token()
-                    ctx.errors.append(CompileError("Unexpected token", token.start, token.end))
+                    ctx.skip_unexpected_token()
             except CompileError as e:
                 ctx.errors.append(e)
                 ctx.next_token()

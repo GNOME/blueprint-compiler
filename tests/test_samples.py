@@ -71,9 +71,9 @@ class TestSamples(unittest.TestCase):
                 raise MultipleErrors(ast.errors)
         except PrintableError as e:
             def error_str(error):
-                line, col = utils.idx_to_pos(error.start, blueprint)
+                line, col = utils.idx_to_pos(error.start + 1, blueprint)
                 len = error.end - error.start
-                return ",".join([str(line + 1), str(col + 1), str(len), error.message])
+                return ",".join([str(line + 1), str(col), str(len), error.message])
 
             if isinstance(e, CompileError):
                 actual = error_str(e)
@@ -143,6 +143,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("a11y_prop_type")
         self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
+        self.assert_sample_error("consecutive_unexpected_tokens")
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("filters_in_non_file_filter")
