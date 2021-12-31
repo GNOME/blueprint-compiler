@@ -341,6 +341,23 @@ class Signal(AstNode):
             )
 
 
+    @validate("object")
+    def object_exists(self):
+        object_id = self.tokens["object"]
+        if object_id is None:
+            return
+
+        if object_id in ("true", "false"):
+            raise CompileError(
+                "Signal object must be object ID, not boolean value"
+            )
+
+        if self.root.objects_by_id.get(object_id) is None:
+            raise CompileError(
+                f"Could not find object with ID '{object_id}'"
+            )
+
+
     @docs("name")
     def signal_docs(self):
         if self.gir_signal is not None:
@@ -351,7 +368,13 @@ class Signal(AstNode):
         name = self.tokens["name"]
         if self.tokens["detail_name"]:
             name += "::" + self.tokens["detail_name"]
-        xml.put_self_closing("signal", name=name, handler=self.tokens["handler"], swapped="true" if self.tokens["swapped"] else None)
+        xml.put_self_closing(
+            "signal",
+            name=name,
+            handler=self.tokens["handler"],
+            swapped="true" if self.tokens["swapped"] else None,
+            object=self.tokens["object"]
+        )
 
 
 class Value(ast.AstNode):

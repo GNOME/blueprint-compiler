@@ -93,11 +93,11 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             Op("=>"),
             UseIdent("handler").expected("the name of a function to handle the signal"),
             OpenParen().expected("argument list"),
+            Optional(UseIdent("object")).expected("object identifier"),
             CloseParen().expected("`)`"),
             ZeroOrMore(AnyOf(
                 Sequence(Keyword("swapped"), UseLiteral("swapped", True)),
                 Sequence(Keyword("after"), UseLiteral("after", True)),
-                Sequence(Keyword("object"), UseLiteral("object", True)),
             )),
         )
     )
