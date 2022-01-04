@@ -60,18 +60,18 @@ class Widget(AstNode):
 
 widgets = Group(
     Widgets,
-    Sequence(
-        Keyword("widgets", True),
-        OpenBracket(),
+    [
+        Keyword("widgets"),
+        "[",
         Delimited(
             Group(
                 Widget,
                 UseIdent("name"),
             ),
-            Comma(),
+            ",",
         ),
-        CloseBracket(),
-    )
+        "]",
+    ]
 )
 
 

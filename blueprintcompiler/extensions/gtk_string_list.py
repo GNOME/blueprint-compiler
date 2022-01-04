@@ -61,15 +61,12 @@ item = Group(
 
 strings = Group(
     Items,
-    Sequence(
-        Keyword("strings", True),
-        OpenBracket(),
-        Delimited(
-            item,
-            Comma()
-        ),
-        CloseBracket(),
-    )
+    [
+        Keyword("strings"),
+        "[",
+        Delimited(item, ","),
+        "]",
+    ]
 )
 
 

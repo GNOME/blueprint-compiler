@@ -49,22 +49,22 @@ class FilterString(AstNode):
 def create_node(tag_name: str, singular: str):
     return Group(
         Filters,
-        Sequence(
-            Keyword(tag_name, True),
+        [
+            Keyword(tag_name),
             UseLiteral("tag_name", tag_name),
-            OpenBracket(),
+            "[",
             Delimited(
                 Group(
                     FilterString,
-                    Sequence(
+                    [
                         UseQuoted("name"),
                         UseLiteral("tag_name", singular),
-                    )
+                    ]
                 ),
-                Comma(),
+                ",",
             ),
-            CloseBracket(),
-        )
+            "]",
+        ]
     )
 
 

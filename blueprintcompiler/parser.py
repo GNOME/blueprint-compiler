@@ -32,8 +32,8 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     gtk_directive = Group(
         ast.GtkDirective,
         Statement(
-            Keyword("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
-            Keyword("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            Match("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+            Match("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
             UseNumberText("version").expected("a version number for GTK"),
         )
     )
@@ -41,7 +41,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     import_statement = Group(
         ast.Import,
         Statement(
-            Keyword("using"),
+            "using",
             UseIdent("namespace").expected("a GIR namespace"),
             UseNumberText("version").expected("a version number"),
         )
@@ -56,7 +56,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         ast.Property,
         Statement(
             UseIdent("name"),
-            Op(":"),
+            ":",
             AnyOf(
                 *OBJECT_HOOKS,
                 object,
@@ -69,15 +69,15 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         ast.Property,
         Statement(
             UseIdent("name"),
-            Op(":"),
-            Keyword("bind"),
+            ":",
+            "bind",
             UseIdent("bind_source").expected("the ID of a source object to bind from"),
-            Op("."),
+            ".",
             UseIdent("bind_property").expected("a property name to bind from"),
             ZeroOrMore(AnyOf(
-                Sequence(Keyword("sync-create"), UseLiteral("sync_create", True)),
-                Sequence(Keyword("inverted"), UseLiteral("invert-boolean", True)),
-                Sequence(Keyword("bidirectional"), UseLiteral("bidirectional", True)),
+                ["sync-create", UseLiteral("sync_create", True)],
+                ["inverted", UseLiteral("inverted", True)],
+                ["bidirectional", UseLiteral("bidirectional", True)],
             )),
         )
     )
@@ -86,47 +86,47 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         ast.Signal,
         Statement(
             UseIdent("name"),
-            Optional(Sequence(
-                Op("::"),
+            Optional([
+                "::",
                 UseIdent("detail_name").expected("a signal detail name"),
-            )),
-            Op("=>"),
+            ]),
+            "=>",
             UseIdent("handler").expected("the name of a function to handle the signal"),
-            OpenParen().expected("argument list"),
+            Match("(").expected("argument list"),
             Optional(UseIdent("object")).expected("object identifier"),
-            CloseParen().expected("`)`"),
+            Match(")").expected(),
             ZeroOrMore(AnyOf(
-                Sequence(Keyword("swapped"), UseLiteral("swapped", True)),
-                Sequence(Keyword("after"), UseLiteral("after", True)),
+                [Keyword("swapped"), UseLiteral("swapped", True)],
+                [Keyword("after"), UseLiteral("after", True)],
             )),
         )
     )
 
     child = Group(
         ast.Child,
-        Sequence(
-            Optional(Sequence(
-                OpenBracket(),
-                Optional(Sequence(Keyword("internal-child"), UseLiteral("internal_child", True))),
+        [
+            Optional([
+                "[",
+                Optional(["internal-child", UseLiteral("internal_child", True)]),
                 UseIdent("child_type").expected("a child type"),
-                CloseBracket(),
-            )),
+                "]",
+            ]),
             object,
-        )
+        ]
     )
 
     object_content = Group(
         ast.ObjectContent,
-        Sequence(
-            OpenBlock(),
+        [
+            "{",
             Until(AnyOf(
                 *OBJECT_CONTENT_HOOKS,
                 binding,
                 property,
                 signal,
                 child,
-            ), CloseBlock()),
-        )
+            ), "}"),
+        ]
     )
 
     # work around the recursive reference
@@ -138,22 +138,20 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
 
     template = Group(
         ast.Template,
-        Sequence(
-            Keyword("template"),
+        [
+            "template",
             UseIdent("name").expected("template class name"),
-            Optional(
-                Sequence(
-                    Op(":"),
-                    class_name.expected("parent class"),
-                )
-            ),
+            Optional([
+                Match(":"),
+                class_name.expected("parent class"),
+            ]),
             object_content.expected("block"),
-        )
+        ]
     )
 
     ui = Group(
         ast.UI,
-        Sequence(
+        [
             gtk_directive,
             ZeroOrMore(import_statement),
             Until(AnyOf(
@@ -161,7 +159,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
                 template,
                 object,
             ), Eof()),
-        )
+        ]
     )
 
     ctx = ParseContext(tokens)

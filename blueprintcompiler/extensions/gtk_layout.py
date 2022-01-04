@@ -53,7 +53,7 @@ layout_prop = Group(
     LayoutProperty,
     Statement(
         UseIdent("name"),
-        Op(":"),
+        ":",
         value.expected("a value"),
     )
 )
@@ -61,9 +61,9 @@ layout_prop = Group(
 layout = Group(
     Layout,
     Sequence(
-        Keyword("layout", True),
-        OpenBlock(),
-        Until(layout_prop, CloseBlock()),
+        Keyword("layout"),
+        "{",
+        Until(layout_prop, "}"),
     )
 )
 

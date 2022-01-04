@@ -46,18 +46,18 @@ class StyleClass(AstNode):
 
 styles = Group(
     Styles,
-    Sequence(
-        Keyword("styles", True),
-        OpenBracket(),
+    [
+        Keyword("styles"),
+        "[",
         Delimited(
             Group(
                 StyleClass,
                 UseQuoted("name")
             ),
-            Comma(),
+            ",",
         ),
-        CloseBracket(),
-    )
+        "]",
+    ]
 )
 
 

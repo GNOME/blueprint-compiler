@@ -155,18 +155,18 @@ a11y_prop = Group(
     A11yProperty,
     Statement(
         UseIdent("name"),
-        Op(":"),
+        ":",
         value.expected("a value"),
     )
 )
 
 a11y = Group(
     A11y,
-    Sequence(
-        Keyword("accessibility", True),
-        OpenBlock(),
-        Until(a11y_prop, CloseBlock()),
-    )
+    [
+        Keyword("accessibility"),
+        "{",
+        Until(a11y_prop, "}"),
+    ]
 )
 
 

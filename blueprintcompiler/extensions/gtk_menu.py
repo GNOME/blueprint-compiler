@@ -51,94 +51,94 @@ menu_contents = Sequence()
 
 menu_section = Group(
     Menu,
-    Sequence(
-        Keyword("section"),
+    [
+        "section",
         UseLiteral("tag", "section"),
         Optional(UseIdent("id")),
         menu_contents
-    )
+    ]
 )
 
 menu_submenu = Group(
     Menu,
-    Sequence(
-        Keyword("submenu"),
+    [
+        "submenu",
         UseLiteral("tag", "submenu"),
         Optional(UseIdent("id")),
         menu_contents
-    )
+    ]
 )
 
 menu_attribute = Group(
     MenuAttribute,
-    Sequence(
+    [
         UseIdent("name"),
-        Op(":"),
+        ":",
         value.expected("a value"),
-        StmtEnd().expected("`;`"),
-    )
+        Match(";").expected(),
+    ]
 )
 
 menu_item = Group(
     Menu,
-    Sequence(
-        Keyword("item"),
+    [
+        "item",
         UseLiteral("tag", "item"),
         Optional(UseIdent("id")),
-        OpenBlock().expected("`{`"),
-        Until(menu_attribute, CloseBlock()),
-    )
+        Match("{").expected(),
+        Until(menu_attribute, "}"),
+    ]
 )
 
 menu_item_shorthand = Group(
     Menu,
-    Sequence(
-        Keyword("item"),
+    [
+        "item",
         UseLiteral("tag", "item"),
-        OpenParen(),
+        "(",
         Group(
             MenuAttribute,
-            Sequence(UseLiteral("name", "label"), value),
+            [UseLiteral("name", "label"), value],
         ),
-        Optional(Sequence(
-            Comma(),
-            Optional(Sequence(
+        Optional([
+            ",",
+            Optional([
                 Group(
                     MenuAttribute,
-                    Sequence(UseLiteral("name", "action"), value),
+                    [UseLiteral("name", "action"), value],
                 ),
-                Optional(Sequence(
-                    Comma(),
+                Optional([
+                    ",",
                     Group(
                         MenuAttribute,
-                        Sequence(UseLiteral("name", "icon"), value),
+                        [UseLiteral("name", "icon"), value],
                     ),
-                ))
-            ))
-        )),
-        CloseParen().expected("')'"),
-    )
+                ])
+            ])
+        ]),
+        Match(")").expected(),
+    ]
 )
 
 menu_contents.children = [
-    OpenBlock(),
+    Match("{"),
     Until(AnyOf(
         menu_section,
         menu_submenu,
         menu_item_shorthand,
         menu_item,
         menu_attribute,
-    ), CloseBlock()),
+    ), "}"),
 ]
 
 menu = Group(
     Menu,
-    Sequence(
-        Keyword("menu"),
+    [
+        "menu",
         UseLiteral("tag", "menu"),
         Optional(UseIdent("id")),
         menu_contents
-    ),
+    ],
 )
 
 

@@ -239,7 +239,7 @@ class Err(ParseNode):
     """ ParseNode that emits a compile error if it fails to parse. """
 
     def __init__(self, child, message):
-        self.child = child
+        self.child = to_parse_node(child)
         self.message = message
 
     def _parse(self, ctx):
@@ -258,7 +258,7 @@ class Fail(ParseNode):
     """ ParseNode that emits a compile error if it parses successfully. """
 
     def __init__(self, child, message):
-        self.child = child
+        self.child = to_parse_node(child)
         self.message = message
 
     def _parse(self, ctx):
@@ -277,7 +277,7 @@ class Group(ParseNode):
     """ ParseNode that creates a match group. """
     def __init__(self, ast_type, child):
         self.ast_type = ast_type
-        self.child = child
+        self.child = to_parse_node(child)
 
     def _parse(self, ctx: ParseContext) -> bool:
         ctx.skip()
@@ -288,7 +288,7 @@ class Group(ParseNode):
 class Sequence(ParseNode):
     """ ParseNode that attempts to match all of its children in sequence. """
     def __init__(self, *children):
-        self.children = children
+        self.children = [to_parse_node(child) for child in children]
 
     def _parse(self, ctx) -> bool:
         for child in self.children:
@@ -301,7 +301,7 @@ class Statement(ParseNode):
     """ ParseNode that attempts to match all of its children in sequence. If any
     child raises an error, the error will be logged but parsing will continue. """
     def __init__(self, *children):
-        self.children = children
+        self.children = [to_parse_node(child) for child in children]
 
     def _parse(self, ctx) -> bool:
         for child in self.children:
@@ -325,7 +325,7 @@ class AnyOf(ParseNode):
     """ ParseNode that attempts to match exactly one of its children. Child
     nodes are attempted in order. """
     def __init__(self, *children):
-        self.children = children
+        self.children = [to_parse_node(child) for child in children]
 
     def _parse(self, ctx):
         for child in self.children:
@@ -339,8 +339,8 @@ class Until(ParseNode):
     the child does not match, one token is skipped and the match is attempted
     again. """
     def __init__(self, child, delimiter):
-        self.child = child
-        self.delimiter = delimiter
+        self.child = to_parse_node(child)
+        self.delimiter = to_parse_node(delimiter)
 
     def _parse(self, ctx):
         while not self.delimiter.parse(ctx).succeeded():
@@ -362,7 +362,7 @@ class ZeroOrMore(ParseNode):
     times). It cannot fail to parse. If its child raises an exception, one token
     will be skipped and parsing will continue. """
     def __init__(self, child):
-        self.child = child
+        self.child = to_parse_node(child)
 
 
     def _parse(self, ctx):
@@ -379,8 +379,8 @@ class Delimited(ParseNode):
     """ ParseNode that matches its first child any number of times (including zero
     times) with its second child in between and optionally at the end. """
     def __init__(self, child, delimiter):
-        self.child = child
-        self.delimiter = delimiter
+        self.child = to_parse_node(child)
+        self.delimiter = to_parse_node(delimiter)
 
     def _parse(self, ctx):
         while self.child.parse(ctx).matched() and self.delimiter.parse(ctx).matched():
@@ -392,59 +392,35 @@ class Optional(ParseNode):
     """ ParseNode that matches its child zero or one times. It cannot fail to
     parse. """
     def __init__(self, child):
-        self.child = child
+        self.child = to_parse_node(child)
 
     def _parse(self, ctx):
         self.child.parse(ctx)
         return True
 
 
-class StaticToken(ParseNode):
-    """ Base class for ParseNodes that match a token type without inspecting
-    the token's contents. """
-    token_type: T.Optional[TokenType] = None
-
+class Eof(ParseNode):
+    """ ParseNode that matches an EOF token. """
     def _parse(self, ctx: ParseContext) -> bool:
-        return ctx.next_token().type == self.token_type
-
-class StmtEnd(StaticToken):
-    token_type = TokenType.STMT_END
-
-class Eof(StaticToken):
-    token_type = TokenType.EOF
-
-class OpenBracket(StaticToken):
-    token_type = TokenType.OPEN_BRACKET
-
-class CloseBracket(StaticToken):
-    token_type = TokenType.CLOSE_BRACKET
-
-class OpenBlock(StaticToken):
-    token_type = TokenType.OPEN_BLOCK
-
-class CloseBlock(StaticToken):
-    token_type = TokenType.CLOSE_BLOCK
-
-class OpenParen(StaticToken):
-    token_type = TokenType.OPEN_PAREN
-
-class CloseParen(StaticToken):
-    token_type = TokenType.CLOSE_PAREN
-
-class Comma(StaticToken):
-    token_type = TokenType.COMMA
+        token = ctx.next_token()
+        return token.type == TokenType.EOF
 
 
-class Op(ParseNode):
-    """ ParseNode that matches the given operator. """
+class Match(ParseNode):
+    """ ParseNode that matches the given literal token. """
     def __init__(self, op):
         self.op = op
 
     def _parse(self, ctx: ParseContext) -> bool:
         token = ctx.next_token()
-        if token.type != TokenType.OP:
-            return False
         return str(token) == self.op
+
+    def expected(self, expect: str = None):
+        """ Convenience method for err(). """
+        if expect is None:
+            return self.err(f"Expected '{self.op}'")
+        else:
+            return self.err("Expected " + expect)
 
 
 class UseIdent(ParseNode):
@@ -529,17 +505,22 @@ class UseLiteral(ParseNode):
 
 
 class Keyword(ParseNode):
-    """ Matches the given identifier. """
-    def __init__(self, kw, set_token=False):
+    """ Matches the given identifier and sets it as a named token, with the name
+    being the identifier itself. """
+    def __init__(self, kw):
         self.kw = kw
         self.set_token = True
 
     def _parse(self, ctx: ParseContext):
         token = ctx.next_token()
-        if token.type != TokenType.IDENT:
-            return False
-
-        if self.set_token:
-            ctx.set_group_val(self.kw, True, token)
-
+        ctx.set_group_val(self.kw, True, token)
         return str(token) == self.kw
+
+
+def to_parse_node(value) -> ParseNode:
+    if isinstance(value, str):
+        return Match(value)
+    elif isinstance(value, list):
+        return Sequence(*value)
+    else:
+        return value

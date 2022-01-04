@@ -52,28 +52,23 @@ class Item(BaseTypedAttribute):
 
 item = Group(
     Item,
-    Sequence(
-        Optional(
-            Sequence(
-                UseIdent("name"),
-                Op(":"),
-            )
-        ),
+    [
+        Optional([
+            UseIdent("name"),
+            ":",
+        ]),
         value,
-    )
+    ]
 )
 
 items = Group(
     Items,
-    Sequence(
-        Keyword("items", True),
-        OpenBracket(),
-        Delimited(
-            item,
-            Comma()
-        ),
-        CloseBracket(),
-    )
+    [
+        Keyword("items"),
+        "[",
+        Delimited(item, ","),
+        "]",
+    ]
 )
 
 

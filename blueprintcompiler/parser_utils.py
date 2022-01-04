@@ -23,16 +23,16 @@ from .parse_tree import *
 
 
 class_name = AnyOf(
-    Sequence(
+    [
         UseIdent("namespace"),
-        Op("."),
+        ".",
         UseIdent("class_name"),
-    ),
-    Sequence(
-        Op("."),
+    ],
+    [
+        ".",
         UseIdent("class_name"),
         UseLiteral("ignore_gir", True),
-    ),
+    ],
     UseIdent("class_name"),
 )
 
@@ -51,31 +51,31 @@ ident_value = Group(
 
 flags_value = Group(
     ast.FlagsValue,
-    Sequence(
+    [
         Group(ast.Flag, UseIdent("value")),
-        Op("|"),
-        Delimited(Group(ast.Flag, UseIdent("value")), Op("|")),
-    ),
+        "|",
+        Delimited(Group(ast.Flag, UseIdent("value")), "|"),
+    ],
 )
 
 translated_string = Group(
     ast.TranslatedStringValue,
     AnyOf(
-        Sequence(
-            Keyword("_"),
-            OpenParen(),
+        [
+            "_",
+            "(",
             UseQuoted("value").expected("a quoted string"),
-            CloseParen().expected("`)`"),
-        ),
-        Sequence(
-            Keyword("C_"),
-            OpenParen(),
+            Match(")").expected(),
+        ],
+        [
+            "C_",
+            "(",
             UseQuoted("context").expected("a quoted string"),
-            Comma(),
+            ",",
             UseQuoted("value").expected("a quoted string"),
-            Optional(Comma()),
-            CloseParen().expected("`)`"),
-        ),
+            Optional(","),
+            Match(")").expected(),
+        ],
     ),
 )
 
