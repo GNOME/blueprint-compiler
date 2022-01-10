@@ -52,3 +52,4 @@ Links
 -----
 
 - `Source code <https://gitlab.gnome.org/jwestman/blueprint-compiler>`_
+- `Vim syntax highlighting plugin <https://github.com/thetek42/vim-blueprint-syntax>`_
