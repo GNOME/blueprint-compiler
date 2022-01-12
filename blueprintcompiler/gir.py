@@ -257,9 +257,11 @@ class Class(GirNode, GirType):
             return True
         elif self.parent and self.parent.assignable_to(other):
             return True
-        elif other in self.implements:
-            return True
         else:
+            for iface in self.implements:
+                if self.get_containing(Namespace).lookup_type(iface).assignable_to(other):
+                    return True
+
             return False
 
 

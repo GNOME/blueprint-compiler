@@ -1,8 +1,12 @@
 using Gtk 4.0;
 
-StringList {
+StringList greetings {
   strings [
     "Hello, world!",
     _("Hello!"),
   ]
+}
+
+Gtk.DropDown {
+  model: greetings;
 }

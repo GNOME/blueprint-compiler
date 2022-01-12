@@ -144,6 +144,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
         self.assert_sample_error("consecutive_unexpected_tokens")
+        self.assert_sample_error("does_not_implement")
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("filters_in_non_file_filter")
