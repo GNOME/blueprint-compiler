@@ -32,7 +32,7 @@ class TestTokenizer(unittest.TestCase):
             for token, (type, token_str) in zip(tokens, expect):
                 self.assertEqual(token.type, type)
                 self.assertEqual(str(token), token_str)
-        except PrintableError as e:
+        except PrintableError as e: # pragma: no cover
             e.pretty_print("<test input>", string)
             raise e
 
@@ -71,6 +71,3 @@ class TestTokenizer(unittest.TestCase):
             (TokenType.EOF, ""),
         ])
 
-
-if __name__ == "__main__":
-    unittest.main()

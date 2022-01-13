@@ -121,7 +121,7 @@ def assert_true(truth: bool, message:str=None):
         raise CompilerBugError(message)
 
 
-def report_bug():
+def report_bug(): # pragma: no cover
     """ Report an error and ask people to report it. """
 
     print(traceback.format_exc())

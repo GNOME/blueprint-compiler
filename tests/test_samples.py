@@ -46,11 +46,11 @@ class TestSamples(unittest.TestCase):
                 raise MultipleErrors(ast.errors)
 
             actual = ast.generate()
-            if actual.strip() != expected.strip():
+            if actual.strip() != expected.strip(): # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
-        except PrintableError as e:
+        except PrintableError as e: # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
 
@@ -79,14 +79,14 @@ class TestSamples(unittest.TestCase):
                 actual = error_str(e)
             elif isinstance(e, MultipleErrors):
                 actual = "\n".join([error_str(error) for error in e.errors])
-            else:
+            else: # pragma: no cover
                 raise AssertionError()
 
-            if actual.strip() != expected.strip():
+            if actual.strip() != expected.strip(): # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
-        else:
+        else: # pragma: no cover
             # Expected a compiler error but there wasn't one
             raise AssertionError()
 
@@ -101,11 +101,11 @@ class TestSamples(unittest.TestCase):
 
             actual = decompiler.decompile(ui_path)
 
-            if actual.strip() != expected.strip():
+            if actual.strip() != expected.strip(): # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
-        except PrintableError as e:
+        except PrintableError as e: # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
 
