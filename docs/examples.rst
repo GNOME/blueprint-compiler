@@ -201,6 +201,22 @@ Flags
      clicked => on_button_clicked() swapped;
    }
 
+Object
+~~~~~~
+
+By default the widget is passed to callback as first argument. However,
+you can specify another object to use as first argument of callback.
+
+.. code-block::
+
+   Gtk.Entry {
+     activate => grab_focus(another_entry);
+   }
+
+   Gtk.Entry another_entry {
+
+   }
+
 
 CSS Styles
 ----------
