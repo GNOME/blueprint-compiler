@@ -1,6 +1,10 @@
 using Gtk 4.0;
 
-Button {
+Entry {
+  activate => click(button);
+}
+
+Button button {
   clicked => on_button_clicked() swapped;
   notify::visible => on_button_notify_visible();
 }
