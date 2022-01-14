@@ -299,12 +299,13 @@ def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=No
 
 
 @decompiler("signal")
-def decompile_signal(ctx, gir, name, handler, swapped="false"):
+def decompile_signal(ctx, gir, name, handler, swapped="false", object=None):
+    object_name = object or ""
     name = name.replace("_", "-")
     if _truthy(swapped):
-        ctx.print(f"{name} => {handler}() swapped;")
+        ctx.print(f"{name} => {handler}({object_name}) swapped;")
     else:
-        ctx.print(f"{name} => {handler}();")
+        ctx.print(f"{name} => {handler}({object_name});")
     return gir
 
 
