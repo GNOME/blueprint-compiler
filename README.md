@@ -65,6 +65,13 @@ template ShumateDemoWindow : Gtk.ApplicationWindow {
 }
 ```
 
+## Editor plugins
+
+### Vim
+
+- [Syntax highlighting by thetek42](https://github.com/thetek42/vim-blueprint-syntax)
+- [Syntax highlighting by gabmus](https://gitlab.com/gabmus/vim-blueprint)
+
 ## License
 
 Copyright (C) 2021 James Westman <james@jwestman.net>
