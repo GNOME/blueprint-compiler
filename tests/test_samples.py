@@ -131,6 +131,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("strings")
         self.assert_sample("style")
         self.assert_sample("template")
+        self.assert_sample("template_no_parent")
         self.assert_sample("translated")
         self.assert_sample("uint")
         self.assert_sample("using")

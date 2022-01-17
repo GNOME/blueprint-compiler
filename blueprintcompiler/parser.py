@@ -140,8 +140,12 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         Sequence(
             Keyword("template"),
             UseIdent("name").expected("template class name"),
-            Op(":").expected("`:`"),
-            class_name.expected("parent class"),
+            Optional(
+                Sequence(
+                    Op(":"),
+                    class_name.expected("parent class"),
+                )
+            ),
             object_content.expected("block"),
         )
     )

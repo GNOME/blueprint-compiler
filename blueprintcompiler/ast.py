@@ -143,7 +143,7 @@ class Object(AstNode):
 
     @validate("class_name")
     def gir_class_exists(self):
-        if not self.tokens["ignore_gir"] and self.gir_ns is not None:
+        if self.tokens["class_name"] and not self.tokens["ignore_gir"] and self.gir_ns is not None:
             self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
 
     @property
@@ -153,7 +153,7 @@ class Object(AstNode):
 
     @property
     def gir_class(self):
-        if not self.tokens["ignore_gir"]:
+        if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
             return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
 
 
@@ -181,10 +181,13 @@ class Object(AstNode):
 
 class Template(Object):
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("template", **{
-            "class": self.tokens["name"],
-            "parent": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
-        })
+        if self.gir_class:
+            parent = self.gir_class.glib_type_name
+        elif self.tokens["class_name"]:
+            parent = self.tokens["class_name"]
+        else:
+            parent = None
+        xml.start_tag("template", **{"class": self.tokens["name"]}, parent=parent)
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
