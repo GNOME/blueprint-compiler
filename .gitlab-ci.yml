@@ -3,10 +3,9 @@ stages:
 - pages
 
 build:
+  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
   stage: build
   script:
-    - dnf install -y meson python3-pip gtk4-devel gobject-introspection-devel
-    - pip3 install furo mypy sphinx coverage
     - mypy blueprintcompiler
     - coverage run -m unittest
     - coverage html
