@@ -28,20 +28,9 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-class Items(AstNode):
-    @validate("items")
-    def container_is_string_list(self):
-        self.validate_parent_type("Gtk", "StringList", "StringList items")
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("items")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class Item(AstNode):
+    grammar = value
+
     @property
     def value_type(self):
         return StringType()
@@ -54,20 +43,24 @@ class Item(AstNode):
         xml.end_tag()
 
 
-item = Group(
-    Item,
-    value,
-)
-
-strings = Group(
-    Items,
-    [
+class Strings(AstNode):
+    grammar = [
         Keyword("strings"),
         "[",
-        Delimited(item, ","),
+        Delimited(Item, ","),
         "]",
     ]
-)
+
+    @validate("items")
+    def container_is_string_list(self):
+        self.validate_parent_type("Gtk", "StringList", "StringList items")
+
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("items")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
 
 
 @completer(

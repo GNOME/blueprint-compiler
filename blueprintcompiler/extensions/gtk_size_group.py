@@ -27,19 +27,9 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-class Widgets(AstNode):
-    @validate("widgets")
-    def container_is_size_group(self):
-        self.validate_parent_type("Gtk", "SizeGroup", "size group properties")
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("widgets")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class Widget(AstNode):
+    grammar = UseIdent("name")
+
     @validate("name")
     def obj_widget(self):
         object = self.root.objects_by_id.get(self.tokens["name"])
@@ -58,21 +48,23 @@ class Widget(AstNode):
         xml.put_self_closing("widget", name=self.tokens["name"])
 
 
-widgets = Group(
-    Widgets,
-    [
+class Widgets(AstNode):
+    grammar = [
         Keyword("widgets"),
         "[",
-        Delimited(
-            Group(
-                Widget,
-                UseIdent("name"),
-            ),
-            ",",
-        ),
+        Delimited(Widget, ","),
         "]",
     ]
-)
+
+    @validate("widgets")
+    def container_is_size_group(self):
+        self.validate_parent_type("Gtk", "SizeGroup", "size group properties")
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("widgets")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
 
 
 @completer(

@@ -29,24 +29,6 @@ from .extensions import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS
 def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     """ Parses a list of tokens into an abstract syntax tree. """
 
-    gtk_directive = Group(
-        ast.GtkDirective,
-        Statement(
-            Match("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
-            Match("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
-            UseNumberText("version").expected("a version number for GTK"),
-        )
-    )
-
-    import_statement = Group(
-        ast.Import,
-        Statement(
-            "using",
-            UseIdent("namespace").expected("a GIR namespace"),
-            UseNumberText("version").expected("a version number"),
-        )
-    )
-
     object = Group(
         ast.Object,
         None
@@ -152,8 +134,8 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
     ui = Group(
         ast.UI,
         [
-            gtk_directive,
-            ZeroOrMore(import_statement),
+            ast.GtkDirective,
+            ZeroOrMore(ast.Import),
             Until(AnyOf(
                 *OBJECT_HOOKS,
                 template,

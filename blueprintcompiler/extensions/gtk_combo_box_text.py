@@ -28,19 +28,6 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-class Items(AstNode):
-    @validate("items")
-    def container_is_combo_box_text(self):
-        self.validate_parent_type("Gtk", "ComboBoxText", "combo box items")
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("items")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class Item(BaseTypedAttribute):
     tag_name = "item"
     attr_name = "id"
@@ -61,15 +48,25 @@ item = Group(
     ]
 )
 
-items = Group(
-    Items,
-    [
+
+class Items(AstNode):
+    grammar = [
         Keyword("items"),
         "[",
         Delimited(item, ","),
         "]",
     ]
-)
+
+    @validate("items")
+    def container_is_combo_box_text(self):
+        self.validate_parent_type("Gtk", "ComboBoxText", "combo box items")
+
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("items")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
 
 
 @completer(

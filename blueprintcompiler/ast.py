@@ -23,6 +23,7 @@ from .ast_utils import *
 from .errors import CompileError, CompilerBugError, MultipleErrors
 from . import gir
 from .lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
+from .parse_tree import *
 from .tokenizer import Token
 from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
@@ -99,6 +100,12 @@ class UI(AstNode):
 
 
 class GtkDirective(AstNode):
+    grammar = Statement(
+        Match("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+        Match("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+        UseNumberText("version").expected("a version number for GTK"),
+    )
+
     @validate("version")
     def gtk_version(self):
         if self.tokens["version"] not in ["4.0"]:
@@ -120,6 +127,12 @@ class GtkDirective(AstNode):
 
 
 class Import(AstNode):
+    grammar = Statement(
+        "using",
+        UseIdent("namespace").expected("a GIR namespace"),
+        UseNumberText("version").expected("a version number"),
+    )
+
     @validate("namespace", "version")
     def namespace_exists(self):
         gir.get_namespace(self.tokens["namespace"], self.tokens["version"])

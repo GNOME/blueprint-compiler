@@ -24,7 +24,6 @@ import typing as T
 from collections import defaultdict
 from enum import Enum
 
-from .ast import AstNode
 from .errors import assert_true, CompilerBugError, CompileError, UnexpectedTokenError
 from .tokenizer import Token, TokenType
 
@@ -77,7 +76,7 @@ class ParseGroup:
         self.keys[key] = val
         self.tokens[key] = token
 
-    def to_ast(self) -> AstNode:
+    def to_ast(self):
         """ Creates an AST node from the match group. """
         children = [child.to_ast() for child in self.children]
 
@@ -522,5 +521,7 @@ def to_parse_node(value) -> ParseNode:
         return Match(value)
     elif isinstance(value, list):
         return Sequence(*value)
+    elif isinstance(value, type) and hasattr(value, "grammar"):
+        return Group(value, getattr(value, "grammar"))
     else:
         return value

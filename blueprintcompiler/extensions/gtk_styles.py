@@ -27,7 +27,21 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
+class StyleClass(AstNode):
+    grammar = UseQuoted("name")
+
+    def emit_xml(self, xml):
+        xml.put_self_closing("class", name=self.tokens["name"])
+
+
 class Styles(AstNode):
+    grammar = [
+        Keyword("styles"),
+        "[",
+        Delimited(StyleClass, ","),
+        "]",
+    ]
+
     @validate("styles")
     def container_is_widget(self):
         self.validate_parent_type("Gtk", "Widget", "style classes")
@@ -37,28 +51,6 @@ class Styles(AstNode):
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
-
-
-class StyleClass(AstNode):
-    def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.tokens["name"])
-
-
-styles = Group(
-    Styles,
-    [
-        Keyword("styles"),
-        "[",
-        Delimited(
-            Group(
-                StyleClass,
-                UseQuoted("name")
-            ),
-            ",",
-        ),
-        "]",
-    ]
-)
 
 
 @completer(

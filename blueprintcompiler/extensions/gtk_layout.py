@@ -27,19 +27,6 @@ from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
-class Layout(AstNode):
-    @validate("layout")
-    def container_is_widget(self):
-        self.validate_parent_type("Gtk", "Widget", "layout properties")
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("layout")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class LayoutProperty(BaseAttribute):
     tag_name = "property"
 
@@ -58,14 +45,24 @@ layout_prop = Group(
     )
 )
 
-layout = Group(
-    Layout,
-    Sequence(
+
+class Layout(AstNode):
+    grammar = Sequence(
         Keyword("layout"),
         "{",
         Until(layout_prop, "}"),
     )
-)
+
+    @validate("layout")
+    def container_is_widget(self):
+        self.validate_parent_type("Gtk", "Widget", "layout properties")
+
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("layout")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
 
 
 @completer(

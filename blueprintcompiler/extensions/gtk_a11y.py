@@ -105,20 +105,13 @@ def _get_docs(gir, name):
     ).doc
 
 
-class A11y(AstNode):
-    @validate("accessibility")
-    def container_is_widget(self):
-        self.validate_parent_type("Gtk", "Widget", "accessibility properties")
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("accessibility")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
-
 class A11yProperty(BaseTypedAttribute):
+    grammar = Statement(
+        UseIdent("name"),
+        ":",
+        value.expected("a value"),
+    )
+
     @property
     def tag_name(self):
         name = self.tokens["name"]
@@ -151,23 +144,23 @@ class A11yProperty(BaseTypedAttribute):
             return _get_docs(self.root.gir, self.tokens["name"])
 
 
-a11y_prop = Group(
-    A11yProperty,
-    Statement(
-        UseIdent("name"),
-        ":",
-        value.expected("a value"),
-    )
-)
-
-a11y = Group(
-    A11y,
-    [
+class A11y(AstNode):
+    grammar = [
         Keyword("accessibility"),
         "{",
-        Until(a11y_prop, "}"),
+        Until(A11yProperty, "}"),
     ]
-)
+
+    @validate("accessibility")
+    def container_is_widget(self):
+        self.validate_parent_type("Gtk", "Widget", "accessibility properties")
+
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("accessibility")
+        for child in self.children:
+            child.emit_xml(xml)
+        xml.end_tag()
 
 
 @completer(
