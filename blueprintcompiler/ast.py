@@ -347,11 +347,6 @@ class Signal(AstNode):
         if object_id is None:
             return
 
-        if object_id in ("true", "false"):
-            raise CompileError(
-                "Signal object must be object ID, not boolean value"
-            )
-
         if self.root.objects_by_id.get(object_id) is None:
             raise CompileError(
                 f"Could not find object with ID '{object_id}'"
