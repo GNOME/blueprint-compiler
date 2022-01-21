@@ -76,7 +76,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             UseIdent("bind_property").expected("a property name to bind from"),
             ZeroOrMore(AnyOf(
                 Sequence(Keyword("sync-create"), UseLiteral("sync_create", True)),
-                Sequence(Keyword("after"), UseLiteral("after", True)),
+                Sequence(Keyword("inverted"), UseLiteral("invert-boolean", True)),
                 Sequence(Keyword("bidirectional"), UseLiteral("bidirectional", True)),
             )),
         )

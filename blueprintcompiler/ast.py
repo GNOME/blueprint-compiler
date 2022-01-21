@@ -287,8 +287,8 @@ class Property(AstNode):
         bind_flags = []
         if self.tokens["sync_create"]:
             bind_flags.append("sync-create")
-        if self.tokens["after"]:
-            bind_flags.append("after")
+        if self.tokens["inverted"]:
+            bind_flags.append("invert-boolean")
         if self.tokens["bidirectional"]:
             bind_flags.append("bidirectional")
         bind_flags_str = "|".join(bind_flags) or None

@@ -283,8 +283,8 @@ def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=No
         if bind_flags:
             if "sync-create" in bind_flags:
                 flags += " sync-create"
-            if "after" in bind_flags:
-                flags += " after"
+            if "invert-boolean" in bind_flags:
+                flags += " inverted"
             if "bidirectional" in bind_flags:
                 flags += " bidirectional"
         ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
