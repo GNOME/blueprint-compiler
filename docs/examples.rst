@@ -178,6 +178,36 @@ when the UI is first constructed.
      value: bind bar1.value sync-create;
    }
 
+Use the ``bidirectional`` keyword to bind properties in both directions.
+
+.. code-block::
+
+   // Text of entry1 is bound to text
+   // of entry2 and vice versa
+
+   Gtk.Entry entry1 {
+     text: bind entry2.text bidirectional;
+   }
+
+   Gtk.Entry entry2 {
+
+   }
+
+Use the ``inverted`` keyword to invert to bind a boolean property
+to inverted value of another one.
+
+.. code-block::
+
+   // When switch1 is on, switch2 will be off
+   Gtk.Switch switch1 {
+     active: bind switch2.active sync-create inverted bidirectional;
+   }
+
+   // When switch2 is on, switch1 will be off
+   Gtk.Switch switch2 {
+
+   }
+
 
 Signals
 -------
