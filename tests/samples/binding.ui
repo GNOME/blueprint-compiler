@@ -2,8 +2,11 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkBox">
-    <property name="visible" bind-source="box2" bind-property="visible" bind-flags="sync-create"/>
+    <property name="visible" bind-source="box2" bind-property="visible" bind-flags="invert-boolean"/>
     <property name="orientation" bind-source="box2" bind-property="orientation"/>
+    <property name="spacing" bind-source="box2" bind-property="spacing" bind-flags="sync-create"/>
   </object>
-  <object class="GtkBox" id="box2"></object>
+  <object class="GtkBox" id="box2">
+    <property name="spacing">6</property>
+  </object>
 </interface>
