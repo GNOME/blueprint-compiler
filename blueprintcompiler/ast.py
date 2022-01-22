@@ -195,7 +195,12 @@ class Template(Object):
 
 class Child(AstNode):
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("child", type=self.tokens["child_type"])
+        child_type = internal_child = None
+        if self.tokens["internal_child"]:
+            internal_child = self.tokens["child_type"]
+        else:
+            child_type = self.tokens["child_type"]
+        xml.start_tag("child", type=child_type, internal_child=internal_child)
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()

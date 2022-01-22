@@ -107,6 +107,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         Sequence(
             Optional(Sequence(
                 OpenBracket(),
+                Optional(Sequence(Keyword("internal-child"), UseLiteral("internal_child", True))),
                 UseIdent("child_type").expected("a child type"),
                 CloseBracket(),
             )),

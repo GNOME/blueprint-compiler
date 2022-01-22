@@ -261,9 +261,11 @@ def decompile_object(ctx, gir, klass, id=None):
 
 
 @decompiler("child")
-def decompile_child(ctx, gir, type=None):
+def decompile_child(ctx, gir, type=None, internal_child=None):
     if type is not None:
         ctx.print(f"[{type}]")
+    elif internal_child is not None:
+        ctx.print(f"[internal-child {internal_child}]")
     return gir
 
 
