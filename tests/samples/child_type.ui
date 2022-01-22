@@ -6,4 +6,9 @@
       <object class="GtkHeaderBar"></object>
     </child>
   </object>
+  <object class="GtkDialog">
+    <child internal-child="context_area">
+      <object class="GtkBox"></object>
+    </child>
+  </object>
 </interface>
