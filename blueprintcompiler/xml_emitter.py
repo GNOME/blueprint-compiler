@@ -33,7 +33,7 @@ class XmlEmitter:
         self.result += f"<{tag}"
         for key, val in attrs.items():
             if val is not None:
-                self.result += f' {key}="{saxutils.escape(str(val))}"'
+                self.result += f' {key.replace("_", "-")}="{saxutils.escape(str(val))}"'
         self.result += ">"
         self._tag_stack.append(tag)
         self._needs_newline = False
