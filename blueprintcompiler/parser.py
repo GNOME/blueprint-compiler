@@ -40,7 +40,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             UseIdent("name"),
             ":",
             AnyOf(
-                *OBJECT_HOOKS,
+                OBJECT_HOOKS,
                 object,
                 value,
             ).expected("a value"),
@@ -82,7 +82,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         [
             "{",
             Until(AnyOf(
-                *OBJECT_CONTENT_HOOKS,
+                OBJECT_CONTENT_HOOKS,
                 binding,
                 property,
                 child,
@@ -116,7 +116,7 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
             ast.GtkDirective,
             ZeroOrMore(ast.Import),
             Until(AnyOf(
-                *OBJECT_HOOKS,
+                OBJECT_HOOKS,
                 template,
                 object,
             ), Eof()),

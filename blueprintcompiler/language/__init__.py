@@ -11,9 +11,11 @@ from .gtk_size_group import Widgets
 from .gtk_string_list import Strings
 from .gtk_styles import Styles
 
-OBJECT_HOOKS = [menu]
+from .common import *
 
-OBJECT_CONTENT_HOOKS = [
+OBJECT_HOOKS.children = [menu]
+
+OBJECT_CONTENT_HOOKS.children = [
     Signal, A11y, Styles, Layout, mime_types, patterns, suffixes, Widgets, Items,
     Strings,
 ]

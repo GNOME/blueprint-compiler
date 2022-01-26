@@ -324,7 +324,14 @@ class AnyOf(ParseNode):
     """ ParseNode that attempts to match exactly one of its children. Child
     nodes are attempted in order. """
     def __init__(self, *children):
-        self.children = [to_parse_node(child) for child in children]
+        self.children = children
+
+    @property
+    def children(self):
+        return self._children
+    @children.setter
+    def children(self, children):
+        self._children = [to_parse_node(child) for child in children]
 
     def _parse(self, ctx):
         for child in self.children:
