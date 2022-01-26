@@ -22,7 +22,7 @@ from enum import Enum
 import typing as T
 from dataclasses import dataclass
 
-from .extensions import gtk_a11y
+from .language import gtk_a11y
 from .xml_reader import Element, parse
 from .gir import *
 from .utils import Colors

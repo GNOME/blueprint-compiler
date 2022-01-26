@@ -23,7 +23,7 @@ from .errors import MultipleErrors
 from .parse_tree import *
 from .parser_utils import *
 from .tokenizer import TokenType
-from .extensions import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS
+from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS
 
 
 def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
@@ -64,26 +64,6 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
         )
     )
 
-    signal = Group(
-        ast.Signal,
-        Statement(
-            UseIdent("name"),
-            Optional([
-                "::",
-                UseIdent("detail_name").expected("a signal detail name"),
-            ]),
-            "=>",
-            UseIdent("handler").expected("the name of a function to handle the signal"),
-            Match("(").expected("argument list"),
-            Optional(UseIdent("object")).expected("object identifier"),
-            Match(")").expected(),
-            ZeroOrMore(AnyOf(
-                [Keyword("swapped"), UseLiteral("swapped", True)],
-                [Keyword("after"), UseLiteral("after", True)],
-            )),
-        )
-    )
-
     child = Group(
         ast.Child,
         [
@@ -105,7 +85,6 @@ def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
                 *OBJECT_CONTENT_HOOKS,
                 binding,
                 property,
-                signal,
                 child,
             ), "}"),
         ]

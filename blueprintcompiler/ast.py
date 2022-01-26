@@ -328,68 +328,6 @@ class Property(AstNode):
             xml.end_tag()
 
 
-class Signal(AstNode):
-    @property
-    def gir_signal(self):
-        if self.gir_class is not None:
-            return self.gir_class.signals.get(self.tokens["name"])
-
-
-    @property
-    def gir_class(self):
-        return self.parent.parent.gir_class
-
-
-    @validate("name")
-    def signal_exists(self):
-        if self.gir_class is None:
-            # Objects that we have no gir data on should not be validated
-            # This happens for classes defined by the app itself
-            return
-
-        if isinstance(self.parent.parent, Template):
-            # If the signal is part of a template, it might be defined by
-            # the application and thus not in gir
-            return
-
-        if self.gir_signal is None:
-            raise CompileError(
-                f"Class {self.gir_class.full_name} does not contain a signal called {self.tokens['name']}",
-                did_you_mean=(self.tokens["name"], self.gir_class.signals.keys())
-            )
-
-
-    @validate("object")
-    def object_exists(self):
-        object_id = self.tokens["object"]
-        if object_id is None:
-            return
-
-        if self.root.objects_by_id.get(object_id) is None:
-            raise CompileError(
-                f"Could not find object with ID '{object_id}'"
-            )
-
-
-    @docs("name")
-    def signal_docs(self):
-        if self.gir_signal is not None:
-            return self.gir_signal.doc
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        name = self.tokens["name"]
-        if self.tokens["detail_name"]:
-            name += "::" + self.tokens["detail_name"]
-        xml.put_self_closing(
-            "signal",
-            name=name,
-            handler=self.tokens["handler"],
-            swapped="true" if self.tokens["swapped"] else None,
-            object=self.tokens["object"]
-        )
-
-
 class Value(ast.AstNode):
     pass
 
