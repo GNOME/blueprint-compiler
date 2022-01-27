@@ -43,3 +43,12 @@ class Child(AstNode):
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
+
+
+@decompiler("child")
+def decompile_child(ctx, gir, type=None, internal_child=None):
+    if type is not None:
+        ctx.print(f"[{type}]")
+    elif internal_child is not None:
+        ctx.print(f"[internal-child {internal_child}]")
+    return gir

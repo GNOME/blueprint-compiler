@@ -100,3 +100,14 @@ class Signal(AstNode):
             swapped="true" if self.tokens["swapped"] else None,
             object=self.tokens["object"]
         )
+
+
+@decompiler("signal")
+def decompile_signal(ctx, gir, name, handler, swapped="false", object=None):
+    object_name = object or ""
+    name = name.replace("_", "-")
+    if decompile.truthy(swapped):
+        ctx.print(f"{name} => {handler}({object_name}) swapped;")
+    else:
+        ctx.print(f"{name} => {handler}({object_name});")
+    return gir

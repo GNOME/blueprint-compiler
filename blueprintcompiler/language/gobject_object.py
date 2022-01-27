@@ -95,3 +95,14 @@ def validate_parent_type(node, ns: str, name: str, err_msg: str):
     container_type = node.parent_by_type(Object).gir_class
     if container_type and not container_type.assignable_to(parent):
         raise CompileError(f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}")
+
+
+@decompiler("object")
+def decompile_object(ctx, gir, klass, id=None):
+    gir_class = ctx.type_by_cname(klass)
+    klass_name = decompile.full_name(gir_class) if gir_class is not None else "." + klass
+    if id is None:
+        ctx.print(f"{klass_name} {{")
+    else:
+        ctx.print(f"{klass_name} {id} {{")
+    return gir_class

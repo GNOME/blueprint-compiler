@@ -56,3 +56,11 @@ class Styles(AstNode):
 def style_completer(ast_node, match_variables):
     yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"]")
 
+
+@decompiler("style")
+def decompile_style(ctx, gir):
+    ctx.print(f"styles [")
+
+@decompiler("class")
+def decompile_style_class(ctx, gir, name):
+    ctx.print(f'"{name}",')

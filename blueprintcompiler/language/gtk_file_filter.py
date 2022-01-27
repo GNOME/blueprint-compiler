@@ -78,3 +78,27 @@ def file_filter_completer(ast_node, match_variables):
     yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns [\"$0\"]")
     yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes [\"$0\"]")
 
+
+@decompiler("mime-types")
+def decompile_mime_types(ctx, gir):
+    ctx.print("mime-types [")
+
+@decompiler("mime-type", cdata=True)
+def decompile_mime_type(ctx, gir, cdata):
+    ctx.print(f'"{cdata}",')
+
+@decompiler("patterns")
+def decompile_patterns(ctx, gir):
+    ctx.print("patterns [")
+
+@decompiler("pattern", cdata=True)
+def decompile_pattern(ctx, gir, cdata):
+    ctx.print(f'"{cdata}",')
+
+@decompiler("suffixes")
+def decompile_suffixes(ctx, gir):
+    ctx.print("suffixes [")
+
+@decompiler("suffix", cdata=True)
+def decompile_suffix(ctx, gir, cdata):
+    ctx.print(f'"{cdata}",')

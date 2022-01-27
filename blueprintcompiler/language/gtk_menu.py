@@ -185,3 +185,31 @@ def menu_content_completer(ast_node, match_variables):
         snippet='icon: "$0";'
     )
 
+
+@decompiler("menu")
+def decompile_menu(ctx, gir, id=None):
+    if id:
+        ctx.print(f"menu {id} {{")
+    else:
+        ctx.print("menu {")
+
+@decompiler("submenu")
+def decompile_submenu(ctx, gir, id=None):
+    if id:
+        ctx.print(f"submenu {id} {{")
+    else:
+        ctx.print("submenu {")
+
+@decompiler("item")
+def decompile_item(ctx, gir, id=None):
+    if id:
+        ctx.print(f"item {id} {{")
+    else:
+        ctx.print("item {")
+
+@decompiler("section")
+def decompile_section(ctx, gir, id=None):
+    if id:
+        ctx.print(f"section {id} {{")
+    else:
+        ctx.print("section {")

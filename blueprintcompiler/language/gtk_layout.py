@@ -71,3 +71,8 @@ def layout_completer(ast_node, match_variables):
         "layout", CompletionItemKind.Snippet,
         snippet="layout {\n  $0\n}"
     )
+
+
+@decompiler("layout")
+def decompile_layout(ctx, gir):
+    ctx.print("layout {")

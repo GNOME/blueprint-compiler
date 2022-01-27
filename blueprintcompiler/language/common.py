@@ -21,6 +21,8 @@
 from .. import gir
 from ..ast_utils import AstNode, validate, docs
 from ..completions_utils import *
+from .. import decompiler as decompile
+from ..decompiler import DecompileCtx, decompiler
 from ..gir import StringType, BoolType, IntType, FloatType, GirType
 from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from ..parse_tree import *

@@ -44,3 +44,13 @@ class Template(Object):
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
+
+
+@decompiler("template")
+def decompile_template(ctx: DecompileCtx, gir, klass, parent="Widget"):
+    gir_class = ctx.type_by_cname(parent)
+    if gir_class is None:
+        ctx.print(f"template {klass} : .{parent} {{")
+    else:
+        ctx.print(f"template {klass} : {decompile.full_name(gir_class)} {{")
+    return gir_class

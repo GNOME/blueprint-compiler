@@ -22,7 +22,6 @@ from enum import Enum
 import typing as T
 from dataclasses import dataclass
 
-from .language import gtk_a11y
 from .xml_reader import Element, parse
 from .gir import *
 from .utils import Colors
@@ -126,11 +125,11 @@ class DecompileCtx:
 
     def print_attribute(self, name, value, type):
         if type is None:
-            self.print(f"{name}: \"{_escape_quote(value)}\";")
+            self.print(f"{name}: \"{escape_quote(value)}\";")
         elif type.assignable_to(FloatType()):
             self.print(f"{name}: {value};")
         elif type.assignable_to(BoolType()):
-            val = _truthy(value)
+            val = truthy(value)
             self.print(f"{name}: {'true' if val else 'false'};")
         elif (
             type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Pixbuf"))
@@ -139,7 +138,7 @@ class DecompileCtx:
             or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutAction"))
             or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger"))
         ):
-            self.print(f"{name}: \"{_escape_quote(value)}\";")
+            self.print(f"{name}: \"{escape_quote(value)}\";")
         elif type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("GObject.Object")):
             self.print(f"{name}: {value};")
         elif isinstance(type, Enumeration):
@@ -153,7 +152,7 @@ class DecompileCtx:
             flags = re.sub(r"\s*\|\s*", " | ", value).replace("-", "_")
             self.print(f"{name}: {flags};")
         else:
-            self.print(f"{name}: \"{_escape_quote(value)}\";")
+            self.print(f"{name}: \"{escape_quote(value)}\";")
 
 
 def _decompile_element(ctx: DecompileCtx, gir, xml):
@@ -162,7 +161,7 @@ def _decompile_element(ctx: DecompileCtx, gir, xml):
         if decompiler is None:
             raise UnsupportedError(f"unsupported XML tag: <{xml.tag}>")
 
-        args = {_canon(name): value for name, value in xml.attrs.items()}
+        args = {canon(name): value for name, value in xml.attrs.items()}
         if decompiler._cdata:
             if len(xml.children):
                 args["cdata"] = None
@@ -194,19 +193,19 @@ def decompile(data):
 
 
 
-def _canon(string: str) -> str:
+def canon(string: str) -> str:
     if string == "class":
         return "klass"
     else:
         return string.replace("-", "_").lower()
 
-def _truthy(string: str) -> bool:
+def truthy(string: str) -> bool:
     return string.lower() in ["yes", "true", "t", "y", "1"]
 
-def _full_name(gir):
+def full_name(gir):
     return gir.name if gir.full_name.startswith("Gtk.") else gir.full_name
 
-def _lookup_by_cname(gir, cname: str):
+def lookup_by_cname(gir, cname: str):
     if isinstance(gir, GirContext):
         return gir.get_type_by_cname(cname)
     else:
@@ -221,7 +220,7 @@ def decompiler(tag, cdata=False):
     return decorator
 
 
-def _escape_quote(string: str) -> str:
+def escape_quote(string: str) -> str:
     return (string
             .replace("\\", "\\\\")
             .replace("\'", "\\'")
@@ -236,36 +235,6 @@ def decompile_interface(ctx, gir):
 
 @decompiler("requires")
 def decompile_requires(ctx, gir, lib=None, version=None):
-    return gir
-
-
-@decompiler("template")
-def decompile_template(ctx, gir, klass, parent="Widget"):
-    gir_class = ctx.type_by_cname(parent)
-    if gir_class is None:
-        ctx.print(f"template {klass} : .{parent} {{")
-    else:
-        ctx.print(f"template {klass} : {_full_name(gir_class)} {{")
-    return gir_class
-
-
-@decompiler("object")
-def decompile_object(ctx, gir, klass, id=None):
-    gir_class = ctx.type_by_cname(klass)
-    klass_name = _full_name(gir_class) if gir_class is not None else "." + klass
-    if id is None:
-        ctx.print(f"{klass_name} {{")
-    else:
-        ctx.print(f"{klass_name} {id} {{")
-    return gir_class
-
-
-@decompiler("child")
-def decompile_child(ctx, gir, type=None, internal_child=None):
-    if type is not None:
-        ctx.print(f"[{type}]")
-    elif internal_child is not None:
-        ctx.print(f"[internal-child {internal_child}]")
     return gir
 
 
@@ -288,119 +257,24 @@ def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=No
             if "bidirectional" in bind_flags:
                 flags += " bidirectional"
         ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
-    elif _truthy(translatable):
+    elif truthy(translatable):
         if context is not None:
-            ctx.print(f"{name}: C_(\"{_escape_quote(context)}\", \"{_escape_quote(cdata)}\");")
+            ctx.print(f"{name}: C_(\"{escape_quote(context)}\", \"{escape_quote(cdata)}\");")
         else:
-            ctx.print(f"{name}: _(\"{_escape_quote(cdata)}\");")
+            ctx.print(f"{name}: _(\"{escape_quote(cdata)}\");")
     elif gir is None or gir.properties.get(name) is None:
-        ctx.print(f"{name}: \"{_escape_quote(cdata)}\";")
+        ctx.print(f"{name}: \"{escape_quote(cdata)}\";")
     else:
         ctx.print_attribute(name, cdata, gir.properties.get(name).type)
     return gir
-
-
-@decompiler("signal")
-def decompile_signal(ctx, gir, name, handler, swapped="false", object=None):
-    object_name = object or ""
-    name = name.replace("_", "-")
-    if _truthy(swapped):
-        ctx.print(f"{name} => {handler}({object_name}) swapped;")
-    else:
-        ctx.print(f"{name} => {handler}({object_name});")
-    return gir
-
-
-@decompiler("style")
-def decompile_style(ctx, gir):
-    ctx.print(f"styles [")
-
-
-@decompiler("class")
-def decompile_class(ctx, gir, name):
-    ctx.print(f'"{name}",')
-
-
-@decompiler("layout")
-def decompile_layout(ctx, gir):
-    ctx.print("layout {")
-
-
-@decompiler("menu")
-def decompile_menu(ctx, gir, id=None):
-    if id:
-        ctx.print(f"menu {id} {{")
-    else:
-        ctx.print("menu {")
-
-@decompiler("submenu")
-def decompile_submenu(ctx, gir, id=None):
-    if id:
-        ctx.print(f"submenu {id} {{")
-    else:
-        ctx.print("submenu {")
-
-@decompiler("item")
-def decompile_item(ctx, gir, id=None):
-    if id:
-        ctx.print(f"item {id} {{")
-    else:
-        ctx.print("item {")
-
-@decompiler("section")
-def decompile_section(ctx, gir, id=None):
-    if id:
-        ctx.print(f"section {id} {{")
-    else:
-        ctx.print("section {")
 
 @decompiler("attribute", cdata=True)
 def decompile_attribute(ctx, gir, name, cdata, translatable="false", comments=None, context=None):
     decompile_property(ctx, gir, name, cdata, translatable=translatable, comments=comments, context=context)
 
-@decompiler("accessibility")
-def decompile_accessibility(ctx, gir):
-    ctx.print("accessibility {")
-
 @decompiler("attributes")
 def decompile_attributes(ctx, gir):
     ctx.print("attributes {")
-
-@decompiler("relation", cdata=True)
-def decompile_relation(ctx, gir, name, cdata):
-    ctx.print_attribute(name, cdata, gtk_a11y.get_types(ctx.gir).get(name))
-
-@decompiler("state", cdata=True)
-def decompile_state(ctx, gir, name, cdata, translatable="false"):
-    if _truthy(translatable):
-        ctx.print(f"{name}: _(\"{_escape_quote(cdata)}\");")
-    else:
-        ctx.print_attribute(name, cdata, gtk_a11y.get_types(ctx.gir).get(name))
-
-
-@decompiler("mime-types")
-def decompile_mime_types(ctx, gir):
-    ctx.print("mime-types [")
-
-@decompiler("mime-type", cdata=True)
-def decompile_mime_type(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
-
-@decompiler("patterns")
-def decompile_patterns(ctx, gir):
-    ctx.print("patterns [")
-
-@decompiler("pattern", cdata=True)
-def decompile_pattern(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
-
-@decompiler("suffixes")
-def decompile_suffixes(ctx, gir):
-    ctx.print("suffixes [")
-
-@decompiler("suffix", cdata=True)
-def decompile_suffix(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
 
 
 @dataclass
