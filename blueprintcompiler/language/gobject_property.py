@@ -34,7 +34,8 @@ class Property(AstNode):
             ".",
             UseIdent("bind_property").expected("a property name to bind from"),
             ZeroOrMore(AnyOf(
-                ["sync-create", UseLiteral("sync_create", True)],
+                "sync-create",
+                ["no-sync-create", UseLiteral("no_sync_create", True)],
                 ["inverted", UseLiteral("inverted", True)],
                 ["bidirectional", UseLiteral("bidirectional", True)],
             )),
@@ -109,7 +110,7 @@ class Property(AstNode):
         value = values[0] if len(values) == 1 else None
 
         bind_flags = []
-        if self.tokens["sync_create"]:
+        if self.tokens["bind_source"] and not self.tokens["no_sync_create"]:
             bind_flags.append("sync-create")
         if self.tokens["inverted"]:
             bind_flags.append("invert-boolean")
