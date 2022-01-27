@@ -1,4 +1,4 @@
-# common.py
+# attributes.py
 #
 # Copyright 2022 James Westman <james@jwestman.net>
 #
@@ -18,16 +18,28 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .. import gir
-from ..ast_utils import AstNode, validate, docs
-from ..completions_utils import *
-from ..gir import StringType, BoolType, IntType, FloatType, GirType
-from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .values import Value, TranslatedStringValue
+from .common import *
 
 
-OBJECT_HOOKS = AnyOf()
-OBJECT_CONTENT_HOOKS = AnyOf()
-VALUE_HOOKS = AnyOf()
+class BaseAttribute(AstNode):
+    """ A helper class for attribute syntax of the form `name: literal_value;`"""
+
+    tag_name: str = ""
+    attr_name: str = "name"
+
+    def emit_xml(self, xml: XmlEmitter):
+        value = self.children[Value][0]
+        attrs = { self.attr_name: self.tokens["name"] }
+
+        if isinstance(value, TranslatedStringValue):
+            attrs = { **attrs, **value.attrs }
+
+        xml.start_tag(self.tag_name, **attrs)
+        value.emit_xml(xml)
+        xml.end_tag()
+
+
+class BaseTypedAttribute(BaseAttribute):
+    """ A BaseAttribute whose parent has a value_type property that can assist
+    in validation. """

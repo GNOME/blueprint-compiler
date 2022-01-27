@@ -20,7 +20,6 @@
 import typing as T
 from collections import ChainMap, defaultdict
 
-from . import ast
 from .errors import *
 from .lsp_utils import SemanticToken
 from .utils import lazy_prop
@@ -71,12 +70,6 @@ class AstNode:
             return self.parent
         else:
             return self.parent.parent_by_type(type)
-
-    def validate_parent_type(self, ns: str, name: str, err_msg: str):
-        parent = self.root.gir.get_type(name, ns)
-        container_type = self.parent_by_type(ast.Object).gir_class
-        if container_type and not container_type.assignable_to(parent):
-            raise CompileError(f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}")
 
     @lazy_prop
     def errors(self):

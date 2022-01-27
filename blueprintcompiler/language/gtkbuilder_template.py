@@ -1,6 +1,6 @@
-# gtk_styles.py
+# gtkbuilder_template.py
 #
-# Copyright 2021 James Westman <james@jwestman.net>
+# Copyright 2022 James Westman <james@jwestman.net>
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as
@@ -18,41 +18,29 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .gobject_object import ObjectContent, validate_parent_type
+from .gobject_object import Object, ObjectContent
 from .common import *
 
 
-class StyleClass(AstNode):
-    grammar = UseQuoted("name")
-
-    def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.tokens["name"])
-
-
-class Styles(AstNode):
+class Template(Object):
     grammar = [
-        Keyword("styles"),
-        "[",
-        Delimited(StyleClass, ","),
-        "]",
+        "template",
+        UseIdent("name").expected("template class name"),
+        Optional([
+            Match(":"),
+            class_name.expected("parent class"),
+        ]),
+        ObjectContent,
     ]
 
-    @validate("styles")
-    def container_is_widget(self):
-        validate_parent_type(self, "Gtk", "Widget", "style classes")
-
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("style")
+        if self.gir_class:
+            parent = self.gir_class.glib_type_name
+        elif self.tokens["class_name"]:
+            parent = self.tokens["class_name"]
+        else:
+            parent = None
+        xml.start_tag("template", **{"class": self.tokens["name"]}, parent=parent)
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()
-
-
-@completer(
-    applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "Widget"),
-    matches=new_statement_patterns,
-)
-def style_completer(ast_node, match_variables):
-    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"]")
-

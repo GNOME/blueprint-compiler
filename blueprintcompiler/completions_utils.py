@@ -20,7 +20,6 @@
 
 import typing as T
 
-from . import ast
 from .tokenizer import Token, TokenType
 from .lsp_utils import Completion
 

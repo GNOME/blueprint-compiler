@@ -18,13 +18,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..ast import BaseAttribute
-from ..ast_utils import AstNode
-from ..completions_utils import *
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .attributes import BaseAttribute
+from .gobject_object import ObjectContent
+from .ui import UI
+from .common import *
 
 
 class Menu(AstNode):
@@ -74,7 +71,7 @@ menu_attribute = Group(
     [
         UseIdent("name"),
         ":",
-        value.expected("a value"),
+        VALUE_HOOKS.expected("a value"),
         Match(";").expected(),
     ]
 )
@@ -98,20 +95,20 @@ menu_item_shorthand = Group(
         "(",
         Group(
             MenuAttribute,
-            [UseLiteral("name", "label"), value],
+            [UseLiteral("name", "label"), VALUE_HOOKS],
         ),
         Optional([
             ",",
             Optional([
                 Group(
                     MenuAttribute,
-                    [UseLiteral("name", "action"), value],
+                    [UseLiteral("name", "action"), VALUE_HOOKS],
                 ),
                 Optional([
                     ",",
                     Group(
                         MenuAttribute,
-                        [UseLiteral("name", "icon"), value],
+                        [UseLiteral("name", "icon"), VALUE_HOOKS],
                     ),
                 ])
             ])
@@ -143,7 +140,7 @@ menu = Group(
 
 
 @completer(
-    applies_in=[ast.UI],
+    applies_in=[UI],
     matches=new_statement_patterns,
 )
 def menu_completer(ast_node, match_variables):

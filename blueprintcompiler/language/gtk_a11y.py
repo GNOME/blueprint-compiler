@@ -17,14 +17,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from ..ast import BaseTypedAttribute, Value
-from ..ast_utils import AstNode, validate, docs
-from ..completions_utils import *
-from ..gir import StringType, BoolType, IntType, FloatType, GirType
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .gobject_object import ObjectContent, validate_parent_type
+from .attributes import BaseTypedAttribute
+from .values import Value
+from .common import *
 
 
 def get_property_types(gir):
@@ -109,7 +105,7 @@ class A11yProperty(BaseTypedAttribute):
     grammar = Statement(
         UseIdent("name"),
         ":",
-        value.expected("a value"),
+        VALUE_HOOKS.expected("a value"),
     )
 
     @property
@@ -153,7 +149,7 @@ class A11y(AstNode):
 
     @validate("accessibility")
     def container_is_widget(self):
-        self.validate_parent_type("Gtk", "Widget", "accessibility properties")
+        validate_parent_type(self, "Gtk", "Widget", "accessibility properties")
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -164,7 +160,7 @@ class A11y(AstNode):
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     matches=new_statement_patterns,
 )
 def a11y_completer(ast_node, match_variables):

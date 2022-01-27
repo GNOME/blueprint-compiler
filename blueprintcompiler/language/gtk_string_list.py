@@ -18,18 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..ast import BaseTypedAttribute, Value, TranslatedStringValue
-from ..ast_utils import AstNode, validate
-from ..completions_utils import *
-from ..gir import StringType
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .attributes import BaseTypedAttribute
+from .gobject_object import ObjectContent, validate_parent_type
+from .values import Value, TranslatedStringValue
+from .common import *
 
 
 class Item(AstNode):
-    grammar = value
+    grammar = VALUE_HOOKS
 
     @property
     def value_type(self):
@@ -53,7 +49,7 @@ class Strings(AstNode):
 
     @validate("items")
     def container_is_string_list(self):
-        self.validate_parent_type("Gtk", "StringList", "StringList items")
+        validate_parent_type(self, "Gtk", "StringList", "StringList items")
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -64,7 +60,7 @@ class Strings(AstNode):
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     applies_in_subclass=("Gtk", "StringList"),
     matches=new_statement_patterns,
 )

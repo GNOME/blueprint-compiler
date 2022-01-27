@@ -18,13 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..ast import BaseAttribute
-from ..ast_utils import AstNode, validate
-from ..completions_utils import *
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .attributes import BaseAttribute
+from .gobject_object import ObjectContent, validate_parent_type
+from .common import *
 
 
 class LayoutProperty(BaseAttribute):
@@ -41,7 +37,7 @@ layout_prop = Group(
     Statement(
         UseIdent("name"),
         ":",
-        value.expected("a value"),
+        VALUE_HOOKS.expected("a value"),
     )
 )
 
@@ -55,7 +51,7 @@ class Layout(AstNode):
 
     @validate("layout")
     def container_is_widget(self):
-        self.validate_parent_type("Gtk", "Widget", "layout properties")
+        validate_parent_type(self, "Gtk", "Widget", "layout properties")
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -66,7 +62,7 @@ class Layout(AstNode):
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     applies_in_subclass=("Gtk", "Widget"),
     matches=new_statement_patterns,
 )

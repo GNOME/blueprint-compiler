@@ -18,19 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .. import ast
-from ..ast_utils import AstNode, validate
-from ..completions_utils import *
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .gobject_object import ObjectContent, validate_parent_type
+from .common import *
 
 
 class Filters(AstNode):
     @validate()
     def container_is_file_filter(self):
-        self.validate_parent_type("Gtk", "FileFilter", "file filter properties")
+        validate_parent_type(self, "Gtk", "FileFilter", "file filter properties")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(self.tokens["tag_name"])
@@ -74,7 +69,7 @@ suffixes = create_node("suffixes", "suffix")
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     applies_in_subclass=("Gtk", "FileFilter"),
     matches=new_statement_patterns,
 )

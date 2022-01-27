@@ -530,5 +530,7 @@ def to_parse_node(value) -> ParseNode:
         return Sequence(*value)
     elif isinstance(value, type) and hasattr(value, "grammar"):
         return Group(value, getattr(value, "grammar"))
-    else:
+    elif isinstance(value, ParseNode):
         return value
+    else:
+        raise CompilerBugError()

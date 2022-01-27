@@ -19,7 +19,6 @@
 
 import typing as T
 
-from . import ast
 from . import gir
 from .completions_utils import *
 from .lsp_utils import Completion, CompletionItemKind

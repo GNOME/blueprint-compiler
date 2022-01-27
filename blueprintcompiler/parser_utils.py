@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from . import ast
 from .parse_tree import *
 
 
@@ -35,48 +34,3 @@ class_name = AnyOf(
     ],
     UseIdent("class_name"),
 )
-
-literal = Group(
-    ast.LiteralValue,
-    AnyOf(
-        UseNumber("value"),
-        UseQuoted("value"),
-    )
-)
-
-ident_value = Group(
-    ast.IdentValue,
-    UseIdent("value"),
-)
-
-flags_value = Group(
-    ast.FlagsValue,
-    [
-        Group(ast.Flag, UseIdent("value")),
-        "|",
-        Delimited(Group(ast.Flag, UseIdent("value")), "|"),
-    ],
-)
-
-translated_string = Group(
-    ast.TranslatedStringValue,
-    AnyOf(
-        [
-            "_",
-            "(",
-            UseQuoted("value").expected("a quoted string"),
-            Match(")").expected(),
-        ],
-        [
-            "C_",
-            "(",
-            UseQuoted("context").expected("a quoted string"),
-            ",",
-            UseQuoted("value").expected("a quoted string"),
-            Optional(","),
-            Match(")").expected(),
-        ],
-    ),
-)
-
-value = AnyOf(translated_string, literal, flags_value, ident_value)

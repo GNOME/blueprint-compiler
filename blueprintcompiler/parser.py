@@ -18,113 +18,18 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from . import ast
 from .errors import MultipleErrors
 from .parse_tree import *
 from .parser_utils import *
 from .tokenizer import TokenType
-from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS
+from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
 
 
-def parse(tokens) -> T.Tuple[ast.UI, T.Optional[MultipleErrors]]:
+def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors]]:
     """ Parses a list of tokens into an abstract syntax tree. """
 
-    object = Group(
-        ast.Object,
-        None
-    )
-
-    property = Group(
-        ast.Property,
-        Statement(
-            UseIdent("name"),
-            ":",
-            AnyOf(
-                OBJECT_HOOKS,
-                object,
-                value,
-            ).expected("a value"),
-        )
-    )
-
-    binding = Group(
-        ast.Property,
-        Statement(
-            UseIdent("name"),
-            ":",
-            "bind",
-            UseIdent("bind_source").expected("the ID of a source object to bind from"),
-            ".",
-            UseIdent("bind_property").expected("a property name to bind from"),
-            ZeroOrMore(AnyOf(
-                ["sync-create", UseLiteral("sync_create", True)],
-                ["inverted", UseLiteral("inverted", True)],
-                ["bidirectional", UseLiteral("bidirectional", True)],
-            )),
-        )
-    )
-
-    child = Group(
-        ast.Child,
-        [
-            Optional([
-                "[",
-                Optional(["internal-child", UseLiteral("internal_child", True)]),
-                UseIdent("child_type").expected("a child type"),
-                "]",
-            ]),
-            object,
-        ]
-    )
-
-    object_content = Group(
-        ast.ObjectContent,
-        [
-            "{",
-            Until(AnyOf(
-                OBJECT_CONTENT_HOOKS,
-                binding,
-                property,
-                child,
-            ), "}"),
-        ]
-    )
-
-    # work around the recursive reference
-    object.child = Sequence(
-        class_name,
-        Optional(UseIdent("id")),
-        object_content,
-    )
-
-    template = Group(
-        ast.Template,
-        [
-            "template",
-            UseIdent("name").expected("template class name"),
-            Optional([
-                Match(":"),
-                class_name.expected("parent class"),
-            ]),
-            object_content.expected("block"),
-        ]
-    )
-
-    ui = Group(
-        ast.UI,
-        [
-            ast.GtkDirective,
-            ZeroOrMore(ast.Import),
-            Until(AnyOf(
-                OBJECT_HOOKS,
-                template,
-                object,
-            ), Eof()),
-        ]
-    )
-
     ctx = ParseContext(tokens)
-    ui.parse(ctx)
+    AnyOf(UI).parse(ctx)
 
     ast_node = ctx.last_group.to_ast() if ctx.last_group else None
     errors = MultipleErrors(ctx.errors) if len(ctx.errors) else None

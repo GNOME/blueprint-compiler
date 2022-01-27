@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from .gtkbuilder_template import Template
 from .common import *
 
 

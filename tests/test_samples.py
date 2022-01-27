@@ -87,8 +87,7 @@ class TestSamples(unittest.TestCase):
                 print("\n".join(diff))
                 raise AssertionError()
         else: # pragma: no cover
-            # Expected a compiler error but there wasn't one
-            raise AssertionError()
+            raise AssertionError("Expected a compiler error, but none was emitted")
 
 
     def assert_decompile(self, name):

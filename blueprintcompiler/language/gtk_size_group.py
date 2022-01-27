@@ -18,13 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .. import ast
-from ..ast_utils import AstNode, validate
-from ..completions_utils import *
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .gobject_object import ObjectContent, validate_parent_type
+from .common import *
 
 
 class Widget(AstNode):
@@ -58,7 +53,7 @@ class Widgets(AstNode):
 
     @validate("widgets")
     def container_is_size_group(self):
-        self.validate_parent_type("Gtk", "SizeGroup", "size group properties")
+        validate_parent_type(self, "Gtk", "SizeGroup", "size group properties")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("widgets")
@@ -68,7 +63,7 @@ class Widgets(AstNode):
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     applies_in_subclass=("Gtk", "SizeGroup"),
     matches=new_statement_patterns,
 )

@@ -18,14 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..ast import BaseTypedAttribute
-from ..ast_utils import AstNode, validate
-from ..completions_utils import *
-from ..gir import StringType
-from ..lsp_utils import Completion, CompletionItemKind
-from ..parse_tree import *
-from ..parser_utils import *
-from ..xml_emitter import XmlEmitter
+from .attributes import BaseTypedAttribute
+from .gobject_object import ObjectContent, validate_parent_type
+from .common import *
 
 
 class Item(BaseTypedAttribute):
@@ -44,7 +39,7 @@ item = Group(
             UseIdent("name"),
             ":",
         ]),
-        value,
+        VALUE_HOOKS,
     ]
 )
 
@@ -59,7 +54,7 @@ class Items(AstNode):
 
     @validate("items")
     def container_is_combo_box_text(self):
-        self.validate_parent_type("Gtk", "ComboBoxText", "combo box items")
+        validate_parent_type(self, "Gtk", "ComboBoxText", "combo box items")
 
 
     def emit_xml(self, xml: XmlEmitter):
@@ -70,7 +65,7 @@ class Items(AstNode):
 
 
 @completer(
-    applies_in=[ast.ObjectContent],
+    applies_in=[ObjectContent],
     applies_in_subclass=("Gtk", "ComboBoxText"),
     matches=new_statement_patterns,
 )
