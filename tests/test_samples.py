@@ -38,12 +38,14 @@ class TestSamples(unittest.TestCase):
                 expected = f.read()
 
             tokens = tokenizer.tokenize(blueprint)
-            ast, errors = parser.parse(tokens)
+            ast, errors, warnings = parser.parse(tokens)
 
             if errors:
                 raise errors
             if len(ast.errors):
                 raise MultipleErrors(ast.errors)
+            if len(warnings):
+                raise MultipleErrors(warnings)
 
             actual = ast.generate()
             if actual.strip() != expected.strip(): # pragma: no cover
@@ -63,12 +65,14 @@ class TestSamples(unittest.TestCase):
                 expected = f.read()
 
             tokens = tokenizer.tokenize(blueprint)
-            ast, errors = parser.parse(tokens)
+            ast, errors, warnings = parser.parse(tokens)
 
             if errors:
                 raise errors
             if len(ast.errors):
                 raise MultipleErrors(ast.errors)
+            if len(warnings):
+                raise MultipleErrors(warnings)
         except PrintableError as e:
             def error_str(error):
                 line, col = utils.idx_to_pos(error.start + 1, blueprint)

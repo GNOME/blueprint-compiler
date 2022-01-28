@@ -55,7 +55,8 @@ class OpenFile:
         self.diagnostics = []
         try:
             self.tokens = tokenizer.tokenize(self.text)
-            self.ast, errors = parser.parse(self.tokens)
+            self.ast, errors, warnings = parser.parse(self.tokens)
+            self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors
             self.diagnostics += self.ast.errors

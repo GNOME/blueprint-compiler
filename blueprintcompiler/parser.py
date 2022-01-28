@@ -18,14 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .errors import MultipleErrors
+from .errors import MultipleErrors, PrintableError
 from .parse_tree import *
 from .parser_utils import *
 from .tokenizer import TokenType
 from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
 
 
-def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors]]:
+def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors], T.List[PrintableError]]:
     """ Parses a list of tokens into an abstract syntax tree. """
 
     ctx = ParseContext(tokens)
@@ -33,5 +33,6 @@ def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors]]:
 
     ast_node = ctx.last_group.to_ast() if ctx.last_group else None
     errors = MultipleErrors(ctx.errors) if len(ctx.errors) else None
+    warnings = ctx.warnings
 
-    return (ast_node, errors)
+    return (ast_node, errors, warnings)

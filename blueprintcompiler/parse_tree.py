@@ -24,7 +24,7 @@ import typing as T
 from collections import defaultdict
 from enum import Enum
 
-from .errors import assert_true, CompilerBugError, CompileError, UnexpectedTokenError
+from .errors import assert_true, CompilerBugError, CompileError, CompileWarning, UnexpectedTokenError
 from .tokenizer import Token, TokenType
 
 
@@ -233,6 +233,10 @@ class ParseNode:
         """ Convenience method for err(). """
         return self.err("Expected " + expect)
 
+    def warn(self, message):
+        """ Causes this ParseNode to emit a warning if it parses successfully. """
+        return Warning(self, message)
+
 
 class Err(ParseNode):
     """ ParseNode that emits a compile error if it fails to parse. """
@@ -250,6 +254,23 @@ class Err(ParseNode):
             start_token = ctx.tokens[start_idx]
             end_token = ctx.tokens[ctx.index]
             raise CompileError(self.message, start_token.start, end_token.end)
+        return True
+
+
+class Warning(ParseNode):
+    """ ParseNode that emits a compile warning if it parses successfully. """
+
+    def __init__(self, child, message):
+        self.child = to_parse_node(child)
+        self.message = message
+
+    def _parse(self, ctx):
+        ctx.skip()
+        start_idx = ctx.index
+        if self.child.parse(ctx).succeeded():
+            start_token = ctx.tokens[start_idx]
+            end_token = ctx.tokens[ctx.index]
+            ctx.warnings.append(CompileWarning(self.message, start_token.start, end_token.end))
         return True
 
 

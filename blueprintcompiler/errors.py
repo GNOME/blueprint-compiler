@@ -35,6 +35,7 @@ class CompileError(PrintableError):
     """ A PrintableError with a start/end position and optional hints """
 
     category = "error"
+    color = Colors.RED
 
     def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None):
         super().__init__(message)
@@ -69,20 +70,25 @@ class CompileError(PrintableError):
             self.hint("Did you check your spelling?")
             self.hint("Are your dependencies up to date?")
 
-    def pretty_print(self, filename, code):
+    def pretty_print(self, filename, code, stream=sys.stdout):
         line_num, col_num = utils.idx_to_pos(self.start + 1, code)
         line = code.splitlines(True)[line_num]
 
         # Display 1-based line numbers
         line_num += 1
 
-        print(f"""{Colors.RED}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
+        stream.write(f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}""")
+{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n""")
 
         for hint in self.hints:
-            print(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}")
-        print()
+            stream.write(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}\n")
+        stream.write("\n")
+
+
+class CompileWarning(CompileError):
+    category = "warning"
+    color = Colors.YELLOW
 
 
 class UnexpectedTokenError(CompileError):

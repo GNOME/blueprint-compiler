@@ -47,7 +47,10 @@ def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
         try:
             # make sure the output compiles
             tokens = tokenizer.tokenize(decompiled)
-            ast, errors = parser.parse(tokens)
+            ast, errors, warnings = parser.parse(tokens)
+
+            for warning in warnings:
+                warning.pretty_print(out_file, decompiled)
 
             if errors:
                 raise errors

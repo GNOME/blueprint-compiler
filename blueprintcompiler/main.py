@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 import argparse, json, os, sys
 
 from .errors import PrintableError, report_bug, MultipleErrors
@@ -78,7 +79,10 @@ class BlueprintApp:
     def cmd_compile(self, opts):
         data = opts.input.read()
         try:
-            xml = self._compile(data)
+            xml, warnings = self._compile(data)
+
+            for warning in warnings:
+                warning.pretty_print(opts.input.name, data, stream=sys.stderr)
 
             if opts.output == "-":
                 print(xml)
@@ -99,7 +103,10 @@ class BlueprintApp:
                     print(f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}")
                     sys.exit(1)
 
-                xml = self._compile(data)
+                xml, warnings = self._compile(data)
+
+                for warning in warnings:
+                    warning.pretty_print(file.name, data, stream=sys.stderr)
 
                 path = os.path.join(
                     opts.output_dir,
@@ -125,16 +132,16 @@ class BlueprintApp:
         interactive_port.run(opts)
 
 
-    def _compile(self, data: str) -> str:
+    def _compile(self, data: str) -> T.Tuple[str, T.List[PrintableError]]:
         tokens = tokenizer.tokenize(data)
-        ast, errors = parser.parse(tokens)
+        ast, errors, warnings = parser.parse(tokens)
 
         if errors:
             raise errors
         if len(ast.errors):
             raise MultipleErrors(ast.errors)
 
-        return ast.generate()
+        return ast.generate(), warnings
 
 
 def main():

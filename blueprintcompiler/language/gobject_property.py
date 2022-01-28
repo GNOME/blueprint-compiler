@@ -34,10 +34,10 @@ class Property(AstNode):
             ".",
             UseIdent("bind_property").expected("a property name to bind from"),
             ZeroOrMore(AnyOf(
-                "sync-create",
                 ["no-sync-create", UseLiteral("no_sync_create", True)],
                 ["inverted", UseLiteral("inverted", True)],
                 ["bidirectional", UseLiteral("bidirectional", True)],
+                Match("sync-create").warn("sync-create is deprecated in favor of no-sync-create"),
             )),
         ),
         Statement(
