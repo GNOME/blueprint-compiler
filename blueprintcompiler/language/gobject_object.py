@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 from .common import *
 
 
@@ -41,11 +42,11 @@ class ObjectContent(AstNode):
             x.emit_xml(xml)
 
 class Object(AstNode):
-    grammar = Sequence(
+    grammar: T.Any = [
         class_name,
         Optional(UseIdent("id")),
         ObjectContent,
-    )
+    ]
 
     @validate("namespace")
     def gir_ns_exists(self):

@@ -1,7 +1,8 @@
 """ Contains all the syntax beyond basic objects, properties, signal, and
 templates. """
 
-from .gobject_object import Object
+from .attributes import BaseAttribute, BaseTypedAttribute
+from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
 from .gtk_a11y import A11y
@@ -14,6 +15,7 @@ from .gtk_string_list import Strings
 from .gtk_styles import Styles
 from .gtkbuilder_child import Child
 from .gtkbuilder_template import Template
+from .imports import GtkDirective, Import
 from .ui import UI
 from .values import IdentValue, TranslatedStringValue, FlagsValue, LiteralValue
 
