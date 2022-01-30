@@ -20,6 +20,7 @@
 
 from .. import gir
 from ..ast_utils import AstNode, validate, docs
+from ..errors import CompileError, MultipleErrors
 from ..completions_utils import *
 from .. import decompiler as decompile
 from ..decompiler import DecompileCtx, decompiler
