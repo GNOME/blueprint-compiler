@@ -33,7 +33,10 @@ class Children:
     def __iter__(self):
         return iter(self._children)
     def __getitem__(self, key):
-        return [child for child in self._children if isinstance(child, key)]
+        if isinstance(key, int):
+            return self._children[key]
+        else:
+            return [child for child in self._children if isinstance(child, key)]
 
 
 class AstNode:

@@ -2,6 +2,7 @@
 templates. """
 
 from .attributes import BaseAttribute, BaseTypedAttribute
+from .expression import Expr
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
