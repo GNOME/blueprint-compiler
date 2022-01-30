@@ -165,8 +165,8 @@ the same file.
 Binding Flags
 ~~~~~~~~~~~~~
 
-Use the ``sync-create`` keyword to cause a bound property to be initialized
-when the UI is first constructed.
+Use the ``no-sync-create`` keyword to only update the target value when the
+source value changes, not when the binding is first created.
 
 .. code-block::
 
@@ -175,7 +175,7 @@ when the UI is first constructed.
    }
 
    Gtk.ProgressBar bar2 {
-     value: bind bar1.value sync-create;
+     value: bind bar1.value no-sync-create;
    }
 
 Use the ``bidirectional`` keyword to bind properties in both directions.
@@ -200,7 +200,7 @@ to inverted value of another one.
 
    // When switch1 is on, switch2 will be off
    Gtk.Switch switch1 {
-     active: bind switch2.active sync-create inverted bidirectional;
+     active: bind switch2.active inverted bidirectional;
    }
 
    // When switch2 is on, switch1 will be off
