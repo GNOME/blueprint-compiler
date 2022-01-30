@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkOverlay">
+    <child>
+      <object class="GtkLabel" id="label"></object>
+    </child>
+  </object>
+  <object class="GtkLabel">
+    <binding name="label">
+      <lookup name="label">
+        <lookup name="child">
+          <lookup name="parent">
+            <constant>label</constant>
+          </lookup>
+        </lookup>
+      </lookup>
+    </binding>
+  </object>
+</interface>

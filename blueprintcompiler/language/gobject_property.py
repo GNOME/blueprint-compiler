@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from .expression import Expr
 from .gobject_object import Object
 from .gtkbuilder_template import Template
 from .values import Value, TranslatedStringValue
@@ -26,19 +27,27 @@ from .common import *
 
 class Property(AstNode):
     grammar = AnyOf(
-        Statement(
+        [
             UseIdent("name"),
             ":",
             Keyword("bind"),
-            UseIdent("bind_source").expected("the ID of a source object to bind from"),
+            UseIdent("bind_source"),
             ".",
-            UseIdent("bind_property").expected("a property name to bind from"),
+            UseIdent("bind_property"),
             ZeroOrMore(AnyOf(
                 ["no-sync-create", UseLiteral("no_sync_create", True)],
                 ["inverted", UseLiteral("inverted", True)],
                 ["bidirectional", UseLiteral("bidirectional", True)],
                 Match("sync-create").warn("sync-create is deprecated in favor of no-sync-create"),
             )),
+            ";",
+        ],
+        Statement(
+            UseIdent("name"),
+            UseLiteral("binding", True),
+            ":",
+            "bind",
+            Expr,
         ),
         Statement(
             UseIdent("name"),
@@ -146,7 +155,13 @@ class Property(AstNode):
             self.children[Object][0].emit_xml(xml)
             xml.end_tag()
         elif value is None:
-            xml.put_self_closing("property", **props)
+            if self.tokens["binding"]:
+                xml.start_tag("binding", **props)
+                for x in self.children:
+                    x.emit_xml(xml)
+                xml.end_tag()
+            else:
+                xml.put_self_closing("property", **props);
         else:
             xml.start_tag("property", **props)
             value.emit_xml(xml)
