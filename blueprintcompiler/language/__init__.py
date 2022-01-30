@@ -16,6 +16,7 @@ from .gtk_string_list import Strings
 from .gtk_styles import Styles
 from .gtkbuilder_child import Child
 from .gtkbuilder_template import Template
+from .lambdas import Lambda
 from .imports import GtkDirective, Import
 from .ui import UI
 from .values import IdentValue, TranslatedStringValue, FlagsValue, LiteralValue
@@ -47,4 +48,5 @@ VALUE_HOOKS.children = [
     FlagsValue,
     IdentValue,
     LiteralValue,
+    Lambda,
 ]

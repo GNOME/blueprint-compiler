@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
 from .. import gir
 from ..ast_utils import AstNode, validate, docs
 from ..errors import CompileError, MultipleErrors
@@ -27,10 +26,29 @@ from ..decompiler import DecompileCtx, decompiler
 from ..gir import StringType, BoolType, IntType, FloatType, GirType, Enumeration
 from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from ..parse_tree import *
-from ..parser_utils import *
 from ..xml_emitter import XmlEmitter
 
 
 OBJECT_HOOKS = AnyOf()
 OBJECT_CONTENT_HOOKS = AnyOf()
 VALUE_HOOKS = AnyOf()
+
+
+class Scope:
+    def get_variables(self) -> T.Iterator[str]:
+        yield from self.get_objects().keys()
+
+    def get_objects(self) -> T.Dict[str, T.Any]:
+        raise NotImplementedError()
+
+    @property
+    def this_name(self) -> T.Optional[str]:
+        return None
+
+    @property
+    def this_type(self) -> T.Optional[str]:
+        return None
+
+    @property
+    def this_type_glib_name(self) -> T.Optional[str]:
+        return None

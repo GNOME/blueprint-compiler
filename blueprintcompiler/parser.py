@@ -20,7 +20,6 @@
 
 from .errors import MultipleErrors, PrintableError
 from .parse_tree import *
-from .parser_utils import *
 from .tokenizer import TokenType
 from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
 

@@ -24,7 +24,7 @@ from .gtkbuilder_template import Template
 from .common import *
 
 
-class UI(AstNode):
+class UI(AstNode, Scope):
     """ The AST node for the entire file """
 
     grammar = [
@@ -61,6 +61,10 @@ class UI(AstNode):
     @property
     def objects_by_id(self):
         return { obj.tokens["id"]: obj for obj in self.iterate_children_recursive() if obj.tokens["id"] is not None }
+
+
+    def get_objects(self):
+        return self.objects_by_id
 
 
     @validate()

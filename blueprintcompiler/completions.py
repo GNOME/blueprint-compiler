@@ -137,10 +137,10 @@ def prop_value_completer(ast_node, match_variables):
 def signal_completer(ast_node, match_variables):
     if ast_node.gir_class:
         for signal in ast_node.gir_class.signals:
-            if not isinstance(ast_node.parent, language.Object):
-                name = "on"
+            if isinstance(ast_node.parent, language.Object):
+                name = "on_" + (ast_node.parent.tokens["id"] or ast_node.parent.children[language.types.ClassName][0].tokens["class_name"].lower())
             else:
-                name = "on_" + (ast_node.parent.tokens["id"] or ast_node.parent.tokens["class_name"].lower())
+                name = "on"
             yield Completion(signal, CompletionItemKind.Property, snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;")
 
 

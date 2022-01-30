@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from .types import ClassName
 from .gobject_object import Object, ObjectContent
 from .common import *
 
@@ -27,8 +28,8 @@ class Template(Object):
         "template",
         UseIdent("name").expected("template class name"),
         Optional([
-            Match(":"),
-            class_name.expected("parent class"),
+            ":",
+            to_parse_node(ClassName).expected("parent class"),
         ]),
         ObjectContent,
     ]
@@ -38,10 +39,14 @@ class Template(Object):
         pass # does not apply to templates
 
     def emit_xml(self, xml: XmlEmitter):
+        parent = None
+        if len(self.children[ClassName]):
+            parent = self.children[ClassName][0].glib_type_name
+
         xml.start_tag(
             "template",
             **{"class": self.tokens["name"]},
-            parent=self.gir_class or self.tokens["class_name"]
+            parent=parent,
         )
         for child in self.children:
             child.emit_xml(xml)

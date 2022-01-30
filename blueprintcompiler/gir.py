@@ -487,7 +487,7 @@ class GirContext:
             )
 
 
-    def validate_class(self, name: str, ns: str):
+    def validate_type(self, name: str, ns: str):
         """ Raises an exception if there is a problem looking up the given
         class (it doesn't exist, it isn't a class, etc.) """
 
@@ -498,12 +498,7 @@ class GirContext:
 
         if type is None:
             raise CompileError(
-                f"Namespace {ns} does not contain a class called {name}",
-                did_you_mean=(name, self.namespaces[ns].classes.keys()),
-            )
-        elif not isinstance(type, Class):
-            raise CompileError(
-                f"{ns}.{name} is not a class",
+                f"Namespace {ns} does not contain a type called {name}",
                 did_you_mean=(name, self.namespaces[ns].classes.keys()),
             )
 

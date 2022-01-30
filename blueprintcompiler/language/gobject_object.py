@@ -21,6 +21,7 @@
 import typing as T
 from functools import cached_property
 
+from .types import ConcreteClassName, ClassName
 from .common import *
 from .response_id import ResponseId
 
@@ -46,28 +47,10 @@ class ObjectContent(AstNode):
 
 class Object(AstNode):
     grammar: T.Any = [
-        class_name,
+        ConcreteClassName,
         Optional(UseIdent("id")),
         ObjectContent,
     ]
-
-    @validate("namespace")
-    def gir_ns_exists(self):
-        if not self.tokens["ignore_gir"]:
-            self.root.gir.validate_ns(self.tokens["namespace"])
-
-    @validate("class_name")
-    def gir_class_exists(self):
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"] and self.gir_ns is not None:
-            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
-
-    @validate("namespace", "class_name")
-    def not_abstract(self):
-        if self.gir_class is not None and self.gir_class.abstract:
-            raise CompileError(
-                f"{self.gir_class.full_name} can't be instantiated because it's abstract",
-                hints=[f"did you mean to use a subclass of {self.gir_class.full_name}?"]
-            )
 
     @property
     def gir_ns(self):
@@ -76,9 +59,11 @@ class Object(AstNode):
 
     @property
     def gir_class(self):
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
-            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
-
+        class_names = self.children[ClassName]
+        if len(class_names) == 0:
+            return None
+        else:
+            return class_names[0].gir_type
 
     @docs("namespace")
     def namespace_docs(self):
@@ -109,7 +94,7 @@ class Object(AstNode):
         from .gtkbuilder_child import Child
 
         xml.start_tag("object", **{
-            "class": self.gir_class or self.tokens["class_name"],
+            "class": self.children[ClassName][0].glib_type_name,
             "id": self.tokens["id"],
         })
         for child in self.children:

@@ -1,0 +1,9 @@
+using Gtk 4.0;
+
+Gtk.BoolFilter filter {
+  expression: (Gtk.Label object) => object.visible;
+}
+
+Gtk.BoolFilter {
+  expression: (Gtk.Label object) => filter.invert;
+}
