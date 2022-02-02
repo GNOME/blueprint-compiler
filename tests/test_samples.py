@@ -111,6 +111,7 @@ class TestSamples(unittest.TestCase):
 
     def test_samples(self):
         self.assert_sample("accessibility")
+        self.assert_sample("actions")
         self.assert_sample("binding")
         self.assert_sample("child_type")
         self.assert_sample("combo_box_text")
@@ -141,6 +142,8 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("a11y_prop_dne")
         self.assert_sample_error("a11y_prop_obj_dne")
         self.assert_sample_error("a11y_prop_type")
+        self.assert_sample_error("action_parent")
+        self.assert_sample_error("action_response")
         self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
         self.assert_sample_error("consecutive_unexpected_tokens")

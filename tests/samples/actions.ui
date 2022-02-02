@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkDialog">
+    <child type="action">
+      <object class="GtkButton" id="__1"></object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="cancel"></object>
+    </child>
+    <action-widgets>
+      <action-widget response="1">__1</action-widget>
+      <action-widget response="cancel">cancel</action-widget>
+    </action-widgets>
+  </object>
+</interface>

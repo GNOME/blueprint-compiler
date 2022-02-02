@@ -41,12 +41,28 @@ class ObjectContent(AstNode):
         for x in self.children:
             x.emit_xml(xml)
 
+        if self.parent.gir_class and self.parent.gir_class.assignable_to(self.root.gir.get_type("Dialog", "Gtk")):
+            action_widgets = [widget for widget in self.children if hasattr(widget, "is_action_widget") and widget.is_action_widget]
+            if len(action_widgets):
+                xml.start_tag("action-widgets")
+                for widget in action_widgets:
+                    widget.emit_action_widget(xml)
+                xml.end_tag()
+
+
 class Object(AstNode):
     grammar: T.Any = [
         class_name,
         Optional(UseIdent("id")),
         ObjectContent,
     ]
+
+    @property
+    def id(self):
+        if self.tokens["id"] is None:
+            if hasattr(self.parent, "child_needs_id") and self.parent.child_needs_id:
+                return self.unique_id
+        return self.tokens["id"]
 
     @validate("namespace")
     def gir_ns_exists(self):
@@ -84,7 +100,7 @@ class Object(AstNode):
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("object", **{
             "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
-            "id": self.tokens["id"],
+            "id": self.id,
         })
         for child in self.children:
             child.emit_xml(xml)

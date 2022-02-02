@@ -47,6 +47,9 @@ class AstNode:
         self.tokens = ChainMap(tokens, defaultdict(lambda: None))
         self.incomplete = incomplete
 
+        self._unique_id: str | None = None
+        self._next_unique_id: int = 0
+
         self.parent = None
         for child in self.children:
             child.parent = self
@@ -70,6 +73,13 @@ class AstNode:
             return self.parent
         else:
             return self.parent.parent_by_type(type)
+
+    @property
+    def unique_id(self):
+        if self._unique_id is None:
+            self.root._next_unique_id += 1
+            self._unique_id = "__" + str(self.root._next_unique_id)
+        return self._unique_id
 
     @lazy_prop
     def errors(self):
