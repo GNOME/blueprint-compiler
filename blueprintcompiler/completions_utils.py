@@ -25,9 +25,9 @@ from .lsp_utils import Completion
 
 
 new_statement_patterns = [
-    [(TokenType.OPEN_BLOCK, None)],
-    [(TokenType.CLOSE_BLOCK, None)],
-    [(TokenType.STMT_END, None)],
+    [(TokenType.PUNCTUATION, "{")],
+    [(TokenType.PUNCTUATION, "}")],
+    [(TokenType.PUNCTUATION, ";")],
 ]
 
 

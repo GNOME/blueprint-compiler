@@ -27,42 +27,26 @@ from .errors import CompileError
 
 class TokenType(Enum):
     EOF             = 0
-    DIRECTIVE       = 1
-    IDENT           = 2
-    QUOTED          = 3
-    NUMBER          = 4
-    OPEN_PAREN      = 5
-    CLOSE_PAREN     = 6
-    OPEN_BLOCK      = 7
-    CLOSE_BLOCK     = 8
-    STMT_END        = 9
-    OP              = 10
-    WHITESPACE      = 11
-    COMMENT         = 12
-    OPEN_BRACKET    = 13
-    CLOSE_BRACKET   = 14
-    COMMA           = 15
+    IDENT           = 1
+    QUOTED          = 2
+    NUMBER          = 3
+    OP              = 4
+    WHITESPACE      = 5
+    COMMENT         = 6
+    PUNCTUATION     = 7
 
 
 _tokens = [
-    (TokenType.DIRECTIVE,       r"@[\d\w\-_]+"),
     (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
     (TokenType.QUOTED,          r'"(\\"|[^"\n])*"'),
     (TokenType.QUOTED,          r"'(\\'|[^'\n])*'"),
     (TokenType.NUMBER,          r"[-+]?[\d_]+(\.[\d_]+)?"),
     (TokenType.NUMBER,          r"0x[A-Fa-f0-9]+"),
-    (TokenType.OPEN_PAREN,      r"\("),
-    (TokenType.CLOSE_PAREN,     r"\)"),
-    (TokenType.OPEN_BLOCK,      r"\{"),
-    (TokenType.CLOSE_BLOCK,     r"\}"),
-    (TokenType.STMT_END,        r";"),
     (TokenType.WHITESPACE,      r"\s+"),
     (TokenType.COMMENT,         r"\/\*[\s\S]*?\*\/"),
     (TokenType.COMMENT,         r"\/\/[^\n]*"),
-    (TokenType.OPEN_BRACKET,    r"\["),
-    (TokenType.CLOSE_BRACKET,   r"\]"),
     (TokenType.OP,              r"[:=\.=\|<>\+\-/\*]+"),
-    (TokenType.COMMA,           r"\,"),
+    (TokenType.PUNCTUATION,     r"\(|\)|\{|\}|;|\[|\]|\,"),
 ]
 _TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]
 
@@ -76,11 +60,6 @@ class Token:
 
     def __str__(self):
         return self.string[self.start:self.end]
-
-    def is_directive(self, directive) -> bool:
-        if self.type != TokenType.DIRECTIVE:
-            return False
-        return str(self) == "@" + directive
 
     def get_number(self):
         if self.type != TokenType.NUMBER:

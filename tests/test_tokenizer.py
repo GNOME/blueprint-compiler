@@ -40,11 +40,11 @@ class TestTokenizer(unittest.TestCase):
     def test_basic(self):
         self.assert_tokenize("ident(){}; \n <<+>>*/=", [
             (TokenType.IDENT, "ident"),
-            (TokenType.OPEN_PAREN, "("),
-            (TokenType.CLOSE_PAREN, ")"),
-            (TokenType.OPEN_BLOCK, "{"),
-            (TokenType.CLOSE_BLOCK, "}"),
-            (TokenType.STMT_END, ";"),
+            (TokenType.PUNCTUATION, "("),
+            (TokenType.PUNCTUATION, ")"),
+            (TokenType.PUNCTUATION, "{"),
+            (TokenType.PUNCTUATION, "}"),
+            (TokenType.PUNCTUATION, ";"),
             (TokenType.WHITESPACE, " \n "),
             (TokenType.OP, "<<+>>*/="),
             (TokenType.EOF, ""),

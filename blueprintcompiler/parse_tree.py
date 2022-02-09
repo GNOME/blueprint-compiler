@@ -313,7 +313,7 @@ class Statement(ParseNode):
                 return True
 
         token = ctx.peek_token()
-        if token.type != TokenType.STMT_END:
+        if str(token) != ";":
             ctx.errors.append(CompileError("Expected `;`", token.start, token.end))
         else:
             ctx.next_token()
