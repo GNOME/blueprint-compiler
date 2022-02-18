@@ -1,0 +1,132 @@
+# gtk_dialog.py
+#
+# Copyright 2022 Gleb Smirnov <glebsmirnov0708@gmail.com>
+#
+# This file is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+
+from .common import *
+
+
+class ResponseId(AstNode):
+    """Response ID of GtkDialog's action widget."""
+
+    grammar = [
+        UseIdent("response"),
+        "=",
+        AnyOf(
+            UseIdent("response_id"),
+            UseNumber("response_id")
+        ),
+        Optional([
+            Keyword("default"), UseLiteral("is_default", True)
+        ])
+    ]
+
+    @validate()
+    def child_type_is_action(self) -> None:
+        """Check that child type is "action"."""
+        child_type = self.parent.tokens["child_type"]
+        if child_type != "action":
+            raise CompileError(f"Only action widget can have response ID")
+
+    @validate()
+    def parent_is_dialog(self) -> None:
+        """Chech that parent widget is `GtkDialog`."""
+        from .gobject_object import validate_parent_type
+
+        validate_parent_type(self, "Gtk", "Dialog", "action widgets")
+
+    @validate()
+    def widget_have_id(self) -> None:
+        """Check that action widget have ID."""
+        from .gobject_object import Object
+
+        _object = self.parent.children[Object][0]
+        if _object.tokens["id"] is None:
+            raise CompileError(f"Action widget must have ID")
+
+    @validate("response_id")
+    def correct_response_type(self) -> None:
+        """Validate response type.
+
+        Response type might be GtkResponseType member
+        or positive number.
+        """
+        gir = self.root.gir
+        response = self.tokens["response_id"]
+
+        if isinstance(response, int):
+            if response < 0:
+                raise CompileError(
+                    "Numeric response type can't be negative")
+        elif isinstance(response, float):
+            raise CompileError(
+                "Response type must be GtkResponseType member or integer,"
+                " not float"
+            )
+        else:
+            responses = gir.get_type("ResponseType", "Gtk").members.keys()
+            if response not in responses:
+                raise CompileError(
+                    f"Response type \"{response}\" doesn't exist")
+
+    @validate("default")
+    def no_multiple_default(self) -> None:
+        """Only one action widget in dialog can be default."""
+        from .gtkbuilder_child import Child
+        from .gobject_object import Object
+
+        if not self.tokens["is_default"]:
+            return
+
+        action_widgets = self.parent_by_type(Object).action_widgets
+        for widget in action_widgets:
+            if widget == self:
+                break
+            if widget.tokens["is_default"]:
+                raise CompileError("Default response is already set")
+
+    @property
+    def widget_id(self) -> str:
+        """Get action widget ID."""
+        from .gobject_object import Object
+
+        _object: Object = self.parent.children[Object][0]
+        return _object.tokens["id"]
+
+    def emit_xml(self, xml: XmlEmitter) -> None:
+        """Emit nothing.
+
+        Response ID don't have to emit any XML in place,
+        but have to emit action-widget tag in separate
+        place (see `ResponseId.emit_action_widget`)
+        """
+
+    def emit_action_widget(self, xml: XmlEmitter) -> None:
+        """Emit action-widget XML.
+
+        Must be called while <action-widgets> tag is open.
+
+        For more details see `GtkDialog` docs.
+        """
+        xml.start_tag(
+            "action-widget",
+            response=self.tokens["response_id"],
+            default=self.tokens["is_default"]
+        )
+        xml.put_text(self.widget_id)
+        xml.end_tag()

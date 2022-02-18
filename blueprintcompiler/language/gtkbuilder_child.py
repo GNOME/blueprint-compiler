@@ -18,7 +18,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from functools import cache
+
 from .gobject_object import Object
+from .gtk_dialog import ResponseId
 from .common import *
 
 
@@ -28,10 +31,25 @@ class Child(AstNode):
             "[",
             Optional(["internal-child", UseLiteral("internal_child", True)]),
             UseIdent("child_type").expected("a child type"),
+            Optional(ResponseId),
             "]",
         ]),
         Object,
     ]
+
+    @property
+    @cache
+    def response_id(self) -> T.Optional[ResponseId]:
+        """Get action widget's response ID.
+
+        If child is not action widget, returns `None`.
+        """
+        response_ids = self.children[ResponseId]
+
+        if response_ids:
+            return response_ids[0]
+        else:
+            return None
 
     def emit_xml(self, xml: XmlEmitter):
         child_type = internal_child = None

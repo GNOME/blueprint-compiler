@@ -19,6 +19,7 @@
 
 
 import typing as T
+from .gtk_dialog import ResponseId
 from .common import *
 
 
@@ -80,14 +81,38 @@ class Object(AstNode):
         if self.gir_class:
             return self.gir_class.doc
 
+    @property
+    def action_widgets(self) -> T.List[ResponseId]:
+        """Get list of `GtkDialog`'s action widgets.
+
+        Empty if object is not `GtkDialog`.
+        """
+        from .gtkbuilder_child import Child
+
+        return [
+            child.response_id
+            for child in self.children[ObjectContent][0].children[Child]
+            if child.response_id
+        ]
 
     def emit_xml(self, xml: XmlEmitter):
+        from .gtkbuilder_child import Child
+
         xml.start_tag("object", **{
             "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
             "id": self.tokens["id"],
         })
         for child in self.children:
             child.emit_xml(xml)
+
+        # List action widgets
+        action_widgets = self.action_widgets
+        if action_widgets:
+            xml.start_tag("action-widgets")
+            for action_widget in action_widgets:
+                action_widget.emit_action_widget(xml)
+            xml.end_tag()
+
         xml.end_tag()
 
 
