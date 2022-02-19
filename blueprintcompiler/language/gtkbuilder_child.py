@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from functools import cache
+from functools import cached_property
 
 from .gobject_object import Object
 from .response_id import ResponseId
@@ -37,8 +37,7 @@ class Child(AstNode):
         Object,
     ]
 
-    @property
-    @cache
+    @cached_property
     def response_id(self) -> T.Optional[ResponseId]:
         """Get action widget's response ID.
 
