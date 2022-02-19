@@ -19,8 +19,10 @@
 
 
 import typing as T
-from .response_id import ResponseId
+from functools import cached_property
+
 from .common import *
+from .response_id import ResponseId
 
 
 class ObjectContent(AstNode):
@@ -81,7 +83,7 @@ class Object(AstNode):
         if self.gir_class:
             return self.gir_class.doc
 
-    @property
+    @cached_property
     def action_widgets(self) -> T.List[ResponseId]:
         """Get list of widget's action widgets.
 
