@@ -21,7 +21,7 @@
 from functools import cache
 
 from .gobject_object import Object
-from .gtk_dialog import ResponseId
+from .response_id import ResponseId
 from .common import *
 
 

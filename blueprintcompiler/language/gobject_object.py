@@ -19,7 +19,7 @@
 
 
 import typing as T
-from .gtk_dialog import ResponseId
+from .response_id import ResponseId
 from .common import *
 
 
@@ -83,9 +83,9 @@ class Object(AstNode):
 
     @property
     def action_widgets(self) -> T.List[ResponseId]:
-        """Get list of `GtkDialog`'s action widgets.
+        """Get list of widget's action widgets.
 
-        Empty if object is not `GtkDialog`.
+        Empty if object doesn't have action widgets.
         """
         from .gtkbuilder_child import Child
 

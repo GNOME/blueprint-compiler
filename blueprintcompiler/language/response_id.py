@@ -1,4 +1,4 @@
-# gtk_dialog.py
+# response_id.py
 #
 # Copyright 2022 Gleb Smirnov <glebsmirnov0708@gmail.com>
 #
@@ -18,11 +18,18 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
+
 from .common import *
 
 
 class ResponseId(AstNode):
-    """Response ID of GtkDialog's action widget."""
+    """Response ID of action widget."""
+
+    ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
+        ("Gtk", "Dialog"),
+        ("Gtk", "InfoBar")
+    ]
 
     grammar = [
         UseIdent("response"),
@@ -44,11 +51,21 @@ class ResponseId(AstNode):
             raise CompileError(f"Only action widget can have response ID")
 
     @validate()
-    def parent_is_dialog(self) -> None:
-        """Chech that parent widget is `GtkDialog`."""
-        from .gobject_object import validate_parent_type
+    def parent_has_action_widgets(self) -> None:
+        """Chech that parent widget has allowed type."""
+        from .gobject_object import Object
 
-        validate_parent_type(self, "Gtk", "Dialog", "action widgets")
+        container_type = self.parent_by_type(Object).gir_class
+        gir = self.root.gir
+
+        for namespace, name in ResponseId.ALLOWED_PARENTS:
+            parent_type = gir.get_type(name, namespace)
+            if container_type.assignable_to(parent_type):
+                break
+        else:
+            raise CompileError(
+                f"{container_type.full_name} doesn't have action widgets"
+            )
 
     @validate()
     def widget_have_id(self) -> None:
@@ -121,7 +138,7 @@ class ResponseId(AstNode):
 
         Must be called while <action-widgets> tag is open.
 
-        For more details see `GtkDialog` docs.
+        For more details see `GtkDialog` and `GtkInfoBar` docs.
         """
         xml.start_tag(
             "action-widget",
