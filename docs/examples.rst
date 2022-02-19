@@ -388,3 +388,19 @@ Gtk.StringList
    Gtk.StringList {
      strings ["Hello, world!", _("Translated string")]
    }
+
+Gtk.Dialog and Gtk.InfoBar
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block::
+
+   Gtk.Dialog {
+     [action response=ok]
+     Gtk.Button ok_response {}
+
+     [action response=cancel]
+     Gtk.Button cancel_response {}
+
+     [action response=9]
+     Gtk.Button app_defined_response {}
+   }
