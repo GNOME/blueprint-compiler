@@ -19,12 +19,12 @@
 
 
 from .attributes import BaseAttribute
-from .gobject_object import ObjectContent
+from .gobject_object import Object, ObjectContent
 from .ui import UI
 from .common import *
 
 
-class Menu(AstNode):
+class Menu(Object):
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(self.tokens["tag"], id=self.tokens["id"])
         for child in self.children:
