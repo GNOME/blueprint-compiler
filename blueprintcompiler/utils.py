@@ -32,18 +32,6 @@ class Colors:
     CLEAR = "\033[0m"
 
 
-def lazy_prop(func):
-    key = "_lazy_prop_" + func.__name__
-
-    @property
-    def real_func(self):
-        if key not in self.__dict__:
-            self.__dict__[key] = func(self)
-        return self.__dict__[key]
-
-    return real_func
-
-
 def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
     if len(options) == 0:
         return None

@@ -19,10 +19,10 @@
 
 import typing as T
 from collections import ChainMap, defaultdict
+from functools import cached_property
 
 from .errors import *
 from .lsp_utils import SemanticToken
-from .utils import lazy_prop
 from .xml_emitter import XmlEmitter
 
 
@@ -75,7 +75,7 @@ class AstNode:
         else:
             return self.parent.parent_by_type(type)
 
-    @lazy_prop
+    @cached_property
     def errors(self):
         return list(self._get_errors())
 
