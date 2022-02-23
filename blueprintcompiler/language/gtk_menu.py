@@ -48,22 +48,12 @@ menu_contents = Sequence()
 
 menu_section = Group(
     Menu,
-    [
-        "section",
-        UseLiteral("tag", "section"),
-        Optional(UseIdent("id")),
-        menu_contents
-    ]
+    ["section", UseLiteral("tag", "section"), Optional(UseIdent("id")), menu_contents],
 )
 
 menu_submenu = Group(
     Menu,
-    [
-        "submenu",
-        UseLiteral("tag", "submenu"),
-        Optional(UseIdent("id")),
-        menu_contents
-    ]
+    ["submenu", UseLiteral("tag", "submenu"), Optional(UseIdent("id")), menu_contents],
 )
 
 menu_attribute = Group(
@@ -73,7 +63,7 @@ menu_attribute = Group(
         ":",
         VALUE_HOOKS.expected("a value"),
         Match(";").expected(),
-    ]
+    ],
 )
 
 menu_item = Group(
@@ -84,7 +74,7 @@ menu_item = Group(
         Optional(UseIdent("id")),
         Match("{").expected(),
         Until(menu_attribute, "}"),
-    ]
+    ],
 )
 
 menu_item_shorthand = Group(
@@ -97,45 +87,49 @@ menu_item_shorthand = Group(
             MenuAttribute,
             [UseLiteral("name", "label"), VALUE_HOOKS],
         ),
-        Optional([
-            ",",
-            Optional([
-                Group(
-                    MenuAttribute,
-                    [UseLiteral("name", "action"), VALUE_HOOKS],
+        Optional(
+            [
+                ",",
+                Optional(
+                    [
+                        Group(
+                            MenuAttribute,
+                            [UseLiteral("name", "action"), VALUE_HOOKS],
+                        ),
+                        Optional(
+                            [
+                                ",",
+                                Group(
+                                    MenuAttribute,
+                                    [UseLiteral("name", "icon"), VALUE_HOOKS],
+                                ),
+                            ]
+                        ),
+                    ]
                 ),
-                Optional([
-                    ",",
-                    Group(
-                        MenuAttribute,
-                        [UseLiteral("name", "icon"), VALUE_HOOKS],
-                    ),
-                ])
-            ])
-        ]),
+            ]
+        ),
         Match(")").expected(),
-    ]
+    ],
 )
 
 menu_contents.children = [
     Match("{"),
-    Until(AnyOf(
-        menu_section,
-        menu_submenu,
-        menu_item_shorthand,
-        menu_item,
-        menu_attribute,
-    ), "}"),
+    Until(
+        AnyOf(
+            menu_section,
+            menu_submenu,
+            menu_item_shorthand,
+            menu_item,
+            menu_attribute,
+        ),
+        "}",
+    ),
 ]
 
 menu = Group(
     Menu,
-    [
-        "menu",
-        UseLiteral("tag", "menu"),
-        Optional(UseIdent("id")),
-        menu_contents
-    ],
+    ["menu", UseLiteral("tag", "menu"), Optional(UseIdent("id")), menu_contents],
 )
 
 
@@ -144,10 +138,7 @@ menu = Group(
     matches=new_statement_patterns,
 )
 def menu_completer(ast_node, match_variables):
-    yield Completion(
-        "menu", CompletionItemKind.Snippet,
-        snippet="menu {\n  $0\n}"
-    )
+    yield Completion("menu", CompletionItemKind.Snippet, snippet="menu {\n  $0\n}")
 
 
 @completer(
@@ -156,34 +147,21 @@ def menu_completer(ast_node, match_variables):
 )
 def menu_content_completer(ast_node, match_variables):
     yield Completion(
-        "submenu", CompletionItemKind.Snippet,
-        snippet="submenu {\n  $0\n}"
+        "submenu", CompletionItemKind.Snippet, snippet="submenu {\n  $0\n}"
     )
     yield Completion(
-        "section", CompletionItemKind.Snippet,
-        snippet="section {\n  $0\n}"
+        "section", CompletionItemKind.Snippet, snippet="section {\n  $0\n}"
     )
+    yield Completion("item", CompletionItemKind.Snippet, snippet="item {\n  $0\n}")
     yield Completion(
-        "item", CompletionItemKind.Snippet,
-        snippet="item {\n  $0\n}"
-    )
-    yield Completion(
-        "item (shorthand)", CompletionItemKind.Snippet,
-        snippet='item (_("${1:Label}"), "${2:action-name}", "${3:icon-name}")'
+        "item (shorthand)",
+        CompletionItemKind.Snippet,
+        snippet='item (_("${1:Label}"), "${2:action-name}", "${3:icon-name}")',
     )
 
-    yield Completion(
-        "label", CompletionItemKind.Snippet,
-        snippet='label: $0;'
-    )
-    yield Completion(
-        "action", CompletionItemKind.Snippet,
-        snippet='action: "$0";'
-    )
-    yield Completion(
-        "icon", CompletionItemKind.Snippet,
-        snippet='icon: "$0";'
-    )
+    yield Completion("label", CompletionItemKind.Snippet, snippet="label: $0;")
+    yield Completion("action", CompletionItemKind.Snippet, snippet='action: "$0";')
+    yield Completion("icon", CompletionItemKind.Snippet, snippet='icon: "$0";')
 
 
 @decompiler("menu")
@@ -193,6 +171,7 @@ def decompile_menu(ctx, gir, id=None):
     else:
         ctx.print("menu {")
 
+
 @decompiler("submenu")
 def decompile_submenu(ctx, gir, id=None):
     if id:
@@ -200,12 +179,14 @@ def decompile_submenu(ctx, gir, id=None):
     else:
         ctx.print("submenu {")
 
+
 @decompiler("item")
 def decompile_item(ctx, gir, id=None):
     if id:
         ctx.print(f"item {id} {{")
     else:
         ctx.print("item {")
+
 
 @decompiler("section")
 def decompile_section(ctx, gir, id=None):

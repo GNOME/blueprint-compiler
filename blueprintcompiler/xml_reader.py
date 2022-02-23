@@ -26,11 +26,24 @@ from .utils import lazy_prop
 
 
 # To speed up parsing, we ignore all tags except these
-PARSE_GIR = set([
-    "repository", "namespace", "class", "interface", "property", "glib:signal",
-    "include", "implements", "type", "parameter", "parameters", "enumeration",
-    "member", "bitfield",
-])
+PARSE_GIR = set(
+    [
+        "repository",
+        "namespace",
+        "class",
+        "interface",
+        "property",
+        "glib:signal",
+        "include",
+        "implements",
+        "type",
+        "parameter",
+        "parameters",
+        "enumeration",
+        "member",
+        "bitfield",
+    ]
+)
 
 
 class Element:
@@ -42,7 +55,7 @@ class Element:
 
     @lazy_prop
     def cdata(self):
-        return ''.join(self.cdata_chunks)
+        return "".join(self.cdata_chunks)
 
     def get_elements(self, name) -> T.List["Element"]:
         return self.children.get(name, [])
@@ -59,7 +72,10 @@ class Handler(sax.handler.ContentHandler):
         self._interesting_elements = parse_type
 
     def startElement(self, name, attrs):
-        if self._interesting_elements is not None and name not in self._interesting_elements:
+        if (
+            self._interesting_elements is not None
+            and name not in self._interesting_elements
+        ):
             self.skipping += 1
         if self.skipping > 0:
             return
@@ -74,11 +90,13 @@ class Handler(sax.handler.ContentHandler):
 
         self.stack.append(element)
 
-
     def endElement(self, name):
         if self.skipping == 0:
             self.stack.pop()
-        if self._interesting_elements is not None and name not in self._interesting_elements:
+        if (
+            self._interesting_elements is not None
+            and name not in self._interesting_elements
+        ):
             self.skipping -= 1
 
     def characters(self, content):

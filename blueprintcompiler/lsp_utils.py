@@ -31,12 +31,15 @@ class TextDocumentSyncKind(enum.IntEnum):
     Full = 1
     Incremental = 2
 
+
 class CompletionItemTag(enum.IntEnum):
     Deprecated = 1
+
 
 class InsertTextFormat(enum.IntEnum):
     PlainText = 1
     Snippet = 2
+
 
 class CompletionItemKind(enum.IntEnum):
     Text = 1
@@ -91,12 +94,14 @@ class Completion:
             "documentation": {
                 "kind": "markdown",
                 "value": self.docs,
-            } if self.docs else None,
+            }
+            if self.docs
+            else None,
             "deprecated": self.deprecated,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
         }
-        return { k: v for k, v in result.items() if v is not None }
+        return {k: v for k, v in result.items() if v is not None}
 
 
 class SemanticTokenType(enum.IntEnum):

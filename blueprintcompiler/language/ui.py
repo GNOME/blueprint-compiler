@@ -25,15 +25,18 @@ from .common import *
 
 
 class UI(AstNode):
-    """ The AST node for the entire file """
+    """The AST node for the entire file"""
 
     grammar = [
         GtkDirective,
         ZeroOrMore(Import),
-        Until(AnyOf(
-            Template,
-            OBJECT_HOOKS,
-        ), Eof()),
+        Until(
+            AnyOf(
+                Template,
+                OBJECT_HOOKS,
+            ),
+            Eof(),
+        ),
     ]
 
     @property
@@ -59,11 +62,13 @@ class UI(AstNode):
 
         return gir_ctx
 
-
     @property
     def objects_by_id(self):
-        return { obj.tokens["id"]: obj for obj in self.iterate_children_recursive() if obj.tokens["id"] is not None }
-
+        return {
+            obj.tokens["id"]: obj
+            for obj in self.iterate_children_recursive()
+            if obj.tokens["id"] is not None
+        }
 
     @validate()
     def gir_errors(self):
@@ -72,16 +77,15 @@ class UI(AstNode):
         if len(self._gir_errors):
             raise MultipleErrors(self._gir_errors)
 
-
     @validate()
     def at_most_one_template(self):
         if len(self.children[Template]) > 1:
             for template in self.children[Template][1:]:
                 raise CompileError(
                     f"Only one template may be defined per file, but this file contains {len(self.children[Template])}",
-                    template.group.tokens["name"].start, template.group.tokens["name"].end,
+                    template.group.tokens["name"].start,
+                    template.group.tokens["name"].end,
                 )
-
 
     @validate()
     def unique_ids(self):
@@ -92,9 +96,10 @@ class UI(AstNode):
 
             if obj.tokens["id"] in passed:
                 token = obj.group.tokens["id"]
-                raise CompileError(f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end)
+                raise CompileError(
+                    f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end
+                )
             passed[obj.tokens["id"]] = obj
-
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("interface")

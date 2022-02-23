@@ -38,7 +38,7 @@ layout_prop = Group(
         UseIdent("name"),
         ":",
         VALUE_HOOKS.expected("a value"),
-    )
+    ),
 )
 
 
@@ -53,7 +53,6 @@ class Layout(AstNode):
     def container_is_widget(self):
         validate_parent_type(self, "Gtk", "Widget", "layout properties")
 
-
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("layout")
         for child in self.children:
@@ -67,10 +66,7 @@ class Layout(AstNode):
     matches=new_statement_patterns,
 )
 def layout_completer(ast_node, match_variables):
-    yield Completion(
-        "layout", CompletionItemKind.Snippet,
-        snippet="layout {\n  $0\n}"
-    )
+    yield Completion("layout", CompletionItemKind.Snippet, snippet="layout {\n  $0\n}")
 
 
 @decompiler("layout")

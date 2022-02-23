@@ -21,15 +21,15 @@ import typing as T
 
 
 class Colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[33m'
-    FAINT = '\033[2m'
-    BOLD = '\033[1m'
-    BLUE = '\033[34m'
-    UNDERLINE = '\033[4m'
-    NO_UNDERLINE = '\033[24m'
-    CLEAR = '\033[0m'
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[33m"
+    FAINT = "\033[2m"
+    BOLD = "\033[1m"
+    BLUE = "\033[34m"
+    UNDERLINE = "\033[4m"
+    NO_UNDERLINE = "\033[24m"
+    CLEAR = "\033[0m"
 
 
 def lazy_prop(func):
@@ -68,12 +68,16 @@ def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
                         cost = 1
                     else:
                         cost = 2
-                distances[i][j] = min(distances[i-1][j] + 2, distances[i][j-1] + 2, distances[i-1][j-1] + cost)
+                distances[i][j] = min(
+                    distances[i - 1][j] + 2,
+                    distances[i][j - 1] + 2,
+                    distances[i - 1][j - 1] + cost,
+                )
 
-        return distances[m-1][n-1]
+        return distances[m - 1][n - 1]
 
     distances = [(option, levenshtein(word, option)) for option in options]
-    closest = min(distances, key=lambda item:item[1])
+    closest = min(distances, key=lambda item: item[1])
     if closest[1] <= 5:
         return closest[0]
     return None
@@ -87,9 +91,11 @@ def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
     col_num = len(sp[-1])
     return (line_num - 1, col_num)
 
+
 def pos_to_idx(line: int, col: int, text: str) -> int:
     lines = text.splitlines(keepends=True)
     return sum([len(line) for line in lines[:line]]) + col
+
 
 def idxs_to_range(start: int, end: int, text: str):
     start_l, start_c = idx_to_pos(start, text)

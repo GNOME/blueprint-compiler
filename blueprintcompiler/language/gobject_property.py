@@ -33,12 +33,16 @@ class Property(AstNode):
             UseIdent("bind_source").expected("the ID of a source object to bind from"),
             ".",
             UseIdent("bind_property").expected("a property name to bind from"),
-            ZeroOrMore(AnyOf(
-                ["no-sync-create", UseLiteral("no_sync_create", True)],
-                ["inverted", UseLiteral("inverted", True)],
-                ["bidirectional", UseLiteral("bidirectional", True)],
-                Match("sync-create").warn("sync-create is deprecated in favor of no-sync-create"),
-            )),
+            ZeroOrMore(
+                AnyOf(
+                    ["no-sync-create", UseLiteral("no_sync_create", True)],
+                    ["inverted", UseLiteral("inverted", True)],
+                    ["bidirectional", UseLiteral("bidirectional", True)],
+                    Match("sync-create").warn(
+                        "sync-create is deprecated in favor of no-sync-create"
+                    ),
+                )
+            ),
         ),
         Statement(
             UseIdent("name"),
@@ -54,18 +58,15 @@ class Property(AstNode):
     def gir_class(self):
         return self.parent.parent.gir_class
 
-
     @property
     def gir_property(self):
         if self.gir_class is not None:
             return self.gir_class.properties.get(self.tokens["name"])
 
-
     @property
     def value_type(self):
         if self.gir_property is not None:
             return self.gir_property.type
-
 
     @validate("name")
     def property_exists(self):
@@ -82,9 +83,8 @@ class Property(AstNode):
         if self.gir_property is None:
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
-                did_you_mean=(self.tokens["name"], self.gir_class.properties.keys())
+                did_you_mean=(self.tokens["name"], self.gir_class.properties.keys()),
             )
-
 
     @validate()
     def obj_property_type(self):
@@ -93,17 +93,20 @@ class Property(AstNode):
 
         object = self.children[Object][0]
         type = self.value_type
-        if object and type and object.gir_class and not object.gir_class.assignable_to(type):
+        if (
+            object
+            and type
+            and object.gir_class
+            and not object.gir_class.assignable_to(type)
+        ):
             raise CompileError(
                 f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
             )
-
 
     @docs("name")
     def property_docs(self):
         if self.gir_property is not None:
             return self.gir_property.doc
-
 
     def emit_xml(self, xml: XmlEmitter):
         values = self.children[Value]
@@ -126,7 +129,7 @@ class Property(AstNode):
         }
 
         if isinstance(value, TranslatedStringValue):
-            props = { **props, **value.attrs }
+            props = {**props, **value.attrs}
 
         if len(self.children[Object]) == 1:
             xml.start_tag("property", **props)

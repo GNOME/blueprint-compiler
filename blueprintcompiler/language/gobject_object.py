@@ -44,6 +44,7 @@ class ObjectContent(AstNode):
         for x in self.children:
             x.emit_xml(xml)
 
+
 class Object(AstNode):
     grammar: T.Any = [
         class_name,
@@ -58,8 +59,14 @@ class Object(AstNode):
 
     @validate("class_name")
     def gir_class_exists(self):
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"] and self.gir_ns is not None:
-            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
+        if (
+            self.tokens["class_name"]
+            and not self.tokens["ignore_gir"]
+            and self.gir_ns is not None
+        ):
+            self.root.gir.validate_class(
+                self.tokens["class_name"], self.tokens["namespace"]
+            )
 
     @property
     def gir_ns(self):
@@ -69,14 +76,14 @@ class Object(AstNode):
     @property
     def gir_class(self):
         if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
-            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
-
+            return self.root.gir.get_class(
+                self.tokens["class_name"], self.tokens["namespace"]
+            )
 
     @docs("namespace")
     def namespace_docs(self):
         if ns := self.root.gir.namespaces.get(self.tokens["namespace"]):
             return ns.doc
-
 
     @docs("class_name")
     def class_docs(self):
@@ -100,10 +107,15 @@ class Object(AstNode):
     def emit_xml(self, xml: XmlEmitter):
         from .gtkbuilder_child import Child
 
-        xml.start_tag("object", **{
-            "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
-            "id": self.tokens["id"],
-        })
+        xml.start_tag(
+            "object",
+            **{
+                "class": self.gir_class.glib_type_name
+                if self.gir_class
+                else self.tokens["class_name"],
+                "id": self.tokens["id"],
+            },
+        )
         for child in self.children:
             child.emit_xml(xml)
 
@@ -122,13 +134,17 @@ def validate_parent_type(node, ns: str, name: str, err_msg: str):
     parent = node.root.gir.get_type(name, ns)
     container_type = node.parent_by_type(Object).gir_class
     if container_type and not container_type.assignable_to(parent):
-        raise CompileError(f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}")
+        raise CompileError(
+            f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}"
+        )
 
 
 @decompiler("object")
 def decompile_object(ctx, gir, klass, id=None):
     gir_class = ctx.type_by_cname(klass)
-    klass_name = decompile.full_name(gir_class) if gir_class is not None else "." + klass
+    klass_name = (
+        decompile.full_name(gir_class) if gir_class is not None else "." + klass
+    )
     if id is None:
         ctx.print(f"{klass_name} {{")
     else:

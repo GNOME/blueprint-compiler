@@ -27,13 +27,15 @@ from .common import *
 
 class Child(AstNode):
     grammar = [
-        Optional([
-            "[",
-            Optional(["internal-child", UseLiteral("internal_child", True)]),
-            UseIdent("child_type").expected("a child type"),
-            Optional(ResponseId),
-            "]",
-        ]),
+        Optional(
+            [
+                "[",
+                Optional(["internal-child", UseLiteral("internal_child", True)]),
+                UseIdent("child_type").expected("a child type"),
+                Optional(ResponseId),
+                "]",
+            ]
+        ),
         Object,
     ]
 

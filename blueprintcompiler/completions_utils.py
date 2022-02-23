@@ -32,20 +32,25 @@ new_statement_patterns = [
 
 
 def applies_to(*ast_types):
-    """ Decorator describing which AST nodes the completer should apply in. """
+    """Decorator describing which AST nodes the completer should apply in."""
+
     def decorator(func):
         for c in ast_types:
             c.completers.append(func)
         return func
+
     return decorator
 
-def completer(applies_in: T.List, matches: T.List=[], applies_in_subclass=None):
+
+def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
     def decorator(func):
         def inner(prev_tokens: T.List[Token], ast_node):
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
-                type = ast_node.root.gir.get_type(applies_in_subclass[1], applies_in_subclass[0])
+                type = ast_node.root.gir.get_type(
+                    applies_in_subclass[1], applies_in_subclass[0]
+                )
                 if ast_node.gir_class and not ast_node.gir_class.assignable_to(type):
                     return
 
@@ -59,7 +64,9 @@ def completer(applies_in: T.List, matches: T.List=[], applies_in_subclass=None):
                     for i in range(0, len(pattern)):
                         type, value = pattern[i]
                         token = prev_tokens[i - len(pattern)]
-                        if token.type != type or (value is not None and str(token) != value):
+                        if token.type != type or (
+                            value is not None and str(token) != value
+                        ):
                             break
                         if value is None:
                             match_variables.append(str(token))

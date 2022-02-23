@@ -26,7 +26,7 @@ from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template,
 
 
 def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors], T.List[PrintableError]]:
-    """ Parses a list of tokens into an abstract syntax tree. """
+    """Parses a list of tokens into an abstract syntax tree."""
 
     ctx = ParseContext(tokens)
     AnyOf(UI).parse(ctx)

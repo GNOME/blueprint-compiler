@@ -51,7 +51,6 @@ class Strings(AstNode):
     def container_is_string_list(self):
         validate_parent_type(self, "Gtk", "StringList", "StringList items")
 
-
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("items")
         for child in self.children:
@@ -65,7 +64,4 @@ class Strings(AstNode):
     matches=new_statement_patterns,
 )
 def strings_completer(ast_node, match_variables):
-    yield Completion(
-        "strings", CompletionItemKind.Snippet,
-        snippet="strings [$0]"
-    )
+    yield Completion("strings", CompletionItemKind.Snippet, snippet="strings [$0]")

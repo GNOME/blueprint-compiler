@@ -25,32 +25,33 @@ from .common import *
 class Signal(AstNode):
     grammar = Statement(
         UseIdent("name"),
-        Optional([
-            "::",
-            UseIdent("detail_name").expected("a signal detail name"),
-        ]),
+        Optional(
+            [
+                "::",
+                UseIdent("detail_name").expected("a signal detail name"),
+            ]
+        ),
         "=>",
         UseIdent("handler").expected("the name of a function to handle the signal"),
         Match("(").expected("argument list"),
         Optional(UseIdent("object")).expected("object identifier"),
         Match(")").expected(),
-        ZeroOrMore(AnyOf(
-            [Keyword("swapped"), UseLiteral("swapped", True)],
-            [Keyword("after"), UseLiteral("after", True)],
-        )),
+        ZeroOrMore(
+            AnyOf(
+                [Keyword("swapped"), UseLiteral("swapped", True)],
+                [Keyword("after"), UseLiteral("after", True)],
+            )
+        ),
     )
-
 
     @property
     def gir_signal(self):
         if self.gir_class is not None:
             return self.gir_class.signals.get(self.tokens["name"])
 
-
     @property
     def gir_class(self):
         return self.parent.parent.gir_class
-
 
     @validate("name")
     def signal_exists(self):
@@ -67,9 +68,8 @@ class Signal(AstNode):
         if self.gir_signal is None:
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a signal called {self.tokens['name']}",
-                did_you_mean=(self.tokens["name"], self.gir_class.signals.keys())
+                did_you_mean=(self.tokens["name"], self.gir_class.signals.keys()),
             )
-
 
     @validate("object")
     def object_exists(self):
@@ -78,16 +78,12 @@ class Signal(AstNode):
             return
 
         if self.root.objects_by_id.get(object_id) is None:
-            raise CompileError(
-                f"Could not find object with ID '{object_id}'"
-            )
-
+            raise CompileError(f"Could not find object with ID '{object_id}'")
 
     @docs("name")
     def signal_docs(self):
         if self.gir_signal is not None:
             return self.gir_signal.doc
-
 
     def emit_xml(self, xml: XmlEmitter):
         name = self.tokens["name"]
@@ -98,7 +94,7 @@ class Signal(AstNode):
             name=name,
             handler=self.tokens["handler"],
             swapped="true" if self.tokens["swapped"] else None,
-            object=self.tokens["object"]
+            object=self.tokens["object"],
         )
 
 

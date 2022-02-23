@@ -32,42 +32,52 @@ class TestTokenizer(unittest.TestCase):
             for token, (type, token_str) in zip(tokens, expect):
                 self.assertEqual(token.type, type)
                 self.assertEqual(str(token), token_str)
-        except PrintableError as e: # pragma: no cover
+        except PrintableError as e:  # pragma: no cover
             e.pretty_print("<test input>", string)
             raise e
 
-
     def test_basic(self):
-        self.assert_tokenize("ident(){}; \n <<+>>*/=", [
-            (TokenType.IDENT, "ident"),
-            (TokenType.PUNCTUATION, "("),
-            (TokenType.PUNCTUATION, ")"),
-            (TokenType.PUNCTUATION, "{"),
-            (TokenType.PUNCTUATION, "}"),
-            (TokenType.PUNCTUATION, ";"),
-            (TokenType.WHITESPACE, " \n "),
-            (TokenType.OP, "<<+>>*/="),
-            (TokenType.EOF, ""),
-        ])
+        self.assert_tokenize(
+            "ident(){}; \n <<+>>*/=",
+            [
+                (TokenType.IDENT, "ident"),
+                (TokenType.PUNCTUATION, "("),
+                (TokenType.PUNCTUATION, ")"),
+                (TokenType.PUNCTUATION, "{"),
+                (TokenType.PUNCTUATION, "}"),
+                (TokenType.PUNCTUATION, ";"),
+                (TokenType.WHITESPACE, " \n "),
+                (TokenType.OP, "<<+>>*/="),
+                (TokenType.EOF, ""),
+            ],
+        )
 
     def test_quotes(self):
-        self.assert_tokenize(r'"this is a \n string""this is \\another \"string\""', [
-            (TokenType.QUOTED, r'"this is a \n string"'),
-            (TokenType.QUOTED, r'"this is \\another \"string\""'),
-            (TokenType.EOF, ""),
-        ])
+        self.assert_tokenize(
+            r'"this is a \n string""this is \\another \"string\""',
+            [
+                (TokenType.QUOTED, r'"this is a \n string"'),
+                (TokenType.QUOTED, r'"this is \\another \"string\""'),
+                (TokenType.EOF, ""),
+            ],
+        )
 
     def test_comments(self):
-        self.assert_tokenize('/* \n \\n COMMENT /* */', [
-            (TokenType.COMMENT, '/* \n \\n COMMENT /* */'),
-            (TokenType.EOF, ""),
-        ])
-        self.assert_tokenize('line // comment\nline', [
-            (TokenType.IDENT, 'line'),
-            (TokenType.WHITESPACE, ' '),
-            (TokenType.COMMENT, '// comment'),
-            (TokenType.WHITESPACE, '\n'),
-            (TokenType.IDENT, 'line'),
-            (TokenType.EOF, ""),
-        ])
-
+        self.assert_tokenize(
+            "/* \n \\n COMMENT /* */",
+            [
+                (TokenType.COMMENT, "/* \n \\n COMMENT /* */"),
+                (TokenType.EOF, ""),
+            ],
+        )
+        self.assert_tokenize(
+            "line // comment\nline",
+            [
+                (TokenType.IDENT, "line"),
+                (TokenType.WHITESPACE, " "),
+                (TokenType.COMMENT, "// comment"),
+                (TokenType.WHITESPACE, "\n"),
+                (TokenType.IDENT, "line"),
+                (TokenType.EOF, ""),
+            ],
+        )

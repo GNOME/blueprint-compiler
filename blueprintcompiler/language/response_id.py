@@ -26,21 +26,13 @@ from .common import *
 class ResponseId(AstNode):
     """Response ID of action widget."""
 
-    ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
-        ("Gtk", "Dialog"),
-        ("Gtk", "InfoBar")
-    ]
+    ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [("Gtk", "Dialog"), ("Gtk", "InfoBar")]
 
     grammar = [
         UseIdent("response"),
         "=",
-        AnyOf(
-            UseIdent("response_id"),
-            UseNumber("response_id")
-        ),
-        Optional([
-            Keyword("default"), UseLiteral("is_default", True)
-        ])
+        AnyOf(UseIdent("response_id"), UseNumber("response_id")),
+        Optional([Keyword("default"), UseLiteral("is_default", True)]),
     ]
 
     @validate()
@@ -88,18 +80,15 @@ class ResponseId(AstNode):
 
         if isinstance(response, int):
             if response < 0:
-                raise CompileError(
-                    "Numeric response type can't be negative")
+                raise CompileError("Numeric response type can't be negative")
         elif isinstance(response, float):
             raise CompileError(
-                "Response type must be GtkResponseType member or integer,"
-                " not float"
+                "Response type must be GtkResponseType member or integer," " not float"
             )
         else:
             responses = gir.get_type("ResponseType", "Gtk").members.keys()
             if response not in responses:
-                raise CompileError(
-                    f"Response type \"{response}\" doesn't exist")
+                raise CompileError(f'Response type "{response}" doesn\'t exist')
 
     @validate("default")
     def no_multiple_default(self) -> None:
@@ -143,7 +132,7 @@ class ResponseId(AstNode):
         xml.start_tag(
             "action-widget",
             response=self.tokens["response_id"],
-            default=self.tokens["is_default"]
+            default=self.tokens["is_default"],
         )
         xml.put_text(self.widget_id)
         xml.end_tag()

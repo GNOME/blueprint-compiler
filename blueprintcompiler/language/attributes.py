@@ -23,17 +23,17 @@ from .common import *
 
 
 class BaseAttribute(AstNode):
-    """ A helper class for attribute syntax of the form `name: literal_value;`"""
+    """A helper class for attribute syntax of the form `name: literal_value;`"""
 
     tag_name: str = ""
     attr_name: str = "name"
 
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
-        attrs = { self.attr_name: self.tokens["name"] }
+        attrs = {self.attr_name: self.tokens["name"]}
 
         if isinstance(value, TranslatedStringValue):
-            attrs = { **attrs, **value.attrs }
+            attrs = {**attrs, **value.attrs}
 
         xml.start_tag(self.tag_name, **attrs)
         value.emit_xml(xml)
@@ -41,5 +41,5 @@ class BaseAttribute(AstNode):
 
 
 class BaseTypedAttribute(BaseAttribute):
-    """ A BaseAttribute whose parent has a value_type property that can assist
-    in validation. """
+    """A BaseAttribute whose parent has a value_type property that can assist
+    in validation."""

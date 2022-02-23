@@ -54,12 +54,13 @@ class Styles(AstNode):
     matches=new_statement_patterns,
 )
 def style_completer(ast_node, match_variables):
-    yield Completion("styles", CompletionItemKind.Keyword, snippet="styles [\"$0\"]")
+    yield Completion("styles", CompletionItemKind.Keyword, snippet='styles ["$0"]')
 
 
 @decompiler("style")
 def decompile_style(ctx, gir):
     ctx.print(f"styles [")
+
 
 @decompiler("class")
 def decompile_style_class(ctx, gir, name):

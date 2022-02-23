@@ -27,17 +27,20 @@ from .xml_emitter import XmlEmitter
 
 
 class Children:
-    """ Allows accessing children by type using array syntax. """
+    """Allows accessing children by type using array syntax."""
+
     def __init__(self, children):
         self._children = children
+
     def __iter__(self):
         return iter(self._children)
+
     def __getitem__(self, key):
         return [child for child in self._children if isinstance(child, key)]
 
 
 class AstNode:
-    """ Base class for nodes in the abstract syntax tree. """
+    """Base class for nodes in the abstract syntax tree."""
 
     completers: T.List = []
 
@@ -53,8 +56,9 @@ class AstNode:
 
     def __init_subclass__(cls):
         cls.completers = []
-        cls.validators = [getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")]
-
+        cls.validators = [
+            getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")
+        ]
 
     @property
     def root(self):
@@ -92,13 +96,13 @@ class AstNode:
                 yield name, item
 
     def generate(self) -> str:
-        """ Generates an XML string from the node. """
+        """Generates an XML string from the node."""
         xml = XmlEmitter()
         self.emit_xml(xml)
         return xml.result
 
     def emit_xml(self, xml: XmlEmitter):
-        """ Emits the XML representation of this AST node to the XmlEmitter. """
+        """Emits the XML representation of this AST node to the XmlEmitter."""
         raise NotImplementedError()
 
     def get_docs(self, idx: int) -> T.Optional[str]:
@@ -122,7 +126,6 @@ class AstNode:
         for child in self.children:
             yield from child.get_semantic_tokens()
 
-
     def iterate_children_recursive(self) -> T.Iterator["AstNode"]:
         yield self
         for child in self.children:
@@ -130,8 +133,8 @@ class AstNode:
 
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
-    """ Decorator for functions that validate an AST node. Exceptions raised
-    during validation are marked with range information from the tokens. """
+    """Decorator for functions that validate an AST node. Exceptions raised
+    during validation are marked with range information from the tokens."""
 
     def decorator(func):
         def inner(self):
@@ -184,7 +187,7 @@ class Docs:
 
 
 def docs(*args, **kwargs):
-    """ Decorator for functions that return documentation for tokens. """
+    """Decorator for functions that return documentation for tokens."""
 
     def decorator(func):
         return Docs(func, *args, **kwargs)

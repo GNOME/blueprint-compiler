@@ -35,12 +35,14 @@ class Item(BaseTypedAttribute):
 item = Group(
     Item,
     [
-        Optional([
-            UseIdent("name"),
-            ":",
-        ]),
+        Optional(
+            [
+                UseIdent("name"),
+                ":",
+            ]
+        ),
         VALUE_HOOKS,
-    ]
+    ],
 )
 
 
@@ -56,7 +58,6 @@ class Items(AstNode):
     def container_is_combo_box_text(self):
         validate_parent_type(self, "Gtk", "ComboBoxText", "combo box items")
 
-
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("items")
         for child in self.children:
@@ -70,7 +71,4 @@ class Items(AstNode):
     matches=new_statement_patterns,
 )
 def items_completer(ast_node, match_variables):
-    yield Completion(
-        "items", CompletionItemKind.Snippet,
-        snippet="items [$0]"
-    )
+    yield Completion("items", CompletionItemKind.Snippet, snippet="items [$0]")

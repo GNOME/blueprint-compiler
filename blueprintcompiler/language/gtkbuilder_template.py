@@ -26,10 +26,12 @@ class Template(Object):
     grammar = [
         "template",
         UseIdent("name").expected("template class name"),
-        Optional([
-            Match(":"),
-            class_name.expected("parent class"),
-        ]),
+        Optional(
+            [
+                Match(":"),
+                class_name.expected("parent class"),
+            ]
+        ),
         ObjectContent,
     ]
 
