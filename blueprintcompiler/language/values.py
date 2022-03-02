@@ -129,7 +129,7 @@ class IdentValue(Value):
     def validate_for_type(self):
         type = self.parent.value_type
 
-        if isinstance(type, gir.Enumeration):
+        if isinstance(type, gir.Enumeration) or isinstance(type, gir.Bitfield):
             if self.tokens["value"] not in type.members:
                 raise CompileError(
                     f"{self.tokens['value']} is not a member of {type.full_name}",

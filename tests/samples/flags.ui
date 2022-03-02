@@ -4,4 +4,7 @@
   <object class="GApplication">
     <property name="flags">is_service|handles_open</property>
   </object>
+  <object class="GtkEventControllerScroll">
+    <property name="flags">vertical</property>
+  </object>
 </interface>
