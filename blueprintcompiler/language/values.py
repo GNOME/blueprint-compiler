@@ -109,8 +109,24 @@ class LiteralValue(Value):
 class Flag(AstNode):
     grammar = UseIdent("value")
 
+    @validate()
+    def validate_for_type(self):
+        type = self.parent.parent.value_type
+        if isinstance(type, gir.Bitfield) and self.tokens["value"] not in type.members:
+            raise CompileError(
+                f"{self.tokens['value']} is not a member of {type.full_name}",
+                did_you_mean=(self.tokens['value'], type.members.keys()),
+            )
+
+
 class FlagsValue(Value):
     grammar = [Flag, "|", Delimited(Flag, "|")]
+
+    @validate()
+    def parent_is_bitfield(self):
+        type = self.parent.value_type
+        if not isinstance(type, gir.Bitfield):
+            raise CompileError(f"{type.full_name} is not a bitfield type")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.put_text("|".join([flag.tokens["value"] for flag in self.children[Flag]]))
