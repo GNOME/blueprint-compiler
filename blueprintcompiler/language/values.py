@@ -109,6 +109,14 @@ class LiteralValue(Value):
 class Flag(AstNode):
     grammar = UseIdent("value")
 
+    @docs()
+    def docs(self):
+        type = self.parent.parent.value_type
+        if member := type.members.get(self.tokens["value"]):
+            return member.doc
+        else:
+            return type.doc
+
     @validate()
     def validate_for_type(self):
         type = self.parent.parent.value_type
@@ -175,7 +183,7 @@ class IdentValue(Value):
     @docs()
     def docs(self):
         type = self.parent.value_type
-        if isinstance(type, gir.Enumeration):
+        if isinstance(type, gir.Enumeration) or isinstance(type, gir.Bitfield):
             if member := type.members.get(self.tokens["value"]):
                 return member.doc
             else:
