@@ -41,8 +41,14 @@ class GtkDirective(AstNode):
 
         try:
             gir.get_namespace("Gtk", self.tokens["version"])
-        except:
-            raise CompileError("Could not find GTK 4 introspection files. Is gobject-introspection installed?", fatal=True)
+        except CompileError as e:
+            raise CompileError(
+                "Could not find GTK 4 introspection files. Is gobject-introspection installed?",
+                fatal=True,
+                # preserve the hints from the original error, because it contains
+                # useful debugging information
+                hints=e.hints,
+            )
 
 
     @property

@@ -28,6 +28,7 @@ from .utils import Colors
 from .xml_emitter import XmlEmitter
 
 VERSION = "uninstalled"
+LIBDIR = None
 
 class BlueprintApp:
     def main(self):
@@ -144,7 +145,7 @@ class BlueprintApp:
         return ast.generate(), warnings
 
 
-def main(version):
-    global VERSION
-    VERSION = version
+def main(version, libdir):
+    global VERSION, LIBDIR
+    VERSION, LIBDIR = version, libdir
     BlueprintApp().main()

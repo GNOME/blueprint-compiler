@@ -22,37 +22,88 @@ import typing as T
 import os, sys
 
 from .errors import CompileError, CompilerBugError
-from . import xml_reader
+from . import typelib, xml_reader
 
-
-extra_search_paths: T.List[str] = []
 _namespace_cache = {}
-
-_search_paths = []
-xdg_data_home = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-_search_paths.append(os.path.join(xdg_data_home, "gir-1.0"))
-xdg_data_dirs = os.environ.get("XDG_DATA_DIRS", "/usr/share:/usr/local/share").split(":")
-_search_paths += [os.path.join(dir, "gir-1.0") for dir in xdg_data_dirs]
+_xml_cache = {}
 
 
 def get_namespace(namespace, version):
-    filename = f"{namespace}-{version}.gir"
+    from .main import LIBDIR, VERSION
+    search_paths = []
+    if LIBDIR is not None:
+        search_paths.append(os.path.join(LIBDIR, "girepository-1.0"))
+
+    # This is a fragile hack to make blueprint-compiler work uninstalled on
+    # most systems.
+    if VERSION == "uninstalled":
+        search_paths += [
+            "/usr/lib/girepository-1.0",
+            "/usr/local/lib/girepository-1.0",
+            "/app/lib/girepository-1.0",
+            "/usr/lib64/girepository-1.0",
+            "/usr/local/lib64/girepository-1.0",
+            "/app/lib64/girepository-1.0",
+        ]
+
+    if typelib_path := os.environ.get("GI_TYPELIB_PATH"):
+        search_paths.append(typelib_path)
+
+    filename = f"{namespace}-{version}.typelib"
 
     if filename not in _namespace_cache:
-        for search_path in _search_paths:
+        for search_path in search_paths:
             path = os.path.join(search_path, filename)
 
             if os.path.exists(path) and os.path.isfile(path):
-                xml = xml_reader.parse(path, xml_reader.PARSE_GIR)
-                repository = Repository(xml)
+                tl = typelib.load_typelib(path)
+                repository = Repository(tl)
 
-                _namespace_cache[filename] = repository.namespaces.get(namespace)
+                _namespace_cache[filename] = repository.namespace
                 break
 
         if filename not in _namespace_cache:
-            raise CompileError(f"Namespace {namespace}-{version} could not be found")
+            raise CompileError(
+                f"Namespace {namespace}-{version} could not be found",
+                hints=["search path: " + os.pathsep.join(search_paths)],
+            )
 
     return _namespace_cache[filename]
+
+
+def get_xml(namespace, version):
+    from .main import VERSION
+    from xml.etree import ElementTree
+    search_paths = []
+
+    # Same fragile hack as before
+    if VERSION == "uninstalled":
+        search_paths += [
+            "/usr/share/gir-1.0",
+            "/usr/local/share/gir-1.0",
+            "/app/share/gir-1.0",
+        ]
+
+    if data_paths := os.environ.get("XDG_DATA_DIRS"):
+        search_paths += [os.path.join(path, "gir-1.0") for path in data_paths.split(os.pathsep)]
+
+    filename = f"{namespace}-{version}.gir"
+
+    if filename not in _xml_cache:
+        for search_path in search_paths:
+            path = os.path.join(search_path, filename)
+
+            if os.path.exists(path) and os.path.isfile(path):
+                _xml_cache[filename] = xml_reader.parse(path)
+                break
+
+        if filename not in _xml_cache:
+            raise CompileError(
+                f"GObject introspection file '{namespace}-{version}.gir' could not be found",
+                hints=["search path: " + os.pathsep.join(search_paths)],
+            )
+
+    return _xml_cache[filename]
 
 
 class GirType:
@@ -115,9 +166,9 @@ _BASIC_TYPES = {
 }
 
 class GirNode:
-    def __init__(self, container, xml):
+    def __init__(self, container, tl):
         self.container = container
-        self.xml = xml
+        self.tl = tl
 
     def get_containing(self, container_type):
         if self.container is None:
@@ -128,8 +179,14 @@ class GirNode:
             return self.container.get_containing(container_type)
 
     @cached_property
+    def xml(self):
+        for el in self.container.xml.children:
+            if el.attrs.get("name") == self.name:
+                return el
+
+    @cached_property
     def glib_type_name(self):
-        return self.xml["glib:type-name"]
+        return self.tl.OBJ_GTYPE_NAME
 
     @cached_property
     def full_name(self):
@@ -140,11 +197,11 @@ class GirNode:
 
     @cached_property
     def name(self) -> str:
-        return self.xml["name"]
+        return self.tl.BLOB_NAME
 
     @cached_property
     def cname(self) -> str:
-        return self.xml["c:type"]
+        return self.tl.OBJ_GTYPE_NAME
 
     @cached_property
     def available_in(self) -> str:
@@ -169,7 +226,7 @@ class GirNode:
 
     @property
     def type_name(self):
-        return self.xml.get_elements('type')[0]['name']
+        return self.type.name
 
     @property
     def type(self):
@@ -177,76 +234,164 @@ class GirNode:
 
 
 class Property(GirNode):
-    def __init__(self, klass, xml: xml_reader.Element):
-        super().__init__(klass, xml)
+    def __init__(self, klass, tl: typelib.Typelib):
+        super().__init__(klass, tl)
 
-    @property
+    @cached_property
+    def name(self):
+        return self.tl.PROP_NAME
+
+    @cached_property
+    def type(self):
+        return self.get_containing(Repository)._resolve_type_id(self.tl.PROP_TYPE)
+
+    @cached_property
     def signature(self):
         return f"{self.type_name} {self.container.name}.{self.name}"
 
     @property
     def writable(self):
-        return self.xml["writable"] == "1"
+        return self.tl.PROP_WRITABLE == 1
 
     @property
     def construct_only(self):
-        return self.xml["construct-only"] == "1"
+        return self.tl.PROP_CONSTRUCT_ONLY == 1
 
 
 class Parameter(GirNode):
-    def __init__(self, container: GirNode, xml: xml_reader.Element):
-        super().__init__(container, xml)
+    def __init__(self, container: GirNode, tl: typelib.Typelib):
+        super().__init__(container, tl)
 
 
 class Signal(GirNode):
-    def __init__(self, klass, xml: xml_reader.Element):
-        super().__init__(klass, xml)
-        if parameters := xml.get_elements('parameters'):
-            self.params = [Parameter(self, child) for child in parameters[0].get_elements('parameter')]
-        else:
-            self.params = []
+    def __init__(self, klass, tl: typelib.Typelib):
+        super().__init__(klass, tl)
+        # if parameters := xml.get_elements('parameters'):
+        #     self.params = [Parameter(self, child) for child in parameters[0].get_elements('parameter')]
+        # else:
+        #     self.params = []
 
     @property
     def signature(self):
-        args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
+        # TODO: fix
+        # args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
+        args = ""
         return f"signal {self.container.name}.{self.name} ({args})"
 
 
 class Interface(GirNode, GirType):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self.properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
-        self.signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
-        self.prerequisites = [child["name"] for child in xml.get_elements("prerequisite")]
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
+
+    @cached_property
+    def properties(self):
+        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
+        offset = self.tl.header.HEADER_INTERFACE_BLOB_SIZE
+        offset += (n_prerequisites + n_prerequisites % 2) * 2
+        n_properties = self.tl.INTERFACE_N_PROPERTIES
+        property_size = self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        result = {}
+        for i in range(n_properties):
+            property = Property(self, self.tl[offset + i * property_size])
+            result[property.name] = property
+        return result
+
+    @cached_property
+    def signals(self):
+        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
+        offset = self.tl.header.HEADER_INTERFACE_BLOB_SIZE
+        offset += (n_prerequisites + n_prerequisites % 2) * 2
+        offset += self.tl.INTERFACE_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        offset += self.tl.INTERFACE_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
+        n_signals = self.tl.INTERFACE_N_SIGNALS
+        property_size = self.tl.header.HEADER_SIGNAL_BLOB_SIZE
+        result = {}
+        for i in range(n_signals):
+            signal = Signal(self, self.tl[offset + i * property_size])
+            result[signal.name] = signal
+        return result
+
+    @cached_property
+    def prerequisites(self):
+        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
+        result = []
+        for i in range(n_prerequisites):
+            entry = self.tl.INTERFACE_PREREQUISITES[i * 2].AS_DIR_ENTRY
+            result.append(self.get_containing(Repository)._resolve_dir_entry(entry))
+        return result
 
     def assignable_to(self, other) -> bool:
         if self == other:
             return True
         for pre in self.prerequisites:
-            if self.get_containing(Namespace).lookup_type(pre).assignable_to(other):
+            if pre.assignable_to(other):
                 return True
         return False
 
 
 class Class(GirNode, GirType):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self._parent = xml["parent"]
-        self.implements = [impl["name"] for impl in xml.get_elements("implements")]
-        self.own_properties = {child["name"]: Property(self, child) for child in xml.get_elements("property")}
-        self.own_signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
 
     @property
     def abstract(self):
-        return self.xml["abstract"] == "1"
+        return self.tl.OBJ_ABSTRACT == 1
 
-    @property
+    @cached_property
+    def implements(self):
+        n_interfaces = self.tl.OBJ_N_INTERFACES
+        result = []
+        for i in range(n_interfaces):
+            entry = self.tl[self.tl.header.HEADER_OBJECT_BLOB_SIZE + i * 2].AS_DIR_ENTRY
+            result.append(self.get_containing(Repository)._resolve_dir_entry(entry))
+        return result
+
+    @cached_property
+    def own_properties(self):
+        n_interfaces = self.tl.OBJ_N_INTERFACES
+        offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
+        offset += (n_interfaces + n_interfaces % 2) * 2
+        offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
+        offset += self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        n_properties = self.tl.OBJ_N_PROPERTIES
+        property_size = self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        result = {}
+        for i in range(n_properties):
+            property = Property(self, self.tl[offset + i * property_size])
+            result[property.name] = property
+        return result
+
+    @cached_property
+    def own_signals(self):
+        n_interfaces = self.tl.OBJ_N_INTERFACES
+        offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
+        offset += (n_interfaces + n_interfaces % 2) * 2
+        offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
+        offset += self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        offset += self.tl.OBJ_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        offset += self.tl.OBJ_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
+        n_signals = self.tl.OBJ_N_SIGNALS
+        signal_size = self.tl.header.HEADER_SIGNAL_BLOB_SIZE
+        result = {}
+        for i in range(n_signals):
+            signal = Signal(self, self.tl[offset][i * signal_size])
+            result[signal.name] = signal
+        return result
+
+    @cached_property
+    def parent(self):
+        if entry := self.tl.OBJ_PARENT:
+            return self.get_containing(Repository)._resolve_dir_entry(entry)
+        else:
+            return None
+
+    @cached_property
     def signature(self):
         result = f"class {self.container.name}.{self.name}"
         if self.parent is not None:
             result += f" : {self.parent.container.name}.{self.parent.name}"
         if len(self.implements):
-            result += " implements " + ", ".join(self.implements)
+            result += " implements " + ", ".join([impl.full_name for impl in self.implements])
         return result
 
     @cached_property
@@ -257,13 +402,6 @@ class Class(GirNode, GirType):
     def signals(self):
         return { s.name: s for s in self._enum_signals() }
 
-    @cached_property
-    def parent(self):
-        if self._parent is None:
-            return None
-        return self.get_containing(Namespace).lookup_type(self._parent)
-
-
     def assignable_to(self, other) -> bool:
         if self == other:
             return True
@@ -271,11 +409,10 @@ class Class(GirNode, GirType):
             return True
         else:
             for iface in self.implements:
-                if self.get_containing(Namespace).lookup_type(iface).assignable_to(other):
+                if iface.assignable_to(other):
                     return True
 
             return False
-
 
     def _enum_properties(self):
         yield from self.own_properties.values()
@@ -284,7 +421,7 @@ class Class(GirNode, GirType):
             yield from self.parent.properties.values()
 
         for impl in self.implements:
-            yield from self.get_containing(Namespace).lookup_type(impl).properties.values()
+            yield from impl.properties.values()
 
     def _enum_signals(self):
         yield from self.own_signals.values()
@@ -293,25 +430,28 @@ class Class(GirNode, GirType):
             yield from self.parent.signals.values()
 
         for impl in self.implements:
-            yield from self.get_containing(Namespace).lookup_type(impl).signals.values()
+            yield from impl.signals.values()
 
 
 class EnumMember(GirNode):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self._value = xml["value"]
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
 
     @property
     def value(self):
-        return self._value
+        return self.tl.VALUE_VALUE
 
-    @property
+    @cached_property
+    def name(self):
+        return self.tl.VALUE_NAME
+
+    @cached_property
     def nick(self):
-        return self.xml["glib:nick"]
+        return self.name.replace("_", "-")
 
     @property
     def c_ident(self):
-        return self.xml["c:identifier"]
+        return self.tl.attr("c:identifier")
 
     @property
     def signature(self):
@@ -319,9 +459,19 @@ class EnumMember(GirNode):
 
 
 class Enumeration(GirNode, GirType):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self.members = { child["name"]: EnumMember(self, child) for child in xml.get_elements("member") }
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
+
+    @cached_property
+    def members(self):
+        members = {}
+        n_values = self.tl.ENUM_N_VALUES
+        values = self.tl.ENUM_VALUES
+        value_size = self.tl.header.HEADER_VALUE_BLOB_SIZE
+        for i in range(n_values):
+            member = EnumMember(self, values[i * value_size])
+            members[member.name] = member
+        return members
 
     @property
     def signature(self):
@@ -331,63 +481,67 @@ class Enumeration(GirNode, GirType):
         return type == self
 
 
-class BitfieldMember(GirNode):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self._value = xml["value"]
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def signature(self):
-        return f"bitfield member {self.full_name} = {bin(self.value)}"
-
-
-class Bitfield(GirNode, GirType):
-    def __init__(self, ns, xml: xml_reader.Element):
-        super().__init__(ns, xml)
-        self.members = { child["name"]: EnumMember(self, child) for child in xml.get_elements("member") }
-
-    @property
-    def signature(self):
-        return f"bitfield {self.full_name}"
-
-    def assignable_to(self, type):
-        return type == self
+class Bitfield(Enumeration):
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
 
 
 class Namespace(GirNode):
-    def __init__(self, repo, xml: xml_reader.Element):
-        super().__init__(repo, xml)
-        self.classes = { child["name"]: Class(self, child) for child in xml.get_elements("class") }
-        self.interfaces = { child["name"]: Interface(self, child) for child in xml.get_elements("interface") }
-        self.enumerations = { child["name"]: Enumeration(self, child) for child in xml.get_elements("enumeration") }
-        self.bitfields = { child["name"]: Bitfield(self, child) for child in xml.get_elements("bitfield") }
-        self.version = xml["version"]
+    def __init__(self, repo, tl: typelib.Typelib):
+        super().__init__(repo, tl)
+
+        self.entries: T.Dict[str, GirNode] = {}
+
+        n_local_entries = tl.HEADER_N_ENTRIES
+        directory = tl.HEADER_DIRECTORY
+        for i in range(n_local_entries):
+            entry = directory[i * tl.HEADER_ENTRY_BLOB_SIZE]
+            entry_name = entry.DIR_ENTRY_NAME
+            entry_type = entry.DIR_ENTRY_BLOB_TYPE
+            entry_blob = entry.DIR_ENTRY_OFFSET
+
+            if entry_type == typelib.BLOB_TYPE_ENUM:
+                self.entries[entry_name] = Enumeration(self, entry_blob)
+            elif entry_type == typelib.BLOB_TYPE_FLAGS:
+                self.entries[entry_name] = Bitfield(self, entry_blob)
+            elif entry_type == typelib.BLOB_TYPE_OBJECT:
+                self.entries[entry_name] = Class(self, entry_blob)
+            elif entry_type == typelib.BLOB_TYPE_INTERFACE:
+                 self.entries[entry_name] = Interface(self, entry_blob)
+
+    @cached_property
+    def xml(self):
+        return get_xml(self.name, self.version).get_elements("namespace")[0]
+
+    @cached_property
+    def name(self):
+        return self.tl.HEADER_NAMESPACE
+
+    @cached_property
+    def version(self):
+        return self.tl.HEADER_NSVERSION
 
     @property
     def signature(self):
         return f"namespace {self.name} {self.version}"
 
+    @cached_property
+    def classes(self):
+        return { name: entry for name, entry in self.entries.items() if isinstance(entry, Class) }
+
+    @cached_property
+    def interfaces(self):
+        return { name: entry for name, entry in self.entries.items() if isinstance(entry, Interface) }
 
     def get_type(self, name):
         """ Gets a type (class, interface, enum, etc.) from this namespace. """
-        return (
-            self.classes.get(name)
-            or self.interfaces.get(name)
-            or self.enumerations.get(name)
-            or self.bitfields.get(name)
-        )
-
+        return self.entries.get(name)
 
     def get_type_by_cname(self, cname: str):
         """ Gets a type from this namespace by its C name. """
-        for item in [*self.classes.values(), *self.interfaces.values(), *self.enumerations.values()]:
-            if item.cname == cname:
+        for item in self.entries.values():
+            if hasattr(item, "cname") and item.cname == cname:
                 return item
-
 
     def lookup_type(self, type_name: str):
         """ Looks up a type in the scope of this namespace (including in the
@@ -403,25 +557,26 @@ class Namespace(GirNode):
 
 
 class Repository(GirNode):
-    def __init__(self, xml: xml_reader.Element):
-        super().__init__(None, xml)
-        self.namespaces = { child["name"]: Namespace(self, child) for child in xml.get_elements("namespace") }
+    def __init__(self, tl: typelib.Typelib):
+        super().__init__(None, tl)
 
-        try:
-            self.includes = { include["name"]: get_namespace(include["name"], include["version"]) for include in xml.get_elements("include") }
-        except:
-            raise CompilerBugError(f"Failed to load dependencies.")
+        self.namespace = Namespace(self, tl)
 
+        if dependencies := tl[0x24].string:
+            deps = [tuple(dep.split("-", 1)) for dep in dependencies.split("|")]
+            try:
+                self.includes = { name: get_namespace(name, version) for name, version in deps }
+            except:
+                raise CompilerBugError(f"Failed to load dependencies.")
+        else:
+            self.includes = {}
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
-        if namespace := self.namespaces.get(ns):
-            return namespace.get_type(name)
-        else:
-            return self.lookup_namespace(ns).get_type(name)
+        return self.lookup_namespace(ns).get_type(name)
 
 
     def get_type_by_cname(self, name: str) -> T.Optional[GirNode]:
-        for ns in self.namespaces.values():
+        for ns in [self.namespace, *self.includes.values()]:
             if type := ns.get_type_by_cname(name):
                 return type
         return None
@@ -429,12 +584,39 @@ class Repository(GirNode):
 
     def lookup_namespace(self, ns: str):
         """ Finds a namespace among this namespace's dependencies. """
-        if namespace := self.namespaces.get(ns):
-            return namespace
+        if ns == self.namespace.name:
+            return self.namespace
         else:
             for include in self.includes.values():
                 if namespace := include.get_containing(Repository).lookup_namespace(ns):
                     return namespace
+
+    def _resolve_dir_entry(self, dir_entry: typelib.Typelib):
+        if dir_entry.DIR_ENTRY_LOCAL:
+            return self.namespace.get_type(dir_entry.DIR_ENTRY_NAME)
+        else:
+            ns = dir_entry.DIR_ENTRY_NAMESPACE
+            return self.lookup_namespace(ns).get_type(dir_entry.DIR_ENTRY_NAME)
+
+    def _resolve_type_id(self, type_id: int):
+        if type_id & 0xFFFFFF == 0:
+            type_id = (type_id >> 27) & 0x1F
+            # simple type
+            if type_id == typelib.TYPE_BOOLEAN:
+                return BoolType()
+            elif type_id in [typelib.TYPE_FLOAT, typelib.TYPE_DOUBLE]:
+                return FloatType()
+            elif type_id in [typelib.TYPE_INT8, typelib.TYPE_INT16, typelib.TYPE_INT32, typelib.TYPE_INT64]:
+                return IntType()
+            elif type_id in [typelib.TYPE_UINT8, typelib.TYPE_UINT16, typelib.TYPE_UINT32, typelib.TYPE_UINT64]:
+                return UIntType()
+            elif type_id == typelib.TYPE_UTF8:
+                return StringType()
+            else:
+                raise CompilerBugError("Unknown type ID", type_id)
+        else:
+            return self._resolve_dir_entry(self.tl.header[type_id].INTERFACE_TYPE_INTERFACE)
+
 
 
 class GirContext:

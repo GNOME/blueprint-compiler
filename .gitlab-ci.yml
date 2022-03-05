@@ -11,7 +11,7 @@ build:
     - coverage report
     - coverage html
     - coverage xml
-    - meson _build -Ddocs=true
+    - meson _build -Ddocs=true --prefix=/usr
     - ninja -C _build
     - ninja -C _build test
     - ninja -C _build install

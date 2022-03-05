@@ -122,8 +122,13 @@ class DecompileCtx:
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
             self._indent += 1
 
-
     def print_attribute(self, name, value, type):
+        def get_enum_name(value):
+            for member in type.members.values():
+                if member.nick == value or member.c_ident == value:
+                    return member.name
+            return value.replace('-', '_')
+
         if type is None:
             self.print(f"{name}: \"{escape_quote(value)}\";")
         elif type.assignable_to(FloatType()):
@@ -141,16 +146,11 @@ class DecompileCtx:
             self.print(f"{name}: \"{escape_quote(value)}\";")
         elif type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("GObject.Object")):
             self.print(f"{name}: {value};")
-        elif isinstance(type, Enumeration):
-            for member in type.members.values():
-                if member.nick == value or member.c_ident == value:
-                    self.print(f"{name}: {member.name};")
-                    break
-            else:
-                self.print(f"{name}: {value.replace('-', '_')};")
         elif isinstance(type, Bitfield):
-            flags = re.sub(r"\s*\|\s*", " | ", value).replace("-", "_")
-            self.print(f"{name}: {flags};")
+            flags = [get_enum_name(flag) for flag in value.split("|")]
+            self.print(f"{name}: {' | '.join(flags)};")
+        elif isinstance(type, Enumeration):
+            self.print(f"{name}: {get_enum_name(value)};")
         else:
             self.print(f"{name}: \"{escape_quote(value)}\";")
 
@@ -171,9 +171,8 @@ def _decompile_element(ctx: DecompileCtx, gir, xml):
         ctx.start_block()
         gir = decompiler(ctx, gir, **args)
 
-        for child_type in xml.children.values():
-            for child in child_type:
-                _decompile_element(ctx, gir, child)
+        for child in xml.children:
+            _decompile_element(ctx, gir, child)
 
         ctx.end_block()
 

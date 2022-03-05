@@ -3,7 +3,7 @@ from pythonfuzz.main import PythonFuzz
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from blueprintcompiler import tokenizer, parser, decompiler
+from blueprintcompiler import tokenizer, parser, decompiler, gir
 from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError, CompilerBugError
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
@@ -27,4 +27,8 @@ def fuzz(buf):
         pass
 
 if __name__ == "__main__":
+    # Make sure Gtk 4.0 is accessible, otherwise every test will fail on that
+    # and nothing interesting will be tested
+    gir.get_namespace("Gtk", "4.0")
+
     fuzz()
