@@ -48,6 +48,14 @@ Features
 - **Modern tooling.** IDE integration for `GNOME Builder <https://developer.gnome.org/documentation/introduction/builder.html>`_
   is in progress, and a VS Code extension is also planned.
 
+Built with Blueprint
+--------------------
+
+- `Extension Manager <https://github.com/mjakeman/extension-manager>`_
+- `Video Trimmer <https://gitlab.gnome.org/YaLTeR/video-trimmer>`_
+- `Solanum <https://gitlab.gnome.org/World/Solanum>`_
+- `Health <https://gitlab.gnome.org/World/Health>`_
+
 Links
 -----
 
