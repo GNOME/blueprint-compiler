@@ -94,6 +94,17 @@ def object_completer(ast_node, match_variables):
 
 
 @completer(
+    applies_in=[language.UI, language.ObjectContent, language.Template],
+    matches=new_statement_patterns,
+)
+def gtk_object_completer(ast_node, match_variables):
+    ns = ast_node.root.gir.namespaces.get("Gtk")
+    if ns is not None:
+        for c in ns.classes.values():
+            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc)
+
+
+@completer(
     applies_in=[language.ObjectContent],
     matches=new_statement_patterns,
 )
