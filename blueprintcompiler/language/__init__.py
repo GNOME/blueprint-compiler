@@ -21,11 +21,6 @@ from .values import IdentValue, TranslatedStringValue, FlagsValue, LiteralValue
 
 from .common import *
 
-OBJECT_HOOKS.children = [
-    menu,
-    Object,
-]
-
 OBJECT_CONTENT_HOOKS.children = [
     Signal,
     Property,

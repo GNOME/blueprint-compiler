@@ -20,6 +20,8 @@
 
 from .. import gir
 from .imports import GtkDirective, Import
+from .gtk_menu import menu
+from .gobject_object import Object
 from .gtkbuilder_template import Template
 from .common import *
 
@@ -32,7 +34,8 @@ class UI(AstNode):
         ZeroOrMore(Import),
         Until(AnyOf(
             Template,
-            OBJECT_HOOKS,
+            menu,
+            Object,
         ), Eof()),
     ]
 

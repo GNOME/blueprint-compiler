@@ -1,13 +1,12 @@
 using Gtk 4.0;
 
-menu {
-  label: _("menu label");
-  test-custom-attribute: 3.1415;
+menu my_menu {
+  section {
+    label: "test section";
+  }
 
   submenu {
-    section {
-      label: "test section";
-    }
+    label: "test submenu";
 
     item {
       label: "test item";

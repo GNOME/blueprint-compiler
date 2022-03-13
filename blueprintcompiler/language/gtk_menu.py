@@ -20,7 +20,6 @@
 
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
-from .ui import UI
 from .common import *
 
 
@@ -31,6 +30,11 @@ class Menu(Object):
             child.emit_xml(xml)
         xml.end_tag()
 
+    @validate("menu")
+    def has_id(self):
+        if self.tokens["tag"] == "menu" and self.tokens["id"] is None:
+            raise CompileError("Menu requires an ID")
+
     @property
     def gir_class(self):
         return self.root.gir.namespaces["Gtk"].lookup_type("Gio.MenuModel")
@@ -38,6 +42,11 @@ class Menu(Object):
 
 class MenuAttribute(BaseAttribute):
     tag_name = "attribute"
+
+    @validate()
+    def not_in_menu(self):
+        if self.parent.tokens["tag"] == "menu":
+            raise CompileError("Menu root may not have attributes")
 
     @property
     def value_type(self):
@@ -128,16 +137,17 @@ menu_contents.children = [
     ), "}"),
 ]
 
-menu = Group(
+menu: Group = Group(
     Menu,
     [
-        "menu",
+        Keyword("menu"),
         UseLiteral("tag", "menu"),
         Optional(UseIdent("id")),
         menu_contents
     ],
 )
 
+from .ui import UI
 
 @completer(
     applies_in=[UI],
