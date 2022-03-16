@@ -19,6 +19,7 @@
 
 
 from .common import *
+from .types import ClassName, TypeName
 
 
 expr = Pratt()
@@ -26,6 +27,10 @@ expr = Pratt()
 
 class Expr(AstNode):
     grammar = expr
+
+    @property
+    def gir_type(self):
+        return self.children[-1].gir_type
 
     def emit_xml(self, xml: XmlEmitter):
         self.children[-1].emit_xml(xml)
@@ -45,6 +50,13 @@ class IdentExpr(AstNode):
     def is_this(self):
         return self.parent_by_type(Scope).this_name == self.tokens["ident"]
 
+    @property
+    def gir_type(self):
+        if self.is_this:
+            return self.parent_by_type(Scope).this_type
+        else:
+            return None
+
     def emit_xml(self, xml: XmlEmitter):
         if self.is_this:
             raise CompilerBugError()
@@ -55,17 +67,33 @@ class IdentExpr(AstNode):
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
 
+    @property
+    def gir_type(self):
+        return None
+
     def emit_xml(self, xml: XmlEmitter):
         if isinstance(self.lhs, IdentExpr) and self.lhs.is_this:
             xml.put_self_closing("lookup", name=self.tokens["property"], type=self.parent_by_type(Scope).this_type)
         else:
-            xml.start_tag("lookup", name=self.tokens["property"])
+            xml.start_tag("lookup", name=self.tokens["property"], type=self.lhs.gir_type)
             self.lhs.emit_xml(xml)
             xml.end_tag()
 
 
+class CastExpr(AstNode):
+    grammar = ["(", TypeName, ")", Expr]
+
+    @property
+    def gir_type(self):
+        return self.children[TypeName][0].gir_type
+
+    def emit_xml(self, xml: XmlEmitter):
+        self.children[Expr][0].emit_xml(xml)
+
+
 expr.children = [
     Prefix(IdentExpr),
+    Prefix(CastExpr),
     Prefix(["(", Expr, ")"]),
     Infix(10, LookupOp),
 ]
