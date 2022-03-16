@@ -17,11 +17,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from functools import cached_property
 import typing as T
 import os, sys
 
 from .errors import CompileError, CompilerBugError
-from .utils import lazy_prop
 from . import xml_reader
 
 
@@ -127,30 +127,30 @@ class GirNode:
         else:
             return self.container.get_containing(container_type)
 
-    @lazy_prop
+    @cached_property
     def glib_type_name(self):
         return self.xml["glib:type-name"]
 
-    @lazy_prop
+    @cached_property
     def full_name(self):
         if self.container is None:
             return self.name
         else:
             return f"{self.container.name}.{self.name}"
 
-    @lazy_prop
+    @cached_property
     def name(self) -> str:
         return self.xml["name"]
 
-    @lazy_prop
+    @cached_property
     def cname(self) -> str:
         return self.xml["c:type"]
 
-    @lazy_prop
+    @cached_property
     def available_in(self) -> str:
         return self.xml.get("version")
 
-    @lazy_prop
+    @cached_property
     def doc(self) -> T.Optional[str]:
         sections = []
 
@@ -237,15 +237,15 @@ class Class(GirNode, GirType):
             result += " implements " + ", ".join(self.implements)
         return result
 
-    @lazy_prop
+    @cached_property
     def properties(self):
         return { p.name: p for p in self._enum_properties() }
 
-    @lazy_prop
+    @cached_property
     def signals(self):
         return { s.name: s for s in self._enum_signals() }
 
-    @lazy_prop
+    @cached_property
     def parent(self):
         if self._parent is None:
             return None

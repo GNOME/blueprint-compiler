@@ -19,10 +19,9 @@
 
 
 from collections import defaultdict
+from functools import cached_property
 import typing as T
 from xml import sax
-
-from .utils import lazy_prop
 
 
 # To speed up parsing, we ignore all tags except these
@@ -40,7 +39,7 @@ class Element:
         self.children: T.Dict[str, T.List["Element"]] = defaultdict(list)
         self.cdata_chunks: T.List[str] = []
 
-    @lazy_prop
+    @cached_property
     def cdata(self):
         return ''.join(self.cdata_chunks)
 
