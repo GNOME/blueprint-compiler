@@ -28,9 +28,13 @@ class BaseAttribute(AstNode):
     tag_name: str = ""
     attr_name: str = "name"
 
+    @property
+    def name(self):
+        return self.tokens["name"]
+
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
-        attrs = { self.attr_name: self.tokens["name"] }
+        attrs = { self.attr_name: self.name }
 
         if isinstance(value, TranslatedStringValue):
             attrs = { **attrs, **value.attrs }

@@ -122,6 +122,10 @@ class A11yProperty(BaseTypedAttribute):
             raise CompilerBugError()
 
     @property
+    def name(self):
+        return self.tokens["name"].replace("_", "-")
+
+    @property
     def value_type(self) -> GirType:
         return get_types(self.root.gir).get(self.tokens["name"])
 
@@ -181,12 +185,13 @@ def a11y_name_completer(ast_node, match_variables):
 
 @decompiler("relation", cdata=True)
 def decompile_relation(ctx, gir, name, cdata):
+    name = name.replace("-", "_")
     ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
 
 @decompiler("state", cdata=True)
 def decompile_state(ctx, gir, name, cdata, translatable="false"):
     if decompile.truthy(translatable):
-        ctx.print(f"{name}: _(\"{_escape_quote(cdata)}\");")
+        ctx.print(f"{name.replace('-', '_')}: _(\"{_escape_quote(cdata)}\");")
     else:
         ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
 
