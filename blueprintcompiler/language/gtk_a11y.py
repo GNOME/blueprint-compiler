@@ -28,23 +28,23 @@ def get_property_types(gir):
     return {
         "autocomplete": gir.get_type("AccessibleAutocomplete", "Gtk"),
         "description": StringType(),
-        "has_popup": BoolType(),
-        "key_shortcuts": StringType(),
+        "has-popup": BoolType(),
+        "key-shortcuts": StringType(),
         "label": StringType(),
         "level": IntType(),
         "modal": BoolType(),
-        "multi_line": BoolType(),
-        "multi_selectable": BoolType(),
+        "multi-line": BoolType(),
+        "multi-selectable": BoolType(),
         "orientation": gir.get_type("Orientation", "Gtk"),
         "placeholder": StringType(),
-        "read_only": BoolType(),
+        "read-only": BoolType(),
         "required": BoolType(),
-        "role_description": StringType(),
+        "role-description": StringType(),
         "sort": gir.get_type("AccessibleSort", "Gtk"),
-        "value_max": FloatType(),
-        "value_min": FloatType(),
-        "value_now": FloatType(),
-        "value_text": StringType(),
+        "value-max": FloatType(),
+        "value-min": FloatType(),
+        "value-now": FloatType(),
+        "value-text": StringType(),
     }
 
 
@@ -52,24 +52,24 @@ def get_relation_types(gir):
     # from <https://docs.gtk.org/gtk4/enum.AccessibleRelation.html>
     widget = gir.get_type("Widget", "Gtk")
     return {
-        "active_descendant": widget,
-        "col_count": IntType(),
-        "col_index": IntType(),
-        "col_index_text": StringType(),
-        "col_span": IntType(),
+        "active-descendant": widget,
+        "col-count": IntType(),
+        "col-index": IntType(),
+        "col-index-text": StringType(),
+        "col-span": IntType(),
         "controls": widget,
-        "described_by": widget,
+        "described-by": widget,
         "details": widget,
-        "error_message": widget,
-        "flow_to": widget,
-        "labelled_by": widget,
+        "error-message": widget,
+        "flow-to": widget,
+        "labelled-by": widget,
         "owns": widget,
-        "pos_in_set": IntType(),
-        "row_count": IntType(),
-        "row_index": IntType(),
-        "row_index_text": StringType(),
-        "row_span": IntType(),
-        "set_size": IntType(),
+        "pos-in-set": IntType(),
+        "row-count": IntType(),
+        "row-index": IntType(),
+        "row-index-text": StringType(),
+        "row-span": IntType(),
+        "set-size": IntType(),
     }
 
 
@@ -121,6 +121,10 @@ class A11yProperty(BaseTypedAttribute):
             return "state"
         else:
             raise CompilerBugError()
+
+    @property
+    def name(self):
+        return self.tokens["name"].replace("_", "-")
 
     @property
     def value_type(self) -> GirType:

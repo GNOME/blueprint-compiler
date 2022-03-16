@@ -332,7 +332,7 @@ Basic Usage
    Gtk.Widget {
      accessibility {
        orientation: vertical;
-       labelled_by: my_label;
+       labelled-by: my_label;
        checked: true;
      }
    }
