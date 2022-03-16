@@ -7,7 +7,7 @@
     </child>
   </object>
   <object class="GtkDialog">
-    <child internal-child="context_area">
+    <child internal-child="content_area">
       <object class="GtkBox"></object>
     </child>
   </object>
