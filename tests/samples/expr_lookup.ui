@@ -8,7 +8,7 @@
   </object>
   <object class="GtkLabel">
     <binding name="label">
-      <lookup name="label">
+      <lookup name="label" type="GtkLabel">
         <lookup name="child">
           <lookup name="parent">
             <constant>label</constant>
