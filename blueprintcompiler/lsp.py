@@ -264,10 +264,15 @@ class LanguageServer:
         })
 
     def _create_diagnostic(self, text, err):
+        if isinstance(err, CompileWarning):
+            severity = DiagnosticSeverity.Warning
+        else:
+            severity = DiagnosticSeverity.Error
+
         return {
             "range": utils.idxs_to_range(err.start, err.end, text),
             "message": err.message,
-            "severity": 1,
+            "severity": severity,
         }
 
 

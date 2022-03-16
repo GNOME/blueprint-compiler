@@ -103,6 +103,14 @@ class SemanticTokenType(enum.IntEnum):
     EnumMember = 0
 
 
+class DiagnosticSeverity(enum.IntEnum):
+    Error = 1
+    Warning = 2
+    Information = 3
+    Hint = 4
+
+
+
 @dataclass
 class SemanticToken:
     start: int
