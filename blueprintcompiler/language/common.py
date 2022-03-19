@@ -24,7 +24,7 @@ from ..errors import CompileError, MultipleErrors
 from ..completions_utils import *
 from .. import decompiler as decompile
 from ..decompiler import DecompileCtx, decompiler
-from ..gir import StringType, BoolType, IntType, FloatType, GirType
+from ..gir import StringType, BoolType, IntType, FloatType, GirType, Enumeration
 from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from ..parse_tree import *
 from ..parser_utils import *

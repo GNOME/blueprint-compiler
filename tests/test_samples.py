@@ -24,12 +24,21 @@ import traceback
 import unittest
 
 from blueprintcompiler import tokenizer, parser, decompiler
+from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 from blueprintcompiler import utils
 
 
 class TestSamples(unittest.TestCase):
+    def assert_docs_dont_crash(self, text, ast):
+        for i in range(len(text)):
+            ast.get_docs(i)
+
+    def assert_completions_dont_crash(self, text, ast, tokens):
+        for i in range(len(text)):
+            list(complete(ast, tokens, i))
+
     def assert_sample(self, name):
         try:
             with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
@@ -52,6 +61,9 @@ class TestSamples(unittest.TestCase):
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
+
+            self.assert_docs_dont_crash(blueprint, ast)
+            self.assert_completions_dont_crash(blueprint, ast, tokens)
         except PrintableError as e: # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
@@ -66,6 +78,9 @@ class TestSamples(unittest.TestCase):
 
             tokens = tokenizer.tokenize(blueprint)
             ast, errors, warnings = parser.parse(tokens)
+
+            self.assert_docs_dont_crash(blueprint, ast)
+            self.assert_completions_dont_crash(blueprint, ast, tokens)
 
             if errors:
                 raise errors

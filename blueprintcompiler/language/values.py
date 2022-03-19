@@ -112,10 +112,10 @@ class Flag(AstNode):
     @docs()
     def docs(self):
         type = self.parent.parent.value_type
+        if not isinstance(type, Enumeration):
+            return
         if member := type.members.get(self.tokens["value"]):
             return member.doc
-        else:
-            return type.doc
 
     @validate()
     def validate_for_type(self):

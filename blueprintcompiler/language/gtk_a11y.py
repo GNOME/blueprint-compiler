@@ -94,11 +94,12 @@ def get_types(gir):
     }
 
 def _get_docs(gir, name):
-    return (
+    if gir_type := (
         gir.get_type("AccessibleProperty", "Gtk").members.get(name)
         or gir.get_type("AccessibleRelation", "Gtk").members.get(name)
         or gir.get_type("AccessibleState", "Gtk").members.get(name)
-    ).doc
+    ):
+        return gir_type.doc
 
 
 class A11yProperty(BaseTypedAttribute):
