@@ -5,7 +5,7 @@ project('blueprint-compiler',
 subdir('docs')
 
 prefix = get_option('prefix')
-libdir = join_paths(prefix, get_option('libdir'))
+datadir = join_paths(prefix, get_option('datadir'))
 
 py = import('python').find_installation('python3')
 
@@ -14,7 +14,7 @@ configure_file(
   output: 'blueprint-compiler.pc',
   configuration: { 'VERSION': meson.project_version() },
   install: not meson.is_subproject(),
-  install_dir: join_paths(libdir, 'pkgconfig'),
+  install_dir: join_paths(datadir, 'pkgconfig'),
 )
 
 install_data(
