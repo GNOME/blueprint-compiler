@@ -218,6 +218,15 @@ class LanguageServer:
         completions = complete(open_file.ast, open_file.tokens, idx)
         self._send_response(id, [completion.to_json(True) for completion in completions])
 
+    @command("textDocument/x-blueprintcompiler-compile")
+    def compile(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        if open_file.ast is None or len(open_file.ast.errors):
+            self._send_response(id, {"xml": None})
+            return
+
+        self._send_response(id, { "xml": open_file.ast.generate() })
 
     @command("textDocument/semanticTokens/full")
     def semantic_tokens(self, id, params):
