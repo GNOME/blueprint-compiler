@@ -34,14 +34,17 @@ class GtkDirective(AstNode):
         if self.tokens["version"] not in ["4.0"]:
             err = CompileError("Only GTK 4 is supported")
             if self.tokens["version"].startswith("4"):
-                err.hint("Expected the GIR version, not an exact version number. Use `using Gtk 4.0;`.")
+                err.hint("Expected the GIR version, not an exact version number. Use 'using Gtk 4.0;'.")
             else:
-                err.hint("Expected `using Gtk 4.0;`")
+                err.hint("Expected 'using Gtk 4.0;'")
             raise err
 
 
     @property
     def gir_namespace(self):
+        # validate the GTK version first to make sure the more specific error
+        # message is emitted
+        self.gtk_version()
         return gir.get_namespace("Gtk", self.tokens["version"])
 
 

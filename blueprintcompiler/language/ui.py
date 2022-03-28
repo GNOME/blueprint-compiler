@@ -44,8 +44,6 @@ class UI(AstNode):
         try:
             gir_ctx.add_namespace(self.children[GtkDirective][0].gir_namespace)
         except CompileError as e:
-            e.start = self.children[GtkDirective][0].group.start
-            e.end = self.children[GtkDirective][0].group.end
             self._gir_errors.append(e)
 
         for i in self.children[Import]:

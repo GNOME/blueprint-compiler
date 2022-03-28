@@ -178,6 +178,8 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("filters_in_non_file_filter")
+        self.assert_sample_error("gtk_3")
+        self.assert_sample_error("gtk_exact_version")
         self.assert_sample_error("invalid_bool")
         self.assert_sample_error("layout_in_non_widget")
         self.assert_sample_error("ns_not_imported")
