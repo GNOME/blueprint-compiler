@@ -238,6 +238,11 @@ def decompile_requires(ctx, gir, lib=None, version=None):
     return gir
 
 
+@decompiler("placeholder")
+def decompile_placeholder(ctx, gir):
+    pass
+
+
 @decompiler("property", cdata=True)
 def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=None, bind_flags=None, translatable="false", comments=None, context=None):
     name = name.replace("_", "-")

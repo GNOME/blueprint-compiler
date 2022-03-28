@@ -207,6 +207,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("layout_dec")
         self.assert_decompile("menu_dec")
         self.assert_decompile("property")
+        self.assert_decompile("placeholder_dec")
         self.assert_decompile("signal")
         self.assert_decompile("strings")
         self.assert_decompile("style_dec")
