@@ -154,6 +154,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("template_no_parent")
         self.assert_sample("translated")
         self.assert_sample("uint")
+        self.assert_sample("unchecked_class")
         self.assert_sample("using")
 
 
@@ -216,3 +217,4 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("template")
         self.assert_decompile("translated")
         self.assert_decompile("using")
+        self.assert_decompile("unchecked_class")
