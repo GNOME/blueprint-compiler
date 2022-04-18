@@ -56,6 +56,9 @@ class ResponseId(AstNode):
         from .gobject_object import Object
 
         container_type = self.parent_by_type(Object).gir_class
+        if container_type is None:
+            return
+
         gir = self.root.gir
 
         for namespace, name in ResponseId.ALLOWED_PARENTS:
