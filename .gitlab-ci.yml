@@ -25,6 +25,20 @@ build:
     reports:
       cobertura: coverage.xml
 
+fuzz:
+  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
+  stage: build
+  allow_failure: true
+  script:
+    - meson _build
+    - ninja -C _build install
+    - ./tests/fuzz.sh 5000
+  artifacts:
+    when: always
+    paths:
+      - corpus
+      - crashes
+
 pages:
   stage: pages
   dependencies:
