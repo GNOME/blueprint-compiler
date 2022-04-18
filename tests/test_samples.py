@@ -217,4 +217,4 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("template")
         self.assert_decompile("translated")
         self.assert_decompile("using")
-        self.assert_decompile("unchecked_class")
+        self.assert_decompile("unchecked_class_dec")

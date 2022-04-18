@@ -133,7 +133,7 @@ class FlagsValue(Value):
     @validate()
     def parent_is_bitfield(self):
         type = self.parent.value_type
-        if not isinstance(type, gir.Bitfield):
+        if type is not None and not isinstance(type, gir.Bitfield):
             raise CompileError(f"{type.full_name} is not a bitfield type")
 
     def emit_xml(self, xml: XmlEmitter):
