@@ -142,6 +142,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("inline_menu")
         self.assert_sample("layout")
         self.assert_sample("menu")
+        self.assert_sample("numbers")
         self.assert_sample("object_prop")
         self.assert_sample("parseable")
         self.assert_sample("property")
