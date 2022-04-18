@@ -371,15 +371,15 @@ class Until(ParseNode):
 
     def _parse(self, ctx):
         while not self.delimiter.parse(ctx).succeeded():
+            if ctx.is_eof():
+                return False
+
             try:
                 if not self.child.parse(ctx).matched():
                     ctx.skip_unexpected_token()
             except CompileError as e:
                 ctx.errors.append(e)
                 ctx.next_token()
-
-            if ctx.is_eof():
-                return True
 
         return True
 
