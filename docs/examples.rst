@@ -83,6 +83,20 @@ In this example, we create a class called ``MyAppWindow`` that inherits from
      my-custom-property: 3.14;
    }
 
+Referencing a template object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to use a template object elsewhere in your blueprint, you can use
+the template class name as the object ID:
+
+.. code-block::
+
+   template MyAppWindow : ApplicationWindow { }
+
+   Gtk.Label {
+     visible: bind MyAppWindow.visible;
+   }
+
 
 Properties
 ----------
