@@ -184,6 +184,14 @@ class Property(GirNode):
     def signature(self):
         return f"{self.type_name} {self.container.name}.{self.name}"
 
+    @property
+    def writable(self):
+        return self.xml["writable"] == "1"
+
+    @property
+    def construct_only(self):
+        return self.xml["construct-only"] == "1"
+
 
 class Parameter(GirNode):
     def __init__(self, container: GirNode, xml: xml_reader.Element):

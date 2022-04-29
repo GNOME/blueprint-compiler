@@ -29,7 +29,7 @@ class Property(AstNode):
         Statement(
             UseIdent("name"),
             ":",
-            "bind",
+            Keyword("bind"),
             UseIdent("bind_source").expected("the ID of a source object to bind from"),
             ".",
             UseIdent("bind_property").expected("a property name to bind from"),
@@ -84,6 +84,19 @@ class Property(AstNode):
                 f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
                 did_you_mean=(self.tokens["name"], self.gir_class.properties.keys())
             )
+
+    @validate("bind")
+    def property_bindable(self):
+        if self.tokens["bind"] and self.gir_property is not None and self.gir_property.construct_only:
+            raise CompileError(
+                f"{self.gir_property.full_name} can't be bound because it is construct-only",
+                hints=["construct-only properties may only be set to a static value"]
+            )
+
+    @validate("name")
+    def property_writable(self):
+        if self.gir_property is not None and not self.gir_property.writable:
+            raise CompileError(f"{self.gir_property.full_name} is not writable")
 
 
     @validate()

@@ -190,6 +190,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("obj_in_string_list")
         self.assert_sample_error("obj_prop_type")
         self.assert_sample_error("property_dne")
+        self.assert_sample_error("read_only_properties")
         self.assert_sample_error("signal_dne")
         self.assert_sample_error("signal_object_dne")
         self.assert_sample_error("size_group_non_widget")
