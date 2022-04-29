@@ -40,7 +40,7 @@ _tokens = [
     (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
     (TokenType.QUOTED,          r'"(\\"|[^"\n])*"'),
     (TokenType.QUOTED,          r"'(\\'|[^'\n])*'"),
-    (TokenType.NUMBER,          r"0x[A-Fa-f0-9]+"),
+    (TokenType.NUMBER,          r"0x[A-Fa-f0-9_]+"),
     (TokenType.NUMBER,          r"[-+]?[\d_]*\d(\.[\d_]*\d)?"),
     (TokenType.NUMBER,          r"[-+]?\.[\d_]*\d"),
     (TokenType.WHITESPACE,      r"\s+"),
@@ -66,11 +66,11 @@ class Token:
         if self.type != TokenType.NUMBER:
             return None
 
-        string = str(self)
+        string = str(self).replace("_", "")
         if string.startswith("0x"):
             return int(string, 16)
         else:
-            return float(string)
+            return float(string.replace("_", ""))
 
 
 def _tokenize(ui_ml: str):
