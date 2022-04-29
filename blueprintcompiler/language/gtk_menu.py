@@ -33,7 +33,7 @@ class Menu(Object):
 
     @property
     def gir_class(self):
-        return self.root.gir.namespaces["Gtk"].lookup_type("Gio.MenuModel")
+        return self.root.gir.namespaces["Gtk"].lookup_type("Gio.Menu")
 
 
 class MenuAttribute(BaseAttribute):

@@ -164,6 +164,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("a11y_prop_dne")
         self.assert_sample_error("a11y_prop_obj_dne")
         self.assert_sample_error("a11y_prop_type")
+        self.assert_sample_error("abstract_class")
         self.assert_sample_error("assign_inline_menu")
         self.assert_sample_error("action_widget_float_response")
         self.assert_sample_error("action_widget_have_no_id")

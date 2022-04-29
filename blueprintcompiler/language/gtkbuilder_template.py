@@ -33,6 +33,10 @@ class Template(Object):
         ObjectContent,
     ]
 
+    @validate()
+    def not_abstract(self):
+        pass # does not apply to templates
+
     def emit_xml(self, xml: XmlEmitter):
         if self.gir_class:
             parent = self.gir_class.glib_type_name

@@ -61,6 +61,14 @@ class Object(AstNode):
         if self.tokens["class_name"] and not self.tokens["ignore_gir"] and self.gir_ns is not None:
             self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
 
+    @validate("namespace", "class_name")
+    def not_abstract(self):
+        if self.gir_class is not None and self.gir_class.abstract:
+            raise CompileError(
+                f"{self.gir_class.full_name} can't be instantiated because it's abstract",
+                hints=[f"did you mean to use a subclass of {self.gir_class.full_name}?"]
+            )
+
     @property
     def gir_ns(self):
         if not self.tokens["ignore_gir"]:

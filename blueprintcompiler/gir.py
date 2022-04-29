@@ -237,6 +237,10 @@ class Class(GirNode, GirType):
         self.own_signals = {child["name"]: Signal(self, child) for child in xml.get_elements("glib:signal")}
 
     @property
+    def abstract(self):
+        return self.xml["abstract"] == "1"
+
+    @property
     def signature(self):
         result = f"class {self.container.name}.{self.name}"
         if self.parent is not None:
