@@ -21,6 +21,8 @@
 import typing as T
 from functools import cached_property
 
+from ..gir import Class
+from .types import ConcreteClassName, ClassName
 from .common import *
 from .response_id import ResponseId
 from .types import ClassName, ConcreteClassName
@@ -46,7 +48,24 @@ class Object(AstNode):
 
     @property
     def gir_class(self):
-        return self.children[ClassName][0].gir_type
+        class_names = self.children[ClassName]
+        if len(class_names) > 0:
+            if isinstance(class_names[0].gir_type, Class):
+                return class_names[0].gir_type
+
+    @property
+    def glib_type_name(self) -> str:
+        return self.children[ClassName][0].glib_type_name
+
+    @docs("namespace")
+    def namespace_docs(self):
+        if ns := self.root.gir.namespaces.get(self.tokens["namespace"]):
+            return ns.doc
+
+    @docs("class_name")
+    def class_docs(self):
+        if self.gir_class:
+            return self.gir_class.doc
 
     @cached_property
     def action_widgets(self) -> T.List[ResponseId]:
@@ -64,7 +83,7 @@ class Object(AstNode):
 
     def emit_start_tag(self, xml: XmlEmitter):
         xml.start_tag("object", **{
-            "class": self.children[ClassName][0].glib_type_name,
+            "class": self.glib_type_name,
             "id": self.tokens["id"],
         })
 

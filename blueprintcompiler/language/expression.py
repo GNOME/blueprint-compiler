@@ -32,6 +32,10 @@ class Expr(AstNode):
     def gir_type(self):
         return self.children[-1].gir_type
 
+    @property
+    def glib_type_name(self):
+        return self.children[-1].glib_type_name
+
     def emit_xml(self, xml: XmlEmitter):
         self.children[-1].emit_xml(xml)
 
@@ -71,6 +75,15 @@ class IdentExpr(AstNode):
         elif self.tokens["ident"] in scope.variables:
             return scope.variables[self.tokens["ident"]].gir_class
 
+    @property
+    def glib_type_name(self):
+        scope = self.parent_by_type(Scope)
+
+        if self.is_this:
+            return scope.this_type_glib_name
+        elif self.tokens["ident"] in scope.variables:
+            return scope.variables[self.tokens["ident"]].glib_type_name
+
     def emit_xml(self, xml: XmlEmitter):
         if self.is_this:
             raise CompilerBugError()
@@ -95,6 +108,10 @@ class ClosureExpr(AstNode):
     def gir_type(self):
         return self.parent.parent.gir_type
 
+    @property
+    def glib_type_name(self):
+        return self.parent.parent.glib_type_name
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("closure", function=self.tokens["function"], type=self.gir_type)
         for child in self.children[Expr]:
@@ -111,6 +128,11 @@ class LookupOp(InfixExpr):
             if prop := parent_type.properties.get(self.tokens["property"]):
                 return prop.type
 
+    @property
+    def glib_type_name(self):
+        if self.gir_type is not None:
+            return self.gir_type.glib_type_name
+
     @validate("property")
     def property_exists(self):
         if parent_type := self.lhs.gir_type:
@@ -125,9 +147,9 @@ class LookupOp(InfixExpr):
 
     def emit_xml(self, xml: XmlEmitter):
         if isinstance(self.lhs, IdentExpr) and self.lhs.is_this:
-            xml.put_self_closing("lookup", name=self.tokens["property"], type=self.parent_by_type(Scope).this_type)
+            xml.put_self_closing("lookup", name=self.tokens["property"], type=self.parent_by_type(Scope).this_type_glib_name)
         else:
-            xml.start_tag("lookup", name=self.tokens["property"], type=self.lhs.gir_type)
+            xml.start_tag("lookup", name=self.tokens["property"], type=self.lhs.glib_type_name)
             self.lhs.emit_xml(xml)
             xml.end_tag()
 
@@ -138,6 +160,10 @@ class CastExpr(AstNode):
     @property
     def gir_type(self):
         return self.children[TypeName][0].gir_type
+
+    @property
+    def glib_type_name(self):
+        return self.children[TypeName][0].glib_type_name
 
     def emit_xml(self, xml: XmlEmitter):
         self.children[Expr][0].emit_xml(xml)

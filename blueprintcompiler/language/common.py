@@ -36,10 +36,11 @@ VALUE_HOOKS = AnyOf()
 
 
 class ScopeVariable:
-    def __init__(self, name: str, gir_class: gir.GirType, xml_func):
+    def __init__(self, name: str, gir_class: gir.GirType, xml_func, glib_type_name=None):
         self._name = name
         self._gir_class = gir_class
         self._xml_func = xml_func
+        self._glib_type_name = glib_type_name
 
     @property
     def name(self) -> str:
@@ -48,6 +49,13 @@ class ScopeVariable:
     @property
     def gir_class(self) -> gir.GirType:
         return self._gir_class
+
+    @property
+    def glib_type_name(self) -> str:
+        if self._glib_type_name is not None:
+            return self._glib_type_name
+        elif self.gir_class:
+            return self.gir_class.glib_type_name
 
     def emit_xml(self, xml: XmlEmitter):
         if f := self._xml_func:

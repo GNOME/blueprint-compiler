@@ -137,6 +137,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("comments")
         self.assert_sample("enum")
         self.assert_sample("expr_closure")
+        self.assert_sample("expr_custom_types")
         self.assert_sample("expr_lookup")
         self.assert_sample("file_filter")
         self.assert_sample("flags")

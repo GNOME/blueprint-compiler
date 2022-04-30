@@ -53,3 +53,6 @@ class Lambda(Value, Scope):
     def this_type(self) -> str:
         return self.children[TypeName][0].gir_type
 
+    @property
+    def this_type_glib_name(self) -> str:
+        return self.children[TypeName][0].glib_type_name

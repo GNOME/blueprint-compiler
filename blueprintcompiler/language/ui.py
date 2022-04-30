@@ -70,7 +70,7 @@ class UI(AstNode, Scope):
             xml.end_tag()
 
         return {
-            id: ScopeVariable(id, obj.gir_class, lambda xml: emit_xml(xml, id))
+            id: ScopeVariable(id, obj.gir_class, lambda xml, id=id: emit_xml(xml, id), obj.glib_type_name)
             for id, obj in self.objects_by_id.items()
         }
 
