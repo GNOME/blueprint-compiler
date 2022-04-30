@@ -38,13 +38,11 @@ class Template(Object):
         pass # does not apply to templates
 
     def emit_xml(self, xml: XmlEmitter):
-        if self.gir_class:
-            parent = self.gir_class.glib_type_name
-        elif self.tokens["class_name"]:
-            parent = self.tokens["class_name"]
-        else:
-            parent = None
-        xml.start_tag("template", **{"class": self.tokens["name"]}, parent=parent)
+        xml.start_tag(
+            "template",
+            **{"class": self.tokens["name"]},
+            parent=self.gir_class or self.tokens["class_name"]
+        )
         for child in self.children:
             child.emit_xml(xml)
         xml.end_tag()

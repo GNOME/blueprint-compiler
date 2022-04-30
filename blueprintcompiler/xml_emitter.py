@@ -19,6 +19,7 @@
 
 
 from xml.sax import saxutils
+from . import gir
 
 
 class XmlEmitter:
@@ -33,7 +34,7 @@ class XmlEmitter:
         self.result += f"<{tag}"
         for key, val in attrs.items():
             if val is not None:
-                self.result += f' {key.replace("_", "-")}="{saxutils.escape(str(val))}"'
+                self.result += f' {key.replace("_", "-")}="{saxutils.escape(self._to_string(val))}"'
         self.result += ">"
         self._tag_stack.append(tag)
         self._needs_newline = False
@@ -43,7 +44,7 @@ class XmlEmitter:
         self.result += f"<{tag}"
         for key, val in attrs.items():
             if val is not None:
-                self.result += f' {key}="{saxutils.escape(str(val))}"'
+                self.result += f' {key.replace("_", "-")}="{saxutils.escape(self._to_string(val))}"'
         self.result += "/>"
         self._needs_newline = True
 
@@ -61,3 +62,9 @@ class XmlEmitter:
     def _indent(self):
         if self.indent is not None:
             self.result += "\n" + " " * (self.indent * len(self._tag_stack))
+
+    def _to_string(self, val):
+        if isinstance(val, gir.GirType):
+            return val.glib_type_name
+        else:
+            return str(val)

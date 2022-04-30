@@ -109,7 +109,7 @@ class Object(AstNode):
         from .gtkbuilder_child import Child
 
         xml.start_tag("object", **{
-            "class": self.gir_class.glib_type_name if self.gir_class else self.tokens["class_name"],
+            "class": self.gir_class or self.tokens["class_name"],
             "id": self.tokens["id"],
         })
         for child in self.children:
