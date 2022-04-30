@@ -8,6 +8,7 @@ build:
   script:
     - mypy blueprintcompiler
     - coverage run -m unittest
+    - coverage report
     - coverage html
     - coverage xml
     - meson _build -Ddocs=true
@@ -18,6 +19,7 @@ build:
     - cd blueprint-regression-tests
     - ./test.sh
     - cd ..
+  coverage: '/TOTAL.*\s([.\d]+)%/'
   artifacts:
     paths:
       - _build
