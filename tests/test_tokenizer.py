@@ -46,7 +46,12 @@ class TestTokenizer(unittest.TestCase):
             (TokenType.PUNCTUATION, "}"),
             (TokenType.PUNCTUATION, ";"),
             (TokenType.WHITESPACE, " \n "),
-            (TokenType.OP, "<<+>>*/="),
+            (TokenType.OP, "<<"),
+            (TokenType.OP, "+"),
+            (TokenType.OP, ">>"),
+            (TokenType.OP, "*"),
+            (TokenType.OP, "/"),
+            (TokenType.OP, "="),
             (TokenType.EOF, ""),
         ])
 
