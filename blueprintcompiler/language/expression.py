@@ -64,6 +64,30 @@ class IdentExpr(AstNode):
         self.parent_by_type(Scope).variables[self.tokens["ident"]].emit_xml(xml)
 
 
+class ClosureExpr(AstNode):
+    grammar = [
+        UseIdent("function"),
+        "(",
+        Delimited(Expr, ",").expected("closure arguments"),
+        Match(")").expected(),
+    ]
+
+    @validate()
+    def is_cast_to_return_val(self):
+        if not isinstance(self.parent.parent, CastExpr):
+            raise CompileError(f"Closure expression needs to be cast to {self.tokens['function']}'s return type")
+
+    @property
+    def gir_type(self):
+        return self.parent.parent.gir_type
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.start_tag("closure", function=self.tokens["function"], type=self.gir_type)
+        for child in self.children[Expr]:
+            child.emit_xml(xml)
+        xml.end_tag()
+
+
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
 
@@ -92,6 +116,7 @@ class CastExpr(AstNode):
 
 
 expr.children = [
+    Prefix(ClosureExpr),
     Prefix(IdentExpr),
     Prefix(CastExpr),
     Prefix(["(", Expr, ")"]),
