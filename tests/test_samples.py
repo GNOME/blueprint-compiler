@@ -187,6 +187,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("duplicates")
         self.assert_sample_error("empty")
         self.assert_sample_error("enum_member_dne")
+        self.assert_sample_error("expr_lookup_prop")
         self.assert_sample_error("filters_in_non_file_filter")
         self.assert_sample_error("gtk_3")
         self.assert_sample_error("gtk_exact_version")
