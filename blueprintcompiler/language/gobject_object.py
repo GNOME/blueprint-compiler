@@ -21,6 +21,7 @@
 import typing as T
 from functools import cached_property
 
+from ..gir import Class
 from .types import ConcreteClassName, ClassName
 from .common import *
 from .response_id import ResponseId
@@ -60,10 +61,13 @@ class Object(AstNode):
     @property
     def gir_class(self):
         class_names = self.children[ClassName]
-        if len(class_names) == 0:
-            return None
-        else:
-            return class_names[0].gir_type
+        if len(class_names) > 0:
+            if isinstance(class_names[0].gir_type, Class):
+                return class_names[0].gir_type
+
+    @property
+    def glib_type_name(self) -> str:
+        return self.children[ClassName][0].glib_type_name
 
     @docs("namespace")
     def namespace_docs(self):
@@ -94,7 +98,7 @@ class Object(AstNode):
         from .gtkbuilder_child import Child
 
         xml.start_tag("object", **{
-            "class": self.children[ClassName][0].glib_type_name,
+            "class": self.glib_type_name,
             "id": self.tokens["id"],
         })
         for child in self.children:

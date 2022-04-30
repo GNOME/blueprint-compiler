@@ -20,6 +20,7 @@
 
 import typing as T
 from .common import *
+from ..gir import Class, Interface
 
 
 class TypeName(AstNode):
@@ -80,16 +81,19 @@ class TypeName(AstNode):
 
 
 class ClassName(TypeName):
-    @validate("class_name")
-    def gir_type_is_class(self):
-        if self.gir_type is not None and not isinstance(self.gir_type, gir.Class):
-            raise CompileError(f"{self.gir_type.full_name} is not a class")
+    @validate("namespace", "class_name")
+    def gir_class_exists(self):
+        if self.gir_type is not None and not isinstance(self.gir_type, Class):
+            if isinstance(self.gir_type, Interface):
+                raise CompileError(f"{self.gir_type.full_name} is an interface, not a class")
+            else:
+                raise CompileError(f"{self.gir_type.full_name} is not a class")
 
 
 class ConcreteClassName(ClassName):
     @validate("namespace", "class_name")
     def not_abstract(self):
-        if self.gir_type is not None and self.gir_type.abstract:
+        if isinstance(self.gir_type, Class) and self.gir_type.abstract:
             raise CompileError(
                 f"{self.gir_type.full_name} can't be instantiated because it's abstract",
                 hints=[f"did you mean to use a subclass of {self.gir_type.full_name}?"]

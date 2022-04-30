@@ -1,0 +1,8 @@
+using Gtk 4.0;
+
+.MyWidget widget {}
+
+.MyOtherWidget other_widget {
+  property: bind ((.MyObject) widget.something).other;
+  expr-prop: (.MyObject obj) => obj.other;
+}
