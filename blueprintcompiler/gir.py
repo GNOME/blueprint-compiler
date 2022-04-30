@@ -77,30 +77,41 @@ class BasicType(GirType):
 
 class BoolType(BasicType):
     name = "bool"
+    glib_type_name = "gboolean"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, BoolType)
 
 class IntType(BasicType):
     name = "int"
+    glib_type_name = "gint"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
 
 class UIntType(BasicType):
     name = "uint"
+    glib_type_name = "guint"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
 
 class FloatType(BasicType):
     name = "float"
+    glib_type_name = "gfloat"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, FloatType)
 
 class StringType(BasicType):
     name = "string"
+    glib_type_name = "gchararray"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, StringType)
 
 _BASIC_TYPES = {
+    "bool": BoolType,
     "gboolean": BoolType,
     "int": IntType,
     "gint": IntType,
@@ -458,6 +469,9 @@ class GirContext:
 
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
+        if ns is None and name in _BASIC_TYPES:
+            return _BASIC_TYPES[name]()
+
         ns = ns or "Gtk"
 
         if ns not in self.namespaces:
@@ -486,15 +500,15 @@ class GirContext:
                 did_you_mean=(ns, self.namespaces.keys()),
             )
 
-
     def validate_type(self, name: str, ns: str):
         """ Raises an exception if there is a problem looking up the given
         class (it doesn't exist, it isn't a class, etc.) """
 
-        ns = ns or "Gtk"
         self.validate_ns(ns)
 
         type = self.get_type(name, ns)
+
+        ns = ns or "Gtk"
 
         if type is None:
             raise CompileError(
