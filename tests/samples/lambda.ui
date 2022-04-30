@@ -8,7 +8,7 @@
   </object>
   <object class="GtkBoolFilter">
     <property name="expression">
-      <lookup name="invert">
+      <lookup name="invert" type="GtkBoolFilter">
         <constant>filter</constant>
       </lookup>
     </property>

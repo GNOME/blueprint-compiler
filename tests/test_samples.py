@@ -185,6 +185,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("does_not_implement")
         self.assert_sample_error("duplicate_obj_id")
         self.assert_sample_error("enum_member_dne")
+        self.assert_sample_error("expr_lookup_prop")
         self.assert_sample_error("filters_in_non_file_filter")
         self.assert_sample_error("gtk_3")
         self.assert_sample_error("gtk_exact_version")

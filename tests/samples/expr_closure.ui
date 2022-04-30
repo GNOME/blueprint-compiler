@@ -10,7 +10,7 @@
     <binding name="visible-child">
       <lookup name="parent" type="GtkButton">
         <closure function="my_closure" type="GtkButton">
-          <lookup name="parent">
+          <lookup name="parent" type="GtkBox">
             <constant>box</constant>
           </lookup>
         </closure>

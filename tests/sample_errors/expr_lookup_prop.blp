@@ -1,0 +1,9 @@
+using Gtk 4.0;
+
+Box {
+  Label label {
+    visible: bind label.parent.something;
+    margin-start: bind label.margin-start.other;
+    label: bind nothing.parent.label;
+  }
+}
