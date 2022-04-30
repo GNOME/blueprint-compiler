@@ -1,0 +1,11 @@
+using Gtk 4.0;
+
+Box {
+  Box box {
+  }
+}
+
+Stack {
+  visible-child: bind ((Gtk.Button)my_closure(box.parent)).parent;
+  visible: bind (bool) my_other_closure(box);
+}

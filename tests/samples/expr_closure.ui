@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkBox">
+    <child>
+      <object class="GtkBox" id="box"></object>
+    </child>
+  </object>
+  <object class="GtkStack">
+    <binding name="visible-child">
+      <lookup name="parent" type="GtkButton">
+        <closure function="my_closure" type="GtkButton">
+          <lookup name="parent">
+            <constant>box</constant>
+          </lookup>
+        </closure>
+      </lookup>
+    </binding>
+    <binding name="visible">
+      <closure function="my_other_closure" type="gboolean">
+        <constant>box</constant>
+      </closure>
+    </binding>
+  </object>
+</interface>
