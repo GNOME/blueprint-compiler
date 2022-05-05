@@ -106,7 +106,8 @@ class ClosureExpr(AstNode):
 
     @property
     def gir_type(self):
-        return self.parent.parent.gir_type
+        if isinstance(self.parent.parent, CastExpr):
+            return self.parent.parent.gir_type
 
     @property
     def glib_type_name(self):
@@ -125,8 +126,9 @@ class LookupOp(InfixExpr):
     @property
     def gir_type(self):
         if parent_type := self.lhs.gir_type:
-            if prop := parent_type.properties.get(self.tokens["property"]):
-                return prop.type
+            if isinstance(parent_type, gir.Class) or isinstance(parent_type, gir.Interface):
+                if prop := parent_type.properties.get(self.tokens["property"]):
+                    return prop.type
 
     @property
     def glib_type_name(self):
