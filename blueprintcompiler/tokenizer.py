@@ -40,9 +40,9 @@ _tokens = [
     (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
     (TokenType.QUOTED,          r'"(\\"|[^"\n])*"'),
     (TokenType.QUOTED,          r"'(\\'|[^'\n])*'"),
-    (TokenType.NUMBER,          r"0x[A-Fa-f0-9_]+"),
-    (TokenType.NUMBER,          r"[-+]?[\d_]*\d(\.[\d_]*\d)?"),
-    (TokenType.NUMBER,          r"[-+]?\.[\d_]*\d"),
+    (TokenType.NUMBER,          r"0x[A-Za-z0-9_]+"),
+    (TokenType.NUMBER,          r"[-+]?[\d_]+(\.[\d_]+)?"),
+    (TokenType.NUMBER,          r"[-+]?\.[\d_]+"),
     (TokenType.WHITESPACE,      r"\s+"),
     (TokenType.COMMENT,         r"\/\*[\s\S]*?\*\/"),
     (TokenType.COMMENT,         r"\/\/[^\n]*"),
@@ -67,10 +67,13 @@ class Token:
             return None
 
         string = str(self).replace("_", "")
-        if string.startswith("0x"):
-            return int(string, 16)
-        else:
-            return float(string.replace("_", ""))
+        try:
+            if string.startswith("0x"):
+                return int(string, 16)
+            else:
+                return float(string.replace("_", ""))
+        except:
+            raise CompileError(f"{str(self)} is not a valid number literal", self.start, self.end)
 
 
 def _tokenize(ui_ml: str):
