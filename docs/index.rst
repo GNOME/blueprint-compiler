@@ -52,9 +52,18 @@ Built with Blueprint
 --------------------
 
 - `Extension Manager <https://github.com/mjakeman/extension-manager>`_
-- `Video Trimmer <https://gitlab.gnome.org/YaLTeR/video-trimmer>`_
-- `Solanum <https://gitlab.gnome.org/World/Solanum>`_
+- `Feeds <https://gitlab.gnome.org/World/gfeeds>`_
+- `Geopard <https://github.com/ranfdev/Geopard>`_
+- `Giara <https://gitlab.gnome.org/World/giara>`_
 - `Health <https://gitlab.gnome.org/World/Health>`_
+- `HydraPaper <https://gitlab.com/gabmus/HydraPaper>`_
+- `Identity <https://gitlab.gnome.org/YaLTeR/identity>`_
+- `Plitki <https://github.com/YaLTeR/plitki>`_
+- `Solanum <https://gitlab.gnome.org/World/Solanum>`_
+- `Text Pieces <https://github.com/liferooter/textpieces>`_
+- `Video Trimmer <https://gitlab.gnome.org/YaLTeR/video-trimmer>`_
+- `WhatIP <https://gitlab.gnome.org/GabMus/whatip>`_
+- `Workbench <https://github.com/sonnyp/Workbench>`_
 
 Links
 -----
