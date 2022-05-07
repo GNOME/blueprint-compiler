@@ -91,4 +91,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Donate
 
-You can support my work on GitHub Sponsors! <https://github.com/sponsors/flyingpimonster/>
+You can support my work on GitHub Sponsors! <https://github.com/sponsors/jameswestman>
