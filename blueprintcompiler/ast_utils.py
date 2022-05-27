@@ -138,7 +138,10 @@ class AstNode:
 
             if type(child) is type(self):
                 if check is None or check(child):
-                    raise CompileError(error)
+                    raise CompileError(
+                        error,
+                        references=[ErrorReference(child.group.start, child.group.end, "previous declaration was here")]
+                    )
 
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):

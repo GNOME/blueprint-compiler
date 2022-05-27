@@ -31,13 +31,20 @@ class PrintableError(Exception):
         raise NotImplementedError()
 
 
+@dataclass
+class ErrorReference:
+    start: int
+    end: int
+    message: str
+
+
 class CompileError(PrintableError):
     """ A PrintableError with a start/end position and optional hints """
 
     category = "error"
     color = Colors.RED
 
-    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None, fatal=False):
+    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None, fatal=False, references=None):
         super().__init__(message)
 
         self.message = message
@@ -45,6 +52,7 @@ class CompileError(PrintableError):
         self.end = end
         self.hints = hints or []
         self.actions = actions or []
+        self.references = references or []
         self.fatal = fatal
 
         if did_you_mean is not None:
@@ -84,6 +92,16 @@ at {filename} line {line_num} column {col_num}:
 
         for hint in self.hints:
             stream.write(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}\n")
+
+        for ref in self.references:
+            line_num, col_num = utils.idx_to_pos(ref.start + 1, code)
+            line = code.splitlines(True)[line_num]
+            line_num += 1
+
+            stream.write(f"""{Colors.FAINT}note: {ref.message}:
+at {filename} line {line_num} column {col_num}:
+{Colors.FAINT}{line_num :>4} |{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n""")
+
         stream.write("\n")
 
 
