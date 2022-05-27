@@ -39,6 +39,11 @@ class GtkDirective(AstNode):
                 err.hint("Expected 'using Gtk 4.0;'")
             raise err
 
+        try:
+            gir.get_namespace("Gtk", self.tokens["version"])
+        except:
+            raise CompileError("Could not find GTK 4 introspection files. Is gobject-introspection installed?", fatal=True)
+
 
     @property
     def gir_namespace(self):

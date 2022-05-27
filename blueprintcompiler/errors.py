@@ -37,7 +37,7 @@ class CompileError(PrintableError):
     category = "error"
     color = Colors.RED
 
-    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None):
+    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None, fatal=False):
         super().__init__(message)
 
         self.message = message
@@ -45,6 +45,7 @@ class CompileError(PrintableError):
         self.end = end
         self.hints = hints or []
         self.actions = actions or []
+        self.fatal = fatal
 
         if did_you_mean is not None:
             self._did_you_mean(*did_you_mean)

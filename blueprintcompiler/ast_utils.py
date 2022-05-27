@@ -81,6 +81,8 @@ class AstNode:
                 validator(self)
             except CompileError as e:
                 yield e
+                if e.fatal:
+                    return
 
         for child in self.children:
             yield from child._get_errors()
