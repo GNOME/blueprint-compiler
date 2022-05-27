@@ -8,7 +8,6 @@ blueprint-compiler.pc
 /htmlcov
 coverage.xml
 .mypy_cache
-/subprojects/gtk-blueprint-tool
 /blueprint-regression-tests
 
 /corpus

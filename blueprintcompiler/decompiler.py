@@ -292,5 +292,5 @@ class UnsupportedError(Exception):
         print(f"in {Colors.UNDERLINE}{filename}{Colors.NO_UNDERLINE}")
         if self.tag:
             print(f"in tag {Colors.BLUE}{self.tag}{Colors.CLEAR}")
-        print(f"""{Colors.FAINT}The gtk-blueprint-tool compiler might support this feature, but the
-porting tool does not. You probably need to port this file manually.{Colors.CLEAR}\n""")
+        print(f"""{Colors.FAINT}The compiler might support this feature, but the porting tool does not. You
+probably need to port this file manually.{Colors.CLEAR}\n""")
