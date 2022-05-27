@@ -245,7 +245,7 @@ class LanguageServer:
             {
                 "title": action.title,
                 "kind": "quickfix",
-                "diagnostics": [self._create_diagnostic(open_file.text, diagnostic)],
+                "diagnostics": [self._create_diagnostic(open_file.text, open_file.uri, diagnostic)],
                 "edit": {
                     "changes": {
                         open_file.uri: [{
@@ -266,20 +266,29 @@ class LanguageServer:
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification("textDocument/publishDiagnostics", {
             "uri": open_file.uri,
-            "diagnostics": [self._create_diagnostic(open_file.text, err) for err in open_file.diagnostics],
+            "diagnostics": [self._create_diagnostic(open_file.text, open_file.uri, err) for err in open_file.diagnostics],
         })
 
-    def _create_diagnostic(self, text, err):
-        if isinstance(err, CompileWarning):
-            severity = DiagnosticSeverity.Warning
-        else:
-            severity = DiagnosticSeverity.Error
-
-        return {
+    def _create_diagnostic(self, text, uri, err):
+        result = {
             "range": utils.idxs_to_range(err.start, err.end, text),
             "message": err.message,
-            "severity": severity,
+            "severity": DiagnosticSeverity.Warning if isinstance(err, CompileWarning) else DiagnosticSeverity.Error,
         }
+
+        if len(err.references) > 0:
+            result["relatedInformation"] = [
+                {
+                    "location": {
+                        "uri": uri,
+                        "range": utils.idxs_to_range(ref.start, ref.end, text),
+                    },
+                    "message": ref.message
+                }
+                for ref in err.references
+            ]
+
+        return result
 
 
 for name in dir(LanguageServer):
