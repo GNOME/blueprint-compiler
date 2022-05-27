@@ -9,7 +9,7 @@ use the following syntax:
 
    _("translated string")
 
-You'll need to use a few of xgettext flags so it will recognize the format:
+You'll need to use a few xgettext flags so it will recognize the format:
 
 .. code-block::
 
@@ -18,7 +18,7 @@ You'll need to use a few of xgettext flags so it will recognize the format:
    --keyword=_
    --keyword=C_:1c,2
 
-If you're using Meson's i18n module, you can use the 'glib' preset:
+If you're using Meson's `i18n module <https://mesonbuild.com/i18n-module.html#i18ngettext>`_, you can use the 'glib' preset:
 
 .. code-block:: meson.build
 
