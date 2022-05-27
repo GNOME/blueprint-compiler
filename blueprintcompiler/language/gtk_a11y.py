@@ -139,6 +139,13 @@ class A11yProperty(BaseTypedAttribute):
                 did_you_mean=(self.tokens["name"], types.keys()),
             )
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Duplicate accessibility attribute '{self.tokens['name']}'",
+            check=lambda child: child.tokens["name"] == self.tokens["name"],
+        )
+
     @docs("name")
     def prop_docs(self):
         if self.tokens["name"] in get_types(self.root.gir):
@@ -156,6 +163,9 @@ class A11y(AstNode):
     def container_is_widget(self):
         validate_parent_type(self, "Gtk", "Widget", "accessibility properties")
 
+    @validate("accessibility")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate accessibility block")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("accessibility")

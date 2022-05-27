@@ -56,6 +56,9 @@ class Items(AstNode):
     def container_is_combo_box_text(self):
         validate_parent_type(self, "Gtk", "ComboBoxText", "combo box items")
 
+    @validate("items")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate items block")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("items")

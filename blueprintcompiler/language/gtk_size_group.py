@@ -55,6 +55,10 @@ class Widgets(AstNode):
     def container_is_size_group(self):
         validate_parent_type(self, "Gtk", "SizeGroup", "size group properties")
 
+    @validate("widgets")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate widgets block")
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("widgets")
         for child in self.children:

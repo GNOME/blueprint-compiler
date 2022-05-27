@@ -112,6 +112,14 @@ class Property(AstNode):
             )
 
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Duplicate property '{self.tokens['name']}'",
+            check=lambda child: child.tokens["name"] == self.tokens["name"]
+        )
+
+
     @docs("name")
     def property_docs(self):
         if self.gir_property is not None:

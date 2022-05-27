@@ -131,6 +131,16 @@ class AstNode:
             yield from child.iterate_children_recursive()
 
 
+    def validate_unique_in_parent(self, error, check=None):
+        for child in self.parent.children:
+            if child is self:
+                break
+
+            if type(child) is type(self):
+                if check is None or check(child):
+                    raise CompileError(error)
+
+
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
     """ Decorator for functions that validate an AST node. Exceptions raised
     during validation are marked with range information from the tokens. """

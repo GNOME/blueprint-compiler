@@ -41,6 +41,10 @@ class Styles(AstNode):
     def container_is_widget(self):
         validate_parent_type(self, "Gtk", "Widget", "style classes")
 
+    @validate("styles")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate styles block")
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("style")
         for child in self.children:

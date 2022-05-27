@@ -51,6 +51,9 @@ class Strings(AstNode):
     def container_is_string_list(self):
         validate_parent_type(self, "Gtk", "StringList", "StringList items")
 
+    @validate("strings")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate strings block")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("items")

@@ -31,6 +31,13 @@ class LayoutProperty(BaseAttribute):
         # there isn't really a way to validate these
         return None
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Duplicate layout property '{self.name}'",
+            check=lambda child: child.name == self.name,
+        )
+
 
 layout_prop = Group(
     LayoutProperty,
@@ -53,6 +60,9 @@ class Layout(AstNode):
     def container_is_widget(self):
         validate_parent_type(self, "Gtk", "Widget", "layout properties")
 
+    @validate("layout")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate layout block")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag("layout")
