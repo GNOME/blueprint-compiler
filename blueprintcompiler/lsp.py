@@ -151,6 +151,8 @@ class LanguageServer:
 
     @command("initialize")
     def initialize(self, id, params):
+        from . import main
+
         self.client_capabilities = params.get("capabilities")
         self._send_response(id, {
             "capabilities": {
@@ -167,7 +169,11 @@ class LanguageServer:
                 "completionProvider": {},
                 "codeActionProvider": {},
                 "hoverProvider": True,
-            }
+            },
+            "serverInfo": {
+                "name": "Blueprint",
+                "version": main.VERSION,
+            },
         })
 
     @command("textDocument/didOpen")

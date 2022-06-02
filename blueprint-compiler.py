@@ -26,7 +26,13 @@ dirname = os.path.join(os.path.dirname(os.path.dirname(__file__)), "share", "blu
 if os.path.isdir(os.path.join(dirname, "blueprintcompiler")):
     sys.path.insert(0, dirname)
 
+# Get the configured (or, if running from source, not configured) version number
+version = "@VERSION@"
+
+def literal(key):
+    return "@" + key + "@"
+
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main()
+    main.main("uninstalled" if version == literal("VERSION") else version)

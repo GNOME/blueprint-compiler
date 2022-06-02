@@ -17,13 +17,16 @@ configure_file(
   install_dir: join_paths(datadir, 'pkgconfig'),
 )
 
-install_data(
-  'blueprint-compiler.py',
+blueprint_compiler = configure_file(
+  input: 'blueprint-compiler.py',
+  output: 'blueprint-compiler',
+  configuration: {
+    'VERSION': meson.project_version(),
+  },
   install_dir: get_option('bindir'),
-  rename: 'blueprint-compiler',
 )
 
-meson.override_find_program('blueprint-compiler', find_program('blueprint-compiler.py'))
+meson.override_find_program('blueprint-compiler', blueprint_compiler)
 
 if not meson.is_subproject()
   install_subdir('blueprintcompiler', install_dir: datadir / 'blueprint-compiler')
