@@ -29,4 +29,4 @@ if os.path.isdir(os.path.join(dirname, "blueprintcompiler")):
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main()
+    main.main("uninstalled" if version == literal("VERSION") else version)

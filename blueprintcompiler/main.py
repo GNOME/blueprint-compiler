@@ -27,9 +27,7 @@ from . import parser, tokenizer, decompiler, interactive_port
 from .utils import Colors
 from .xml_emitter import XmlEmitter
 
-
-VERSION = "0.1.0"
-
+VERSION = "uninstalled"
 
 class BlueprintApp:
     def main(self):
@@ -52,6 +50,8 @@ class BlueprintApp:
         lsp.add_argument("--logfile", dest="logfile", default=None, type=argparse.FileType('a'))
 
         self.add_subcommand("help", "Show this message", self.cmd_help)
+
+        self.parser.add_argument("--version", action="version", version=VERSION)
 
         try:
             opts = self.parser.parse_args()
@@ -144,5 +144,7 @@ class BlueprintApp:
         return ast.generate(), warnings
 
 
-def main():
+def main(version):
+    global VERSION
+    VERSION = version
     BlueprintApp().main()
