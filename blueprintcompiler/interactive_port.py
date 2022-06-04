@@ -118,11 +118,14 @@ def step1():
         except:
             pass
 
+        from .main import VERSION
+        VERSION = "main" if VERSION == "uninstalled" else "v" + VERSION
+
         with open("subprojects/blueprint-compiler.wrap", "w") as wrap:
-            wrap.write("""[wrap-git]
+            wrap.write(f"""[wrap-git]
 directory = blueprint-compiler
 url = https://gitlab.gnome.org/jwestman/blueprint-compiler.git
-revision = main
+revision = {VERSION}
 depth = 1
 
 [provide]
