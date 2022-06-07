@@ -1,4 +1,7 @@
+import os, sys
 from pythonfuzz.main import PythonFuzz
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from blueprintcompiler import tokenizer, parser, decompiler
 from blueprintcompiler.completions import complete

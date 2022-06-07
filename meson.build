@@ -26,7 +26,7 @@ install_data(
 meson.override_find_program('blueprint-compiler', find_program('blueprint-compiler.py'))
 
 if not meson.is_subproject()
-  install_subdir('blueprintcompiler', install_dir: py.get_install_dir())
+  install_subdir('blueprintcompiler', install_dir: datadir / 'blueprint-compiler')
 endif
 
 subdir('tests')

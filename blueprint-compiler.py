@@ -19,6 +19,13 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import os, sys
+
+# Try to find the python module, assuming the current file is installed to (prefix)/bin
+dirname = os.path.join(os.path.dirname(os.path.dirname(__file__)), "share", "blueprint-compiler")
+if os.path.isdir(os.path.join(dirname, "blueprintcompiler")):
+    sys.path.insert(0, dirname)
+
 from blueprintcompiler import main
 
 if __name__ == "__main__":
