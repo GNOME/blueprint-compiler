@@ -23,6 +23,7 @@ blueprint_compiler = configure_file(
   configuration: {
     'VERSION': meson.project_version(),
   },
+  install: not meson.is_subproject(),
   install_dir: get_option('bindir'),
 )
 
