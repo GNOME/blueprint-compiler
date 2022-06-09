@@ -26,7 +26,9 @@ blueprint_compiler = configure_file(
   install_dir: get_option('bindir'),
 )
 
-meson.override_find_program('blueprint-compiler', blueprint_compiler)
+# Don't use the output configure_file here--that file is in the build directory
+# and won't be able to find the python modules in the source directory.
+meson.override_find_program('blueprint-compiler', find_program('blueprint-compiler.py'))
 
 if not meson.is_subproject()
   install_subdir('blueprintcompiler', install_dir: datadir / 'blueprint-compiler')
