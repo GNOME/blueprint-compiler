@@ -37,6 +37,10 @@ class Template(Object):
     def not_abstract(self):
         pass # does not apply to templates
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
+
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(
             "template",

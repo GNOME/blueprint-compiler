@@ -72,16 +72,6 @@ class UI(AstNode):
 
 
     @validate()
-    def at_most_one_template(self):
-        if len(self.children[Template]) > 1:
-            for template in self.children[Template][1:]:
-                raise CompileError(
-                    f"Only one template may be defined per file, but this file contains {len(self.children[Template])}",
-                    template.group.tokens["name"].start, template.group.tokens["name"].end,
-                )
-
-
-    @validate()
     def unique_ids(self):
         passed = {}
         for obj in self.iterate_children_recursive():
