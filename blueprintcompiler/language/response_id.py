@@ -32,7 +32,7 @@ class ResponseId(AstNode):
     ]
 
     grammar = [
-        UseIdent("response"),
+        Keyword("response"),
         "=",
         AnyOf(
             UseIdent("response_id"),
