@@ -32,14 +32,6 @@ class ObjectContent(AstNode):
     def gir_class(self):
         return self.parent.gir_class
 
-    # @validate()
-    # def only_one_style_class(self):
-    #     if len(self.children[Style]) > 1:
-    #         raise CompileError(
-    #             f"Only one style directive allowed per object, but this object contains {len(self.children[Style])}",
-    #             start=self.children[Style][1].group.start,
-    #         )
-
     def emit_xml(self, xml: XmlEmitter):
         for x in self.children:
             x.emit_xml(xml)
