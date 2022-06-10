@@ -2,6 +2,6 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkBox">
-    <property name="orientation">vertical</property>
+    <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
   </object>
 </interface>

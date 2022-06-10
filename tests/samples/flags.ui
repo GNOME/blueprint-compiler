@@ -2,9 +2,9 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GApplication">
-    <property name="flags">is_service|handles_open</property>
+    <property name="flags">G_APPLICATION_IS_SERVICE|G_APPLICATION_HANDLES_OPEN</property>
   </object>
   <object class="GtkEventControllerScroll">
-    <property name="flags">vertical</property>
+    <property name="flags">GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES</property>
   </object>
 </interface>

@@ -2,6 +2,6 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkScrolledWindow">
-    <property name="window-placement">top-left</property>
+    <property name="window-placement">GTK_CORNER_TOP_LEFT</property>
   </object>
 </interface>

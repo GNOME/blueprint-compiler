@@ -122,6 +122,13 @@ class DecompileCtx:
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
             self._indent += 1
 
+    def get_enum_value(self, value, type):
+        for member in type.members.values():
+            if member.nick == value or member.c_ident == value:
+                return member.name
+
+        return value.replace('-', '_')
+
 
     def print_attribute(self, name, value, type):
         if type is None:
@@ -142,15 +149,10 @@ class DecompileCtx:
         elif type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("GObject.Object")):
             self.print(f"{name}: {value};")
         elif isinstance(type, Enumeration):
-            for member in type.members.values():
-                if member.nick == value or member.c_ident == value:
-                    self.print(f"{name}: {member.name};")
-                    break
-            else:
-                self.print(f"{name}: {value.replace('-', '_')};")
+            self.print(f"{name}: {self.get_enum_value(value, type)};")
         elif isinstance(type, Bitfield):
-            flags = re.sub(r"\s*\|\s*", " | ", value).replace("-", "_")
-            self.print(f"{name}: {flags};")
+            flags = [self.get_enum_value(flag, type) for flag in value.split("|")]
+            self.print(f"{name}: {' | '.join(flags)};")
         else:
             self.print(f"{name}: \"{escape_quote(value)}\";")
 

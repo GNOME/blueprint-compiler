@@ -109,6 +109,13 @@ class LiteralValue(Value):
 class Flag(AstNode):
     grammar = UseIdent("value")
 
+    @property
+    def c_ident(self):
+        if isinstance(self.parent.parent.value_type, gir.Bitfield):
+            return self.parent.parent.value_type.members[self.tokens["value"]].c_ident
+        else:
+            return self.tokens["value"]
+
     @docs()
     def docs(self):
         type = self.parent.parent.value_type
@@ -137,15 +144,15 @@ class FlagsValue(Value):
             raise CompileError(f"{type.full_name} is not a bitfield type")
 
     def emit_xml(self, xml: XmlEmitter):
-        xml.put_text("|".join([flag.tokens["value"] for flag in self.children[Flag]]))
+        xml.put_text("|".join([flag.c_ident for flag in self.children[Flag]]))
 
 
 class IdentValue(Value):
     grammar = UseIdent("value")
 
     def emit_xml(self, xml: XmlEmitter):
-        if isinstance(self.parent.value_type, gir.Enumeration):
-            xml.put_text(self.parent.value_type.members[self.tokens["value"]].nick)
+        if isinstance(self.parent.value_type, gir.Enumeration) or isinstance(self.parent.value_type, gir.Bitfield):
+            xml.put_text(self.parent.value_type.members[self.tokens["value"]].c_ident)
         else:
             xml.put_text(self.tokens["value"])
 

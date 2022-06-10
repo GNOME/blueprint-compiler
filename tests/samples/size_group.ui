@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GtkSizeGroup">
-    <property name="mode">horizontal</property>
+    <property name="mode">GTK_SIZE_GROUP_HORIZONTAL</property>
     <widgets>
       <widget name="label"/>
       <widget name="button"/>
