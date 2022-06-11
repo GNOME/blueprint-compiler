@@ -17,22 +17,29 @@ configure_file(
   install_dir: join_paths(datadir, 'pkgconfig'),
 )
 
+config = configuration_data({
+  'VERSION': meson.project_version(),
+  'LIBDIR': get_option('prefix') / get_option('libdir'),
+})
+
+if meson.is_subproject()
+  config.set('MODULE_PATH', meson.current_source_dir())
+else
+  config.set('MODULE_PATH', py.get_install_dir())
+endif
+
 blueprint_compiler = configure_file(
   input: 'blueprint-compiler.py',
   output: 'blueprint-compiler',
-  configuration: {
-    'VERSION': meson.project_version(),
-  },
+  configuration: config,
   install: not meson.is_subproject(),
   install_dir: get_option('bindir'),
 )
 
-# Don't use the output configure_file here--that file is in the build directory
-# and won't be able to find the python modules in the source directory.
-meson.override_find_program('blueprint-compiler', find_program('blueprint-compiler.py'))
-
-if not meson.is_subproject()
-  install_subdir('blueprintcompiler', install_dir: datadir / 'blueprint-compiler')
+if meson.is_subproject()
+  meson.override_find_program('blueprint-compiler', blueprint_compiler)
+else
+  install_subdir('blueprintcompiler', install_dir: py.get_install_dir())
 endif
 
 subdir('tests')

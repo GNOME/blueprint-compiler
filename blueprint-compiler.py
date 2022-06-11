@@ -21,18 +21,19 @@
 
 import os, sys
 
-# Try to find the python module, assuming the current file is installed to (prefix)/bin
-dirname = os.path.join(os.path.dirname(os.path.dirname(__file__)), "share", "blueprint-compiler")
-if os.path.isdir(os.path.join(dirname, "blueprintcompiler")):
-    sys.path.insert(0, dirname)
-
-# Get the configured (or, if running from source, not configured) version number
+# These variables should be set by meson. If they aren't, we're running
+# uninstalled, and we might have to guess some values.
 version = "@VERSION@"
+module_path = "@MODULE_PATH@"
+libdir = "@LIBDIR@"
 
-def literal(key):
-    return "@" + key + "@"
+if version == "\u0040VERSION@":
+    version = "uninstalled"
+else:
+    # If Meson set the configuration values, insert the module path it set
+    sys.path.insert(0, module_path)
 
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main("uninstalled" if version == literal("VERSION") else version)
+    main.main(version)
