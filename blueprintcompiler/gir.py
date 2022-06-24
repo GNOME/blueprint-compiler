@@ -214,9 +214,14 @@ class GirNode:
         if self.signature:
             sections.append("```\n" + self.signature + "\n```")
 
-        el = self.xml.get_elements("doc")
-        if len(el) == 1:
-            sections.append(el[0].cdata.strip())
+        try:
+            el = self.xml.get_elements("doc")
+            if len(el) == 1:
+                sections.append(el[0].cdata.strip())
+        except:
+            # Not a huge deal, but if you want docs in the language server you
+            # should ensure .gir files are installed
+            pass
 
         return "\n\n---\n\n".join(sections)
 
