@@ -20,6 +20,7 @@
 
 from .gobject_object import Object, ObjectContent
 from .common import *
+from .types import ClassName
 
 
 class Template(Object):
@@ -28,24 +29,31 @@ class Template(Object):
         UseIdent("name").expected("template class name"),
         Optional([
             Match(":"),
-            class_name.expected("parent class"),
+            to_parse_node(ClassName).expected("parent class"),
         ]),
         ObjectContent,
     ]
 
-    @validate()
-    def not_abstract(self):
-        pass # does not apply to templates
+    @property
+    def gir_class(self):
+        # Templates might not have a parent class defined
+        if len(self.children[ClassName]):
+            return self.children[ClassName][0].gir_type
 
     @validate("name")
     def unique_in_parent(self):
         self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
 
     def emit_start_tag(self, xml: XmlEmitter):
+        if len(self.children[ClassName]):
+            parent = self.children[ClassName][0].glib_type_name
+        else:
+            parent = None
+
         xml.start_tag(
             "template",
             **{"class": self.tokens["name"]},
-            parent=self.gir_class or self.tokens["class_name"]
+            parent=parent
         )
 
 

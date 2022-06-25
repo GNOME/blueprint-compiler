@@ -20,6 +20,7 @@
 import typing as T
 
 from . import gir, language
+from .language.types import ClassName
 from .ast_utils import AstNode
 from .completions_utils import *
 from .lsp_utils import Completion, CompletionItemKind
@@ -140,7 +141,7 @@ def signal_completer(ast_node, match_variables):
             if not isinstance(ast_node.parent, language.Object):
                 name = "on"
             else:
-                name = "on_" + (ast_node.parent.tokens["id"] or ast_node.parent.tokens["class_name"].lower())
+                name = "on_" + (ast_node.parent.children[ClassName][0].tokens["id"] or ast_node.parent.children[ClassName][0].tokens["class_name"].lower())
             yield Completion(signal, CompletionItemKind.Property, snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;")
 
 

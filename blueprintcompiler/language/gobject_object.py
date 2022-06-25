@@ -23,6 +23,7 @@ from functools import cached_property
 
 from .common import *
 from .response_id import ResponseId
+from .types import ClassName, ConcreteClassName
 
 
 class ObjectContent(AstNode):
@@ -38,50 +39,14 @@ class ObjectContent(AstNode):
 
 class Object(AstNode):
     grammar: T.Any = [
-        class_name,
+        ConcreteClassName,
         Optional(UseIdent("id")),
         ObjectContent,
     ]
 
-    @validate("namespace")
-    def gir_ns_exists(self):
-        if not self.tokens["ignore_gir"]:
-            self.root.gir.validate_ns(self.tokens["namespace"])
-
-    @validate("class_name")
-    def gir_class_exists(self):
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"] and self.gir_ns is not None:
-            self.root.gir.validate_class(self.tokens["class_name"], self.tokens["namespace"])
-
-    @validate("namespace", "class_name")
-    def not_abstract(self):
-        if self.gir_class is not None and self.gir_class.abstract:
-            raise CompileError(
-                f"{self.gir_class.full_name} can't be instantiated because it's abstract",
-                hints=[f"did you mean to use a subclass of {self.gir_class.full_name}?"]
-            )
-
-    @property
-    def gir_ns(self):
-        if not self.tokens["ignore_gir"]:
-            return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
-
     @property
     def gir_class(self):
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
-            return self.root.gir.get_class(self.tokens["class_name"], self.tokens["namespace"])
-
-
-    @docs("namespace")
-    def namespace_docs(self):
-        if ns := self.root.gir.namespaces.get(self.tokens["namespace"]):
-            return ns.doc
-
-
-    @docs("class_name")
-    def class_docs(self):
-        if self.gir_class:
-            return self.gir_class.doc
+        return self.children[ClassName][0].gir_type
 
     @cached_property
     def action_widgets(self) -> T.List[ResponseId]:
@@ -99,7 +64,7 @@ class Object(AstNode):
 
     def emit_start_tag(self, xml: XmlEmitter):
         xml.start_tag("object", **{
-            "class": self.gir_class or self.tokens["class_name"],
+            "class": self.children[ClassName][0].glib_type_name,
             "id": self.tokens["id"],
         })
 
