@@ -72,6 +72,10 @@ template ShumateDemoWindow : Gtk.ApplicationWindow {
 - [Syntax highlighting by thetek42](https://github.com/thetek42/vim-blueprint-syntax)
 - [Syntax highlighting by gabmus](https://gitlab.com/gabmus/vim-blueprint)
 
+### GNU Emacs
+
+- [Major mode by DrBluefall](https://github.com/DrBluefall/blueprint-mode)
+
 ## License
 
 Copyright (C) 2021 James Westman <james@jwestman.net>
