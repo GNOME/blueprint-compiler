@@ -21,16 +21,13 @@ Blueprint files can import GObject Introspection namespaces like this:
 To compile a blueprint file, ``.typelib`` files for all of the imported
 namespaces must be installed. All blueprint files must import Gtk 4.0, so
 ``Gtk-4.0.typelib`` is effectively a runtime dependency of blueprint-compiler.
+blueprint-compiler also depends on pygobject, because it uses GIRepository
+to determine the search path for typelib files.
 
 So, if a package uses blueprint-compiler, its build dependencies should include
 the typelib files for any namespaces imported in its blueprint files. (Note
 that many apps also have the same typelib files as runtime dependencies,
 separately from blueprint).
-
-The search path for typelib files is defined by the
-`libdir <https://mesonbuild.com/Builtin-options.html#directories>`_ that Meson
-uses. Additional paths may be passed at runtime through the ``GI_TYPELIB_PATH``
-environment variable.
 
 In addition, the blueprint language server uses ``.gir`` files to provide
 documentation on hover. Some distros package these files separately from the

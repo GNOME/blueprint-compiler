@@ -21,6 +21,10 @@ from functools import cached_property
 import typing as T
 import os, sys
 
+import gi # type: ignore
+gi.require_version("GIRepository", "2.0")
+from gi.repository import GIRepository # type: ignore
+
 from .errors import CompileError, CompilerBugError
 from . import typelib, xml_reader
 
@@ -29,25 +33,7 @@ _xml_cache = {}
 
 
 def get_namespace(namespace, version):
-    from .main import LIBDIR, VERSION
-    search_paths = []
-    if LIBDIR is not None:
-        search_paths.append(os.path.join(LIBDIR, "girepository-1.0"))
-
-    # This is a fragile hack to make blueprint-compiler work uninstalled on
-    # most systems.
-    if VERSION == "uninstalled":
-        search_paths += [
-            "/usr/lib/girepository-1.0",
-            "/usr/local/lib/girepository-1.0",
-            "/app/lib/girepository-1.0",
-            "/usr/lib64/girepository-1.0",
-            "/usr/local/lib64/girepository-1.0",
-            "/app/lib64/girepository-1.0",
-        ]
-
-    if typelib_path := os.environ.get("GI_TYPELIB_PATH"):
-        search_paths.append(typelib_path)
+    search_paths = GIRepository.Repository.get_search_path()
 
     filename = f"{namespace}-{version}.typelib"
 
@@ -75,14 +61,6 @@ def get_xml(namespace, version):
     from .main import VERSION
     from xml.etree import ElementTree
     search_paths = []
-
-    # Same fragile hack as before
-    if VERSION == "uninstalled":
-        search_paths += [
-            "/usr/share/gir-1.0",
-            "/usr/local/share/gir-1.0",
-            "/app/share/gir-1.0",
-        ]
 
     if data_paths := os.environ.get("XDG_DATA_DIRS"):
         search_paths += [os.path.join(path, "gir-1.0") for path in data_paths.split(os.pathsep)]
