@@ -31,16 +31,17 @@ class GtkDirective(AstNode):
 
     @validate("version")
     def gtk_version(self):
-        if self.tokens["version"] not in ["4.0"]:
+        version = self.tokens["version"]
+        if version not in ["4.0"]:
             err = CompileError("Only GTK 4 is supported")
-            if self.tokens["version"].startswith("4"):
+            if version and version.startswith("4"):
                 err.hint("Expected the GIR version, not an exact version number. Use 'using Gtk 4.0;'.")
             else:
                 err.hint("Expected 'using Gtk 4.0;'")
             raise err
 
         try:
-            gir.get_namespace("Gtk", self.tokens["version"])
+            gir.get_namespace("Gtk", version)
         except CompileError as e:
             raise CompileError(
                 "Could not find GTK 4 introspection files. Is gobject-introspection installed?",

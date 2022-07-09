@@ -188,6 +188,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("gtk_exact_version")
         self.assert_sample_error("invalid_bool")
         self.assert_sample_error("layout_in_non_widget")
+        self.assert_sample_error("no_import_version")
         self.assert_sample_error("ns_not_imported")
         self.assert_sample_error("not_a_class")
         self.assert_sample_error("object_dne")
