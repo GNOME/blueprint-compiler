@@ -175,6 +175,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("action_widget_response_dne")
         self.assert_sample_error("action_widget_negative_response")
         self.assert_sample_error("bitfield_member_dne")
+        self.assert_sample_error("children")
         self.assert_sample_error("class_assign")
         self.assert_sample_error("class_dne")
         self.assert_sample_error("consecutive_unexpected_tokens")

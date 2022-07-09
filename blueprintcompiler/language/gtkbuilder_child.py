@@ -24,6 +24,10 @@ from .gobject_object import Object
 from .response_id import ResponseId
 from .common import *
 
+ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
+    ("Gtk", "Buildable"),
+    ("Gio", "ListStore")
+]
 
 class Child(AstNode):
     grammar = [
@@ -36,6 +40,22 @@ class Child(AstNode):
         ]),
         Object,
     ]
+
+    @validate()
+    def parent_can_have_child(self):
+        if gir_class := self.parent.gir_class:
+            for namespace, name in ALLOWED_PARENTS:
+                parent_type = self.root.gir.get_type(name, namespace)
+                if gir_class.assignable_to(parent_type):
+                    break
+            else:
+                hints=["only Gio.ListStore or Gtk.Buildable implementors can have children"]
+                if "child" in gir_class.properties:
+                    hints.append("did you mean to assign this object to the 'child' property?")
+                raise CompileError(
+                    f"{gir_class.full_name} doesn't have children",
+                    hints=hints,
+                )
 
     @cached_property
     def response_id(self) -> T.Optional[ResponseId]:
