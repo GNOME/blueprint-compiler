@@ -65,16 +65,30 @@ template ShumateDemoWindow : Gtk.ApplicationWindow {
 }
 ```
 
-## Editor plugins
+## Editors
 
-### Vim
+[Workbench](https://github.com/sonnyp/Workbench) and [GNOME Builder](https://apps.gnome.org/app/org.gnome.Builder/) have builtin support for Blueprint.
+
+Vim
 
 - [Syntax highlighting by thetek42](https://github.com/thetek42/vim-blueprint-syntax)
 - [Syntax highlighting by gabmus](https://gitlab.com/gabmus/vim-blueprint)
 
-### GNU Emacs
+GNU Emacs
 
 - [Major mode by DrBluefall](https://github.com/DrBluefall/blueprint-mode)
+
+Visual Studio Code
+
+- [Blueprint Language Plugin by bodil](https://github.com/bodil/vscode-blueprint)
+
+## Donate
+
+You can support my work on GitHub Sponsors! <https://github.com/sponsors/jameswestman>
+
+## Getting in Touch
+
+Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
 
 ## License
 
@@ -92,11 +106,3 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-## Donate
-
-You can support my work on GitHub Sponsors! <https://github.com/sponsors/jameswestman>
-
-## Getting in Touch
-
-Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
