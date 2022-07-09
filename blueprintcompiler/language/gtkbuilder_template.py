@@ -41,15 +41,12 @@ class Template(Object):
     def unique_in_parent(self):
         self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
 
-    def emit_xml(self, xml: XmlEmitter):
+    def emit_start_tag(self, xml: XmlEmitter):
         xml.start_tag(
             "template",
             **{"class": self.tokens["name"]},
             parent=self.gir_class or self.tokens["class_name"]
         )
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
 
 
 @decompiler("template")

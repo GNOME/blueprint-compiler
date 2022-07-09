@@ -97,13 +97,15 @@ class Object(AstNode):
             if child.response_id
         ]
 
-    def emit_xml(self, xml: XmlEmitter):
-        from .gtkbuilder_child import Child
-
+    def emit_start_tag(self, xml: XmlEmitter):
         xml.start_tag("object", **{
             "class": self.gir_class or self.tokens["class_name"],
             "id": self.tokens["id"],
         })
+
+    def emit_xml(self, xml: XmlEmitter):
+        self.emit_start_tag(xml)
+
         for child in self.children:
             child.emit_xml(xml)
 
