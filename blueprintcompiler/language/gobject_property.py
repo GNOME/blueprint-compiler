@@ -24,7 +24,6 @@ from .gtkbuilder_template import Template
 from .values import Value, TranslatedStringValue
 from .common import *
 
-
 class Property(AstNode):
     grammar = AnyOf(
         [
@@ -42,6 +41,20 @@ class Property(AstNode):
             )),
             ";",
         ],
+        Statement(
+            UseIdent("name"),
+            ":",
+            Keyword("bind-settings"),
+            UseQuoted("bind_settings_schema"),
+            UseQuoted("bind_settings_key"),
+            ZeroOrMore(AnyOf(
+                Keyword("get"),
+                Keyword("set"),
+                Keyword("no-sensitivity"),
+                Keyword("get-no-changes"),
+                ["inverted", UseLiteral("inverted", True)],
+            )),
+        ),
         Statement(
             UseIdent("name"),
             UseLiteral("binding", True),
@@ -96,7 +109,10 @@ class Property(AstNode):
 
     @validate("bind")
     def property_bindable(self):
-        if self.tokens["bind"] and self.gir_property is not None and self.gir_property.construct_only:
+        if ((self.tokens["bind"] or self.tokens["bind-setting"])
+            and self.gir_property is not None
+            and self.gir_property.construct_only):
+
             raise CompileError(
                 f"{self.gir_property.full_name} can't be bound because it is construct-only",
                 hints=["construct-only properties may only be set to a static value"]
@@ -146,11 +162,21 @@ class Property(AstNode):
             bind_flags.append("invert-boolean")
         if self.tokens["bidirectional"]:
             bind_flags.append("bidirectional")
+        if self.tokens["get"]:
+            bind_flags.append("get")
+        if self.tokens["set"]:
+            bind_flags.append("set")
+        if self.tokens["no-sensitivity"]:
+            bind_flags.append("no-sensitivity")
+        if self.tokens["get-no-changes"]:
+            bind_flags.append("get-no-changes")
         bind_flags_str = "|".join(bind_flags) or None
 
         props = {
             "name": self.tokens["name"],
             "bind-source": self.tokens["bind_source"],
+            "bind-settings-schema": self.tokens["bind_settings_schema"],
+            "bind-settings-key": self.tokens["bind_settings_key"],
             "bind-property": self.tokens["bind_property"],
             "bind-flags": bind_flags_str,
         }

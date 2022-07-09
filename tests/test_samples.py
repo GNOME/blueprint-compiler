@@ -132,6 +132,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("accessibility")
         self.assert_sample("action_widgets")
         self.assert_sample("binding")
+        self.assert_sample("bind_settings")
         self.assert_sample("child_type")
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")

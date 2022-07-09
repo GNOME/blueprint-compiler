@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkLabel">
+    <property name="label" bind-settings-schema="org.example.Settings" bind-settings-key="my-label" bind-flags="invert-boolean|get-no-changes"/>
+  </object>
+</interface>
