@@ -32,12 +32,17 @@ class BaseAttribute(AstNode):
     def name(self):
         return self.tokens["name"]
 
+    def extra_attributes(self):
+        return {}
+
     def emit_xml(self, xml: XmlEmitter):
         value = self.children[Value][0]
         attrs = { self.attr_name: self.name }
 
         if isinstance(value, TranslatedStringValue):
             attrs = { **attrs, **value.attrs }
+
+        attrs = { **attrs, **self.extra_attributes() }
 
         xml.start_tag(self.tag_name, **attrs)
         value.emit_xml(xml)

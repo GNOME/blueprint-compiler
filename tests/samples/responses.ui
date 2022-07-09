@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="AdwMessageDialog">
+    <responses>
+      <response id="cancel" translatable="yes">Cancel</response>
+      <response id="discard" translatable="yes" appearance="destructive">Discard</response>
+      <response id="save" enabled="false" appearance="suggested">Save</response>
+    </responses>
+    <signal name="response::save" handler="on_response_save"/>
+  </object>
+</interface>

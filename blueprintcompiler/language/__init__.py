@@ -1,6 +1,7 @@
 """ Contains all the syntax beyond basic objects, properties, signal, and
 templates. """
 
+from .adw_message_dialog import Responses
 from .attributes import BaseAttribute, BaseTypedAttribute
 from .expression import Expr
 from .gobject_object import Object, ObjectContent
@@ -39,6 +40,7 @@ OBJECT_CONTENT_HOOKS.children = [
     Widgets,
     Items,
     Strings,
+    Responses,
     Child,
 ]
 
