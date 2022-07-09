@@ -23,7 +23,7 @@ import difflib
 import os
 
 from . import decompiler, tokenizer, parser
-from .errors import MultipleErrors, PrintableError
+from .errors import MultipleErrors, PrintableError, GtkTypelibMissingError
 from .utils import Colors
 
 
@@ -156,11 +156,15 @@ def step2():
 def step3():
     print(f"{Colors.BOLD}STEP 3: Convert UI files{Colors.CLEAR}")
 
-    files = [
-        (file, change_suffix(file), decompile_file(file, change_suffix(file)))
-        for file in listdir_recursive(".")
-        if file.endswith(".ui")
-    ]
+    try:
+        files = [
+            (file, change_suffix(file), decompile_file(file, change_suffix(file)))
+            for file in listdir_recursive(".")
+            if file.endswith(".ui")
+        ]
+    except GtkTypelibMissingError as e:
+        e.pretty_print(None, None)
+        return ([], [])
 
     success = 0
     for in_file, out_file, result in files:

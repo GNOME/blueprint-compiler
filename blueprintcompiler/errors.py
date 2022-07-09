@@ -80,14 +80,16 @@ class CompileError(PrintableError):
             self.hint("Are your dependencies up to date?")
 
     def pretty_print(self, filename, code, stream=sys.stdout):
-        line_num, col_num = utils.idx_to_pos(self.start + 1, code)
-        line = code.splitlines(True)[line_num]
+        stream.write(f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}\n""")
 
-        # Display 1-based line numbers
-        line_num += 1
+        if code is not None and self.start is not None:
+            line_num, col_num = utils.idx_to_pos(self.start + 1, code)
+            line = code.splitlines(True)[line_num]
 
-        stream.write(f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
-at {filename} line {line_num} column {col_num}:
+            # Display 1-based line numbers
+            line_num += 1
+
+            stream.write(f"""at {filename} line {line_num} column {col_num}:
 {Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n""")
 
         for hint in self.hints:
@@ -113,6 +115,15 @@ class CompileWarning(CompileError):
 class UnexpectedTokenError(CompileError):
     def __init__(self, start, end):
         super().__init__("Unexpected tokens", start, end)
+
+
+class GtkTypelibMissingError(CompileError):
+    def __init__(self, **kwargs):
+        super().__init__(
+            "Could not find GTK 4 introspection files. Is gobject-introspection installed?",
+            fatal=True,
+            **kwargs
+        )
 
 
 @dataclass

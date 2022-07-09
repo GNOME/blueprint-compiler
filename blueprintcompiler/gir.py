@@ -25,7 +25,7 @@ import gi # type: ignore
 gi.require_version("GIRepository", "2.0")
 from gi.repository import GIRepository # type: ignore
 
-from .errors import CompileError, CompilerBugError
+from .errors import CompileError, CompilerBugError, GtkTypelibMissingError
 from . import typelib, xml_reader
 
 _namespace_cache = {}
@@ -49,10 +49,15 @@ def get_namespace(namespace, version):
                 break
 
         if filename not in _namespace_cache:
-            raise CompileError(
-                f"Namespace {namespace}-{version} could not be found",
-                hints=["search path: " + os.pathsep.join(search_paths)],
-            )
+            hints = ["search path: " + os.pathsep.join(search_paths)]
+
+            if namespace == "Gtk":
+                raise GtkTypelibMissingError(hints=hints)
+            else:
+                raise CompileError(
+                    f"Namespace {namespace}-{version} could not be found",
+                    hints=hints,
+                )
 
     return _namespace_cache[filename]
 
