@@ -41,7 +41,14 @@ class InfixExpr(AstNode):
 class IdentExpr(AstNode):
     grammar = UseIdent("ident")
 
+    @property
+    def is_this(self):
+        return self.parent_by_type(Scope).this_name == self.tokens["ident"]
+
     def emit_xml(self, xml: XmlEmitter):
+        if self.is_this:
+            raise CompilerBugError()
+
         xml.start_tag("constant")
         xml.put_text(self.tokens["ident"])
         xml.end_tag()
@@ -51,9 +58,12 @@ class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
 
     def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("lookup", name=self.tokens["property"])
-        self.lhs.emit_xml(xml)
-        xml.end_tag()
+        if isinstance(self.lhs, IdentExpr) and self.lhs.is_this:
+            xml.put_self_closing("lookup", name=self.tokens["property"], type=self.parent_by_type(Scope).this_type)
+        else:
+            xml.start_tag("lookup", name=self.tokens["property"])
+            self.lhs.emit_xml(xml)
+            xml.end_tag()
 
 
 expr.children = [

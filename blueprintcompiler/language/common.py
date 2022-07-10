@@ -33,3 +33,24 @@ from ..xml_emitter import XmlEmitter
 OBJECT_HOOKS = AnyOf()
 OBJECT_CONTENT_HOOKS = AnyOf()
 VALUE_HOOKS = AnyOf()
+
+
+class Scope:
+    def get_variables(self) -> T.Iterator[str]:
+        yield from self.get_objects().keys()
+
+    def get_objects(self) -> T.Dict[str, T.Any]:
+        raise NotImplementedError()
+
+    @property
+    def this_name(self) -> T.Optional[str]:
+        return None
+
+    @property
+    def this_type(self) -> T.Optional[str]:
+        return None
+
+    @property
+    def this_type_glib_name(self) -> T.Optional[str]:
+        return None
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkBoolFilter" id="filter">
+    <property name="expression">
+      <lookup name="visible" type="GtkLabel"/>
+    </property>
+  </object>
+  <object class="GtkBoolFilter">
+    <property name="expression">
+      <lookup name="invert">
+        <constant>filter</constant>
+      </lookup>
+    </property>
+  </object>
+</interface>
