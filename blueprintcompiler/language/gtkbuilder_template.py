@@ -26,7 +26,7 @@ from .types import ClassName
 class Template(Object):
     grammar = [
         "template",
-        UseIdent("name").expected("template class name"),
+        UseIdent("id").expected("template class name"),
         Optional([
             Match(":"),
             to_parse_node(ClassName).expected("parent class"),
@@ -40,7 +40,7 @@ class Template(Object):
         if len(self.children[ClassName]):
             return self.children[ClassName][0].gir_type
 
-    @validate("name")
+    @validate("id")
     def unique_in_parent(self):
         self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
 
@@ -52,7 +52,7 @@ class Template(Object):
 
         xml.start_tag(
             "template",
-            **{"class": self.tokens["name"]},
+            **{"class": self.tokens["id"]},
             parent=parent
         )
 

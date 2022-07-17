@@ -5,4 +5,7 @@
     <property name="test-property">Hello, world</property>
     <signal name="test-signal" handler="on_test_signal"/>
   </template>
+  <object class="GtkDialog">
+    <property name="transient-for">TestTemplate</property>
+  </object>
 </interface>
