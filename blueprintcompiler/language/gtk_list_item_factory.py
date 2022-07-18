@@ -60,7 +60,7 @@ class ListItemFactory(AstNode, Scope):
                 for obj in self.iterate_children_recursive()
                 if obj.tokens["id"] is not None
             },
-            "item": ScopeVariable("item", self.gir_class, emit_item_xml),
+            "item": ScopeVariable("item", self.item_type, emit_item_xml),
         }
 
     @property

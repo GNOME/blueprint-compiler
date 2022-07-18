@@ -14,7 +14,7 @@
         <binding name="label">
           <lookup name="label">
             <lookup name="group">
-              <lookup name="item">GtkListItem</lookup>
+              <lookup name="item" type="GtkCheckButton">GtkListItem</lookup>
             </lookup>
           </lookup>
         </binding>
