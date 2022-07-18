@@ -38,9 +38,10 @@ class Lambda(Value, Scope):
         for child in self.children:
             child.emit_xml(xml)
 
-    def get_objects(self):
+    @property
+    def variables(self) -> T.Dict[str, ScopeVariable]:
         return {
-            **self.parent.parent_by_type(Scope).get_objects(),
+            **self.parent.parent_by_type(Scope).variables,
             self.tokens["argument"]: None,
         }
 

@@ -62,8 +62,17 @@ class UI(AstNode, Scope):
     def objects_by_id(self):
         return { obj.tokens["id"]: obj for obj in self.iterate_children_recursive() if obj.tokens["id"] is not None }
 
-    def get_objects(self):
-        return self.objects_by_id
+    @property
+    def variables(self):
+        def emit_xml(xml: XmlEmitter, obj_id: str):
+            xml.start_tag("constant")
+            xml.put_text(obj_id)
+            xml.end_tag()
+
+        return {
+            id: ScopeVariable(id, obj.gir_class, lambda xml: emit_xml(xml, id))
+            for id, obj in self.objects_by_id.items()
+        }
 
     @validate()
     def gir_errors(self):

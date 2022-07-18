@@ -49,9 +49,7 @@ class IdentExpr(AstNode):
         if self.is_this:
             raise CompilerBugError()
 
-        xml.start_tag("constant")
-        xml.put_text(self.tokens["ident"])
-        xml.end_tag()
+        self.parent_by_type(Scope).variables[self.tokens["ident"]].emit_xml(xml)
 
 
 class LookupOp(InfixExpr):

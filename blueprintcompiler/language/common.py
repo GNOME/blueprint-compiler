@@ -35,11 +35,29 @@ OBJECT_CONTENT_HOOKS = AnyOf()
 VALUE_HOOKS = AnyOf()
 
 
-class Scope:
-    def get_variables(self) -> T.Iterator[str]:
-        yield from self.get_objects().keys()
+class ScopeVariable:
+    def __init__(self, name: str, gir_class: gir.GirType, xml_func):
+        self._name = name
+        self._gir_class = gir_class
+        self._xml_func = xml_func
 
-    def get_objects(self) -> T.Dict[str, T.Any]:
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def gir_class(self) -> gir.GirType:
+        return self._gir_class
+
+    def emit_xml(self, xml: XmlEmitter):
+        if f := self._xml_func:
+            f(xml)
+        else:
+            raise NotImplementedError()
+
+class Scope:
+    @property
+    def variables(self) -> T.Dict[str, ScopeVariable]:
         raise NotImplementedError()
 
     @property
@@ -53,4 +71,3 @@ class Scope:
     @property
     def this_type_glib_name(self) -> T.Optional[str]:
         return None
-
