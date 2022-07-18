@@ -12,9 +12,9 @@
     <property name="child">
       <object class="GtkLabel">
         <binding name="label">
-          <lookup name="label">
-            <lookup name="group">
-              <lookup name="item" type="GtkCheckButton">GtkListItem</lookup>
+          <lookup name="label" type="GtkCheckButton">
+            <lookup name="group" type="GtkCheckButton">
+              <lookup name="item">GtkListItem</lookup>
             </lookup>
           </lookup>
         </binding>
