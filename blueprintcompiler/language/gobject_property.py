@@ -21,6 +21,7 @@
 from .expression import Expr
 from .gobject_object import Object
 from .gtkbuilder_template import Template
+from .gtk_list_item_factory import ListItemFactory
 from .values import Value, TranslatedStringValue
 from .common import *
 
@@ -30,7 +31,7 @@ class Property(AstNode):
         [
             UseIdent("name"),
             ":",
-            Keyword("bind"),
+            Keyword("bind-prop", "bind"),
             UseIdent("bind_source"),
             ".",
             UseIdent("bind_property"),
@@ -46,7 +47,7 @@ class Property(AstNode):
             UseIdent("name"),
             UseLiteral("binding", True),
             ":",
-            "bind",
+            Keyword("bind"),
             Expr,
         ),
         Statement(
@@ -161,6 +162,10 @@ class Property(AstNode):
         if len(self.children[Object]) == 1:
             xml.start_tag("property", **props)
             self.children[Object][0].emit_xml(xml)
+            xml.end_tag()
+        elif len(self.children[ListItemFactory]) == 1:
+            xml.start_tag("property", **props)
+            self.children[ListItemFactory][0].emit_xml(xml)
             xml.end_tag()
         elif value is None:
             if self.tokens["binding"]:

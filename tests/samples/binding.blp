@@ -1,9 +1,9 @@
 using Gtk 4.0;
 
 Box {
-  visible: bind box2.visible inverted;
-  orientation: bind box2.orientation;
-  spacing: bind box2.spacing no-sync-create;
+  visible: bind-prop box2.visible inverted;
+  orientation: bind-prop box2.orientation;
+  spacing: bind-prop box2.spacing no-sync-create;
 }
 
 Box box2 {

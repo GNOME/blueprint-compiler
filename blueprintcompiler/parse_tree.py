@@ -536,13 +536,13 @@ class UseLiteral(ParseNode):
 class Keyword(ParseNode):
     """ Matches the given identifier and sets it as a named token, with the name
     being the identifier itself. """
-    def __init__(self, kw):
+    def __init__(self, kw, token=None):
         self.kw = kw
-        self.set_token = True
+        self.token = token or kw
 
     def _parse(self, ctx: ParseContext):
         token = ctx.next_token()
-        ctx.set_group_val(self.kw, True, token)
+        ctx.set_group_val(self.token, True, token)
         return str(token) == self.kw
 
 

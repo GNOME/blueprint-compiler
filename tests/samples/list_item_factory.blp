@@ -1,0 +1,9 @@
+using Gtk 4.0;
+
+ListView {
+  factory: list_item_factory(CheckButton) {
+    child: Label {
+      label: bind item.group.label;
+    };
+  };
+}

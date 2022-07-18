@@ -10,6 +10,7 @@ from .gtk_a11y import A11y
 from .gtk_combo_box_text import Items
 from .gtk_file_filter import mime_types, patterns, suffixes
 from .gtk_layout import Layout
+from .gtk_list_item_factory import ListItemFactory
 from .gtk_menu import menu
 from .gtk_size_group import Widgets
 from .gtk_string_list import Strings
@@ -26,6 +27,7 @@ from .common import *
 OBJECT_HOOKS.children = [
     menu,
     Object,
+    ListItemFactory,
 ]
 
 OBJECT_CONTENT_HOOKS.children = [

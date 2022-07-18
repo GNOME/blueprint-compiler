@@ -145,6 +145,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("inline_menu")
         self.assert_sample("lambda")
         self.assert_sample("layout")
+        self.assert_sample("list_item_factory")
         self.assert_sample("menu")
         self.assert_sample("numbers")
         self.assert_sample("object_prop")
