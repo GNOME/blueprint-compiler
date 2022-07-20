@@ -126,9 +126,8 @@ class LookupOp(InfixExpr):
     @property
     def gir_type(self):
         if parent_type := self.lhs.gir_type:
-            if isinstance(parent_type, gir.Class) or isinstance(parent_type, gir.Interface):
-                if prop := parent_type.properties.get(self.tokens["property"]):
-                    return prop.type
+            if prop := parent_type.lookup_property(self.tokens["property"]):
+                return prop.type
 
     @property
     def glib_type_name(self):
@@ -137,15 +136,11 @@ class LookupOp(InfixExpr):
 
     @validate("property")
     def property_exists(self):
-        if parent_type := self.lhs.gir_type:
-            if not (isinstance(parent_type, gir.Class) or isinstance(parent_type, gir.Interface)):
-                raise CompileError(f"Type {parent_type.full_name} does not have properties")
-            elif self.tokens["property"] not in parent_type.properties:
-                raise CompileError(
-                    f"{parent_type.full_name} does not have a property called {self.tokens['property']}",
-                    hints=["Do you need to cast the previous expression?"],
-                    did_you_mean=(self.tokens['property'], parent_type.properties.keys()),
-                )
+        try:
+            self.gir_type
+        except CompileError as e:
+            e.hints.append("Do you need to cast the previous expression?")
+            raise e
 
     def emit_xml(self, xml: XmlEmitter):
         if isinstance(self.lhs, IdentExpr) and self.lhs.is_this:

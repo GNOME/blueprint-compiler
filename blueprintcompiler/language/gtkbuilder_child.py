@@ -49,6 +49,10 @@ class Child(AstNode):
                 if gir_class.assignable_to(parent_type):
                     break
             else:
+                if gir_class.is_partial:
+                    # we don't know if the class implements Gtk.Buildable or not
+                    return
+
                 hints=["only Gio.ListStore or Gtk.Buildable implementors can have children"]
                 if "child" in gir_class.properties:
                     hints.append("did you mean to assign this object to the 'child' property?")

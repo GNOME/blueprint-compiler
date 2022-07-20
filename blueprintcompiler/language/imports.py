@@ -25,7 +25,7 @@ from .common import *
 class GtkDirective(AstNode):
     grammar = Statement(
         Match("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
-        Match("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+        Keyword("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
         UseNumberText("version").expected("a version number for GTK"),
     )
 
@@ -33,15 +33,23 @@ class GtkDirective(AstNode):
     def gtk_version(self):
         version = self.tokens["version"]
         if version not in ["4.0"]:
-            err = CompileError("Only GTK 4 is supported")
+            err = CompileError("Only GTK 4 is supported", fatal=True)
             if version and version.startswith("4"):
                 err.hint("Expected the GIR version, not an exact version number. Use 'using Gtk 4.0;'.")
             else:
                 err.hint("Expected 'using Gtk 4.0;'")
             raise err
 
+        return version
+
+    @validate()
+    def gir_namespace(self):
+        if self.gtk_version is None:
+            # use that error message instead
+            return
+
         try:
-            gir.get_namespace("Gtk", version)
+            return gir.get_namespace("Gtk", self.gtk_version)
         except CompileError as e:
             raise CompileError(
                 "Could not find GTK 4 introspection files. Is gobject-introspection installed?",
@@ -52,17 +60,8 @@ class GtkDirective(AstNode):
             )
 
 
-    @property
-    def gir_namespace(self):
-        # validate the GTK version first to make sure the more specific error
-        # message is emitted
-        self.gtk_version()
-        return gir.get_namespace("Gtk", self.tokens["version"])
-
-
     def emit_xml(self, xml: XmlEmitter):
         xml.put_self_closing("requires", lib="gtk", version=self.tokens["version"])
-
 
 class Import(AstNode):
     grammar = Statement(

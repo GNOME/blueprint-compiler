@@ -96,6 +96,9 @@ class GirType:
     def full_name(self) -> str:
         raise NotImplementedError()
 
+    def lookup_property(self, property: str):
+        raise CompileError(f"Type {self.full_name} does not have properties")
+
 
 class BasicType(GirType):
     name: str = "unknown type"
@@ -314,6 +317,17 @@ class Interface(GirNode, GirType):
             result.append(self.get_containing(Repository)._resolve_dir_entry(entry))
         return result
 
+    def lookup_property(self, property: str):
+        if prop := self.properties.get(property):
+            return prop
+        elif self.is_partial:
+            return None
+        else:
+            raise CompileError(
+                f"Interface {self.full_name} does not have a property called {property}",
+                did_you_mean=(property, self.properties.keys())
+            )
+
     def assignable_to(self, other) -> bool:
         if self == other:
             return True
@@ -323,7 +337,82 @@ class Interface(GirNode, GirType):
         return False
 
 
-class Class(GirNode, GirType):
+class GirClass(GirType):
+    @property
+    def abstract(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def is_partial(self):
+        return False
+
+    @property
+    def implements(self):
+        return []
+
+    @property
+    def own_properties(self):
+        return {}
+
+    @property
+    def own_signals(self):
+        return {}
+
+    @cached_property
+    def properties(self):
+        return { p.name: p for p in self._enum_properties() }
+
+    @cached_property
+    def signals(self):
+        return { s.name: s for s in self._enum_signals() }
+
+    def lookup_property(self, property: str):
+        if prop := self.properties.get(property):
+            return prop
+        elif self.is_partial:
+            return None
+        else:
+            raise CompileError(
+                f"Class {self.full_name} does not have a property called {property}",
+                did_you_mean=(property, self.properties.keys())
+            )
+
+    def _enum_properties(self):
+        yield from self.own_properties.values()
+
+        if self.parent is not None:
+            yield from self.parent.properties.values()
+
+        for impl in self.implements:
+            yield from impl.properties.values()
+
+    def _enum_signals(self):
+        yield from self.own_signals.values()
+
+        if self.parent is not None:
+            yield from self.parent.signals.values()
+
+        for impl in self.implements:
+            yield from impl.signals.values()
+
+    def assignable_to(self, other) -> bool:
+        if self == other:
+            return True
+        elif self.parent and self.parent.assignable_to(other):
+            return True
+        else:
+            for iface in self.implements:
+                if iface.assignable_to(other):
+                    return True
+
+            return False
+
+
+class Class(GirNode, GirClass):
     def __init__(self, ns, tl: typelib.Typelib):
         super().__init__(ns, tl)
 
@@ -388,43 +477,31 @@ class Class(GirNode, GirType):
             result += " implements " + ", ".join([impl.full_name for impl in self.implements])
         return result
 
-    @cached_property
-    def properties(self):
-        return { p.name: p for p in self._enum_properties() }
 
-    @cached_property
-    def signals(self):
-        return { s.name: s for s in self._enum_signals() }
+class PartialClass(GirClass):
+    def __init__(self, name: str, parent: GirType = None):
+        self._name = name
+        self._parent = parent
 
-    def assignable_to(self, other) -> bool:
-        if self == other:
-            return True
-        elif self.parent and self.parent.assignable_to(other):
-            return True
-        else:
-            for iface in self.implements:
-                if iface.assignable_to(other):
-                    return True
+    @property
+    def full_name(self):
+        return self._name
 
-            return False
+    @property
+    def glib_type_name(self):
+        return self._name
 
-    def _enum_properties(self):
-        yield from self.own_properties.values()
+    @property
+    def abstract(self):
+        return False
 
-        if self.parent is not None:
-            yield from self.parent.properties.values()
+    @property
+    def parent(self):
+        return self._parent
 
-        for impl in self.implements:
-            yield from impl.properties.values()
-
-    def _enum_signals(self):
-        yield from self.own_signals.values()
-
-        if self.parent is not None:
-            yield from self.parent.signals.values()
-
-        for impl in self.implements:
-            yield from impl.signals.values()
+    @property
+    def is_partial(self):
+        return True
 
 
 class EnumMember(GirNode):

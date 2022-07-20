@@ -42,7 +42,8 @@ class UI(AstNode, Scope):
         self._gir_errors = []
 
         try:
-            gir_ctx.add_namespace(self.children[GtkDirective][0].gir_namespace)
+            if ns := self.children[GtkDirective][0].gir_namespace:
+                gir_ctx.add_namespace(ns)
         except CompileError as e:
             self._gir_errors.append(e)
 
@@ -70,7 +71,7 @@ class UI(AstNode, Scope):
             xml.end_tag()
 
         return {
-            id: ScopeVariable(id, obj.gir_class, lambda xml, id=id: emit_xml(xml, id), obj.glib_type_name)
+            id: ScopeVariable(id, obj.gir_class, lambda xml, id=id: emit_xml(xml, id))
             for id, obj in self.objects_by_id.items()
         }
 

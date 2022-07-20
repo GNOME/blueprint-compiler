@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="MyWidget">
+    <binding name="label">
+      <lookup name="other-label" type="MyWidget">
+        <constant>MyWidget</constant>
+      </lookup>
+    </binding>
+  </template>
+</interface>

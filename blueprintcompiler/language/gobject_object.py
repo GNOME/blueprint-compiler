@@ -48,14 +48,7 @@ class Object(AstNode):
 
     @property
     def gir_class(self):
-        class_names = self.children[ClassName]
-        if len(class_names) > 0:
-            if isinstance(class_names[0].gir_type, Class):
-                return class_names[0].gir_type
-
-    @property
-    def glib_type_name(self) -> str:
-        return self.children[ClassName][0].glib_type_name
+        return self.children[ClassName][0].gir_type
 
     @docs("namespace")
     def namespace_docs(self):
@@ -83,7 +76,7 @@ class Object(AstNode):
 
     def emit_start_tag(self, xml: XmlEmitter):
         xml.start_tag("object", **{
-            "class": self.glib_type_name,
+            "class": self.gir_class,
             "id": self.tokens["id"],
         })
 

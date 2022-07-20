@@ -90,6 +90,9 @@ class TestSamples(unittest.TestCase):
                 raise MultipleErrors(warnings)
         except PrintableError as e:
             def error_str(error):
+                if error.start is None:
+                    raise Exception("Error start/end range was never set")
+
                 line, col = utils.idx_to_pos(error.start + 1, blueprint)
                 len = error.end - error.start
                 return ",".join([str(line + 1), str(col), str(len), error.message])
@@ -157,6 +160,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("strings")
         self.assert_sample("style")
         self.assert_sample("template")
+        self.assert_sample("template_binding")
         self.assert_sample("template_no_parent")
         self.assert_sample("translated")
         self.assert_sample("uint")

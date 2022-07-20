@@ -1,3 +1,3 @@
-5,32,9,Gtk.Widget does not have a property called something
+5,32,9,Class Gtk.Widget does not have a property called something
 6,43,5,Type int does not have properties
 7,17,7,Could not find object with ID 'nothing'

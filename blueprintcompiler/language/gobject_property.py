@@ -64,36 +64,15 @@ class Property(AstNode):
     def gir_class(self):
         return self.parent.parent.gir_class
 
-
-    @property
+    @validate("name")
     def gir_property(self):
         if self.gir_class is not None:
-            return self.gir_class.properties.get(self.tokens["name"])
-
+            return self.gir_class.lookup_property(self.tokens["name"])
 
     @property
     def value_type(self):
         if self.gir_property is not None:
             return self.gir_property.type
-
-
-    @validate("name")
-    def property_exists(self):
-        if self.gir_class is None:
-            # Objects that we have no gir data on should not be validated
-            # This happens for classes defined by the app itself
-            return
-
-        if isinstance(self.parent.parent, Template):
-            # If the property is part of a template, it might be defined by
-            # the application and thus not in gir
-            return
-
-        if self.gir_property is None:
-            raise CompileError(
-                f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
-                did_you_mean=(self.tokens["name"], self.gir_class.properties.keys())
-            )
 
     @validate("bind")
     def property_bindable(self):

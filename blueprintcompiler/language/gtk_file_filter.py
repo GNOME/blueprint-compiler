@@ -27,17 +27,12 @@ class Filters(AstNode):
     def container_is_file_filter(self):
         validate_parent_type(self, "Gtk", "FileFilter", "file filter properties")
 
-    @validate()
-    def unique_in_parent(self):
-        # The token argument to validate() needs to be calculated based on
-        # the instance, hence wrapping it like this.
-        @validate(self.tokens["tag_name"])
-        def wrapped_validator(self):
-            self.validate_unique_in_parent(
-                f"Duplicate {self.tokens['tag_name']} block",
-                check=lambda child: child.tokens["tag_name"] == self.tokens["tag_name"],
-            )
-        wrapped_validator(self)
+    @validate("tag")
+    def wrapped_validator(self):
+        self.validate_unique_in_parent(
+            f"Duplicate {self.tokens['tag_name']} block",
+            check=lambda child: child.tokens["tag_name"] == self.tokens["tag_name"],
+        )
 
     def emit_xml(self, xml: XmlEmitter):
         xml.start_tag(self.tokens["tag_name"])
@@ -57,7 +52,7 @@ def create_node(tag_name: str, singular: str):
     return Group(
         Filters,
         [
-            Keyword(tag_name),
+            Keyword(tag_name, "tag"),
             UseLiteral("tag_name", tag_name),
             "[",
             Delimited(

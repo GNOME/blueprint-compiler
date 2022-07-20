@@ -19,8 +19,9 @@
 
 
 import typing as T
+from functools import cached_property
 from .common import *
-from ..gir import Class, Interface
+from ..gir import GirClass, Class, Interface
 
 
 class TypeName(AstNode):
@@ -53,18 +54,16 @@ class TypeName(AstNode):
         if not self.tokens["ignore_gir"]:
             return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
 
-    @property
+    @cached_property
     def gir_type(self) -> T.Optional[gir.Class]:
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
+        if self.tokens["ignore_gir"]:
+            return gir.PartialClass(self.tokens["class_name"])
+        else:
             return self.root.gir.get_type(self.tokens["class_name"], self.tokens["namespace"])
-        return None
 
     @property
     def glib_type_name(self) -> str:
-        if gir_type := self.gir_type:
-            return gir_type.glib_type_name
-        else:
-            return self.tokens["class_name"]
+        return self.gir_type.glib_type_name
 
     @docs("namespace")
     def namespace_docs(self):
@@ -83,7 +82,7 @@ class TypeName(AstNode):
 class ClassName(TypeName):
     @validate("namespace", "class_name")
     def gir_class_exists(self):
-        if self.gir_type is not None and not isinstance(self.gir_type, Class):
+        if self.gir_type is not None and not isinstance(self.gir_type, GirClass):
             if isinstance(self.gir_type, Interface):
                 raise CompileError(f"{self.gir_type.full_name} is an interface, not a class")
             else:

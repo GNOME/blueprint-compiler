@@ -81,7 +81,7 @@ class AstNode:
     def _get_errors(self):
         for validator in self.validators:
             try:
-                validator(self)
+                validator.validate(self)
             except CompileError as e:
                 yield e
                 if e.fatal:
@@ -149,43 +149,61 @@ class AstNode:
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
     """ Decorator for functions that validate an AST node. Exceptions raised
-    during validation are marked with range information from the tokens. """
+    during validation are marked with range information from the tokens.
+    The return value of the function can also be used as a property, and if
+    the function raises a CompileError, the property will be None. """
 
     def decorator(func):
-        def inner(self):
-            if skip_incomplete and self.incomplete:
-                return
+        class Validator:
+            _validator = True
 
-            try:
-                func(self)
-            except CompileError as e:
-                # If the node is only partially complete, then an error must
-                # have already been reported at the parsing stage
-                if self.incomplete:
+            def __get__(self, instance, owner):
+                if instance is None:
+                    return self
+
+                try:
+                    return self.validate(instance)
+                except Exception as e:
+                    # Ignore errors and return None. This way, a diagnostic
+                    # is only emitted once. Don't ignore CompilerBugErrors
+                    # though, they should never happen.
+                    if isinstance(e, CompilerBugError):
+                        raise e
+                    return None
+
+            def validate(self, node):
+                if skip_incomplete and node.incomplete:
                     return
 
-                # This mess of code sets the error's start and end positions
-                # from the tokens passed to the decorator, if they have not
-                # already been set
-                if e.start is None:
-                    if token := self.group.tokens.get(token_name):
-                        e.start = token.start
-                    else:
-                        e.start = self.group.start
+                try:
+                    return func(node)
+                except CompileError as e:
+                    # If the node is only partially complete, then an error must
+                    # have already been reported at the parsing stage
+                    if node.incomplete:
+                        return
 
-                if e.end is None:
-                    if token := self.group.tokens.get(end_token_name):
-                        e.end = token.end
-                    elif token := self.group.tokens.get(token_name):
-                        e.end = token.end
-                    else:
-                        e.end = self.group.end
+                    # This mess of code sets the error's start and end positions
+                    # from the tokens passed to the decorator, if they have not
+                    # already been set
+                    if e.start is None:
+                        if token := node.group.tokens.get(token_name):
+                            e.start = token.start
+                        else:
+                            e.start = node.group.start
 
-                # Re-raise the exception
-                raise e
+                    if e.end is None:
+                        if token := node.group.tokens.get(end_token_name):
+                            e.end = token.end
+                        elif token := node.group.tokens.get(token_name):
+                            e.end = token.end
+                        else:
+                            e.end = node.group.end
 
-        inner._validator = True
-        return inner
+                    # Re-raise the exception
+                    raise e
+
+        return Validator()
 
     return decorator
 

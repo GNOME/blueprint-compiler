@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from functools import cached_property
 
 from .gobject_object import Object, ObjectContent
 from .common import *
@@ -34,11 +35,14 @@ class Template(Object):
         ObjectContent,
     ]
 
-    @property
+    @cached_property
     def gir_class(self):
         # Templates might not have a parent class defined
+        parent = None
         if len(self.children[ClassName]):
-            return self.children[ClassName][0].gir_type
+            parent = self.children[ClassName][0].gir_type
+
+        return gir.PartialClass(self.tokens["id"], parent)
 
     @validate("id")
     def unique_in_parent(self):
