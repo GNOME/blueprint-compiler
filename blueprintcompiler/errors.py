@@ -157,3 +157,5 @@ along with the input file(s) if possible, on GitLab:
 {Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
 {Colors.CLEAR}""")
 
+    sys.exit(1)
+
