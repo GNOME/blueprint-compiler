@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
 from .. import gir
 from ..ast_utils import AstNode, validate, docs
@@ -51,11 +52,13 @@ class ScopeVariable:
         return self._gir_class
 
     @property
-    def glib_type_name(self) -> str:
+    def glib_type_name(self) -> T.Optional[str]:
         if self._glib_type_name is not None:
             return self._glib_type_name
         elif self.gir_class:
             return self.gir_class.glib_type_name
+        else:
+            return None
 
     def emit_xml(self, xml: XmlEmitter):
         if f := self._xml_func:

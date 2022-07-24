@@ -55,7 +55,7 @@ class TypeName(AstNode):
             return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
 
     @cached_property
-    def gir_type(self) -> T.Optional[gir.Class]:
+    def gir_type(self) -> gir.GirClass:
         if self.tokens["ignore_gir"]:
             return gir.PartialClass(self.tokens["class_name"])
         else:

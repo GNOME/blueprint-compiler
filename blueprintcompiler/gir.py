@@ -320,8 +320,6 @@ class Interface(GirNode, GirType):
     def lookup_property(self, property: str):
         if prop := self.properties.get(property):
             return prop
-        elif self.is_partial:
-            return None
         else:
             raise CompileError(
                 f"Interface {self.full_name} does not have a property called {property}",
