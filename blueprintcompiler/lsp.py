@@ -270,9 +270,14 @@ class LanguageServer:
         })
 
     def _create_diagnostic(self, text, uri, err):
+        message = err.message
+
+        for hint in err.hints:
+          message += '\nhint: ' + hint
+
         result = {
             "range": utils.idxs_to_range(err.start, err.end, text),
-            "message": err.message,
+            "message": message,
             "severity": DiagnosticSeverity.Warning if isinstance(err, CompileWarning) else DiagnosticSeverity.Error,
         }
 
