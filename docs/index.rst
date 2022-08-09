@@ -67,6 +67,7 @@ Built with Blueprint
 - `Extension Manager <https://github.com/mjakeman/extension-manager>`_
 - `favagtk <https://gitlab.gnome.org/johannesjh/favagtk>`_
 - `Feeds <https://gitlab.gnome.org/World/gfeeds>`_
+- `File Shredder <https://github.com/ADBeveridge/raider>`_
 - `Geopard <https://github.com/ranfdev/Geopard>`_
 - `Giara <https://gitlab.gnome.org/World/giara>`_
 - `Health <https://gitlab.gnome.org/World/Health>`_
