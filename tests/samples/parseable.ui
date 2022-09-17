@@ -4,4 +4,10 @@
   <object class="GtkShortcut">
     <property name="trigger">Escape</property>
   </object>
+  <object class="GtkPicture">
+    <property name="paintable">/path/to/paintable</property>
+  </object>
+  <object class="GtkColorButton">
+    <property name="rgba">rgb(0, 0, 0)</property>
+  </object>
 </interface>

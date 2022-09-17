@@ -1,3 +1,10 @@
+# v0.6.0 (unreleased)
+
+## Breaking Changes
+- Quoted and numeric literals are no longer interchangeable (e.g. `"800"` is
+no longer an accepted value for an integer type).
+- Boxed types are now type checked.
+
 # v0.4.0
 
 ## Added

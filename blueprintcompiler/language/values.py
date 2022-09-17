@@ -19,6 +19,7 @@
 
 
 from .common import *
+from .types import TypeName
 
 
 class Value(AstNode):
@@ -55,11 +56,68 @@ class TranslatedStringValue(Value):
         xml.put_text(self.tokens["value"])
 
 
-class LiteralValue(Value):
-    grammar = AnyOf(
-        UseNumber("value"),
-        UseQuoted("value"),
-    )
+class TypeValue(Value):
+    grammar = [
+        "typeof",
+        "(",
+        to_parse_node(TypeName).expected("type name"),
+        Match(")").expected(),
+    ]
+
+    @property
+    def type_name(self):
+        return self.children[TypeName][0]
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text(self.type_name.glib_type_name)
+
+    @validate()
+    def validate_for_type(self):
+        type = self.parent.value_type
+        if type is not None and not isinstance(type, gir.TypeType):
+            raise CompileError(f"Cannot convert GType to {type.full_name}")
+
+
+class QuotedValue(Value):
+    grammar = UseQuoted("value")
+
+    def emit_xml(self, xml: XmlEmitter):
+        xml.put_text(self.tokens["value"])
+
+    @validate()
+    def validate_for_type(self):
+        type = self.parent.value_type
+        if isinstance(type, gir.IntType) or isinstance(type, gir.UIntType) or isinstance(type, gir.FloatType):
+            raise CompileError(f"Cannot convert string to number")
+
+        elif isinstance(type, gir.StringType):
+            pass
+
+        elif isinstance(type, gir.Class) or isinstance(type, gir.Interface) or isinstance(type, gir.Boxed):
+            parseable_types = [
+                "Gdk.Paintable",
+                "Gdk.Texture",
+                "Gdk.Pixbuf",
+                "GLib.File",
+                "Gtk.ShortcutTrigger",
+                "Gtk.ShortcutAction",
+                "Gdk.RGBA",
+                "Gdk.ContentFormats",
+                "Gsk.Transform",
+                "GLib.Variant",
+            ]
+            if type.full_name not in parseable_types:
+                hints = []
+                if isinstance(type, gir.TypeType):
+                    hints.append(f"use the typeof operator: 'typeof({self.tokens('value')})'")
+                raise CompileError(f"Cannot convert string to {type.full_name}", hints=hints)
+
+        elif type is not None:
+            raise CompileError(f"Cannot convert string to {type.full_name}")
+
+
+class NumberValue(Value):
+    grammar = UseNumber("value")
 
     def emit_xml(self, xml: XmlEmitter):
         xml.put_text(self.tokens["value"])
@@ -87,23 +145,8 @@ class LiteralValue(Value):
             except:
                 raise CompileError(f"Cannot convert {self.group.tokens['value']} to float")
 
-        elif isinstance(type, gir.StringType):
-            pass
-
-        elif isinstance(type, gir.Class) or isinstance(type, gir.Interface):
-            parseable_types = [
-                "Gdk.Paintable",
-                "Gdk.Texture",
-                "Gdk.Pixbuf",
-                "GLib.File",
-                "Gtk.ShortcutTrigger",
-                "Gtk.ShortcutAction",
-            ]
-            if type.full_name not in parseable_types:
-                raise CompileError(f"Cannot convert {self.group.tokens['value']} to {type.full_name}")
-
         elif type is not None:
-            raise CompileError(f"Cannot convert {self.group.tokens['value']} to {type.full_name}")
+            raise CompileError(f"Cannot convert number to {type.full_name}")
 
 
 class Flag(AstNode):

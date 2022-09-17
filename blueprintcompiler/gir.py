@@ -129,6 +129,11 @@ class StringType(BasicType):
     def assignable_to(self, other) -> bool:
         return isinstance(other, StringType)
 
+class TypeType(BasicType):
+    name = "GType"
+    def assignable_to(self, other) -> bool:
+        return isinstance(other, TypeType)
+
 _BASIC_TYPES = {
     "gboolean": BoolType,
     "int": IntType,
@@ -141,6 +146,8 @@ _BASIC_TYPES = {
     "float": FloatType,
     "double": FloatType,
     "utf8": StringType,
+    "gtype": TypeType,
+    "type": TypeType,
 }
 
 class GirNode:
@@ -213,7 +220,7 @@ class GirNode:
 
     @property
     def type(self):
-        return self.get_containing(Namespace).lookup_type(self.type_name)
+        raise NotImplementedError()
 
 
 class Property(GirNode):
@@ -464,6 +471,18 @@ class Enumeration(GirNode, GirType):
         return type == self
 
 
+class Boxed(GirNode, GirType):
+    def __init__(self, ns, tl: typelib.Typelib):
+        super().__init__(ns, tl)
+
+    @property
+    def signature(self):
+        return f"boxed {self.full_name}"
+
+    def assignable_to(self, type):
+        return type == self
+
+
 class Bitfield(Enumeration):
     def __init__(self, ns, tl: typelib.Typelib):
         super().__init__(ns, tl)
@@ -491,6 +510,8 @@ class Namespace(GirNode):
                 self.entries[entry_name] = Class(self, entry_blob)
             elif entry_type == typelib.BLOB_TYPE_INTERFACE:
                  self.entries[entry_name] = Interface(self, entry_blob)
+            elif entry_type == typelib.BLOB_TYPE_BOXED or entry_type == typelib.BLOB_TYPE_STRUCT:
+                 self.entries[entry_name] = Boxed(self, entry_blob)
 
     @cached_property
     def xml(self):
@@ -595,6 +616,8 @@ class Repository(GirNode):
                 return UIntType()
             elif type_id == typelib.TYPE_UTF8:
                 return StringType()
+            elif type_id == typelib.TYPE_GTYPE:
+                return TypeType()
             else:
                 raise CompilerBugError("Unknown type ID", type_id)
         else:

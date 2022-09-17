@@ -18,7 +18,7 @@ from .gtkbuilder_child import Child
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .ui import UI
-from .values import IdentValue, TranslatedStringValue, FlagsValue, LiteralValue
+from .values import TypeValue, IdentValue, TranslatedStringValue, FlagsValue, QuotedValue, NumberValue
 
 from .common import *
 
@@ -43,8 +43,10 @@ OBJECT_CONTENT_HOOKS.children = [
 ]
 
 VALUE_HOOKS.children = [
+    TypeValue,
     TranslatedStringValue,
     FlagsValue,
     IdentValue,
-    LiteralValue,
+    QuotedValue,
+    NumberValue,
 ]

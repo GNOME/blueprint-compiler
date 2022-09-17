@@ -26,6 +26,8 @@ import mmap, os
 from .errors import CompilerBugError
 
 
+BLOB_TYPE_STRUCT = 3
+BLOB_TYPE_BOXED = 4
 BLOB_TYPE_ENUM = 5
 BLOB_TYPE_FLAGS = 6
 BLOB_TYPE_OBJECT = 7
