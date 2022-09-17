@@ -418,3 +418,26 @@ Gtk.Dialog and Gtk.InfoBar
      [action response=9]
      Gtk.Button app_defined_response {}
    }
+
+Gtk.Label
+~~~~~~~~~
+
+Blueprint does not have syntax for `attributes` on `Gtk.Label`.
+
+Instead, you should use `platform classes <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/style-classes.html>`_, `CSS <https://docs.gtk.org/gtk4/css-properties.html>`_, `Pango Markup <https://docs.gtk.org/Pango/pango_markup.html>`_ or `Gtk.Label.set_attributes <https://docs.gtk.org/gtk4/method.Label.set_attributes.html>`_.
+
+Examples
+
+.. code-block::
+
+   Gtk.Label {
+     label: "Hello, World!";
+     styles ["title-1"]
+   }
+
+.. code-block::
+
+   Gtk.Label {
+     label: "<b>Hello, World!</b>";
+     use-markup: true;
+   }
