@@ -63,6 +63,8 @@ Links
 Built with Blueprint
 --------------------
 
+- `Bottles <https://github.com/bottlesdevs/Bottles>`_
+- `Commit <https://github.com/sonnyp/Commit/>`_
 - `Dialect <https://github.com/dialect-app/dialect>`_
 - `Extension Manager <https://github.com/mjakeman/extension-manager>`_
 - `favagtk <https://gitlab.gnome.org/johannesjh/favagtk>`_
@@ -70,15 +72,19 @@ Built with Blueprint
 - `File Shredder <https://github.com/ADBeveridge/raider>`_
 - `Geopard <https://github.com/ranfdev/Geopard>`_
 - `Giara <https://gitlab.gnome.org/World/giara>`_
+- `Gradience <https://github.com/GradienceTeam/Gradience>`_
 - `Health <https://gitlab.gnome.org/World/Health>`_
 - `HydraPaper <https://gitlab.com/gabmus/HydraPaper>`_
 - `Identity <https://gitlab.gnome.org/YaLTeR/identity>`_
+- `Junction <https://github.com/sonnyp/Junction/>`_
 - `Login Manager Settings <https://github.com/realmazharhussain/gdm-settings>`_
 - `Paper <https://gitlab.com/posidon_software/paper>`_
 - `Passes <https://github.com/pablo-s/passes>`_
+- `Playhouse <https://github.com/sonnyp/Playhouse>`_
 - `Plitki <https://github.com/YaLTeR/plitki>`_
 - `Solanum <https://gitlab.gnome.org/World/Solanum>`_
 - `Swatch <https://gitlab.gnome.org/GabMus/swatch>`_
+- `Tangram <https://github.com/sonnyp/Tangram/>`_
 - `Text Pieces <https://github.com/liferooter/textpieces>`_
 - `Video Trimmer <https://gitlab.gnome.org/YaLTeR/video-trimmer>`_
 - `WhatIP <https://gitlab.gnome.org/GabMus/whatip>`_
