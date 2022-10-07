@@ -24,8 +24,8 @@ import os, sys
 # These variables should be set by meson. If they aren't, we're running
 # uninstalled, and we might have to guess some values.
 version = "@VERSION@"
-module_path = "@MODULE_PATH@"
-libdir = "@LIBDIR@"
+module_path = r"@MODULE_PATH@"
+libdir = r"@LIBDIR@"
 
 if version == "\u0040VERSION@":
     version = "uninstalled"
