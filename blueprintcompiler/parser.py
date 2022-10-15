@@ -21,7 +21,7 @@
 from .errors import MultipleErrors, PrintableError
 from .parse_tree import *
 from .tokenizer import TokenType
-from .language import OBJECT_HOOKS, OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
+from .language import OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
 
 
 def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors], T.List[PrintableError]]:

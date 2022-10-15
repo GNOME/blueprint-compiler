@@ -30,6 +30,5 @@ from ..parse_tree import *
 from ..xml_emitter import XmlEmitter
 
 
-OBJECT_HOOKS = AnyOf()
 OBJECT_CONTENT_HOOKS = AnyOf()
 VALUE_HOOKS = AnyOf()

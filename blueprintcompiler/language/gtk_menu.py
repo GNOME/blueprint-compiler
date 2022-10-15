@@ -17,10 +17,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
-from .ui import UI
 from .common import *
 
 
@@ -128,7 +128,7 @@ menu_contents.children = [
     ), "}"),
 ]
 
-menu = Group(
+menu: Group = Group(
     Menu,
     [
         "menu",
@@ -138,6 +138,7 @@ menu = Group(
     ],
 )
 
+from .ui import UI
 
 @completer(
     applies_in=[UI],

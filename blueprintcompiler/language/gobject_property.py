@@ -53,7 +53,7 @@ class Property(AstNode):
             UseIdent("name"),
             ":",
             AnyOf(
-                OBJECT_HOOKS,
+                Object,
                 VALUE_HOOKS,
             ).expected("a value"),
         ),
