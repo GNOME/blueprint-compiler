@@ -17,9 +17,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
 from xml.sax import saxutils
-from . import gir
+
+from blueprintcompiler.gir import GirType
+from blueprintcompiler.language.types import ClassName
 
 
 class XmlEmitter:
@@ -29,7 +30,7 @@ class XmlEmitter:
         self._tag_stack = []
         self._needs_newline = False
 
-    def start_tag(self, tag, **attrs):
+    def start_tag(self, tag, **attrs: str | GirType | ClassName | bool | None):
         self._indent()
         self.result += f"<{tag}"
         for key, val in attrs.items():
@@ -55,7 +56,7 @@ class XmlEmitter:
         self.result += f"</{tag}>"
         self._needs_newline = True
 
-    def put_text(self, text):
+    def put_text(self, text: str | int | float):
         self.result += saxutils.escape(str(text))
         self._needs_newline = False
 
@@ -64,7 +65,9 @@ class XmlEmitter:
             self.result += "\n" + " " * (self.indent * len(self._tag_stack))
 
     def _to_string(self, val):
-        if isinstance(val, gir.GirType):
+        if isinstance(val, GirType):
+            return val.glib_type_name
+        elif isinstance(val, ClassName):
             return val.glib_type_name
         else:
             return str(val)

@@ -25,7 +25,7 @@ from .errors import PrintableError, report_bug, MultipleErrors
 from .lsp import LanguageServer
 from . import parser, tokenizer, decompiler, interactive_port
 from .utils import Colors
-from .xml_emitter import XmlEmitter
+from .outputs import XmlOutput
 
 VERSION = "uninstalled"
 LIBDIR = None
@@ -141,7 +141,9 @@ class BlueprintApp:
         if len(ast.errors):
             raise MultipleErrors(ast.errors)
 
-        return ast.generate(), warnings
+        formatter = XmlOutput()
+
+        return formatter.emit(ast), warnings
 
 
 def main(version, libdir):

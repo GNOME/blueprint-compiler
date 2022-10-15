@@ -27,9 +27,6 @@ expr = Pratt()
 class Expr(AstNode):
     grammar = expr
 
-    def emit_xml(self, xml: XmlEmitter):
-        self.children[-1].emit_xml(xml)
-
 
 class InfixExpr(AstNode):
     @property
@@ -41,19 +38,17 @@ class InfixExpr(AstNode):
 class IdentExpr(AstNode):
     grammar = UseIdent("ident")
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("constant")
-        xml.put_text(self.tokens["ident"])
-        xml.end_tag()
+    @property
+    def ident(self) -> str:
+        return self.tokens["ident"]
 
 
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("lookup", name=self.tokens["property"])
-        self.lhs.emit_xml(xml)
-        xml.end_tag()
+    @property
+    def property_name(self) -> str:
+        return self.tokens["property"]
 
 
 expr.children = [

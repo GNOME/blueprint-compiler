@@ -35,26 +35,25 @@ class Template(Object):
     ]
 
     @property
+    def id(self) -> str:
+        return self.tokens["id"]
+
+    @property
+    def class_name(self) -> ClassName | None:
+        if len(self.children[ClassName]):
+            return self.children[ClassName][0]
+        else:
+            return None
+
+    @property
     def gir_class(self):
         # Templates might not have a parent class defined
-        if len(self.children[ClassName]):
-            return self.children[ClassName][0].gir_type
+        if class_name := self.class_name:
+            return class_name.gir_type
 
     @validate("id")
     def unique_in_parent(self):
         self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
-
-    def emit_start_tag(self, xml: XmlEmitter):
-        if len(self.children[ClassName]):
-            parent = self.children[ClassName][0].glib_type_name
-        else:
-            parent = None
-
-        xml.start_tag(
-            "template",
-            **{"class": self.tokens["id"]},
-            parent=parent
-        )
 
 
 @decompiler("template")

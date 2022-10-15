@@ -39,9 +39,6 @@ class Widget(AstNode):
                 f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
             )
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_self_closing("widget", name=self.tokens["name"])
-
 
 class Widgets(AstNode):
     grammar = [
@@ -58,12 +55,6 @@ class Widgets(AstNode):
     @validate("widgets")
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate widgets block")
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("widgets")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
 
 
 @completer(

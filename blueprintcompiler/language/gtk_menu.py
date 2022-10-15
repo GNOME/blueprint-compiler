@@ -19,21 +19,25 @@
 
 import typing as T
 
+from blueprintcompiler.language.values import Value
+
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
 from .common import *
 
 
-class Menu(Object):
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(self.tokens["tag"], id=self.tokens["id"])
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
+class Menu(AstNode):
     @property
     def gir_class(self):
         return self.root.gir.namespaces["Gtk"].lookup_type("Gio.Menu")
+
+    @property
+    def id(self) -> str:
+        return self.tokens["id"]
+
+    @property
+    def tag(self) -> str:
+        return self.tokens["tag"]
 
 
 class MenuAttribute(BaseAttribute):
@@ -42,6 +46,10 @@ class MenuAttribute(BaseAttribute):
     @property
     def value_type(self):
         return None
+
+    @property
+    def value(self) -> Value:
+        return self.children[Value][0]
 
 
 menu_contents = Sequence()

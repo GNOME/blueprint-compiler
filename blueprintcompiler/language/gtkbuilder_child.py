@@ -41,6 +41,10 @@ class Child(AstNode):
         Object,
     ]
 
+    @property
+    def object(self) -> Object:
+        return self.children[Object][0]
+
     @validate()
     def parent_can_have_child(self):
         if gir_class := self.parent.gir_class:
@@ -69,17 +73,6 @@ class Child(AstNode):
             return response_ids[0]
         else:
             return None
-
-    def emit_xml(self, xml: XmlEmitter):
-        child_type = internal_child = None
-        if self.tokens["internal_child"]:
-            internal_child = self.tokens["child_type"]
-        else:
-            child_type = self.tokens["child_type"]
-        xml.start_tag("child", type=child_type, internal_child=internal_child)
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
 
 
 @decompiler("child")

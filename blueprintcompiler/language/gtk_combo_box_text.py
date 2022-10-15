@@ -60,12 +60,6 @@ class Items(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate items block")
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("items")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
 
 @completer(
     applies_in=[ObjectContent],

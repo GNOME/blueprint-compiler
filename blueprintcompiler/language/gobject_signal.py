@@ -40,6 +40,30 @@ class Signal(AstNode):
         )),
     )
 
+    @property
+    def name(self) -> str:
+        return self.tokens["name"]
+
+    @property
+    def detail_name(self) -> str | None:
+        return self.tokens["detail_name"]
+
+    @property
+    def handler(self) -> str:
+        return self.tokens["handler"]
+
+    @property
+    def object_id(self) -> str | None:
+        return self.tokens["object"]
+
+    @property
+    def is_swapped(self) -> bool:
+        return self.tokens["swapped"] or False
+
+    @property
+    def is_after(self) -> bool:
+        return self.tokens["after"] or False
+
 
     @property
     def gir_signal(self):
@@ -87,19 +111,6 @@ class Signal(AstNode):
     def signal_docs(self):
         if self.gir_signal is not None:
             return self.gir_signal.doc
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        name = self.tokens["name"]
-        if self.tokens["detail_name"]:
-            name += "::" + self.tokens["detail_name"]
-        xml.put_self_closing(
-            "signal",
-            name=name,
-            handler=self.tokens["handler"],
-            swapped="true" if self.tokens["swapped"] else None,
-            object=self.tokens["object"]
-        )
 
 
 @decompiler("signal")

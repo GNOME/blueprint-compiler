@@ -121,6 +121,14 @@ class ResponseId(AstNode):
                 raise CompileError("Default response is already set")
 
     @property
+    def response_id(self) -> str:
+        return self.tokens["response_id"]
+
+    @property
+    def is_default(self) -> bool:
+        return self.tokens["is_default"] or False
+
+    @property
     def widget_id(self) -> str:
         """Get action widget ID."""
         from .gobject_object import Object
@@ -128,25 +136,3 @@ class ResponseId(AstNode):
         _object: Object = self.parent.children[Object][0]
         return _object.tokens["id"]
 
-    def emit_xml(self, xml: XmlEmitter) -> None:
-        """Emit nothing.
-
-        Response ID don't have to emit any XML in place,
-        but have to emit action-widget tag in separate
-        place (see `ResponseId.emit_action_widget`)
-        """
-
-    def emit_action_widget(self, xml: XmlEmitter) -> None:
-        """Emit action-widget XML.
-
-        Must be called while <action-widgets> tag is open.
-
-        For more details see `GtkDialog` and `GtkInfoBar` docs.
-        """
-        xml.start_tag(
-            "action-widget",
-            response=self.tokens["response_id"],
-            default=self.tokens["is_default"]
-        )
-        xml.put_text(self.widget_id)
-        xml.end_tag()

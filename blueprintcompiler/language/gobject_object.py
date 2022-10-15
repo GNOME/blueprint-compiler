@@ -33,10 +33,6 @@ class ObjectContent(AstNode):
     def gir_class(self):
         return self.parent.gir_class
 
-    def emit_xml(self, xml: XmlEmitter):
-        for x in self.children:
-            x.emit_xml(xml)
-
 class Object(AstNode):
     grammar: T.Any = [
         ConcreteClassName,
@@ -45,8 +41,20 @@ class Object(AstNode):
     ]
 
     @property
+    def id(self) -> str:
+        return self.tokens["id"]
+
+    @property
+    def class_name(self) -> ClassName | None:
+        return self.children[ClassName][0]
+
+    @property
+    def content(self) -> ObjectContent:
+        return self.children[ObjectContent][0]
+
+    @property
     def gir_class(self):
-        return self.children[ClassName][0].gir_type
+        return self.class_name.gir_type
 
     @cached_property
     def action_widgets(self) -> T.List[ResponseId]:
@@ -61,28 +69,6 @@ class Object(AstNode):
             for child in self.children[ObjectContent][0].children[Child]
             if child.response_id
         ]
-
-    def emit_start_tag(self, xml: XmlEmitter):
-        xml.start_tag("object", **{
-            "class": self.children[ClassName][0].glib_type_name,
-            "id": self.tokens["id"],
-        })
-
-    def emit_xml(self, xml: XmlEmitter):
-        self.emit_start_tag(xml)
-
-        for child in self.children:
-            child.emit_xml(xml)
-
-        # List action widgets
-        action_widgets = self.action_widgets
-        if action_widgets:
-            xml.start_tag("action-widgets")
-            for action_widget in action_widgets:
-                action_widget.emit_action_widget(xml)
-            xml.end_tag()
-
-        xml.end_tag()
 
 
 def validate_parent_type(node, ns: str, name: str, err_msg: str):

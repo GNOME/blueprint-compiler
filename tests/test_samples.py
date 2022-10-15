@@ -28,6 +28,7 @@ from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 from blueprintcompiler import utils
+from blueprintcompiler.outputs.xml import XmlOutput
 
 
 class TestSamples(unittest.TestCase):
@@ -56,7 +57,8 @@ class TestSamples(unittest.TestCase):
             if len(warnings):
                 raise MultipleErrors(warnings)
 
-            actual = ast.generate()
+            xml = XmlOutput()
+            actual = xml.emit(ast)
             if actual.strip() != expected.strip(): # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))

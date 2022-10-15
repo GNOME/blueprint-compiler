@@ -23,6 +23,7 @@ import difflib
 import os
 
 from . import decompiler, tokenizer, parser
+from .outputs.xml import XmlOutput
 from .errors import MultipleErrors, PrintableError
 from .utils import Colors
 
@@ -57,7 +58,8 @@ def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
             if len(ast.errors):
                 raise MultipleErrors(ast.errors)
 
-            ast.generate()
+            output = XmlOutput()
+            output.emit(ast)
         except PrintableError as e:
             e.pretty_print(out_file, decompiled)
 

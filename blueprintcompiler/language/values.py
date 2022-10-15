@@ -46,14 +46,12 @@ class TranslatedStringValue(Value):
     )
 
     @property
-    def attrs(self):
-        attrs = { "translatable": "true" }
-        if "context" in self.tokens:
-            attrs["context"] = self.tokens["context"]
-        return attrs
+    def string(self) -> str:
+        return self.tokens["value"]
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_text(self.tokens["value"])
+    @property
+    def context(self) -> str | None:
+        return self.tokens["context"]
 
 
 class TypeValue(Value):
@@ -68,9 +66,6 @@ class TypeValue(Value):
     def type_name(self):
         return self.children[TypeName][0]
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_text(self.type_name.glib_type_name)
-
     @validate()
     def validate_for_type(self):
         type = self.parent.value_type
@@ -81,8 +76,9 @@ class TypeValue(Value):
 class QuotedValue(Value):
     grammar = UseQuoted("value")
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_text(self.tokens["value"])
+    @property
+    def value(self) -> str:
+        return self.tokens["value"]
 
     @validate()
     def validate_for_type(self):
@@ -119,8 +115,9 @@ class QuotedValue(Value):
 class NumberValue(Value):
     grammar = UseNumber("value")
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_text(self.tokens["value"])
+    @property
+    def value(self) -> int | float:
+        return self.tokens["value"]
 
     @validate()
     def validate_for_type(self):
@@ -179,18 +176,9 @@ class FlagsValue(Value):
         if type is not None and not isinstance(type, gir.Bitfield):
             raise CompileError(f"{type.full_name} is not a bitfield type")
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_text("|".join([flag.tokens["value"] for flag in self.children[Flag]]))
-
 
 class IdentValue(Value):
     grammar = UseIdent("value")
-
-    def emit_xml(self, xml: XmlEmitter):
-        if isinstance(self.parent.value_type, gir.Enumeration):
-            xml.put_text(self.parent.value_type.members[self.tokens["value"]].nick)
-        else:
-            xml.put_text(self.tokens["value"])
 
     @validate()
     def validate_for_type(self):

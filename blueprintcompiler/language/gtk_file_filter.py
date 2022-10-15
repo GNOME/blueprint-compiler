@@ -39,18 +39,9 @@ class Filters(AstNode):
             )
         wrapped_validator(self)
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag(self.tokens["tag_name"])
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
-
 
 class FilterString(AstNode):
-    def emit_xml(self, xml):
-        xml.start_tag(self.tokens["tag_name"])
-        xml.put_text(self.tokens["name"])
-        xml.end_tag()
+    pass
 
 
 def create_node(tag_name: str, singular: str):

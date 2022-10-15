@@ -86,10 +86,3 @@ class UI(AstNode):
                 token = obj.group.tokens["id"]
                 raise CompileError(f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end)
             passed[obj.tokens["id"]] = obj
-
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("interface")
-        for x in self.children:
-            x.emit_xml(xml)
-        xml.end_tag()

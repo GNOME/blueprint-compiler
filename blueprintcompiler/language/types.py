@@ -76,9 +76,6 @@ class TypeName(AstNode):
         if self.gir_type:
             return self.gir_type.doc
 
-    def emit_xml(self, xml: XmlEmitter):
-        pass
-
 
 class ClassName(TypeName):
     @validate("namespace", "class_name")

@@ -31,13 +31,6 @@ class Item(AstNode):
     def value_type(self):
         return StringType()
 
-    def emit_xml(self, xml: XmlEmitter):
-        value = self.children[Value][0]
-        attrs = value.attrs if isinstance(value, TranslatedStringValue) else {}
-        xml.start_tag("item", **attrs)
-        value.emit_xml(xml)
-        xml.end_tag()
-
 
 class Strings(AstNode):
     grammar = [
@@ -54,12 +47,6 @@ class Strings(AstNode):
     @validate("strings")
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate strings block")
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("items")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
 
 
 @completer(

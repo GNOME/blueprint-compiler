@@ -32,17 +32,6 @@ class BaseAttribute(AstNode):
     def name(self):
         return self.tokens["name"]
 
-    def emit_xml(self, xml: XmlEmitter):
-        value = self.children[Value][0]
-        attrs = { self.attr_name: self.name }
-
-        if isinstance(value, TranslatedStringValue):
-            attrs = { **attrs, **value.attrs }
-
-        xml.start_tag(self.tag_name, **attrs)
-        value.emit_xml(xml)
-        xml.end_tag()
-
 
 class BaseTypedAttribute(BaseAttribute):
     """ A BaseAttribute whose parent has a value_type property that can assist

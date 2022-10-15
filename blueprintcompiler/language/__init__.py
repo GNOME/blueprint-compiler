@@ -1,16 +1,13 @@
-""" Contains all the syntax beyond basic objects, properties, signal, and
-templates. """
-
 from .attributes import BaseAttribute, BaseTypedAttribute
-from .expression import Expr
+from .expression import IdentExpr, LookupOp, Expr
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
 from .gtk_a11y import A11y
 from .gtk_combo_box_text import Items
-from .gtk_file_filter import mime_types, patterns, suffixes
+from .gtk_file_filter import mime_types, patterns, suffixes, Filters
 from .gtk_layout import Layout
-from .gtk_menu import menu
+from .gtk_menu import menu, Menu, MenuAttribute
 from .gtk_size_group import Widgets
 from .gtk_string_list import Strings
 from .gtk_styles import Styles
@@ -18,7 +15,8 @@ from .gtkbuilder_child import Child
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .ui import UI
-from .values import TypeValue, IdentValue, TranslatedStringValue, FlagsValue, QuotedValue, NumberValue
+from .types import ClassName
+from .values import TypeValue, IdentValue, TranslatedStringValue, FlagsValue, Flag, QuotedValue, NumberValue, Value
 
 from .common import *
 

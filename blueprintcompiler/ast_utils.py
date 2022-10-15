@@ -23,7 +23,6 @@ import typing as T
 
 from .errors import *
 from .lsp_utils import SemanticToken
-from .xml_emitter import XmlEmitter
 
 
 class Children:
@@ -95,16 +94,6 @@ class AstNode:
             item = getattr(type(self), name)
             if isinstance(item, attr_type):
                 yield name, item
-
-    def generate(self) -> str:
-        """ Generates an XML string from the node. """
-        xml = XmlEmitter()
-        self.emit_xml(xml)
-        return xml.result
-
-    def emit_xml(self, xml: XmlEmitter):
-        """ Emits the XML representation of this AST node to the XmlEmitter. """
-        raise NotImplementedError()
 
     def get_docs(self, idx: int) -> T.Optional[str]:
         for name, attr in self._attrs_by_type(Docs):

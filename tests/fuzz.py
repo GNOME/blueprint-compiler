@@ -1,6 +1,8 @@
 import os, sys
 from pythonfuzz.main import PythonFuzz
 
+from blueprintcompiler.outputs.xml import XmlOutput
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from blueprintcompiler import tokenizer, parser, decompiler, gir
@@ -17,8 +19,9 @@ def fuzz(buf):
         tokens = tokenizer.tokenize(blueprint)
         ast, errors, warnings = parser.parse(tokens)
 
+        xml = XmlOutput()
         if errors is None and len(ast.errors) == 0:
-            actual = ast.generate()
+            xml.emit(ast)
     except CompilerBugError as e:
         raise e
     except PrintableError:

@@ -61,10 +61,6 @@ class GtkDirective(AstNode):
             return gir.get_namespace("Gtk", self.tokens["version"])
 
 
-    def emit_xml(self, xml: XmlEmitter):
-        xml.put_self_closing("requires", lib="gtk", version=self.tokens["version"])
-
-
 class Import(AstNode):
     grammar = Statement(
         "using",
@@ -82,6 +78,3 @@ class Import(AstNode):
             return gir.get_namespace(self.tokens["namespace"], self.tokens["version"])
         except CompileError:
             return None
-
-    def emit_xml(self, xml):
-        pass

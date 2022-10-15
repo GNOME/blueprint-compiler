@@ -25,9 +25,6 @@ from .common import *
 class StyleClass(AstNode):
     grammar = UseQuoted("name")
 
-    def emit_xml(self, xml):
-        xml.put_self_closing("class", name=self.tokens["name"])
-
 
 class Styles(AstNode):
     grammar = [
@@ -44,12 +41,6 @@ class Styles(AstNode):
     @validate("styles")
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate styles block")
-
-    def emit_xml(self, xml: XmlEmitter):
-        xml.start_tag("style")
-        for child in self.children:
-            child.emit_xml(xml)
-        xml.end_tag()
 
 
 @completer(

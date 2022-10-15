@@ -28,11 +28,11 @@ from gi.repository import GIRepository # type: ignore
 from .errors import CompileError, CompilerBugError
 from . import typelib, xml_reader
 
-_namespace_cache = {}
+_namespace_cache: T.Dict[str, "Namespace"] = {}
 _xml_cache = {}
 
 
-def get_namespace(namespace, version):
+def get_namespace(namespace, version) -> "Namespace":
     search_paths = GIRepository.Repository.get_search_path()
 
     filename = f"{namespace}-{version}.typelib"
@@ -518,11 +518,11 @@ class Namespace(GirNode):
         return get_xml(self.name, self.version).get_elements("namespace")[0]
 
     @cached_property
-    def name(self):
+    def name(self) -> str:
         return self.tl.HEADER_NAMESPACE
 
     @cached_property
-    def version(self):
+    def version(self) -> str:
         return self.tl.HEADER_NSVERSION
 
     @property
