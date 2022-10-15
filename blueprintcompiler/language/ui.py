@@ -45,7 +45,8 @@ class UI(AstNode):
         self._gir_errors = []
 
         try:
-            gir_ctx.add_namespace(self.children[GtkDirective][0].gir_namespace)
+            if gtk := self.children[GtkDirective][0].gir_namespace:
+                gir_ctx.add_namespace(gtk)
         except CompileError as e:
             self._gir_errors.append(e)
 

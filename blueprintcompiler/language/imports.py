@@ -57,7 +57,8 @@ class GtkDirective(AstNode):
         # validate the GTK version first to make sure the more specific error
         # message is emitted
         self.gtk_version()
-        return gir.get_namespace("Gtk", self.tokens["version"])
+        if self.tokens["version"] is not None:
+            return gir.get_namespace("Gtk", self.tokens["version"])
 
 
     def emit_xml(self, xml: XmlEmitter):
