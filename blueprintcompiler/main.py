@@ -48,7 +48,6 @@ class BlueprintApp:
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
 
         lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
-        lsp.add_argument("--logfile", dest="logfile", default=None, type=argparse.FileType('a'))
 
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
@@ -125,7 +124,7 @@ class BlueprintApp:
 
 
     def cmd_lsp(self, opts):
-        langserv = LanguageServer(opts.logfile)
+        langserv = LanguageServer()
         langserv.run()
 
 

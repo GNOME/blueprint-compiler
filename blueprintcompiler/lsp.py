@@ -27,6 +27,10 @@ from .lsp_utils import *
 from . import tokenizer, parser, utils, xml_reader
 
 
+def printerr(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 def command(json_method):
     def decorator(func):
         func._json_method = json_method
@@ -89,10 +93,9 @@ class OpenFile:
 class LanguageServer:
     commands: T.Dict[str, T.Callable] = {}
 
-    def __init__(self, logfile=None):
+    def __init__(self):
         self.client_capabilities = {}
         self._open_files: {str: OpenFile} = {}
-        self.logfile = logfile
 
     def run(self):
         # Read <doc> tags from gir files. During normal compilation these are
@@ -110,7 +113,7 @@ class LanguageServer:
                     if line.startswith("Content-Length:"):
                         content_len = int(line.split("Content-Length:")[1].strip())
                 line = sys.stdin.buffer.read(content_len).decode()
-                self._log("input: " + line)
+                printerr("input: " + line)
 
                 data = json.loads(line)
                 method = data.get("method")
@@ -120,21 +123,15 @@ class LanguageServer:
                 if method in self.commands:
                     self.commands[method](self, id, params)
         except Exception as e:
-            self._log(traceback.format_exc())
+            printerr(traceback.format_exc())
 
 
     def _send(self, data):
         data["jsonrpc"] = "2.0"
         line = json.dumps(data, separators=(",", ":")) + "\r\n"
-        self._log("output: " + line)
+        printerr("output: " + line)
         sys.stdout.write(f"Content-Length: {len(line.encode())}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}")
         sys.stdout.flush()
-
-    def _log(self, msg):
-        if self.logfile is not None:
-            self.logfile.write(str(msg))
-            self.logfile.write("\n")
-            self.logfile.flush()
 
     def _send_response(self, id, result):
         self._send({
