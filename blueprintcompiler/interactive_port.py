@@ -87,7 +87,7 @@ def listdir_recursive(subdir):
         full = os.path.join(subdir, file)
         if full == "./subprojects":
             # skip the subprojects directory
-            return
+            continue
         if os.path.isfile(full):
             yield full
         elif os.path.isdir(full):
