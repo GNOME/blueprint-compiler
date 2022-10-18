@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
+import sys
 import typing as T
 import math
 from ctypes import *
@@ -241,7 +241,7 @@ class Typelib:
         return self._typelib_file[loc:end].decode("utf-8")
 
     def _int(self, size, signed):
-        return int.from_bytes(self._typelib_file[self._offset:self._offset + size], 'little')
+        return int.from_bytes(self._typelib_file[self._offset:self._offset + size], sys.byteorder)
 
 
 class TypelibHeader(Typelib):
