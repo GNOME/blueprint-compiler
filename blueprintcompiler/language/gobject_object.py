@@ -45,7 +45,7 @@ class Object(AstNode):
         return self.tokens["id"]
 
     @property
-    def class_name(self) -> ClassName | None:
+    def class_name(self) -> T.Optional[ClassName]:
         return self.children[ClassName][0]
 
     @property

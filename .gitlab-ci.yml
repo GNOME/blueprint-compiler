@@ -6,7 +6,7 @@ build:
   image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
   stage: build
   script:
-    - mypy blueprintcompiler
+    - mypy --python-version=3.9 blueprintcompiler
     - coverage run -m unittest
     - coverage report
     - coverage html

@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
 from .common import *
 from .types import TypeName
@@ -50,7 +51,7 @@ class TranslatedStringValue(Value):
         return self.tokens["value"]
 
     @property
-    def context(self) -> str | None:
+    def context(self) -> T.Optional[str]:
         return self.tokens["context"]
 
 
@@ -116,7 +117,7 @@ class NumberValue(Value):
     grammar = UseNumber("value")
 
     @property
-    def value(self) -> int | float:
+    def value(self) -> T.Union[int, float]:
         return self.tokens["value"]
 
     @validate()

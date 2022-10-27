@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
 from .gtkbuilder_template import Template
 from .common import *
@@ -45,7 +46,7 @@ class Signal(AstNode):
         return self.tokens["name"]
 
     @property
-    def detail_name(self) -> str | None:
+    def detail_name(self) -> T.Optional[str]:
         return self.tokens["detail_name"]
 
     @property
@@ -53,7 +54,7 @@ class Signal(AstNode):
         return self.tokens["handler"]
 
     @property
-    def object_id(self) -> str | None:
+    def object_id(self) -> T.Optional[str]:
         return self.tokens["object"]
 
     @property

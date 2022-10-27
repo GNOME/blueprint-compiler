@@ -1,3 +1,5 @@
+import typing as T
+
 from .. import OutputFormat
 from ...language import *
 from .xml_emitter import XmlEmitter
@@ -45,7 +47,7 @@ class XmlOutput(OutputFormat):
         self._emit_object_or_template(obj, xml)
         xml.end_tag()
 
-    def _emit_object_or_template(self, obj: Object | Template, xml: XmlEmitter):
+    def _emit_object_or_template(self, obj: T.Union[Object, Template], xml: XmlEmitter):
         for child in obj.content.children:
             if isinstance(child, Property):
                 self._emit_property(child, xml)
@@ -123,7 +125,7 @@ class XmlOutput(OutputFormat):
 
     def _translated_string_attrs(
         self, translated: TranslatedStringValue
-    ) -> T.Dict[str, str | None]:
+    ) -> T.Dict[str, T.Optional[str]]:
         return {
             "translatable": "true",
             "context": translated.context,

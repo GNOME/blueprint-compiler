@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 
 from .gobject_object import Object, ObjectContent
 from .common import *
@@ -39,7 +40,7 @@ class Template(Object):
         return self.tokens["id"]
 
     @property
-    def class_name(self) -> ClassName | None:
+    def class_name(self) -> T.Optional[ClassName]:
         if len(self.children[ClassName]):
             return self.children[ClassName][0]
         else:
