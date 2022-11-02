@@ -48,21 +48,32 @@ Features
 - **Easy to learn.** The syntax should be very familiar to most people. Scroll
   through the :doc:`examples page <examples>` for a quick overview of the whole
   language.
-- **Modern tooling.** IDE integration for `GNOME Builder <https://developer.gnome.org/documentation/introduction/builder.html>`_
-  is in progress, and a VS Code extension is also planned.
+- **Modern tooling.** Blueprint ships a `Language Server <https://microsoft.github.io/language-server-protocol/>`_ for IDE integration.
 
 Links
 -----
 
 - `Source code <https://gitlab.gnome.org/jwestman/blueprint-compiler>`_
+- `Workbench <https://github.com/sonnyp/Workbench>`_ lets you try, preview and export Blueprint
+- `GNOME Builder <https://developer.gnome.org/documentation/introduction/builder.html>`_ provides builtin support
 - `Vim syntax highlighting plugin by thetek42 <https://github.com/thetek42/vim-blueprint-syntax>`_
 - `Vim syntax highlighting plugin by gabmus <https://gitlab.com/gabmus/vim-blueprint>`_
 - `GNU Emacs major mode by DrBluefall <https://github.com/DrBluefall/blueprint-mode>`_
 - `Visual Studio Code plugin by bodil <https://github.com/bodil/vscode-blueprint>`_
 
+History
+-------
+
+1. `Simplify our UI declarative language, a strawman proposal <https://discourse.gnome.org/t/simplify-our-ui-declarative-language-a-strawman-proposal/2913>`_
+2. `A Markup Language for GTK <https://www.jwestman.net/2021/10/22/a-markup-language-for-gtk.html>`_
+3. `Introducing Blueprint: A New Way to Craft User Interfaces <https://www.jwestman.net/2021/12/02/introducing-blueprint-a-new-way-to-craft-user-interfaces.html>`_
+4. `Next Steps for Blueprint <https://www.jwestman.net/2022/04/12/next-steps-for-blueprint.html>`_
+
 Built with Blueprint
 --------------------
 
+- `AdwSteamGtk <https://github.com/Foldex/AdwSteamGtk>`_
+- `Blurble <https://gitlab.gnome.org/World/Blurble>`_
 - `Bottles <https://github.com/bottlesdevs/Bottles>`_
 - `Commit <https://github.com/sonnyp/Commit/>`_
 - `Dialect <https://github.com/dialect-app/dialect>`_
@@ -72,16 +83,21 @@ Built with Blueprint
 - `File Shredder <https://github.com/ADBeveridge/raider>`_
 - `Geopard <https://github.com/ranfdev/Geopard>`_
 - `Giara <https://gitlab.gnome.org/World/giara>`_
+- `Girens <https://gitlab.gnome.org/tijder/girens>`_
 - `Gradience <https://github.com/GradienceTeam/Gradience>`_
 - `Health <https://gitlab.gnome.org/World/Health>`_
 - `HydraPaper <https://gitlab.com/gabmus/HydraPaper>`_
 - `Identity <https://gitlab.gnome.org/YaLTeR/identity>`_
 - `Junction <https://github.com/sonnyp/Junction/>`_
 - `Login Manager Settings <https://github.com/realmazharhussain/gdm-settings>`_
+- `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
+- `NewCaw <https://github.com/CodedOre/NewCaw>`_
 - `Paper <https://gitlab.com/posidon_software/paper>`_
 - `Passes <https://github.com/pablo-s/passes>`_
 - `Playhouse <https://github.com/sonnyp/Playhouse>`_
 - `Plitki <https://github.com/YaLTeR/plitki>`_
+- `Raider <https://github.com/ADBeveridge/raider>`_
+- `Retro <https://github.com/sonnyp/Retro>`_
 - `Solanum <https://gitlab.gnome.org/World/Solanum>`_
 - `Swatch <https://gitlab.gnome.org/GabMus/swatch>`_
 - `Tangram <https://github.com/sonnyp/Tangram/>`_
