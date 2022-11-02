@@ -1,0 +1,8 @@
+.experimental-admonition {
+  display: flex;
+  align-items: center;
+}
+
+.experimental-admonition img {
+  width: 64px;
+}

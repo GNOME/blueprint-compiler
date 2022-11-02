@@ -1,6 +1,14 @@
 Overview
 ========
 
+.. warning::
+  .. container:: experimental-admonition
+
+     .. image:: experimental.svg
+
+     **Blueprint is still experimental.** Future versions may have breaking changes, and most GTK tutorials use XML syntax.
+
+
 Blueprint is a markup language and compiler for GTK 4 user interfaces.
 
 .. toctree::
