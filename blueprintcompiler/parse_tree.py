@@ -444,7 +444,7 @@ class Match(ParseNode):
         token = ctx.next_token()
         return str(token) == self.op
 
-    def expected(self, expect: str = None):
+    def expected(self, expect: T.Optional[str] = None):
         """ Convenience method for err(). """
         if expect is None:
             return self.err(f"Expected '{self.op}'")

@@ -141,7 +141,7 @@ class CompilerBugError(Exception):
     """ Emitted on assertion errors """
 
 
-def assert_true(truth: bool, message:str=None):
+def assert_true(truth: bool, message: T.Optional[str]=None):
     if not truth:
         raise CompilerBugError(message)
 
