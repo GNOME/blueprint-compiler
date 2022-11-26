@@ -2,7 +2,9 @@
 
 1. Look at the git log since the previous release. Note every significant change
 in the NEWS file.
-2. Update the version number at the top of meson.build according to semver.
+2. Update the version number, according to semver:
+  - At the top of meson.build
+  - In docs/flatpak.rst
 3. Make a new commit with just these two changes. Use `Release v{version}`
 as the commit message. Tag the commit as `v{version}` and push the tag.
 4. Create a "Post-release version bump" commit.
