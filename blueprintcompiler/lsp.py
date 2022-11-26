@@ -95,7 +95,7 @@ class LanguageServer:
 
     def __init__(self):
         self.client_capabilities = {}
-        self._open_files: {str: OpenFile} = {}
+        self._open_files: T.Dict[str, OpenFile] = {}
 
     def run(self):
         # Read <doc> tags from gir files. During normal compilation these are
