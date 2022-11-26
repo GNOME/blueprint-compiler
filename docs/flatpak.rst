@@ -16,7 +16,7 @@ a module in your flatpak manifest:
        {
          "type": "git",
          "url": "https://gitlab.gnome.org/jwestman/blueprint-compiler",
-         "tag": "v0.4.0"
+         "tag": "v0.6.0"
        }
      ]
    }
