@@ -161,6 +161,26 @@ Defining object properties inline
    Note the semicolon after the closing brace of the ``Gtk.Adjustment``. It is
    required.
 
+Type Literals
+~~~~~~~~~~~~~
+
+Some properties have the type `GObject.Type <https://docs.gtk.org/gobject/alias.Type.html>`_, that is, their value is
+itself a description of a type in the GObject type system. An example is
+`Gio.ListStore:item-type <https://docs.gtk.org/gio/property.ListStore.item-type.html>`_. Such properties can be
+specified with the ``typeof()`` operator:
+
+.. code-block::
+
+   Gio.ListStore {
+     item-type: typeof(.MyDataModel);
+   }
+
+.. note::
+
+   Though it looks like a function, ``typeof()`` is actually a special operator. This is an important syntactic
+   distinction because the argument to ``typeof()`` is interpreted at the grammar level as a type, not a value or
+   expression.
+
 Bindings
 ~~~~~~~~
 
