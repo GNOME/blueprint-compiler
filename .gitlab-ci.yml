@@ -18,7 +18,7 @@ build:
     - ninja -C _build docs/en
     - git clone https://gitlab.gnome.org/jwestman/blueprint-regression-tests.git
     - cd blueprint-regression-tests
-    - git checkout 94613f275efc810610768d5ee8b2aec28392c3e8
+    - git checkout e1a2b04ce13838794eec9678deff95802fa278d1
     - ./test.sh
     - cd ..
   coverage: '/TOTAL.*\s([.\d]+)%/'
