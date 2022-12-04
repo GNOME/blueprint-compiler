@@ -51,6 +51,9 @@ class OpenFile:
 
     def apply_changes(self, changes):
         for change in changes:
+            if "range" not in change:
+                self.text = change["text"]
+                continue
             start = utils.pos_to_idx(
                 change["range"]["start"]["line"],
                 change["range"]["start"]["character"],
