@@ -153,7 +153,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("enum")
         self.assert_sample("expr_lookup", skip_run=True)  # TODO: Fix
         self.assert_sample("file_filter")
-        self.assert_sample("flags", skip_run=True)  # TODO: Fix
+        self.assert_sample("flags")
         self.assert_sample("id_prop")
         self.assert_sample("layout")
         self.assert_sample("menu")

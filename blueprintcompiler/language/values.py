@@ -168,6 +168,20 @@ class NumberValue(Value):
 class Flag(AstNode):
     grammar = UseIdent("value")
 
+    @property
+    def name(self) -> str:
+        return self.tokens["value"]
+
+    @property
+    def value(self) -> T.Optional[int]:
+        type = self.parent.parent.value_type
+        if not isinstance(type, Enumeration):
+            return None
+        elif member := type.members.get(self.tokens["value"]):
+            return member.value
+        else:
+            return None
+
     @docs()
     def docs(self):
         type = self.parent.parent.value_type

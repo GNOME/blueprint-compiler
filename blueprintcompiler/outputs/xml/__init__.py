@@ -159,14 +159,16 @@ class XmlOutput(OutputFormat):
         if isinstance(value, IdentValue):
             if isinstance(value.parent.value_type, gir.Enumeration):
                 xml.put_text(
-                    value.parent.value_type.members[value.tokens["value"]].nick
+                    str(value.parent.value_type.members[value.tokens["value"]].value)
                 )
             else:
                 xml.put_text(value.tokens["value"])
         elif isinstance(value, QuotedValue) or isinstance(value, NumberValue):
             xml.put_text(value.value)
         elif isinstance(value, FlagsValue):
-            xml.put_text("|".join([flag.tokens["value"] for flag in value.children]))
+            xml.put_text(
+                "|".join([str(flag.value or flag.name) for flag in value.children])
+            )
         elif isinstance(value, TranslatedStringValue):
             raise CompilerBugError("translated values must be handled in the parent")
         elif isinstance(value, TypeValue):

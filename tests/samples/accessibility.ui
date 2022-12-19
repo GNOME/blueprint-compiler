@@ -5,7 +5,7 @@
     <accessibility>
       <property name="label" translatable="true">Hello, world!</property>
       <relation name="labelled-by">my_label</relation>
-      <state name="checked">true</state>
+      <state name="checked">1</state>
     </accessibility>
   </object>
   <object class="GtkLabel" id="my_label"></object>

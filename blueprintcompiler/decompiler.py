@@ -127,7 +127,11 @@ class DecompileCtx:
     def print_attribute(self, name, value, type):
         def get_enum_name(value):
             for member in type.members.values():
-                if member.nick == value or member.c_ident == value:
+                if (
+                    member.nick == value
+                    or member.c_ident == value
+                    or str(member.value) == value
+                ):
                     return member.name
             return value.replace("-", "_")
 

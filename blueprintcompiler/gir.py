@@ -462,11 +462,11 @@ class EnumMember(GirNode):
         super().__init__(ns, tl)
 
     @property
-    def value(self):
+    def value(self) -> int:
         return self.tl.VALUE_VALUE
 
     @cached_property
-    def name(self):
+    def name(self) -> str:
         return self.tl.VALUE_NAME
 
     @cached_property
@@ -487,7 +487,7 @@ class Enumeration(GirNode, GirType):
         super().__init__(ns, tl)
 
     @cached_property
-    def members(self):
+    def members(self) -> T.Dict[str, EnumMember]:
         members = {}
         n_values = self.tl.ENUM_N_VALUES
         values = self.tl.ENUM_VALUES
