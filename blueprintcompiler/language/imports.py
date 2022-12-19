@@ -24,8 +24,12 @@ from .common import *
 
 class GtkDirective(AstNode):
     grammar = Statement(
-        Match("using").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
-        Match("Gtk").err("File must start with a \"using Gtk\" directive (e.g. `using Gtk 4.0;`)"),
+        Match("using").err(
+            'File must start with a "using Gtk" directive (e.g. `using Gtk 4.0;`)'
+        ),
+        Match("Gtk").err(
+            'File must start with a "using Gtk" directive (e.g. `using Gtk 4.0;`)'
+        ),
         UseNumberText("version").expected("a version number for GTK"),
     )
 
@@ -35,7 +39,9 @@ class GtkDirective(AstNode):
         if version not in ["4.0"]:
             err = CompileError("Only GTK 4 is supported")
             if version and version.startswith("4"):
-                err.hint("Expected the GIR version, not an exact version number. Use 'using Gtk 4.0;'.")
+                err.hint(
+                    "Expected the GIR version, not an exact version number. Use 'using Gtk 4.0;'."
+                )
             else:
                 err.hint("Expected 'using Gtk 4.0;'")
             raise err
@@ -50,7 +56,6 @@ class GtkDirective(AstNode):
                 # useful debugging information
                 hints=e.hints,
             )
-
 
     @property
     def gir_namespace(self):

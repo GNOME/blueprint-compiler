@@ -28,10 +28,12 @@ class Template(Object):
     grammar = [
         "template",
         UseIdent("id").expected("template class name"),
-        Optional([
-            Match(":"),
-            to_parse_node(ClassName).expected("parent class"),
-        ]),
+        Optional(
+            [
+                Match(":"),
+                to_parse_node(ClassName).expected("parent class"),
+            ]
+        ),
         ObjectContent,
     ]
 
@@ -54,7 +56,9 @@ class Template(Object):
 
     @validate("id")
     def unique_in_parent(self):
-        self.validate_unique_in_parent(f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",)
+        self.validate_unique_in_parent(
+            f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",
+        )
 
 
 @decompiler("template")

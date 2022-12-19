@@ -26,28 +26,28 @@ from .errors import CompileError
 
 
 class TokenType(Enum):
-    EOF             = 0
-    IDENT           = 1
-    QUOTED          = 2
-    NUMBER          = 3
-    OP              = 4
-    WHITESPACE      = 5
-    COMMENT         = 6
-    PUNCTUATION     = 7
+    EOF = 0
+    IDENT = 1
+    QUOTED = 2
+    NUMBER = 3
+    OP = 4
+    WHITESPACE = 5
+    COMMENT = 6
+    PUNCTUATION = 7
 
 
 _tokens = [
-    (TokenType.IDENT,           r"[A-Za-z_][\d\w\-_]*"),
-    (TokenType.QUOTED,          r'"(\\"|[^"\n])*"'),
-    (TokenType.QUOTED,          r"'(\\'|[^'\n])*'"),
-    (TokenType.NUMBER,          r"0x[A-Za-z0-9_]+"),
-    (TokenType.NUMBER,          r"[-+]?[\d_]+(\.[\d_]+)?"),
-    (TokenType.NUMBER,          r"[-+]?\.[\d_]+"),
-    (TokenType.WHITESPACE,      r"\s+"),
-    (TokenType.COMMENT,         r"\/\*[\s\S]*?\*\/"),
-    (TokenType.COMMENT,         r"\/\/[^\n]*"),
-    (TokenType.OP,              r"<<|>>|=>|::|<|>|:=|\.|\|\||\||\+|\-|\*|=|:|/"),
-    (TokenType.PUNCTUATION,     r"\(|\)|\{|\}|;|\[|\]|\,"),
+    (TokenType.IDENT, r"[A-Za-z_][\d\w\-_]*"),
+    (TokenType.QUOTED, r'"(\\"|[^"\n])*"'),
+    (TokenType.QUOTED, r"'(\\'|[^'\n])*'"),
+    (TokenType.NUMBER, r"0x[A-Za-z0-9_]+"),
+    (TokenType.NUMBER, r"[-+]?[\d_]+(\.[\d_]+)?"),
+    (TokenType.NUMBER, r"[-+]?\.[\d_]+"),
+    (TokenType.WHITESPACE, r"\s+"),
+    (TokenType.COMMENT, r"\/\*[\s\S]*?\*\/"),
+    (TokenType.COMMENT, r"\/\/[^\n]*"),
+    (TokenType.OP, r"<<|>>|=>|::|<|>|:=|\.|\|\||\||\+|\-|\*|=|:|/"),
+    (TokenType.PUNCTUATION, r"\(|\)|\{|\}|;|\[|\]|\,"),
 ]
 _TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]
 
@@ -60,7 +60,7 @@ class Token:
         self.string = string
 
     def __str__(self):
-        return self.string[self.start:self.end]
+        return self.string[self.start : self.end]
 
     def get_number(self):
         if self.type != TokenType.NUMBER:
@@ -73,7 +73,9 @@ class Token:
             else:
                 return float(string.replace("_", ""))
         except:
-            raise CompileError(f"{str(self)} is not a valid number literal", self.start, self.end)
+            raise CompileError(
+                f"{str(self)} is not a valid number literal", self.start, self.end
+            )
 
 
 def _tokenize(ui_ml: str):
@@ -90,7 +92,9 @@ def _tokenize(ui_ml: str):
                 break
 
         if not matched:
-            raise CompileError("Could not determine what kind of syntax is meant here", i, i)
+            raise CompileError(
+                "Could not determine what kind of syntax is meant here", i, i
+            )
 
     yield Token(TokenType.EOF, i, i, ui_ml)
 

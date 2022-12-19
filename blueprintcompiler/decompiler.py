@@ -60,15 +60,15 @@ class DecompileCtx:
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
 
-
     @property
     def result(self):
-        imports = "\n".join([
-            f"using {ns} {namespace.version};"
-            for ns, namespace in self.gir.namespaces.items()
-        ])
+        imports = "\n".join(
+            [
+                f"using {ns} {namespace.version};"
+                for ns, namespace in self.gir.namespaces.items()
+            ]
+        )
         return imports + "\n" + self._result
-
 
     def type_by_cname(self, cname):
         if type := self.gir.get_type_by_cname(cname):
@@ -83,7 +83,6 @@ class DecompileCtx:
             except:
                 pass
 
-
     def start_block(self):
         self._blocks_need_end.append(None)
 
@@ -93,7 +92,6 @@ class DecompileCtx:
 
     def end_block_with(self, text):
         self._blocks_need_end[-1] = text
-
 
     def print(self, line, newline=True):
         if line == "}" or line == "]":
@@ -109,7 +107,11 @@ class DecompileCtx:
                 line_type = LineType.STMT
             else:
                 line_type = LineType.NONE
-            if line_type != self._last_line_type and self._last_line_type != LineType.BLOCK_START and line_type != LineType.BLOCK_END:
+            if (
+                line_type != self._last_line_type
+                and self._last_line_type != LineType.BLOCK_START
+                and line_type != LineType.BLOCK_END
+            ):
                 self._result += "\n"
             self._last_line_type = line_type
 
@@ -127,10 +129,10 @@ class DecompileCtx:
             for member in type.members.values():
                 if member.nick == value or member.c_ident == value:
                     return member.name
-            return value.replace('-', '_')
+            return value.replace("-", "_")
 
         if type is None:
-            self.print(f"{name}: \"{escape_quote(value)}\";")
+            self.print(f'{name}: "{escape_quote(value)}";')
         elif type.assignable_to(FloatType()):
             self.print(f"{name}: {value};")
         elif type.assignable_to(BoolType()):
@@ -139,12 +141,20 @@ class DecompileCtx:
         elif (
             type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Pixbuf"))
             or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Texture"))
-            or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Paintable"))
-            or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutAction"))
-            or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger"))
+            or type.assignable_to(
+                self.gir.namespaces["Gtk"].lookup_type("Gdk.Paintable")
+            )
+            or type.assignable_to(
+                self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutAction")
+            )
+            or type.assignable_to(
+                self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger")
+            )
         ):
-            self.print(f"{name}: \"{escape_quote(value)}\";")
-        elif type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("GObject.Object")):
+            self.print(f'{name}: "{escape_quote(value)}";')
+        elif type.assignable_to(
+            self.gir.namespaces["Gtk"].lookup_type("GObject.Object")
+        ):
             self.print(f"{name}: {value};")
         elif isinstance(type, Bitfield):
             flags = [get_enum_name(flag) for flag in value.split("|")]
@@ -152,7 +162,7 @@ class DecompileCtx:
         elif isinstance(type, Enumeration):
             self.print(f"{name}: {get_enum_name(value)};")
         else:
-            self.print(f"{name}: \"{escape_quote(value)}\";")
+            self.print(f'{name}: "{escape_quote(value)}";')
 
 
 def _decompile_element(ctx: DecompileCtx, gir, xml):
@@ -191,18 +201,20 @@ def decompile(data):
     return ctx.result
 
 
-
 def canon(string: str) -> str:
     if string == "class":
         return "klass"
     else:
         return string.replace("-", "_").lower()
 
+
 def truthy(string: str) -> bool:
     return string.lower() in ["yes", "true", "t", "y", "1"]
 
+
 def full_name(gir):
     return gir.name if gir.full_name.startswith("Gtk.") else gir.full_name
+
 
 def lookup_by_cname(gir, cname: str):
     if isinstance(gir, GirContext):
@@ -216,15 +228,17 @@ def decompiler(tag, cdata=False):
         func._cdata = cdata
         _DECOMPILERS[tag] = func
         return func
+
     return decorator
 
 
 def escape_quote(string: str) -> str:
-    return (string
-            .replace("\\", "\\\\")
-            .replace("\'", "\\'")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n"))
+    return (
+        string.replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+    )
 
 
 @decompiler("interface")
@@ -243,7 +257,18 @@ def decompile_placeholder(ctx, gir):
 
 
 @decompiler("property", cdata=True)
-def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=None, bind_flags=None, translatable="false", comments=None, context=None):
+def decompile_property(
+    ctx,
+    gir,
+    name,
+    cdata,
+    bind_source=None,
+    bind_property=None,
+    bind_flags=None,
+    translatable="false",
+    comments=None,
+    context=None,
+):
     name = name.replace("_", "-")
     if comments is not None:
         ctx.print(f"/* Translators: {comments} */")
@@ -263,18 +288,32 @@ def decompile_property(ctx, gir, name, cdata, bind_source=None, bind_property=No
         ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
     elif truthy(translatable):
         if context is not None:
-            ctx.print(f"{name}: C_(\"{escape_quote(context)}\", \"{escape_quote(cdata)}\");")
+            ctx.print(
+                f'{name}: C_("{escape_quote(context)}", "{escape_quote(cdata)}");'
+            )
         else:
-            ctx.print(f"{name}: _(\"{escape_quote(cdata)}\");")
+            ctx.print(f'{name}: _("{escape_quote(cdata)}");')
     elif gir is None or gir.properties.get(name) is None:
-        ctx.print(f"{name}: \"{escape_quote(cdata)}\";")
+        ctx.print(f'{name}: "{escape_quote(cdata)}";')
     else:
         ctx.print_attribute(name, cdata, gir.properties.get(name).type)
     return gir
 
+
 @decompiler("attribute", cdata=True)
-def decompile_attribute(ctx, gir, name, cdata, translatable="false", comments=None, context=None):
-    decompile_property(ctx, gir, name, cdata, translatable=translatable, comments=comments, context=context)
+def decompile_attribute(
+    ctx, gir, name, cdata, translatable="false", comments=None, context=None
+):
+    decompile_property(
+        ctx,
+        gir,
+        name,
+        cdata,
+        translatable=translatable,
+        comments=comments,
+        context=context,
+    )
+
 
 @decompiler("attributes")
 def decompile_attributes(ctx, gir):
@@ -291,5 +330,7 @@ class UnsupportedError(Exception):
         print(f"in {Colors.UNDERLINE}{filename}{Colors.NO_UNDERLINE}")
         if self.tag:
             print(f"in tag {Colors.BLUE}{self.tag}{Colors.CLEAR}")
-        print(f"""{Colors.FAINT}The compiler might support this feature, but the porting tool does not. You
-probably need to port this file manually.{Colors.CLEAR}\n""")
+        print(
+            f"""{Colors.FAINT}The compiler might support this feature, but the porting tool does not. You
+probably need to port this file manually.{Colors.CLEAR}\n"""
+        )

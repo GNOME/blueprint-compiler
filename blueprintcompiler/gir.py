@@ -21,9 +21,10 @@ from functools import cached_property
 import typing as T
 import os, sys
 
-import gi # type: ignore
+import gi  # type: ignore
+
 gi.require_version("GIRepository", "2.0")
-from gi.repository import GIRepository # type: ignore
+from gi.repository import GIRepository  # type: ignore
 
 from .errors import CompileError, CompilerBugError
 from . import typelib, xml_reader
@@ -60,10 +61,13 @@ def get_namespace(namespace, version) -> "Namespace":
 def get_xml(namespace, version):
     from .main import VERSION
     from xml.etree import ElementTree
+
     search_paths = []
 
     if data_paths := os.environ.get("XDG_DATA_DIRS"):
-        search_paths += [os.path.join(path, "gir-1.0") for path in data_paths.split(os.pathsep)]
+        search_paths += [
+            os.path.join(path, "gir-1.0") for path in data_paths.split(os.pathsep)
+        ]
 
     filename = f"{namespace}-{version}.gir"
 
@@ -104,35 +108,56 @@ class BasicType(GirType):
     def full_name(self) -> str:
         return self.name
 
+
 class BoolType(BasicType):
     name = "bool"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, BoolType)
 
+
 class IntType(BasicType):
     name = "int"
+
     def assignable_to(self, other) -> bool:
-        return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
+        return (
+            isinstance(other, IntType)
+            or isinstance(other, UIntType)
+            or isinstance(other, FloatType)
+        )
+
 
 class UIntType(BasicType):
     name = "uint"
+
     def assignable_to(self, other) -> bool:
-        return isinstance(other, IntType) or isinstance(other, UIntType) or isinstance(other, FloatType)
+        return (
+            isinstance(other, IntType)
+            or isinstance(other, UIntType)
+            or isinstance(other, FloatType)
+        )
+
 
 class FloatType(BasicType):
     name = "float"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, FloatType)
 
+
 class StringType(BasicType):
     name = "string"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, StringType)
 
+
 class TypeType(BasicType):
     name = "GType"
+
     def assignable_to(self, other) -> bool:
         return isinstance(other, TypeType)
+
 
 _BASIC_TYPES = {
     "gboolean": BoolType,
@@ -149,6 +174,7 @@ _BASIC_TYPES = {
     "gtype": TypeType,
     "type": TypeType,
 }
+
 
 class GirNode:
     def __init__(self, container, tl):
@@ -291,7 +317,9 @@ class Interface(GirNode, GirType):
         n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
         offset = self.tl.header.HEADER_INTERFACE_BLOB_SIZE
         offset += (n_prerequisites + n_prerequisites % 2) * 2
-        offset += self.tl.INTERFACE_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        offset += (
+            self.tl.INTERFACE_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        )
         offset += self.tl.INTERFACE_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
         n_signals = self.tl.INTERFACE_N_SIGNALS
         property_size = self.tl.header.HEADER_SIGNAL_BLOB_SIZE
@@ -342,7 +370,9 @@ class Class(GirNode, GirType):
         offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
         offset += (n_interfaces + n_interfaces % 2) * 2
         offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
-        offset += self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        offset += (
+            self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        )
         n_properties = self.tl.OBJ_N_PROPERTIES
         property_size = self.tl.header.HEADER_PROPERTY_BLOB_SIZE
         result = {}
@@ -357,7 +387,9 @@ class Class(GirNode, GirType):
         offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
         offset += (n_interfaces + n_interfaces % 2) * 2
         offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
-        offset += self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        offset += (
+            self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
+        )
         offset += self.tl.OBJ_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
         offset += self.tl.OBJ_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
         n_signals = self.tl.OBJ_N_SIGNALS
@@ -381,16 +413,18 @@ class Class(GirNode, GirType):
         if self.parent is not None:
             result += f" : {self.parent.container.name}.{self.parent.name}"
         if len(self.implements):
-            result += " implements " + ", ".join([impl.full_name for impl in self.implements])
+            result += " implements " + ", ".join(
+                [impl.full_name for impl in self.implements]
+            )
         return result
 
     @cached_property
     def properties(self):
-        return { p.name: p for p in self._enum_properties() }
+        return {p.name: p for p in self._enum_properties()}
 
     @cached_property
     def signals(self):
-        return { s.name: s for s in self._enum_signals() }
+        return {s.name: s for s in self._enum_signals()}
 
     def assignable_to(self, other) -> bool:
         if self == other:
@@ -509,9 +543,12 @@ class Namespace(GirNode):
             elif entry_type == typelib.BLOB_TYPE_OBJECT:
                 self.entries[entry_name] = Class(self, entry_blob)
             elif entry_type == typelib.BLOB_TYPE_INTERFACE:
-                 self.entries[entry_name] = Interface(self, entry_blob)
-            elif entry_type == typelib.BLOB_TYPE_BOXED or entry_type == typelib.BLOB_TYPE_STRUCT:
-                 self.entries[entry_name] = Boxed(self, entry_blob)
+                self.entries[entry_name] = Interface(self, entry_blob)
+            elif (
+                entry_type == typelib.BLOB_TYPE_BOXED
+                or entry_type == typelib.BLOB_TYPE_STRUCT
+            ):
+                self.entries[entry_name] = Boxed(self, entry_blob)
 
     @cached_property
     def xml(self):
@@ -531,25 +568,33 @@ class Namespace(GirNode):
 
     @cached_property
     def classes(self):
-        return { name: entry for name, entry in self.entries.items() if isinstance(entry, Class) }
+        return {
+            name: entry
+            for name, entry in self.entries.items()
+            if isinstance(entry, Class)
+        }
 
     @cached_property
     def interfaces(self):
-        return { name: entry for name, entry in self.entries.items() if isinstance(entry, Interface) }
+        return {
+            name: entry
+            for name, entry in self.entries.items()
+            if isinstance(entry, Interface)
+        }
 
     def get_type(self, name):
-        """ Gets a type (class, interface, enum, etc.) from this namespace. """
+        """Gets a type (class, interface, enum, etc.) from this namespace."""
         return self.entries.get(name)
 
     def get_type_by_cname(self, cname: str):
-        """ Gets a type from this namespace by its C name. """
+        """Gets a type from this namespace by its C name."""
         for item in self.entries.values():
             if hasattr(item, "cname") and item.cname == cname:
                 return item
 
     def lookup_type(self, type_name: str):
-        """ Looks up a type in the scope of this namespace (including in the
-        namespace's dependencies). """
+        """Looks up a type in the scope of this namespace (including in the
+        namespace's dependencies)."""
 
         if type_name in _BASIC_TYPES:
             return _BASIC_TYPES[type_name]()
@@ -569,7 +614,9 @@ class Repository(GirNode):
         if dependencies := tl[0x24].string:
             deps = [tuple(dep.split("-", 1)) for dep in dependencies.split("|")]
             try:
-                self.includes = { name: get_namespace(name, version) for name, version in deps }
+                self.includes = {
+                    name: get_namespace(name, version) for name, version in deps
+                }
             except:
                 raise CompilerBugError(f"Failed to load dependencies.")
         else:
@@ -578,16 +625,14 @@ class Repository(GirNode):
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
         return self.lookup_namespace(ns).get_type(name)
 
-
     def get_type_by_cname(self, name: str) -> T.Optional[GirNode]:
         for ns in [self.namespace, *self.includes.values()]:
             if type := ns.get_type_by_cname(name):
                 return type
         return None
 
-
     def lookup_namespace(self, ns: str):
-        """ Finds a namespace among this namespace's dependencies. """
+        """Finds a namespace among this namespace's dependencies."""
         if ns == self.namespace.name:
             return self.namespace
         else:
@@ -610,9 +655,19 @@ class Repository(GirNode):
                 return BoolType()
             elif type_id in [typelib.TYPE_FLOAT, typelib.TYPE_DOUBLE]:
                 return FloatType()
-            elif type_id in [typelib.TYPE_INT8, typelib.TYPE_INT16, typelib.TYPE_INT32, typelib.TYPE_INT64]:
+            elif type_id in [
+                typelib.TYPE_INT8,
+                typelib.TYPE_INT16,
+                typelib.TYPE_INT32,
+                typelib.TYPE_INT64,
+            ]:
                 return IntType()
-            elif type_id in [typelib.TYPE_UINT8, typelib.TYPE_UINT16, typelib.TYPE_UINT32, typelib.TYPE_UINT64]:
+            elif type_id in [
+                typelib.TYPE_UINT8,
+                typelib.TYPE_UINT16,
+                typelib.TYPE_UINT32,
+                typelib.TYPE_UINT64,
+            ]:
                 return UIntType()
             elif type_id == typelib.TYPE_UTF8:
                 return StringType()
@@ -621,29 +676,29 @@ class Repository(GirNode):
             else:
                 raise CompilerBugError("Unknown type ID", type_id)
         else:
-            return self._resolve_dir_entry(self.tl.header[type_id].INTERFACE_TYPE_INTERFACE)
-
+            return self._resolve_dir_entry(
+                self.tl.header[type_id].INTERFACE_TYPE_INTERFACE
+            )
 
 
 class GirContext:
     def __init__(self):
         self.namespaces = {}
 
-
     def add_namespace(self, namespace: Namespace):
         other = self.namespaces.get(namespace.name)
         if other is not None and other.version != namespace.version:
-            raise CompileError(f"Namespace {namespace.name}-{namespace.version} can't be imported because version {other.version} was imported earlier")
+            raise CompileError(
+                f"Namespace {namespace.name}-{namespace.version} can't be imported because version {other.version} was imported earlier"
+            )
 
         self.namespaces[namespace.name] = namespace
-
 
     def get_type_by_cname(self, name: str) -> T.Optional[GirNode]:
         for ns in self.namespaces.values():
             if type := ns.get_type_by_cname(name):
                 return type
         return None
-
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
         ns = ns or "Gtk"
@@ -653,7 +708,6 @@ class GirContext:
 
         return self.namespaces[ns].get_type(name)
 
-
     def get_class(self, name: str, ns: str) -> T.Optional[Class]:
         type = self.get_type(name, ns)
         if isinstance(type, Class):
@@ -661,10 +715,9 @@ class GirContext:
         else:
             return None
 
-
     def validate_ns(self, ns: str):
-        """ Raises an exception if there is a problem looking up the given
-        namespace. """
+        """Raises an exception if there is a problem looking up the given
+        namespace."""
 
         ns = ns or "Gtk"
 
@@ -675,7 +728,7 @@ class GirContext:
             )
 
     def validate_type(self, name: str, ns: str):
-        """ Raises an exception if there is a problem looking up the given type. """
+        """Raises an exception if there is a problem looking up the given type."""
 
         self.validate_ns(ns)
 

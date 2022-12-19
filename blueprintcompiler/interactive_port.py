@@ -35,8 +35,10 @@ class CouldNotPort:
     def __init__(self, message):
         self.message = message
 
+
 def change_suffix(f):
     return f.removesuffix(".ui") + ".blp"
+
 
 def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
     if os.path.exists(out_file):
@@ -63,12 +65,15 @@ def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
         except PrintableError as e:
             e.pretty_print(out_file, decompiled)
 
-            print(f"{Colors.RED}{Colors.BOLD}error: the generated file does not compile{Colors.CLEAR}")
+            print(
+                f"{Colors.RED}{Colors.BOLD}error: the generated file does not compile{Colors.CLEAR}"
+            )
             print(f"in {Colors.UNDERLINE}{out_file}{Colors.NO_UNDERLINE}")
             print(
-f"""{Colors.FAINT}Either the original XML file had an error, or there is a bug in the
+                f"""{Colors.FAINT}Either the original XML file had an error, or there is a bug in the
 porting tool. If you think it's a bug (which is likely), please file an issue on GitLab:
-{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n""")
+{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n"""
+            )
 
             return CouldNotPort("does not compile")
 
@@ -108,7 +113,9 @@ def enter():
 
 
 def step1():
-    print(f"{Colors.BOLD}STEP 1: Create subprojects/blueprint-compiler.wrap{Colors.CLEAR}")
+    print(
+        f"{Colors.BOLD}STEP 1: Create subprojects/blueprint-compiler.wrap{Colors.CLEAR}"
+    )
 
     if os.path.exists("subprojects/blueprint-compiler.wrap"):
         print("subprojects/blueprint-compiler.wrap already exists, skipping\n")
@@ -121,17 +128,20 @@ def step1():
             pass
 
         from .main import VERSION
+
         VERSION = "main" if VERSION == "uninstalled" else "v" + VERSION
 
         with open("subprojects/blueprint-compiler.wrap", "w") as wrap:
-            wrap.write(f"""[wrap-git]
+            wrap.write(
+                f"""[wrap-git]
 directory = blueprint-compiler
 url = https://gitlab.gnome.org/jwestman/blueprint-compiler.git
 revision = {VERSION}
 depth = 1
 
 [provide]
-program_names = blueprint-compiler""")
+program_names = blueprint-compiler"""
+            )
 
     print()
 
@@ -146,7 +156,9 @@ def step2():
                 if yesno("Add '/subprojects/blueprint-compiler' to .gitignore?"):
                     gitignore.write("\n/subprojects/blueprint-compiler\n")
             else:
-                print("'/subprojects/blueprint-compiler' already in .gitignore, skipping")
+                print(
+                    "'/subprojects/blueprint-compiler' already in .gitignore, skipping"
+                )
     else:
         if yesno("Create .gitignore with '/subprojects/blueprint-compiler'?"):
             with open(".gitignore", "w") as gitignore:
@@ -169,9 +181,13 @@ def step3():
         if isinstance(result, CouldNotPort):
             if result.message == "already exists":
                 print(Colors.FAINT, end="")
-            print(f"{Colors.RED}will not port {Colors.UNDERLINE}{in_file}{Colors.NO_UNDERLINE} -> {Colors.UNDERLINE}{out_file}{Colors.NO_UNDERLINE} [{result.message}]{Colors.CLEAR}")
+            print(
+                f"{Colors.RED}will not port {Colors.UNDERLINE}{in_file}{Colors.NO_UNDERLINE} -> {Colors.UNDERLINE}{out_file}{Colors.NO_UNDERLINE} [{result.message}]{Colors.CLEAR}"
+            )
         else:
-            print(f"will port {Colors.UNDERLINE}{in_file}{Colors.CLEAR} -> {Colors.UNDERLINE}{out_file}{Colors.CLEAR}")
+            print(
+                f"will port {Colors.UNDERLINE}{in_file}{Colors.CLEAR} -> {Colors.UNDERLINE}{out_file}{Colors.CLEAR}"
+            )
             success += 1
 
     print()
@@ -180,7 +196,9 @@ def step3():
     elif success == len(files):
         print(f"{Colors.GREEN}All files were converted.{Colors.CLEAR}")
     elif success > 0:
-        print(f"{Colors.RED}{success} file(s) were converted, {len(files) - success} were not.{Colors.CLEAR}")
+        print(
+            f"{Colors.RED}{success} file(s) were converted, {len(files) - success} were not.{Colors.CLEAR}"
+        )
     else:
         print(f"{Colors.RED}None of the files could be converted.{Colors.CLEAR}")
 
@@ -204,22 +222,33 @@ def step3():
 
 def step4(ported):
     print(f"{Colors.BOLD}STEP 4: Set up meson.build{Colors.CLEAR}")
-    print(f"{Colors.BOLD}{Colors.YELLOW}NOTE: Depending on your build system setup, you may need to make some adjustments to this step.{Colors.CLEAR}")
+    print(
+        f"{Colors.BOLD}{Colors.YELLOW}NOTE: Depending on your build system setup, you may need to make some adjustments to this step.{Colors.CLEAR}"
+    )
 
-    meson_files = [file for file in listdir_recursive(".") if os.path.basename(file) == "meson.build"]
+    meson_files = [
+        file
+        for file in listdir_recursive(".")
+        if os.path.basename(file) == "meson.build"
+    ]
     for meson_file in meson_files:
         with open(meson_file, "r") as f:
             if "gnome.compile_resources" in f.read():
                 parent = os.path.dirname(meson_file)
-                file_list = "\n    ".join([
-                    f"'{os.path.relpath(file, parent)}',"
-                    for file in ported
-                    if file.startswith(parent)
-                ])
+                file_list = "\n    ".join(
+                    [
+                        f"'{os.path.relpath(file, parent)}',"
+                        for file in ported
+                        if file.startswith(parent)
+                    ]
+                )
 
                 if len(file_list):
-                    print(f"{Colors.BOLD}Paste the following into {Colors.UNDERLINE}{meson_file}{Colors.NO_UNDERLINE}:{Colors.CLEAR}")
-                    print(f"""
+                    print(
+                        f"{Colors.BOLD}Paste the following into {Colors.UNDERLINE}{meson_file}{Colors.NO_UNDERLINE}:{Colors.CLEAR}"
+                    )
+                    print(
+                        f"""
 blueprints = custom_target('blueprints',
   input: files(
     {file_list}
@@ -227,14 +256,17 @@ blueprints = custom_target('blueprints',
   output: '.',
   command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
 )
-""")
+"""
+                    )
                     enter()
 
-                    print(f"""{Colors.BOLD}Paste the following into the 'gnome.compile_resources()'
+                    print(
+                        f"""{Colors.BOLD}Paste the following into the 'gnome.compile_resources()'
 arguments in {Colors.UNDERLINE}{meson_file}{Colors.NO_UNDERLINE}:{Colors.CLEAR}
 
 dependencies: blueprints,
-    """)
+    """
+                    )
                     enter()
 
     print()
@@ -244,7 +276,9 @@ def step5(in_files):
     print(f"{Colors.BOLD}STEP 5: Update POTFILES.in{Colors.CLEAR}")
 
     if not os.path.exists("po/POTFILES.in"):
-        print(f"{Colors.UNDERLINE}po/POTFILES.in{Colors.NO_UNDERLINE} does not exist, skipping\n")
+        print(
+            f"{Colors.UNDERLINE}po/POTFILES.in{Colors.NO_UNDERLINE} does not exist, skipping\n"
+        )
         return
 
     with open("po/POTFILES.in", "r") as potfiles:
@@ -257,12 +291,24 @@ def step5(in_files):
 
         new_data = "".join(lines)
 
-    print(f"{Colors.BOLD}Will make the following changes to {Colors.UNDERLINE}po/POTFILES.in{Colors.CLEAR}")
     print(
-        "".join([
-            (Colors.GREEN if line.startswith('+') else Colors.RED + Colors.FAINT if line.startswith('-') else '') + line + Colors.CLEAR
-            for line in difflib.unified_diff(old_lines, lines)
-        ])
+        f"{Colors.BOLD}Will make the following changes to {Colors.UNDERLINE}po/POTFILES.in{Colors.CLEAR}"
+    )
+    print(
+        "".join(
+            [
+                (
+                    Colors.GREEN
+                    if line.startswith("+")
+                    else Colors.RED + Colors.FAINT
+                    if line.startswith("-")
+                    else ""
+                )
+                + line
+                + Colors.CLEAR
+                for line in difflib.unified_diff(old_lines, lines)
+            ]
+        )
     )
 
     if yesno("Is this ok?"):
@@ -291,5 +337,6 @@ def run(opts):
     step5(in_files)
     step6(in_files)
 
-    print(f"{Colors.BOLD}STEP 6: Done! Make sure your app still builds and runs correctly.{Colors.CLEAR}")
-
+    print(
+        f"{Colors.BOLD}STEP 6: Done! Make sure your app still builds and runs correctly.{Colors.CLEAR}"
+    )

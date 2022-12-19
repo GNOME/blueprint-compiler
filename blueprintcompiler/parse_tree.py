@@ -24,7 +24,13 @@ import typing as T
 from collections import defaultdict
 from enum import Enum
 
-from .errors import assert_true, CompilerBugError, CompileError, CompileWarning, UnexpectedTokenError
+from .errors import (
+    assert_true,
+    CompilerBugError,
+    CompileError,
+    CompileWarning,
+    UnexpectedTokenError,
+)
 from .tokenizer import Token, TokenType
 
 
@@ -32,15 +38,15 @@ SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
 
 
 class ParseResult(Enum):
-    """ Represents the result of parsing. The extra EMPTY result is necessary
+    """Represents the result of parsing. The extra EMPTY result is necessary
     to avoid freezing the parser: imagine a ZeroOrMore node containing a node
     that can match empty. It will repeatedly match empty and never advance
     the parser. So, ZeroOrMore stops when a failed *or empty* match is
-    made. """
+    made."""
 
     SUCCESS = 0
     FAILURE = 1
-    EMPTY   = 2
+    EMPTY = 2
 
     def matched(self):
         return self == ParseResult.SUCCESS
@@ -53,10 +59,10 @@ class ParseResult(Enum):
 
 
 class ParseGroup:
-    """ A matching group. Match groups have an AST type, children grouped by
+    """A matching group. Match groups have an AST type, children grouped by
     type, and key=value pairs. At the end of parsing, the match groups will
     be converted to AST nodes by passing the children and key=value pairs to
-    the AST node constructor. """
+    the AST node constructor."""
 
     def __init__(self, ast_type, start: int):
         self.ast_type = ast_type
@@ -77,23 +83,27 @@ class ParseGroup:
         self.tokens[key] = token
 
     def to_ast(self):
-        """ Creates an AST node from the match group. """
+        """Creates an AST node from the match group."""
         children = [child.to_ast() for child in self.children]
 
         try:
             return self.ast_type(self, children, self.keys, incomplete=self.incomplete)
         except TypeError as e:
-            raise CompilerBugError(f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace.")
+            raise CompilerBugError(
+                f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace."
+            )
 
     def __str__(self):
         result = str(self.ast_type.__name__)
         result += "".join([f"\n{key}: {val}" for key, val in self.keys.items()]) + "\n"
-        result += "\n".join([str(child) for children in self.children.values() for child in children])
+        result += "\n".join(
+            [str(child) for children in self.children.values() for child in children]
+        )
         return result.replace("\n", "\n  ")
 
 
 class ParseContext:
-    """ Contains the state of the parser. """
+    """Contains the state of the parser."""
 
     def __init__(self, tokens, index=0):
         self.tokens = list(tokens)
@@ -110,12 +120,11 @@ class ParseContext:
         self.errors = []
         self.warnings = []
 
-
     def create_child(self):
-        """ Creates a new ParseContext at this context's position. The new
+        """Creates a new ParseContext at this context's position. The new
         context will be used to parse one node. If parsing is successful, the
         new context will be applied to "self". If parsing fails, the new
-        context will be discarded. """
+        context will be discarded."""
         ctx = ParseContext(self.tokens, self.index)
         ctx.errors = self.errors
         ctx.warnings = self.warnings
@@ -123,7 +132,7 @@ class ParseContext:
         return ctx
 
     def apply_child(self, other):
-        """ Applies a child context to this context. """
+        """Applies a child context to this context."""
 
         if other.group is not None:
             # If the other context had a match group, collect all the matched
@@ -150,43 +159,44 @@ class ParseContext:
         elif other.last_group:
             self.last_group = other.last_group
 
-
     def start_group(self, ast_type):
-        """ Sets this context to have its own match group. """
+        """Sets this context to have its own match group."""
         assert_true(self.group is None)
         self.group = ParseGroup(ast_type, self.tokens[self.index].start)
 
     def set_group_val(self, key, value, token):
-        """ Sets a matched key=value pair on the current match group. """
+        """Sets a matched key=value pair on the current match group."""
         assert_true(key not in self.group_keys)
         self.group_keys[key] = (value, token)
 
     def set_group_incomplete(self):
-        """ Marks the current match group as incomplete (it could not be fully
-        parsed, but the parser recovered). """
+        """Marks the current match group as incomplete (it could not be fully
+        parsed, but the parser recovered)."""
         self.group_incomplete = True
 
-
     def skip(self):
-        """ Skips whitespace and comments. """
-        while self.index < len(self.tokens) and self.tokens[self.index].type in SKIP_TOKENS:
+        """Skips whitespace and comments."""
+        while (
+            self.index < len(self.tokens)
+            and self.tokens[self.index].type in SKIP_TOKENS
+        ):
             self.index += 1
 
     def next_token(self) -> Token:
-        """ Advances the token iterator and returns the next token. """
+        """Advances the token iterator and returns the next token."""
         self.skip()
         token = self.tokens[self.index]
         self.index += 1
         return token
 
     def peek_token(self) -> Token:
-        """ Returns the next token without advancing the iterator. """
+        """Returns the next token without advancing the iterator."""
         self.skip()
         token = self.tokens[self.index]
         return token
 
     def skip_unexpected_token(self):
-        """ Skips a token and logs an "unexpected token" error. """
+        """Skips a token and logs an "unexpected token" error."""
 
         self.skip()
         start = self.tokens[self.index].start
@@ -194,9 +204,11 @@ class ParseContext:
         self.skip()
         end = self.tokens[self.index - 1].end
 
-        if (len(self.errors)
-                and isinstance((err := self.errors[-1]), UnexpectedTokenError)
-                and err.end == start):
+        if (
+            len(self.errors)
+            and isinstance((err := self.errors[-1]), UnexpectedTokenError)
+            and err.end == start
+        ):
             err.end = end
         else:
             self.errors.append(UnexpectedTokenError(start, end))
@@ -206,10 +218,10 @@ class ParseContext:
 
 
 class ParseNode:
-    """ Base class for the nodes in the parser tree. """
+    """Base class for the nodes in the parser tree."""
 
     def parse(self, ctx: ParseContext) -> ParseResult:
-        """ Attempts to match the ParseNode at the context's current location. """
+        """Attempts to match the ParseNode at the context's current location."""
         start_idx = ctx.index
         inner_ctx = ctx.create_child()
 
@@ -226,22 +238,22 @@ class ParseNode:
         raise NotImplementedError()
 
     def err(self, message):
-        """ Causes this ParseNode to raise an exception if it fails to parse.
+        """Causes this ParseNode to raise an exception if it fails to parse.
         This prevents the parser from backtracking, so you should understand
-        what it does and how the parser works before using it. """
+        what it does and how the parser works before using it."""
         return Err(self, message)
 
     def expected(self, expect):
-        """ Convenience method for err(). """
+        """Convenience method for err()."""
         return self.err("Expected " + expect)
 
     def warn(self, message):
-        """ Causes this ParseNode to emit a warning if it parses successfully. """
+        """Causes this ParseNode to emit a warning if it parses successfully."""
         return Warning(self, message)
 
 
 class Err(ParseNode):
-    """ ParseNode that emits a compile error if it fails to parse. """
+    """ParseNode that emits a compile error if it fails to parse."""
 
     def __init__(self, child, message):
         self.child = to_parse_node(child)
@@ -260,7 +272,7 @@ class Err(ParseNode):
 
 
 class Warning(ParseNode):
-    """ ParseNode that emits a compile warning if it parses successfully. """
+    """ParseNode that emits a compile warning if it parses successfully."""
 
     def __init__(self, child, message):
         self.child = to_parse_node(child)
@@ -272,12 +284,14 @@ class Warning(ParseNode):
         if self.child.parse(ctx).succeeded():
             start_token = ctx.tokens[start_idx]
             end_token = ctx.tokens[ctx.index]
-            ctx.warnings.append(CompileWarning(self.message, start_token.start, end_token.end))
+            ctx.warnings.append(
+                CompileWarning(self.message, start_token.start, end_token.end)
+            )
         return True
 
 
 class Fail(ParseNode):
-    """ ParseNode that emits a compile error if it parses successfully. """
+    """ParseNode that emits a compile error if it parses successfully."""
 
     def __init__(self, child, message):
         self.child = to_parse_node(child)
@@ -296,7 +310,8 @@ class Fail(ParseNode):
 
 
 class Group(ParseNode):
-    """ ParseNode that creates a match group. """
+    """ParseNode that creates a match group."""
+
     def __init__(self, ast_type, child):
         self.ast_type = ast_type
         self.child = to_parse_node(child)
@@ -308,7 +323,8 @@ class Group(ParseNode):
 
 
 class Sequence(ParseNode):
-    """ ParseNode that attempts to match all of its children in sequence. """
+    """ParseNode that attempts to match all of its children in sequence."""
+
     def __init__(self, *children):
         self.children = [to_parse_node(child) for child in children]
 
@@ -320,8 +336,9 @@ class Sequence(ParseNode):
 
 
 class Statement(ParseNode):
-    """ ParseNode that attempts to match all of its children in sequence. If any
-    child raises an error, the error will be logged but parsing will continue. """
+    """ParseNode that attempts to match all of its children in sequence. If any
+    child raises an error, the error will be logged but parsing will continue."""
+
     def __init__(self, *children):
         self.children = [to_parse_node(child) for child in children]
 
@@ -344,14 +361,16 @@ class Statement(ParseNode):
 
 
 class AnyOf(ParseNode):
-    """ ParseNode that attempts to match exactly one of its children. Child
-    nodes are attempted in order. """
+    """ParseNode that attempts to match exactly one of its children. Child
+    nodes are attempted in order."""
+
     def __init__(self, *children):
         self.children = children
 
     @property
     def children(self):
         return self._children
+
     @children.setter
     def children(self, children):
         self._children = [to_parse_node(child) for child in children]
@@ -364,9 +383,10 @@ class AnyOf(ParseNode):
 
 
 class Until(ParseNode):
-    """ ParseNode that repeats its child until a delimiting token is found. If
+    """ParseNode that repeats its child until a delimiting token is found. If
     the child does not match, one token is skipped and the match is attempted
-    again. """
+    again."""
+
     def __init__(self, child, delimiter):
         self.child = to_parse_node(child)
         self.delimiter = to_parse_node(delimiter)
@@ -387,12 +407,12 @@ class Until(ParseNode):
 
 
 class ZeroOrMore(ParseNode):
-    """ ParseNode that matches its child any number of times (including zero
+    """ParseNode that matches its child any number of times (including zero
     times). It cannot fail to parse. If its child raises an exception, one token
-    will be skipped and parsing will continue. """
+    will be skipped and parsing will continue."""
+
     def __init__(self, child):
         self.child = to_parse_node(child)
-
 
     def _parse(self, ctx):
         while True:
@@ -405,8 +425,9 @@ class ZeroOrMore(ParseNode):
 
 
 class Delimited(ParseNode):
-    """ ParseNode that matches its first child any number of times (including zero
-    times) with its second child in between and optionally at the end. """
+    """ParseNode that matches its first child any number of times (including zero
+    times) with its second child in between and optionally at the end."""
+
     def __init__(self, child, delimiter):
         self.child = to_parse_node(child)
         self.delimiter = to_parse_node(delimiter)
@@ -418,8 +439,9 @@ class Delimited(ParseNode):
 
 
 class Optional(ParseNode):
-    """ ParseNode that matches its child zero or one times. It cannot fail to
-    parse. """
+    """ParseNode that matches its child zero or one times. It cannot fail to
+    parse."""
+
     def __init__(self, child):
         self.child = to_parse_node(child)
 
@@ -429,14 +451,16 @@ class Optional(ParseNode):
 
 
 class Eof(ParseNode):
-    """ ParseNode that matches an EOF token. """
+    """ParseNode that matches an EOF token."""
+
     def _parse(self, ctx: ParseContext) -> bool:
         token = ctx.next_token()
         return token.type == TokenType.EOF
 
 
 class Match(ParseNode):
-    """ ParseNode that matches the given literal token. """
+    """ParseNode that matches the given literal token."""
+
     def __init__(self, op):
         self.op = op
 
@@ -445,7 +469,7 @@ class Match(ParseNode):
         return str(token) == self.op
 
     def expected(self, expect: T.Optional[str] = None):
-        """ Convenience method for err(). """
+        """Convenience method for err()."""
         if expect is None:
             return self.err(f"Expected '{self.op}'")
         else:
@@ -453,8 +477,9 @@ class Match(ParseNode):
 
 
 class UseIdent(ParseNode):
-    """ ParseNode that matches any identifier and sets it in a key=value pair on
-    the containing match group. """
+    """ParseNode that matches any identifier and sets it in a key=value pair on
+    the containing match group."""
+
     def __init__(self, key):
         self.key = key
 
@@ -468,8 +493,9 @@ class UseIdent(ParseNode):
 
 
 class UseNumber(ParseNode):
-    """ ParseNode that matches a number and sets it in a key=value pair on
-    the containing match group. """
+    """ParseNode that matches a number and sets it in a key=value pair on
+    the containing match group."""
+
     def __init__(self, key):
         self.key = key
 
@@ -486,8 +512,9 @@ class UseNumber(ParseNode):
 
 
 class UseNumberText(ParseNode):
-    """ ParseNode that matches a number, but sets its *original text* it in a
-    key=value pair on the containing match group. """
+    """ParseNode that matches a number, but sets its *original text* it in a
+    key=value pair on the containing match group."""
+
     def __init__(self, key):
         self.key = key
 
@@ -501,8 +528,9 @@ class UseNumberText(ParseNode):
 
 
 class UseQuoted(ParseNode):
-    """ ParseNode that matches a quoted string and sets it in a key=value pair
-    on the containing match group. """
+    """ParseNode that matches a quoted string and sets it in a key=value pair
+    on the containing match group."""
+
     def __init__(self, key):
         self.key = key
 
@@ -511,19 +539,22 @@ class UseQuoted(ParseNode):
         if token.type != TokenType.QUOTED:
             return False
 
-        string = (str(token)[1:-1]
+        string = (
+            str(token)[1:-1]
             .replace("\\n", "\n")
-            .replace("\\\"", "\"")
+            .replace('\\"', '"')
             .replace("\\\\", "\\")
-            .replace("\\'", "\'"))
+            .replace("\\'", "'")
+        )
         ctx.set_group_val(self.key, string, token)
         return True
 
 
 class UseLiteral(ParseNode):
-    """ ParseNode that doesn't match anything, but rather sets a static key=value
+    """ParseNode that doesn't match anything, but rather sets a static key=value
     pair on the containing group. Useful for, e.g., property and signal flags:
-    `Sequence(Keyword("swapped"), UseLiteral("swapped", True))` """
+    `Sequence(Keyword("swapped"), UseLiteral("swapped", True))`"""
+
     def __init__(self, key, literal):
         self.key = key
         self.literal = literal
@@ -534,8 +565,9 @@ class UseLiteral(ParseNode):
 
 
 class Keyword(ParseNode):
-    """ Matches the given identifier and sets it as a named token, with the name
-    being the identifier itself. """
+    """Matches the given identifier and sets it as a named token, with the name
+    being the identifier itself."""
+
     def __init__(self, kw):
         self.kw = kw
         self.set_token = True
@@ -565,12 +597,13 @@ class Infix(ParseNode):
 
     def __lt__(self, other):
         return self.binding_power < other.binding_power
+
     def __eq__(self, other):
         return self.binding_power == other.binding_power
 
 
 class Pratt(ParseNode):
-    """ Basic Pratt parser implementation. """
+    """Basic Pratt parser implementation."""
 
     def __init__(self, *children):
         self.children = children
@@ -578,11 +611,14 @@ class Pratt(ParseNode):
     @property
     def children(self):
         return self._children
+
     @children.setter
     def children(self, children):
         self._children = children
         self.prefixes = [child for child in children if isinstance(child, Prefix)]
-        self.infixes = sorted([child for child in children if isinstance(child, Infix)], reverse=True)
+        self.infixes = sorted(
+            [child for child in children if isinstance(child, Infix)], reverse=True
+        )
 
     def _parse(self, ctx: ParseContext) -> bool:
         for prefix in self.prefixes:

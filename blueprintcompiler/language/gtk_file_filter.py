@@ -37,6 +37,7 @@ class Filters(AstNode):
                 f"Duplicate {self.tokens['tag_name']} block",
                 check=lambda child: child.tokens["tag_name"] == self.tokens["tag_name"],
             )
+
         wrapped_validator(self)
 
 
@@ -57,12 +58,12 @@ def create_node(tag_name: str, singular: str):
                     [
                         UseQuoted("name"),
                         UseLiteral("tag_name", singular),
-                    ]
+                    ],
                 ),
                 ",",
             ),
             "]",
-        ]
+        ],
     )
 
 
@@ -77,30 +78,37 @@ suffixes = create_node("suffixes", "suffix")
     matches=new_statement_patterns,
 )
 def file_filter_completer(ast_node, match_variables):
-    yield Completion("mime-types", CompletionItemKind.Snippet, snippet="mime-types [\"$0\"]")
-    yield Completion("patterns", CompletionItemKind.Snippet, snippet="patterns [\"$0\"]")
-    yield Completion("suffixes", CompletionItemKind.Snippet, snippet="suffixes [\"$0\"]")
+    yield Completion(
+        "mime-types", CompletionItemKind.Snippet, snippet='mime-types ["$0"]'
+    )
+    yield Completion("patterns", CompletionItemKind.Snippet, snippet='patterns ["$0"]')
+    yield Completion("suffixes", CompletionItemKind.Snippet, snippet='suffixes ["$0"]')
 
 
 @decompiler("mime-types")
 def decompile_mime_types(ctx, gir):
     ctx.print("mime-types [")
 
+
 @decompiler("mime-type", cdata=True)
 def decompile_mime_type(ctx, gir, cdata):
     ctx.print(f'"{cdata}",')
+
 
 @decompiler("patterns")
 def decompile_patterns(ctx, gir):
     ctx.print("patterns [")
 
+
 @decompiler("pattern", cdata=True)
 def decompile_pattern(ctx, gir, cdata):
     ctx.print(f'"{cdata}",')
 
+
 @decompiler("suffixes")
 def decompile_suffixes(ctx, gir):
     ctx.print("suffixes [")
+
 
 @decompiler("suffix", cdata=True)
 def decompile_suffix(ctx, gir, cdata):

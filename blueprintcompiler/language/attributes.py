@@ -23,7 +23,7 @@ from .common import *
 
 
 class BaseAttribute(AstNode):
-    """ A helper class for attribute syntax of the form `name: literal_value;`"""
+    """A helper class for attribute syntax of the form `name: literal_value;`"""
 
     tag_name: str = ""
     attr_name: str = "name"
@@ -34,5 +34,5 @@ class BaseAttribute(AstNode):
 
 
 class BaseTypedAttribute(BaseAttribute):
-    """ A BaseAttribute whose parent has a value_type property that can assist
-    in validation. """
+    """A BaseAttribute whose parent has a value_type property that can assist
+    in validation."""

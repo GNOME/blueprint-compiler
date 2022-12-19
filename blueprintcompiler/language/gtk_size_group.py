@@ -32,7 +32,7 @@ class Widget(AstNode):
         if object is None:
             raise CompileError(
                 f"Could not find object with ID {self.tokens['name']}",
-                did_you_mean=(self.tokens['name'], self.root.objects_by_id.keys()),
+                did_you_mean=(self.tokens["name"], self.root.objects_by_id.keys()),
             )
         elif object.gir_class and not object.gir_class.assignable_to(type):
             raise CompileError(

@@ -30,9 +30,13 @@ from .tokenizer import TokenType, Token
 Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 
 
-def _complete(ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int) -> T.Iterator[Completion]:
+def _complete(
+    ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
+) -> T.Iterator[Completion]:
     for child in ast_node.children:
-        if child.group.start <= idx and (idx < child.group.end or (idx == child.group.end and child.incomplete)):
+        if child.group.start <= idx and (
+            idx < child.group.end or (idx == child.group.end and child.incomplete)
+        ):
             yield from _complete(child, tokens, idx, token_idx)
             return
 
@@ -49,7 +53,9 @@ def _complete(ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
         yield from completer(prev_tokens, ast_node)
 
 
-def complete(ast_node: AstNode, tokens: T.List[Token], idx: int) -> T.Iterator[Completion]:
+def complete(
+    ast_node: AstNode, tokens: T.List[Token], idx: int
+) -> T.Iterator[Completion]:
     token_idx = 0
     # find the current token
     for i, token in enumerate(tokens):
@@ -71,13 +77,17 @@ def using_gtk(ast_node, match_variables):
 
 @completer(
     applies_in=[language.UI, language.ObjectContent, language.Template],
-    matches=new_statement_patterns
+    matches=new_statement_patterns,
 )
 def namespace(ast_node, match_variables):
     yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
     for ns in ast_node.root.children[language.Import]:
         if ns.gir_namespace is not None:
-            yield Completion(ns.gir_namespace.name, CompletionItemKind.Module, text=ns.gir_namespace.name + ".")
+            yield Completion(
+                ns.gir_namespace.name,
+                CompletionItemKind.Module,
+                text=ns.gir_namespace.name + ".",
+            )
 
 
 @completer(
@@ -85,7 +95,7 @@ def namespace(ast_node, match_variables):
     matches=[
         [(TokenType.IDENT, None), (TokenType.OP, "."), (TokenType.IDENT, None)],
         [(TokenType.IDENT, None), (TokenType.OP, ".")],
-    ]
+    ],
 )
 def object_completer(ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get(match_variables[0])
@@ -117,9 +127,7 @@ def property_completer(ast_node, match_variables):
 
 @completer(
     applies_in=[language.Property, language.BaseTypedAttribute],
-    matches=[
-        [(TokenType.IDENT, None), (TokenType.OP, ":")]
-    ],
+    matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
 )
 def prop_value_completer(ast_node, match_variables):
     if isinstance(ast_node.value_type, gir.Enumeration):
@@ -141,16 +149,23 @@ def signal_completer(ast_node, match_variables):
             if not isinstance(ast_node.parent, language.Object):
                 name = "on"
             else:
-                name = "on_" + (ast_node.parent.children[ClassName][0].tokens["id"] or ast_node.parent.children[ClassName][0].tokens["class_name"].lower())
-            yield Completion(signal, CompletionItemKind.Property, snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;")
+                name = "on_" + (
+                    ast_node.parent.children[ClassName][0].tokens["id"]
+                    or ast_node.parent.children[ClassName][0]
+                    .tokens["class_name"]
+                    .lower()
+                )
+            yield Completion(
+                signal,
+                CompletionItemKind.Property,
+                snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;",
+            )
 
 
-@completer(
-    applies_in=[language.UI],
-    matches=new_statement_patterns
-)
+@completer(applies_in=[language.UI], matches=new_statement_patterns)
 def template_completer(ast_node, match_variables):
     yield Completion(
-        "template", CompletionItemKind.Snippet,
-        snippet="template ${1:ClassName} : ${2:ParentClass} {\n  $0\n}"
+        "template",
+        CompletionItemKind.Snippet,
+        snippet="template ${1:ClassName} : ${2:ParentClass} {\n  $0\n}",
     )

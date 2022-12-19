@@ -41,7 +41,9 @@ class TypeName(AstNode):
     @validate("class_name")
     def type_exists(self):
         if not self.tokens["ignore_gir"] and self.gir_ns is not None:
-            self.root.gir.validate_type(self.tokens["class_name"], self.tokens["namespace"])
+            self.root.gir.validate_type(
+                self.tokens["class_name"], self.tokens["namespace"]
+            )
 
     @validate("namespace")
     def gir_ns_exists(self):
@@ -56,7 +58,9 @@ class TypeName(AstNode):
     @property
     def gir_type(self) -> T.Optional[gir.Class]:
         if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
-            return self.root.gir.get_type(self.tokens["class_name"], self.tokens["namespace"])
+            return self.root.gir.get_type(
+                self.tokens["class_name"], self.tokens["namespace"]
+            )
         return None
 
     @property
@@ -82,7 +86,9 @@ class ClassName(TypeName):
     def gir_class_exists(self):
         if self.gir_type is not None and not isinstance(self.gir_type, Class):
             if isinstance(self.gir_type, Interface):
-                raise CompileError(f"{self.gir_type.full_name} is an interface, not a class")
+                raise CompileError(
+                    f"{self.gir_type.full_name} is an interface, not a class"
+                )
             else:
                 raise CompileError(f"{self.gir_type.full_name} is not a class")
 
@@ -93,6 +99,5 @@ class ConcreteClassName(ClassName):
         if isinstance(self.gir_type, Class) and self.gir_type.abstract:
             raise CompileError(
                 f"{self.gir_type.full_name} can't be instantiated because it's abstract",
-                hints=[f"did you mean to use a subclass of {self.gir_type.full_name}?"]
+                hints=[f"did you mean to use a subclass of {self.gir_type.full_name}?"],
             )
-

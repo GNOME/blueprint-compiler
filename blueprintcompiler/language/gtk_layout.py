@@ -45,7 +45,7 @@ layout_prop = Group(
         UseIdent("name"),
         ":",
         VALUE_HOOKS.expected("a value"),
-    )
+    ),
 )
 
 
@@ -71,10 +71,7 @@ class Layout(AstNode):
     matches=new_statement_patterns,
 )
 def layout_completer(ast_node, match_variables):
-    yield Completion(
-        "layout", CompletionItemKind.Snippet,
-        snippet="layout {\n  $0\n}"
-    )
+    yield Completion("layout", CompletionItemKind.Snippet, snippet="layout {\n  $0\n}")
 
 
 @decompiler("layout")

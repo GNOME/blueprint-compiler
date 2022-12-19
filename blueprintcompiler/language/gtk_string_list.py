@@ -55,7 +55,4 @@ class Strings(AstNode):
     matches=new_statement_patterns,
 )
 def strings_completer(ast_node, match_variables):
-    yield Completion(
-        "strings", CompletionItemKind.Snippet,
-        snippet="strings [$0]"
-    )
+    yield Completion("strings", CompletionItemKind.Snippet, snippet="strings [$0]")

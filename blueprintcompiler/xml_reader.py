@@ -25,11 +25,24 @@ from xml import sax
 
 
 # To speed up parsing, we ignore all tags except these
-PARSE_GIR = set([
-    "repository", "namespace", "class", "interface", "property", "glib:signal",
-    "include", "implements", "type", "parameter", "parameters", "enumeration",
-    "member", "bitfield",
-])
+PARSE_GIR = set(
+    [
+        "repository",
+        "namespace",
+        "class",
+        "interface",
+        "property",
+        "glib:signal",
+        "include",
+        "implements",
+        "type",
+        "parameter",
+        "parameters",
+        "enumeration",
+        "member",
+        "bitfield",
+    ]
+)
 
 
 class Element:
@@ -41,14 +54,10 @@ class Element:
 
     @cached_property
     def cdata(self):
-        return ''.join(self.cdata_chunks)
+        return "".join(self.cdata_chunks)
 
     def get_elements(self, name) -> T.List["Element"]:
-        return [
-            child
-            for child in self.children
-            if child.tag == name
-        ]
+        return [child for child in self.children if child.tag == name]
 
     def __getitem__(self, key):
         return self.attrs.get(key)

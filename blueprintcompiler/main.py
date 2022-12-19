@@ -30,24 +30,41 @@ from .outputs import XmlOutput
 VERSION = "uninstalled"
 LIBDIR = None
 
+
 class BlueprintApp:
     def main(self):
         self.parser = argparse.ArgumentParser()
         self.subparsers = self.parser.add_subparsers(metavar="command")
         self.parser.set_defaults(func=self.cmd_help)
 
-        compile = self.add_subcommand("compile", "Compile blueprint files", self.cmd_compile)
+        compile = self.add_subcommand(
+            "compile", "Compile blueprint files", self.cmd_compile
+        )
         compile.add_argument("--output", dest="output", default="-")
-        compile.add_argument("input", metavar="filename", default=sys.stdin, type=argparse.FileType('r'))
+        compile.add_argument(
+            "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
+        )
 
-        batch_compile = self.add_subcommand("batch-compile", "Compile many blueprint files at once", self.cmd_batch_compile)
+        batch_compile = self.add_subcommand(
+            "batch-compile",
+            "Compile many blueprint files at once",
+            self.cmd_batch_compile,
+        )
         batch_compile.add_argument("output_dir", metavar="output-dir")
         batch_compile.add_argument("input_dir", metavar="input-dir")
-        batch_compile.add_argument("inputs", nargs="+", metavar="filenames", default=sys.stdin, type=argparse.FileType('r'))
+        batch_compile.add_argument(
+            "inputs",
+            nargs="+",
+            metavar="filenames",
+            default=sys.stdin,
+            type=argparse.FileType("r"),
+        )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
 
-        lsp = self.add_subcommand("lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp)
+        lsp = self.add_subcommand(
+            "lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp
+        )
 
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
@@ -65,16 +82,13 @@ class BlueprintApp:
         except:
             report_bug()
 
-
     def add_subcommand(self, name, help, func):
         parser = self.subparsers.add_parser(name, help=help)
         parser.set_defaults(func=func)
         return parser
 
-
     def cmd_help(self, opts):
         self.parser.print_help()
-
 
     def cmd_compile(self, opts):
         data = opts.input.read()
@@ -93,14 +107,15 @@ class BlueprintApp:
             e.pretty_print(opts.input.name, data)
             sys.exit(1)
 
-
     def cmd_batch_compile(self, opts):
         for file in opts.inputs:
             data = file.read()
 
             try:
                 if not os.path.commonpath([file.name, opts.input_dir]):
-                    print(f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}")
+                    print(
+                        f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}"
+                    )
                     sys.exit(1)
 
                 xml, warnings = self._compile(data)
@@ -111,9 +126,8 @@ class BlueprintApp:
                 path = os.path.join(
                     opts.output_dir,
                     os.path.relpath(
-                        os.path.splitext(file.name)[0] + ".ui",
-                        opts.input_dir
-                    )
+                        os.path.splitext(file.name)[0] + ".ui", opts.input_dir
+                    ),
                 )
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w") as file:
@@ -122,15 +136,12 @@ class BlueprintApp:
                 e.pretty_print(file.name, data)
                 sys.exit(1)
 
-
     def cmd_lsp(self, opts):
         langserv = LanguageServer()
         langserv.run()
 
-
     def cmd_port(self, opts):
         interactive_port.run(opts)
-
 
     def _compile(self, data: str) -> T.Tuple[str, T.List[PrintableError]]:
         tokens = tokenizer.tokenize(data)

@@ -26,18 +26,21 @@ from .common import *
 
 ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
     ("Gtk", "Buildable"),
-    ("Gio", "ListStore")
+    ("Gio", "ListStore"),
 ]
+
 
 class Child(AstNode):
     grammar = [
-        Optional([
-            "[",
-            Optional(["internal-child", UseLiteral("internal_child", True)]),
-            UseIdent("child_type").expected("a child type"),
-            Optional(ResponseId),
-            "]",
-        ]),
+        Optional(
+            [
+                "[",
+                Optional(["internal-child", UseLiteral("internal_child", True)]),
+                UseIdent("child_type").expected("a child type"),
+                Optional(ResponseId),
+                "]",
+            ]
+        ),
         Object,
     ]
 
@@ -53,9 +56,13 @@ class Child(AstNode):
                 if gir_class.assignable_to(parent_type):
                     break
             else:
-                hints=["only Gio.ListStore or Gtk.Buildable implementors can have children"]
+                hints = [
+                    "only Gio.ListStore or Gtk.Buildable implementors can have children"
+                ]
                 if "child" in gir_class.properties:
-                    hints.append("did you mean to assign this object to the 'child' property?")
+                    hints.append(
+                        "did you mean to assign this object to the 'child' property?"
+                    )
                 raise CompileError(
                     f"{gir_class.full_name} doesn't have children",
                     hints=hints,

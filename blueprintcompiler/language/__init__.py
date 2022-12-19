@@ -16,7 +16,16 @@ from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .ui import UI
 from .types import ClassName
-from .values import TypeValue, IdentValue, TranslatedStringValue, FlagsValue, Flag, QuotedValue, NumberValue, Value
+from .values import (
+    TypeValue,
+    IdentValue,
+    TranslatedStringValue,
+    FlagsValue,
+    Flag,
+    QuotedValue,
+    NumberValue,
+    Value,
+)
 
 from .common import *
 

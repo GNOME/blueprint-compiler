@@ -84,13 +84,21 @@ class QuotedValue(Value):
     @validate()
     def validate_for_type(self):
         type = self.parent.value_type
-        if isinstance(type, gir.IntType) or isinstance(type, gir.UIntType) or isinstance(type, gir.FloatType):
+        if (
+            isinstance(type, gir.IntType)
+            or isinstance(type, gir.UIntType)
+            or isinstance(type, gir.FloatType)
+        ):
             raise CompileError(f"Cannot convert string to number")
 
         elif isinstance(type, gir.StringType):
             pass
 
-        elif isinstance(type, gir.Class) or isinstance(type, gir.Interface) or isinstance(type, gir.Boxed):
+        elif (
+            isinstance(type, gir.Class)
+            or isinstance(type, gir.Interface)
+            or isinstance(type, gir.Boxed)
+        ):
             parseable_types = [
                 "Gdk.Paintable",
                 "Gdk.Texture",
@@ -106,8 +114,12 @@ class QuotedValue(Value):
             if type.full_name not in parseable_types:
                 hints = []
                 if isinstance(type, gir.TypeType):
-                    hints.append(f"use the typeof operator: 'typeof({self.tokens('value')})'")
-                raise CompileError(f"Cannot convert string to {type.full_name}", hints=hints)
+                    hints.append(
+                        f"use the typeof operator: 'typeof({self.tokens('value')})'"
+                    )
+                raise CompileError(
+                    f"Cannot convert string to {type.full_name}", hints=hints
+                )
 
         elif type is not None:
             raise CompileError(f"Cannot convert string to {type.full_name}")
@@ -127,7 +139,9 @@ class NumberValue(Value):
             try:
                 int(self.tokens["value"])
             except:
-                raise CompileError(f"Cannot convert {self.group.tokens['value']} to integer")
+                raise CompileError(
+                    f"Cannot convert {self.group.tokens['value']} to integer"
+                )
 
         elif isinstance(type, gir.UIntType):
             try:
@@ -135,13 +149,17 @@ class NumberValue(Value):
                 if int(self.tokens["value"]) < 0:
                     raise Exception()
             except:
-                raise CompileError(f"Cannot convert {self.group.tokens['value']} to unsigned integer")
+                raise CompileError(
+                    f"Cannot convert {self.group.tokens['value']} to unsigned integer"
+                )
 
         elif isinstance(type, gir.FloatType):
             try:
                 float(self.tokens["value"])
             except:
-                raise CompileError(f"Cannot convert {self.group.tokens['value']} to float")
+                raise CompileError(
+                    f"Cannot convert {self.group.tokens['value']} to float"
+                )
 
         elif type is not None:
             raise CompileError(f"Cannot convert number to {type.full_name}")
@@ -164,7 +182,7 @@ class Flag(AstNode):
         if isinstance(type, gir.Bitfield) and self.tokens["value"] not in type.members:
             raise CompileError(
                 f"{self.tokens['value']} is not a member of {type.full_name}",
-                did_you_mean=(self.tokens['value'], type.members.keys()),
+                did_you_mean=(self.tokens["value"], type.members.keys()),
             )
 
 
@@ -189,14 +207,14 @@ class IdentValue(Value):
             if self.tokens["value"] not in type.members:
                 raise CompileError(
                     f"{self.tokens['value']} is not a member of {type.full_name}",
-                    did_you_mean=(self.tokens['value'], type.members.keys()),
+                    did_you_mean=(self.tokens["value"], type.members.keys()),
                 )
 
         elif isinstance(type, gir.BoolType):
             if self.tokens["value"] not in ["true", "false"]:
                 raise CompileError(
                     f"Expected 'true' or 'false' for boolean value",
-                    did_you_mean=(self.tokens['value'], ["true", "false"]),
+                    did_you_mean=(self.tokens["value"], ["true", "false"]),
                 )
 
         elif type is not None:
@@ -204,13 +222,12 @@ class IdentValue(Value):
             if object is None:
                 raise CompileError(
                     f"Could not find object with ID {self.tokens['value']}",
-                    did_you_mean=(self.tokens['value'], self.root.objects_by_id.keys()),
+                    did_you_mean=(self.tokens["value"], self.root.objects_by_id.keys()),
                 )
             elif object.gir_class and not object.gir_class.assignable_to(type):
                 raise CompileError(
                     f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
                 )
-
 
     @docs()
     def docs(self):
@@ -223,9 +240,7 @@ class IdentValue(Value):
         elif isinstance(type, gir.GirNode):
             return type.doc
 
-
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         if isinstance(self.parent.value_type, gir.Enumeration):
             token = self.group.tokens["value"]
             yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
-

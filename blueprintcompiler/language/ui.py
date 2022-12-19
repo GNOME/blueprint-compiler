@@ -27,16 +27,19 @@ from .common import *
 
 
 class UI(AstNode):
-    """ The AST node for the entire file """
+    """The AST node for the entire file"""
 
     grammar = [
         GtkDirective,
         ZeroOrMore(Import),
-        Until(AnyOf(
-            Template,
-            menu,
-            Object,
-        ), Eof()),
+        Until(
+            AnyOf(
+                Template,
+                menu,
+                Object,
+            ),
+            Eof(),
+        ),
     ]
 
     @property
@@ -61,11 +64,13 @@ class UI(AstNode):
 
         return gir_ctx
 
-
     @property
     def objects_by_id(self):
-        return { obj.tokens["id"]: obj for obj in self.iterate_children_recursive() if obj.tokens["id"] is not None }
-
+        return {
+            obj.tokens["id"]: obj
+            for obj in self.iterate_children_recursive()
+            if obj.tokens["id"] is not None
+        }
 
     @validate()
     def gir_errors(self):
@@ -73,7 +78,6 @@ class UI(AstNode):
         self.gir
         if len(self._gir_errors):
             raise MultipleErrors(self._gir_errors)
-
 
     @validate()
     def unique_ids(self):
@@ -84,5 +88,7 @@ class UI(AstNode):
 
             if obj.tokens["id"] in passed:
                 token = obj.group.tokens["id"]
-                raise CompileError(f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end)
+                raise CompileError(
+                    f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end
+                )
             passed[obj.tokens["id"]] = obj

@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import difflib # I love Python
+import difflib  # I love Python
 from pathlib import Path
 import traceback
 import unittest
@@ -59,23 +59,26 @@ class TestSamples(unittest.TestCase):
 
             xml = XmlOutput()
             actual = xml.emit(ast)
-            if actual.strip() != expected.strip(): # pragma: no cover
+            if actual.strip() != expected.strip():  # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
 
             self.assert_docs_dont_crash(blueprint, ast)
             self.assert_completions_dont_crash(blueprint, ast, tokens)
-        except PrintableError as e: # pragma: no cover
+        except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
 
-
     def assert_sample_error(self, name):
         try:
-            with open((Path(__file__).parent / f"sample_errors/{name}.blp").resolve()) as f:
+            with open(
+                (Path(__file__).parent / f"sample_errors/{name}.blp").resolve()
+            ) as f:
                 blueprint = f.read()
-            with open((Path(__file__).parent / f"sample_errors/{name}.err").resolve()) as f:
+            with open(
+                (Path(__file__).parent / f"sample_errors/{name}.err").resolve()
+            ) as f:
                 expected = f.read()
 
             tokens = tokenizer.tokenize(blueprint)
@@ -91,6 +94,7 @@ class TestSamples(unittest.TestCase):
             if len(warnings):
                 raise MultipleErrors(warnings)
         except PrintableError as e:
+
             def error_str(error):
                 line, col = utils.idx_to_pos(error.start + 1, blueprint)
                 len = error.end - error.start
@@ -100,16 +104,15 @@ class TestSamples(unittest.TestCase):
                 actual = error_str(e)
             elif isinstance(e, MultipleErrors):
                 actual = "\n".join([error_str(error) for error in e.errors])
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 raise AssertionError()
 
-            if actual.strip() != expected.strip(): # pragma: no cover
+            if actual.strip() != expected.strip():  # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
-        else: # pragma: no cover
+        else:  # pragma: no cover
             raise AssertionError("Expected a compiler error, but none was emitted")
-
 
     def assert_decompile(self, name):
         try:
@@ -121,14 +124,13 @@ class TestSamples(unittest.TestCase):
 
             actual = decompiler.decompile(ui_path)
 
-            if actual.strip() != expected.strip(): # pragma: no cover
+            if actual.strip() != expected.strip():  # pragma: no cover
                 diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
                 print("\n".join(diff))
                 raise AssertionError()
-        except PrintableError as e: # pragma: no cover
+        except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
-
 
     def test_samples(self):
         self.assert_sample("accessibility")
@@ -160,7 +162,6 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("uint")
         self.assert_sample("unchecked_class")
         self.assert_sample("using")
-
 
     def test_sample_errors(self):
         self.assert_sample_error("a11y_in_non_widget")
@@ -208,7 +209,6 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("uint")
         self.assert_sample_error("using_invalid_namespace")
         self.assert_sample_error("widgets_in_non_size_group")
-
 
     def test_decompiler(self):
         self.assert_decompile("accessibility_dec")

@@ -26,11 +26,14 @@ from .lsp_utils import SemanticToken
 
 
 class Children:
-    """ Allows accessing children by type using array syntax. """
+    """Allows accessing children by type using array syntax."""
+
     def __init__(self, children):
         self._children = children
+
     def __iter__(self):
         return iter(self._children)
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._children[key]
@@ -39,7 +42,7 @@ class Children:
 
 
 class AstNode:
-    """ Base class for nodes in the abstract syntax tree. """
+    """Base class for nodes in the abstract syntax tree."""
 
     completers: T.List = []
 
@@ -55,8 +58,9 @@ class AstNode:
 
     def __init_subclass__(cls):
         cls.completers = []
-        cls.validators = [getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")]
-
+        cls.validators = [
+            getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")
+        ]
 
     @property
     def root(self):
@@ -116,12 +120,10 @@ class AstNode:
         for child in self.children:
             yield from child.get_semantic_tokens()
 
-
     def iterate_children_recursive(self) -> T.Iterator["AstNode"]:
         yield self
         for child in self.children:
             yield from child.iterate_children_recursive()
-
 
     def validate_unique_in_parent(self, error, check=None):
         for child in self.parent.children:
@@ -132,13 +134,19 @@ class AstNode:
                 if check is None or check(child):
                     raise CompileError(
                         error,
-                        references=[ErrorReference(child.group.start, child.group.end, "previous declaration was here")]
+                        references=[
+                            ErrorReference(
+                                child.group.start,
+                                child.group.end,
+                                "previous declaration was here",
+                            )
+                        ],
                     )
 
 
 def validate(token_name=None, end_token_name=None, skip_incomplete=False):
-    """ Decorator for functions that validate an AST node. Exceptions raised
-    during validation are marked with range information from the tokens. """
+    """Decorator for functions that validate an AST node. Exceptions raised
+    during validation are marked with range information from the tokens."""
 
     def decorator(func):
         def inner(self):
@@ -191,7 +199,7 @@ class Docs:
 
 
 def docs(*args, **kwargs):
-    """ Decorator for functions that return documentation for tokens. """
+    """Decorator for functions that return documentation for tokens."""
 
     def decorator(func):
         return Docs(func, *args, **kwargs)

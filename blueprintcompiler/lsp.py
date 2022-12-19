@@ -35,6 +35,7 @@ def command(json_method):
     def decorator(func):
         func._json_method = json_method
         return func
+
     return decorator
 
 
@@ -50,8 +51,16 @@ class OpenFile:
 
     def apply_changes(self, changes):
         for change in changes:
-            start = utils.pos_to_idx(change["range"]["start"]["line"], change["range"]["start"]["character"], self.text)
-            end = utils.pos_to_idx(change["range"]["end"]["line"], change["range"]["end"]["character"], self.text)
+            start = utils.pos_to_idx(
+                change["range"]["start"]["line"],
+                change["range"]["start"]["character"],
+                self.text,
+            )
+            end = utils.pos_to_idx(
+                change["range"]["end"]["line"],
+                change["range"]["end"]["character"],
+                self.text,
+            )
             self.text = self.text[:start] + change["text"] + self.text[end:]
         self._update()
 
@@ -69,16 +78,17 @@ class OpenFile:
         except CompileError as e:
             self.diagnostics.append(e)
 
-
     def calc_semantic_tokens(self) -> T.List[int]:
         tokens = list(self.ast.get_semantic_tokens())
         token_lists = [
             [
-                *utils.idx_to_pos(token.start, self.text), # line and column
-                token.end - token.start,        # length
+                *utils.idx_to_pos(token.start, self.text),  # line and column
+                token.end - token.start,  # length
                 token.type,
-                0,                              # token modifiers
-            ] for token in tokens]
+                0,  # token modifiers
+            ]
+            for token in tokens
+        ]
 
         # convert line, column numbers to deltas
         for i, token_list in enumerate(token_lists[1:]):
@@ -125,53 +135,60 @@ class LanguageServer:
         except Exception as e:
             printerr(traceback.format_exc())
 
-
     def _send(self, data):
         data["jsonrpc"] = "2.0"
         line = json.dumps(data, separators=(",", ":")) + "\r\n"
         printerr("output: " + line)
-        sys.stdout.write(f"Content-Length: {len(line.encode())}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}")
+        sys.stdout.write(
+            f"Content-Length: {len(line.encode())}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}"
+        )
         sys.stdout.flush()
 
     def _send_response(self, id, result):
-        self._send({
-            "id": id,
-            "result": result,
-        })
+        self._send(
+            {
+                "id": id,
+                "result": result,
+            }
+        )
 
     def _send_notification(self, method, params):
-        self._send({
-            "method": method,
-            "params": params,
-        })
-
+        self._send(
+            {
+                "method": method,
+                "params": params,
+            }
+        )
 
     @command("initialize")
     def initialize(self, id, params):
         from . import main
 
         self.client_capabilities = params.get("capabilities")
-        self._send_response(id, {
-            "capabilities": {
-                "textDocumentSync": {
-                    "openClose": True,
-                    "change": TextDocumentSyncKind.Incremental,
-                },
-                "semanticTokensProvider": {
-                    "legend": {
-                        "tokenTypes": ["enumMember"],
+        self._send_response(
+            id,
+            {
+                "capabilities": {
+                    "textDocumentSync": {
+                        "openClose": True,
+                        "change": TextDocumentSyncKind.Incremental,
                     },
-                    "full": True,
+                    "semanticTokensProvider": {
+                        "legend": {
+                            "tokenTypes": ["enumMember"],
+                        },
+                        "full": True,
+                    },
+                    "completionProvider": {},
+                    "codeActionProvider": {},
+                    "hoverProvider": True,
                 },
-                "completionProvider": {},
-                "codeActionProvider": {},
-                "hoverProvider": True,
+                "serverInfo": {
+                    "name": "Blueprint",
+                    "version": main.VERSION,
+                },
             },
-            "serverInfo": {
-                "name": "Blueprint",
-                "version": main.VERSION,
-            },
-        })
+        )
 
     @command("textDocument/didOpen")
     def didOpen(self, id, params):
@@ -198,14 +215,23 @@ class LanguageServer:
     @command("textDocument/hover")
     def hover(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
-        docs = open_file.ast and open_file.ast.get_docs(utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text))
+        docs = open_file.ast and open_file.ast.get_docs(
+            utils.pos_to_idx(
+                params["position"]["line"],
+                params["position"]["character"],
+                open_file.text,
+            )
+        )
         if docs:
-            self._send_response(id, {
-                "contents": {
-                    "kind": "markdown",
-                    "value": docs,
-                }
-            })
+            self._send_response(
+                id,
+                {
+                    "contents": {
+                        "kind": "markdown",
+                        "value": docs,
+                    }
+                },
+            )
         else:
             self._send_response(id, None)
 
@@ -217,40 +243,59 @@ class LanguageServer:
             self._send_response(id, [])
             return
 
-        idx = utils.pos_to_idx(params["position"]["line"], params["position"]["character"], open_file.text)
+        idx = utils.pos_to_idx(
+            params["position"]["line"], params["position"]["character"], open_file.text
+        )
         completions = complete(open_file.ast, open_file.tokens, idx)
-        self._send_response(id, [completion.to_json(True) for completion in completions])
-
+        self._send_response(
+            id, [completion.to_json(True) for completion in completions]
+        )
 
     @command("textDocument/semanticTokens/full")
     def semantic_tokens(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
 
-        self._send_response(id, {
-            "data": open_file.calc_semantic_tokens(),
-        })
-
+        self._send_response(
+            id,
+            {
+                "data": open_file.calc_semantic_tokens(),
+            },
+        )
 
     @command("textDocument/codeAction")
     def code_actions(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
 
-        range_start = utils.pos_to_idx(params["range"]["start"]["line"], params["range"]["start"]["character"], open_file.text)
-        range_end = utils.pos_to_idx(params["range"]["end"]["line"], params["range"]["end"]["character"], open_file.text)
+        range_start = utils.pos_to_idx(
+            params["range"]["start"]["line"],
+            params["range"]["start"]["character"],
+            open_file.text,
+        )
+        range_end = utils.pos_to_idx(
+            params["range"]["end"]["line"],
+            params["range"]["end"]["character"],
+            open_file.text,
+        )
 
         actions = [
             {
                 "title": action.title,
                 "kind": "quickfix",
-                "diagnostics": [self._create_diagnostic(open_file.text, open_file.uri, diagnostic)],
+                "diagnostics": [
+                    self._create_diagnostic(open_file.text, open_file.uri, diagnostic)
+                ],
                 "edit": {
                     "changes": {
-                        open_file.uri: [{
-                            "range": utils.idxs_to_range(diagnostic.start, diagnostic.end, open_file.text),
-                            "newText": action.replace_with
-                        }]
+                        open_file.uri: [
+                            {
+                                "range": utils.idxs_to_range(
+                                    diagnostic.start, diagnostic.end, open_file.text
+                                ),
+                                "newText": action.replace_with,
+                            }
+                        ]
                     }
-                }
+                },
             }
             for diagnostic in open_file.diagnostics
             if not (diagnostic.end < range_start or diagnostic.start > range_end)
@@ -259,23 +304,30 @@ class LanguageServer:
 
         self._send_response(id, actions)
 
-
     def _send_file_updates(self, open_file: OpenFile):
-        self._send_notification("textDocument/publishDiagnostics", {
-            "uri": open_file.uri,
-            "diagnostics": [self._create_diagnostic(open_file.text, open_file.uri, err) for err in open_file.diagnostics],
-        })
+        self._send_notification(
+            "textDocument/publishDiagnostics",
+            {
+                "uri": open_file.uri,
+                "diagnostics": [
+                    self._create_diagnostic(open_file.text, open_file.uri, err)
+                    for err in open_file.diagnostics
+                ],
+            },
+        )
 
     def _create_diagnostic(self, text, uri, err):
         message = err.message
 
         for hint in err.hints:
-          message += '\nhint: ' + hint
+            message += "\nhint: " + hint
 
         result = {
             "range": utils.idxs_to_range(err.start, err.end, text),
             "message": message,
-            "severity": DiagnosticSeverity.Warning if isinstance(err, CompileWarning) else DiagnosticSeverity.Error,
+            "severity": DiagnosticSeverity.Warning
+            if isinstance(err, CompileWarning)
+            else DiagnosticSeverity.Error,
         }
 
         if len(err.references) > 0:
@@ -285,7 +337,7 @@ class LanguageServer:
                         "uri": uri,
                         "range": utils.idxs_to_range(ref.start, ref.end, text),
                     },
-                    "message": ref.message
+                    "message": ref.message,
                 }
                 for ref in err.references
             ]
@@ -297,4 +349,3 @@ for name in dir(LanguageServer):
     item = getattr(LanguageServer, name)
     if callable(item) and hasattr(item, "_json_method"):
         LanguageServer.commands[item._json_method] = item
-

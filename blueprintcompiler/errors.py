@@ -23,9 +23,10 @@ import sys, traceback
 from . import utils
 from .utils import Colors
 
+
 class PrintableError(Exception):
-    """ Parent class for errors that can be pretty-printed for the user, e.g.
-    compilation warnings and errors. """
+    """Parent class for errors that can be pretty-printed for the user, e.g.
+    compilation warnings and errors."""
 
     def pretty_print(self, filename, code):
         raise NotImplementedError()
@@ -39,12 +40,22 @@ class ErrorReference:
 
 
 class CompileError(PrintableError):
-    """ A PrintableError with a start/end position and optional hints """
+    """A PrintableError with a start/end position and optional hints"""
 
     category = "error"
     color = Colors.RED
 
-    def __init__(self, message, start=None, end=None, did_you_mean=None, hints=None, actions=None, fatal=False, references=None):
+    def __init__(
+        self,
+        message,
+        start=None,
+        end=None,
+        did_you_mean=None,
+        hints=None,
+        actions=None,
+        fatal=False,
+        references=None,
+    ):
         super().__init__(message)
 
         self.message = message
@@ -61,7 +72,6 @@ class CompileError(PrintableError):
     def hint(self, hint: str):
         self.hints.append(hint)
         return self
-
 
     def _did_you_mean(self, word: str, options: T.List[str]):
         if word.replace("_", "-") in options:
@@ -86,9 +96,11 @@ class CompileError(PrintableError):
         # Display 1-based line numbers
         line_num += 1
 
-        stream.write(f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
+        stream.write(
+            f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n""")
+{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n"""
+        )
 
         for hint in self.hints:
             stream.write(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}\n")
@@ -98,9 +110,11 @@ at {filename} line {line_num} column {col_num}:
             line = code.splitlines(True)[line_num]
             line_num += 1
 
-            stream.write(f"""{Colors.FAINT}note: {ref.message}:
+            stream.write(
+                f"""{Colors.FAINT}note: {ref.message}:
 at {filename} line {line_num} column {col_num}:
-{Colors.FAINT}{line_num :>4} |{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n""")
+{Colors.FAINT}{line_num :>4} |{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n"""
+            )
 
         stream.write("\n")
 
@@ -122,9 +136,9 @@ class CodeAction:
 
 
 class MultipleErrors(PrintableError):
-    """ If multiple errors occur during compilation, they can be collected into
+    """If multiple errors occur during compilation, they can be collected into
     a list and re-thrown using the MultipleErrors exception. It will
-    pretty-print all of the errors and a count of how many errors there are. """
+    pretty-print all of the errors and a count of how many errors there are."""
 
     def __init__(self, errors: T.List[CompileError]):
         super().__init__()
@@ -138,24 +152,25 @@ class MultipleErrors(PrintableError):
 
 
 class CompilerBugError(Exception):
-    """ Emitted on assertion errors """
+    """Emitted on assertion errors"""
 
 
-def assert_true(truth: bool, message: T.Optional[str]=None):
+def assert_true(truth: bool, message: T.Optional[str] = None):
     if not truth:
         raise CompilerBugError(message)
 
 
-def report_bug(): # pragma: no cover
-    """ Report an error and ask people to report it. """
+def report_bug():  # pragma: no cover
+    """Report an error and ask people to report it."""
 
     print(traceback.format_exc())
     print(f"Arguments: {sys.argv}\n")
-    print(f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
+    print(
+        f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
 The blueprint-compiler program has crashed. Please report the above stacktrace,
 along with the input file(s) if possible, on GitLab:
 {Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
-{Colors.CLEAR}""")
+{Colors.CLEAR}"""
+    )
 
     sys.exit(1)
-

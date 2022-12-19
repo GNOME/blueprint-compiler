@@ -86,12 +86,14 @@ def get_state_types(gir):
         "selected": BoolType(),
     }
 
+
 def get_types(gir):
     return {
         **get_property_types(gir),
         **get_relation_types(gir),
         **get_state_types(gir),
     }
+
 
 def _get_docs(gir, name):
     if gir_type := (
@@ -174,8 +176,7 @@ class A11y(AstNode):
 )
 def a11y_completer(ast_node, match_variables):
     yield Completion(
-        "accessibility", CompletionItemKind.Snippet,
-        snippet="accessibility {\n  $0\n}"
+        "accessibility", CompletionItemKind.Snippet, snippet="accessibility {\n  $0\n}"
     )
 
 
@@ -185,19 +186,23 @@ def a11y_completer(ast_node, match_variables):
 )
 def a11y_name_completer(ast_node, match_variables):
     for name, type in get_types(ast_node.root.gir).items():
-        yield Completion(name, CompletionItemKind.Property, docs=_get_docs(ast_node.root.gir, type))
+        yield Completion(
+            name, CompletionItemKind.Property, docs=_get_docs(ast_node.root.gir, type)
+        )
 
 
 @decompiler("relation", cdata=True)
 def decompile_relation(ctx, gir, name, cdata):
     ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
 
+
 @decompiler("state", cdata=True)
 def decompile_state(ctx, gir, name, cdata, translatable="false"):
     if decompile.truthy(translatable):
-        ctx.print(f"{name}: _(\"{_escape_quote(cdata)}\");")
+        ctx.print(f'{name}: _("{_escape_quote(cdata)}");')
     else:
         ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
+
 
 @decompiler("accessibility")
 def decompile_accessibility(ctx, gir):

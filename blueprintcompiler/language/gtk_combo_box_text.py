@@ -35,12 +35,14 @@ class Item(BaseTypedAttribute):
 item = Group(
     Item,
     [
-        Optional([
-            UseIdent("name"),
-            ":",
-        ]),
+        Optional(
+            [
+                UseIdent("name"),
+                ":",
+            ]
+        ),
         VALUE_HOOKS,
-    ]
+    ],
 )
 
 
@@ -67,7 +69,4 @@ class Items(AstNode):
     matches=new_statement_patterns,
 )
 def items_completer(ast_node, match_variables):
-    yield Completion(
-        "items", CompletionItemKind.Snippet,
-        snippet="items [$0]"
-    )
+    yield Completion("items", CompletionItemKind.Snippet, snippet="items [$0]")

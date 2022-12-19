@@ -7,9 +7,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from blueprintcompiler import tokenizer, parser, decompiler, gir
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError, CompilerBugError
+from blueprintcompiler.errors import (
+    PrintableError,
+    MultipleErrors,
+    CompileError,
+    CompilerBugError,
+)
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 from blueprintcompiler import utils
+
 
 @PythonFuzz
 def fuzz(buf):
@@ -28,6 +34,7 @@ def fuzz(buf):
         pass
     except UnicodeDecodeError:
         pass
+
 
 if __name__ == "__main__":
     # Make sure Gtk 4.0 is accessible, otherwise every test will fail on that
