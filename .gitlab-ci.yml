@@ -8,7 +8,7 @@ build:
   script:
     - black --check --diff blueprintcompiler tests
     - mypy --python-version=3.9 blueprintcompiler
-    - coverage run -m unittest
+    - G_DEBUG=fatal-warnings coverage run -m unittest
     - coverage report
     - coverage html
     - coverage xml
