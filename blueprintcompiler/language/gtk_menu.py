@@ -39,6 +39,11 @@ class Menu(AstNode):
     def tag(self) -> str:
         return self.tokens["tag"]
 
+    @validate("menu")
+    def has_id(self):
+        if self.tokens["tag"] == "menu" and self.tokens["id"] is None:
+            raise CompileError("Menu requires an ID")
+
 
 class MenuAttribute(BaseAttribute):
     tag_name = "attribute"
@@ -137,7 +142,27 @@ menu_contents.children = [
 
 menu: Group = Group(
     Menu,
-    ["menu", UseLiteral("tag", "menu"), Optional(UseIdent("id")), menu_contents],
+    [
+        Keyword("menu"),
+        UseLiteral("tag", "menu"),
+        Optional(UseIdent("id")),
+        [
+            Match("{"),
+            Until(
+                AnyOf(
+                    menu_section,
+                    menu_submenu,
+                    menu_item_shorthand,
+                    menu_item,
+                    Fail(
+                        menu_attribute,
+                        "Attributes are not permitted at the top level of a menu",
+                    ),
+                ),
+                "}",
+            ),
+        ],
+    ],
 )
 
 from .ui import UI

@@ -156,7 +156,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("flags", skip_run=True)  # TODO: Fix
         self.assert_sample("id_prop")
         self.assert_sample("layout")
-        self.assert_sample("menu", skip_run=True)  # TODO: Fix
+        self.assert_sample("menu")
         self.assert_sample("numbers")
         self.assert_sample("object_prop")
         self.assert_sample(
@@ -213,6 +213,8 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("inline_menu")
         self.assert_sample_error("invalid_bool")
         self.assert_sample_error("layout_in_non_widget")
+        self.assert_sample_error("menu_no_id")
+        self.assert_sample_error("menu_toplevel_attribute")
         self.assert_sample_error("no_import_version")
         self.assert_sample_error("ns_not_imported")
         self.assert_sample_error("not_a_class")
