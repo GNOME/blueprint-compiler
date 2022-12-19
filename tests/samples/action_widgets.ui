@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <template class="MyDialog" parent="GtkDialog">
+  <object class="GtkDialog">
     <child type="action">
       <object class="GtkButton" id="cancel_button">
         <property name="label" translatable="true">Cancel</property>
@@ -22,7 +22,7 @@
       <action-widget response="9">custom_response_button</action-widget>
       <action-widget response="ok" default="True">ok_button</action-widget>
     </action-widgets>
-  </template>
+  </object>
   <object class="GtkInfoBar">
     <child type="action">
       <object class="GtkButton" id="ok_info_button">

@@ -20,8 +20,12 @@
 
 import difflib  # I love Python
 from pathlib import Path
-import traceback
 import unittest
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk
 
 from blueprintcompiler import tokenizer, parser, decompiler
 from blueprintcompiler.completions import complete
@@ -40,7 +44,8 @@ class TestSamples(unittest.TestCase):
         for i in range(len(text)):
             list(complete(ast, tokens, i))
 
-    def assert_sample(self, name):
+    def assert_sample(self, name, skip_run=False):
+        print(f'assert_sample("{name}", skip_run={skip_run})')
         try:
             with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
                 blueprint = f.read()
@@ -70,7 +75,12 @@ class TestSamples(unittest.TestCase):
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
 
+        # Make sure the sample runs
+        if not skip_run:
+            Gtk.Builder.new_from_string(actual, -1)
+
     def assert_sample_error(self, name):
+        print(f'assert_sample_error("{name}")')
         try:
             with open(
                 (Path(__file__).parent / f"sample_errors/{name}.blp").resolve()
@@ -115,6 +125,7 @@ class TestSamples(unittest.TestCase):
             raise AssertionError("Expected a compiler error, but none was emitted")
 
     def assert_decompile(self, name):
+        print(f'assert_decompile("{name}")')
         try:
             with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
                 expected = f.read()
@@ -140,27 +151,37 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")
         self.assert_sample("enum")
-        self.assert_sample("expr_lookup")
+        self.assert_sample("expr_lookup", skip_run=True)  # TODO: Fix
         self.assert_sample("file_filter")
-        self.assert_sample("flags")
+        self.assert_sample("flags", skip_run=True)  # TODO: Fix
         self.assert_sample("id_prop")
         self.assert_sample("layout")
-        self.assert_sample("menu")
+        self.assert_sample("menu", skip_run=True)  # TODO: Fix
         self.assert_sample("numbers")
         self.assert_sample("object_prop")
-        self.assert_sample("parseable")
+        self.assert_sample(
+            "parseable", skip_run=True
+        )  # The image resource doesn't exist
         self.assert_sample("property")
-        self.assert_sample("signal")
+        self.assert_sample("signal", skip_run=True)  # The callback doesn't exist
         self.assert_sample("size_group")
         self.assert_sample("string_list")
         self.assert_sample("strings")
         self.assert_sample("style")
-        self.assert_sample("template")
-        self.assert_sample("template_no_parent")
+        self.assert_sample(
+            "template", skip_run=True
+        )  # The template class doesn't exist
+        self.assert_sample(
+            "template_no_parent", skip_run=True
+        )  # The template class doesn't exist
         self.assert_sample("translated")
-        self.assert_sample("typeof")
+        self.assert_sample(
+            "typeof", skip_run=True
+        )  # The custom object type doesn't exist
         self.assert_sample("uint")
-        self.assert_sample("unchecked_class")
+        self.assert_sample(
+            "unchecked_class", skip_run=True
+        )  # The custom object type doesn't exist
         self.assert_sample("using")
 
     def test_sample_errors(self):

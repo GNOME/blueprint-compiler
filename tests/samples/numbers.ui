@@ -3,7 +3,7 @@
   <requires lib="gtk" version="4.0"/>
   <object class="GtkLabel">
     <property name="xalign">0.5</property>
-    <property name="margin-end">1000000</property>
+    <property name="height-request">1000000</property>
     <property name="margin-top">48</property>
   </object>
 </interface>
