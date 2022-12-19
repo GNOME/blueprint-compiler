@@ -8,13 +8,12 @@ build:
   script:
     - black --check --diff blueprintcompiler tests
     - mypy --python-version=3.9 blueprintcompiler
-    - G_DEBUG=fatal-warnings coverage run -m unittest
+    - G_DEBUG=fatal-warnings xvfb-run coverage run -m unittest
     - coverage report
     - coverage html
     - coverage xml
     - meson _build -Ddocs=true --prefix=/usr
     - ninja -C _build
-    - ninja -C _build test
     - ninja -C _build install
     - ninja -C _build docs/en
     - git clone https://gitlab.gnome.org/jwestman/blueprint-regression-tests.git

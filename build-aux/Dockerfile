@@ -1,7 +1,7 @@
 FROM fedora:latest
 
 RUN dnf install -y meson python3-pip gtk4-devel gobject-introspection-devel \
-	libadwaita-devel python3-devel python3-gobject git diffutils
+	libadwaita-devel python3-devel python3-gobject git diffutils xorg-x11-server-Xvfb
 RUN pip3 install furo mypy sphinx coverage black
 
 # The version on PyPI is very old and doesn't install. Use the upstream package registry instead.
