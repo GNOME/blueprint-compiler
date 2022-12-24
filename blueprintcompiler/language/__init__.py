@@ -1,5 +1,5 @@
 from .attributes import BaseAttribute, BaseTypedAttribute
-from .expression import IdentExpr, LookupOp, Expr
+from .expression import CastExpr, IdentExpr, LookupOp, ExprChain
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal

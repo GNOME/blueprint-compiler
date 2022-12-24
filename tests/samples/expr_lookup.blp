@@ -5,5 +5,5 @@ Overlay {
 }
 
 Label {
-  label: bind (label.parent).child.label;
+  label: bind (label.parent) as (Overlay).child as (Label).label;
 }

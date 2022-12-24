@@ -151,7 +151,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")
         self.assert_sample("enum")
-        self.assert_sample("expr_lookup", skip_run=True)  # TODO: Fix
+        self.assert_sample("expr_lookup")
         self.assert_sample("file_filter")
         self.assert_sample("flags")
         self.assert_sample("id_prop")
@@ -207,6 +207,9 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("duplicates")
         self.assert_sample_error("empty")
         self.assert_sample_error("enum_member_dne")
+        self.assert_sample_error("expr_cast_conversion")
+        self.assert_sample_error("expr_lookup_dne")
+        self.assert_sample_error("expr_lookup_no_properties")
         self.assert_sample_error("filters_in_non_file_filter")
         self.assert_sample_error("gtk_3")
         self.assert_sample_error("gtk_exact_version")

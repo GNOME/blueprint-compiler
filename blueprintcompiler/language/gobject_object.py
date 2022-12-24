@@ -54,7 +54,9 @@ class Object(AstNode):
         return self.children[ObjectContent][0]
 
     @property
-    def gir_class(self):
+    def gir_class(self) -> GirType:
+        if self.class_name is None:
+            raise CompilerBugError()
         return self.class_name.gir_type
 
     @cached_property

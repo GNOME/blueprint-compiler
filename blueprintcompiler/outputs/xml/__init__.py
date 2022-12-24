@@ -114,7 +114,7 @@ class XmlOutput(OutputFormat):
         elif value is None:
             if property.tokens["binding"]:
                 xml.start_tag("binding", **props)
-                self._emit_expression(property.children[Expr][0], xml)
+                self._emit_expression(property.children[ExprChain][0], xml)
                 xml.end_tag()
             else:
                 xml.put_self_closing("property", **props)
@@ -176,7 +176,7 @@ class XmlOutput(OutputFormat):
         else:
             raise CompilerBugError()
 
-    def _emit_expression(self, expression: Expr, xml: XmlEmitter):
+    def _emit_expression(self, expression: ExprChain, xml: XmlEmitter):
         self._emit_expression_part(expression.children[-1], xml)
 
     def _emit_expression_part(self, expression, xml: XmlEmitter):
@@ -184,8 +184,10 @@ class XmlOutput(OutputFormat):
             self._emit_ident_expr(expression, xml)
         elif isinstance(expression, LookupOp):
             self._emit_lookup_op(expression, xml)
-        elif isinstance(expression, Expr):
+        elif isinstance(expression, ExprChain):
             self._emit_expression(expression, xml)
+        elif isinstance(expression, CastExpr):
+            self._emit_cast_expr(expression, xml)
         else:
             raise CompilerBugError()
 
@@ -195,9 +197,12 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_lookup_op(self, expr: LookupOp, xml: XmlEmitter):
-        xml.start_tag("lookup", name=expr.property_name)
+        xml.start_tag("lookup", name=expr.property_name, type=expr.lhs.type)
         self._emit_expression_part(expr.lhs, xml)
         xml.end_tag()
+
+    def _emit_cast_expr(self, expr: CastExpr, xml: XmlEmitter):
+        self._emit_expression_part(expr.lhs, xml)
 
     def _emit_attribute(
         self, tag: str, attr: str, name: str, value: Value, xml: XmlEmitter

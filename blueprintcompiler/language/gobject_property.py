@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .expression import Expr
+from .expression import ExprChain
 from .gobject_object import Object
 from .gtkbuilder_template import Template
 from .values import Value, TranslatedStringValue
@@ -51,7 +51,7 @@ class Property(AstNode):
             UseLiteral("binding", True),
             ":",
             "bind",
-            Expr,
+            ExprChain,
         ),
         Statement(
             UseIdent("name"),
@@ -91,7 +91,7 @@ class Property(AstNode):
 
         if self.gir_property is None:
             raise CompileError(
-                f"Class {self.gir_class.full_name} does not contain a property called {self.tokens['name']}",
+                f"Class {self.gir_class.full_name} does not have a property called {self.tokens['name']}",
                 did_you_mean=(self.tokens["name"], self.gir_class.properties.keys()),
             )
 
