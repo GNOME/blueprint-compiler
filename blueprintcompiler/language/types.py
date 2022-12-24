@@ -56,12 +56,13 @@ class TypeName(AstNode):
             return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
 
     @property
-    def gir_type(self) -> T.Optional[gir.Class]:
+    def gir_type(self) -> gir.GirType:
         if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
             return self.root.gir.get_type(
                 self.tokens["class_name"], self.tokens["namespace"]
             )
-        return None
+
+        return gir.UncheckedType(self.tokens["class_name"])
 
     @property
     def glib_type_name(self) -> str:
@@ -84,7 +85,11 @@ class TypeName(AstNode):
 class ClassName(TypeName):
     @validate("namespace", "class_name")
     def gir_class_exists(self):
-        if self.gir_type is not None and not isinstance(self.gir_type, Class):
+        if (
+            self.gir_type
+            and not isinstance(self.gir_type, UncheckedType)
+            and not isinstance(self.gir_type, Class)
+        ):
             if isinstance(self.gir_type, Interface):
                 raise CompileError(
                     f"{self.gir_type.full_name} is an interface, not a class"

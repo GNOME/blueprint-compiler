@@ -93,12 +93,35 @@ class GirType:
     def doc(self):
         return None
 
-    def assignable_to(self, other) -> bool:
+    def assignable_to(self, other: "GirType") -> bool:
         raise NotImplementedError()
 
     @property
     def full_name(self) -> str:
+        """The GIR name of the type to use in diagnostics"""
         raise NotImplementedError()
+
+    @property
+    def glib_type_name(self) -> str:
+        """The name of the type in the GObject type system, suitable to pass to `g_type_from_name()`."""
+        raise NotImplementedError()
+
+
+class UncheckedType(GirType):
+    def __init__(self, name) -> None:
+        super().__init__()
+        self._name = name
+
+    def assignable_to(self, other: GirType) -> bool:
+        return True
+
+    @property
+    def full_name(self) -> str:
+        return self._name
+
+    @property
+    def glib_type_name(self) -> str:
+        return self._name
 
 
 class BasicType(GirType):
@@ -111,6 +134,7 @@ class BasicType(GirType):
 
 class BoolType(BasicType):
     name = "bool"
+    glib_type_name: str = "gboolean"
 
     def assignable_to(self, other) -> bool:
         return isinstance(other, BoolType)
@@ -118,6 +142,7 @@ class BoolType(BasicType):
 
 class IntType(BasicType):
     name = "int"
+    glib_type_name: str = "gint"
 
     def assignable_to(self, other) -> bool:
         return (
@@ -129,6 +154,7 @@ class IntType(BasicType):
 
 class UIntType(BasicType):
     name = "uint"
+    glib_type_name: str = "guint"
 
     def assignable_to(self, other) -> bool:
         return (
@@ -140,6 +166,7 @@ class UIntType(BasicType):
 
 class FloatType(BasicType):
     name = "float"
+    glib_type_name: str = "gfloat"
 
     def assignable_to(self, other) -> bool:
         return isinstance(other, FloatType)
@@ -147,6 +174,7 @@ class FloatType(BasicType):
 
 class StringType(BasicType):
     name = "string"
+    glib_type_name: str = "gchararray"
 
     def assignable_to(self, other) -> bool:
         return isinstance(other, StringType)
@@ -154,6 +182,7 @@ class StringType(BasicType):
 
 class TypeType(BasicType):
     name = "GType"
+    glib_type_name: str = "GType"
 
     def assignable_to(self, other) -> bool:
         return isinstance(other, TypeType)
