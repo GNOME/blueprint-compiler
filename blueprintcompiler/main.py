@@ -21,7 +21,7 @@
 import typing as T
 import argparse, json, os, sys
 
-from .errors import PrintableError, report_bug, MultipleErrors
+from .errors import PrintableError, report_bug, MultipleErrors, CompilerBugError
 from .lsp import LanguageServer
 from . import parser, tokenizer, decompiler, interactive_port
 from .utils import Colors
@@ -149,8 +149,8 @@ class BlueprintApp:
 
         if errors:
             raise errors
-        if len(ast.errors):
-            raise MultipleErrors(ast.errors)
+        if ast is None:
+            raise CompilerBugError()
 
         formatter = XmlOutput()
 

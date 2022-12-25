@@ -24,14 +24,21 @@ from .tokenizer import TokenType
 from .language import OBJECT_CONTENT_HOOKS, VALUE_HOOKS, Template, UI
 
 
-def parse(tokens) -> T.Tuple[UI, T.Optional[MultipleErrors], T.List[PrintableError]]:
+def parse(
+    tokens: T.List[Token],
+) -> T.Tuple[T.Optional[UI], T.Optional[MultipleErrors], T.List[PrintableError]]:
     """Parses a list of tokens into an abstract syntax tree."""
 
-    ctx = ParseContext(tokens)
-    AnyOf(UI).parse(ctx)
+    try:
+        ctx = ParseContext(tokens)
+        AnyOf(UI).parse(ctx)
+        ast_node = ctx.last_group.to_ast() if ctx.last_group else None
 
-    ast_node = ctx.last_group.to_ast() if ctx.last_group else None
-    errors = MultipleErrors(ctx.errors) if len(ctx.errors) else None
-    warnings = ctx.warnings
+        errors = [*ctx.errors, *ast_node.errors]
+        warnings = [*ctx.warnings, *ast_node.warnings]
 
-    return (ast_node, errors, warnings)
+        return (ast_node, MultipleErrors(errors) if len(errors) else None, warnings)
+    except MultipleErrors as e:
+        return (None, e, [])
+    except CompileError as e:
+        return (None, MultipleErrors([e]), [])

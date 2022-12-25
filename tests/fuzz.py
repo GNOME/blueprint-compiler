@@ -26,7 +26,7 @@ def fuzz(buf):
         ast, errors, warnings = parser.parse(tokens)
 
         xml = XmlOutput()
-        if errors is None and len(ast.errors) == 0:
+        if errors is None and ast is not None:
             xml.emit(ast)
     except CompilerBugError as e:
         raise e

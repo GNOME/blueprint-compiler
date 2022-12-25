@@ -79,7 +79,19 @@ class AstNode:
 
     @cached_property
     def errors(self):
-        return list(self._get_errors())
+        return list(
+            error
+            for error in self._get_errors()
+            if not isinstance(error, CompileWarning)
+        )
+
+    @cached_property
+    def warnings(self):
+        return list(
+            warning
+            for warning in self._get_errors()
+            if isinstance(warning, CompileWarning)
+        )
 
     def _get_errors(self):
         for validator in self.validators:

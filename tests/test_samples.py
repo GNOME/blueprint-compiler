@@ -57,8 +57,6 @@ class TestSamples(unittest.TestCase):
 
             if errors:
                 raise errors
-            if len(ast.errors):
-                raise MultipleErrors(ast.errors)
             if len(warnings):
                 raise MultipleErrors(warnings)
 
@@ -94,8 +92,9 @@ class TestSamples(unittest.TestCase):
             tokens = tokenizer.tokenize(blueprint)
             ast, errors, warnings = parser.parse(tokens)
 
-            self.assert_docs_dont_crash(blueprint, ast)
-            self.assert_completions_dont_crash(blueprint, ast, tokens)
+            if ast is not None:
+                self.assert_docs_dont_crash(blueprint, ast)
+                self.assert_completions_dont_crash(blueprint, ast, tokens)
 
             if errors:
                 raise errors

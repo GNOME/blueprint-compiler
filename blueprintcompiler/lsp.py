@@ -75,7 +75,6 @@ class OpenFile:
             self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors
-            self.diagnostics += self.ast.errors
         except MultipleErrors as e:
             self.diagnostics += e.errors
         except CompileError as e:

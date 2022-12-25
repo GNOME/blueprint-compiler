@@ -24,7 +24,7 @@ import os
 
 from . import decompiler, tokenizer, parser
 from .outputs.xml import XmlOutput
-from .errors import MultipleErrors, PrintableError
+from .errors import MultipleErrors, PrintableError, CompilerBugError
 from .utils import Colors
 
 
@@ -57,8 +57,8 @@ def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
 
             if errors:
                 raise errors
-            if len(ast.errors):
-                raise MultipleErrors(ast.errors)
+            if not ast:
+                raise CompilerBugError()
 
             output = XmlOutput()
             output.emit(ast)
