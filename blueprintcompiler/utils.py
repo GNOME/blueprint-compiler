@@ -24,6 +24,7 @@ class Colors:
     RED = "\033[91m"
     GREEN = "\033[92m"
     YELLOW = "\033[33m"
+    PURPLE = "\033[35m"
     FAINT = "\033[2m"
     BOLD = "\033[1m"
     BLUE = "\033[34m"

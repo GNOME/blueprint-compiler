@@ -87,7 +87,7 @@ def validate_parent_type(node, ns: str, name: str, err_msg: str):
 def decompile_object(ctx, gir, klass, id=None):
     gir_class = ctx.type_by_cname(klass)
     klass_name = (
-        decompile.full_name(gir_class) if gir_class is not None else "." + klass
+        decompile.full_name(gir_class) if gir_class is not None else "$" + klass
     )
     if id is None:
         ctx.print(f"{klass_name} {{")

@@ -124,6 +124,11 @@ class CompileWarning(CompileError):
     color = Colors.YELLOW
 
 
+class UpgradeWarning(CompileWarning):
+    category = "upgrade"
+    color = Colors.PURPLE
+
+
 class UnexpectedTokenError(CompileError):
     def __init__(self, start, end):
         super().__init__("Unexpected tokens", start, end)

@@ -31,33 +31,41 @@ class TypeName(AstNode):
             UseIdent("class_name"),
         ],
         [
-            ".",
+            AnyOf("$", [".", UseLiteral("old_extern", True)]),
             UseIdent("class_name"),
-            UseLiteral("ignore_gir", True),
+            UseLiteral("extern", True),
         ],
         UseIdent("class_name"),
     )
 
+    @validate()
+    def old_extern(self):
+        if self.tokens["old_extern"]:
+            raise UpgradeWarning(
+                "Use the '$' extern syntax introduced in blueprint 0.8.0",
+                actions=[CodeAction("Use '$' syntax", "$" + self.tokens["class_name"])],
+            )
+
     @validate("class_name")
     def type_exists(self):
-        if not self.tokens["ignore_gir"] and self.gir_ns is not None:
+        if not self.tokens["extern"] and self.gir_ns is not None:
             self.root.gir.validate_type(
                 self.tokens["class_name"], self.tokens["namespace"]
             )
 
     @validate("namespace")
     def gir_ns_exists(self):
-        if not self.tokens["ignore_gir"]:
+        if not self.tokens["extern"]:
             self.root.gir.validate_ns(self.tokens["namespace"])
 
     @property
     def gir_ns(self):
-        if not self.tokens["ignore_gir"]:
+        if not self.tokens["extern"]:
             return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
 
     @property
     def gir_type(self) -> gir.GirType:
-        if self.tokens["class_name"] and not self.tokens["ignore_gir"]:
+        if self.tokens["class_name"] and not self.tokens["extern"]:
             return self.root.gir.get_type(
                 self.tokens["class_name"], self.tokens["namespace"]
             )
