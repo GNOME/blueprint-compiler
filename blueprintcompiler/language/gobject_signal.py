@@ -33,6 +33,7 @@ class Signal(AstNode):
             ]
         ),
         "=>",
+        Optional(["$", UseLiteral("extern", True)]),
         UseIdent("handler").expected("the name of a function to handle the signal"),
         Match("(").expected("argument list"),
         Optional(UseIdent("object")).expected("object identifier"),
@@ -78,6 +79,14 @@ class Signal(AstNode):
     def gir_class(self):
         return self.parent.parent.gir_class
 
+    @validate("handler")
+    def old_extern(self):
+        if not self.tokens["extern"]:
+            raise UpgradeWarning(
+                "Use the '$' extern syntax introduced in blueprint 0.8.0",
+                actions=[CodeAction("Use '$' syntax", "$" + self.tokens["handler"])],
+            )
+
     @validate("name")
     def signal_exists(self):
         if self.gir_class is None or isinstance(self.gir_class, UncheckedType):
@@ -116,7 +125,7 @@ def decompile_signal(ctx, gir, name, handler, swapped="false", object=None):
     object_name = object or ""
     name = name.replace("_", "-")
     if decompile.truthy(swapped):
-        ctx.print(f"{name} => {handler}({object_name}) swapped;")
+        ctx.print(f"{name} => ${handler}({object_name}) swapped;")
     else:
-        ctx.print(f"{name} => {handler}({object_name});")
+        ctx.print(f"{name} => ${handler}({object_name});")
     return gir
