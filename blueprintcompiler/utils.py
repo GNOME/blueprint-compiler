@@ -74,9 +74,8 @@ def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
 def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
     if idx == 0 or len(text) == 0:
         return (0, 0)
-    sp = text[:idx].splitlines(keepends=True)
-    line_num = len(sp)
-    col_num = len(sp[-1])
+    line_num = text.count("\n", 0, idx) + 1
+    col_num = idx - text.rfind("\n", 0, idx) - 1
     return (line_num - 1, col_num)
 
 
