@@ -287,7 +287,9 @@ class Warning(ParseNode):
             ctx.warnings.append(
                 CompileWarning(self.message, start_token.start, end_token.end)
             )
-        return True
+            return True
+        else:
+            return False
 
 
 class Fail(ParseNode):
