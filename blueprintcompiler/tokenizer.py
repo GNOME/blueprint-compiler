@@ -46,7 +46,7 @@ _tokens = [
     (TokenType.WHITESPACE, r"\s+"),
     (TokenType.COMMENT, r"\/\*[\s\S]*?\*\/"),
     (TokenType.COMMENT, r"\/\/[^\n]*"),
-    (TokenType.OP, r"<<|>>|=>|::|<|>|:=|\.|\|\||\||\+|\-|\*|=|:|/"),
+    (TokenType.OP, r"\$|<<|>>|=>|::|<|>|:=|\.|\|\||\||\+|\-|\*|=|:|/"),
     (TokenType.PUNCTUATION, r"\(|\)|\{|\}|;|\[|\]|\,"),
 ]
 _TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]

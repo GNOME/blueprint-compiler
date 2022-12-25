@@ -179,7 +179,7 @@ class XmlOutput(OutputFormat):
     def _emit_expression(self, expression: ExprChain, xml: XmlEmitter):
         self._emit_expression_part(expression.children[-1], xml)
 
-    def _emit_expression_part(self, expression, xml: XmlEmitter):
+    def _emit_expression_part(self, expression: Expr, xml: XmlEmitter):
         if isinstance(expression, IdentExpr):
             self._emit_ident_expr(expression, xml)
         elif isinstance(expression, LookupOp):
@@ -188,6 +188,8 @@ class XmlOutput(OutputFormat):
             self._emit_expression(expression, xml)
         elif isinstance(expression, CastExpr):
             self._emit_cast_expr(expression, xml)
+        elif isinstance(expression, ClosureExpr):
+            self._emit_closure_expr(expression, xml)
         else:
             raise CompilerBugError()
 
@@ -203,6 +205,12 @@ class XmlOutput(OutputFormat):
 
     def _emit_cast_expr(self, expr: CastExpr, xml: XmlEmitter):
         self._emit_expression_part(expr.lhs, xml)
+
+    def _emit_closure_expr(self, expr: ClosureExpr, xml: XmlEmitter):
+        xml.start_tag("closure", function=expr.closure_name, type=expr.type)
+        for arg in expr.args:
+            self._emit_expression_part(arg, xml)
+        xml.end_tag()
 
     def _emit_attribute(
         self, tag: str, attr: str, name: str, value: Value, xml: XmlEmitter

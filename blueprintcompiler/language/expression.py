@@ -25,13 +25,24 @@ from .types import TypeName
 expr = Pratt()
 
 
-class Expr:
+class Expr(AstNode):
     @property
     def type(self) -> T.Optional[GirType]:
         raise NotImplementedError()
 
+    @property
+    def rhs(self) -> T.Optional["Expr"]:
+        if isinstance(self.parent, ExprChain):
+            children = list(self.parent.children)
+            if children.index(self) + 1 < len(children):
+                return children[children.index(self) + 1]
+            else:
+                return self.parent.rhs
+        else:
+            return None
 
-class ExprChain(Expr, AstNode):
+
+class ExprChain(Expr):
     grammar = expr
 
     @property
@@ -43,14 +54,14 @@ class ExprChain(Expr, AstNode):
         return self.last.type
 
 
-class InfixExpr(Expr, AstNode):
+class InfixExpr(Expr):
     @property
     def lhs(self):
         children = list(self.parent_by_type(ExprChain).children)
         return children[children.index(self) - 1]
 
 
-class IdentExpr(Expr, AstNode):
+class IdentExpr(Expr):
     grammar = UseIdent("ident")
 
     @property
@@ -124,7 +135,45 @@ class CastExpr(InfixExpr):
             )
 
 
+class ClosureExpr(Expr):
+    grammar = [
+        Optional(["$", UseLiteral("extern", True)]),
+        UseIdent("name"),
+        "(",
+        Delimited(ExprChain, ","),
+        ")",
+    ]
+
+    @property
+    def type(self) -> T.Optional[GirType]:
+        if isinstance(self.rhs, CastExpr):
+            return self.rhs.type
+        else:
+            return None
+
+    @property
+    def closure_name(self) -> str:
+        return self.tokens["name"]
+
+    @property
+    def args(self) -> T.List[ExprChain]:
+        return self.children[ExprChain]
+
+    @validate()
+    def cast_to_return_type(self):
+        if not isinstance(self.rhs, CastExpr):
+            raise CompileError(
+                "Closure expression must be cast to the closure's return type"
+            )
+
+    @validate()
+    def builtin_exists(self):
+        if not self.tokens["extern"]:
+            raise CompileError(f"{self.closure_name} is not a builtin function")
+
+
 expr.children = [
+    Prefix(ClosureExpr),
     Prefix(IdentExpr),
     Prefix(["(", ExprChain, ")"]),
     Infix(10, LookupOp),

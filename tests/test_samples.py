@@ -151,6 +151,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")
         self.assert_sample("enum")
+        self.assert_sample("expr_closure", skip_run=True)  # The closure doesn't exist
         self.assert_sample("expr_lookup")
         self.assert_sample("file_filter")
         self.assert_sample("flags")
@@ -208,6 +209,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("empty")
         self.assert_sample_error("enum_member_dne")
         self.assert_sample_error("expr_cast_conversion")
+        self.assert_sample_error("expr_closure_not_cast")
         self.assert_sample_error("expr_lookup_dne")
         self.assert_sample_error("expr_lookup_no_properties")
         self.assert_sample_error("filters_in_non_file_filter")

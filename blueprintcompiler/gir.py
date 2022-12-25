@@ -189,7 +189,10 @@ class TypeType(BasicType):
 
 
 _BASIC_TYPES = {
+    "bool": BoolType,
     "gboolean": BoolType,
+    "string": StringType,
+    "gchararray": StringType,
     "int": IntType,
     "gint": IntType,
     "gint64": IntType,
@@ -730,6 +733,9 @@ class GirContext:
         return None
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirNode]:
+        if ns is None and name in _BASIC_TYPES:
+            return _BASIC_TYPES[name]()
+
         ns = ns or "Gtk"
 
         if ns not in self.namespaces:

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkLabel" id="my-label">
+    <binding name="label">
+      <closure function="my-closure" type="gchararray">
+        <lookup name="margin-bottom" type="GtkLabel">
+          <constant>my-label</constant>
+        </lookup>
+      </closure>
+    </binding>
+  </object>
+</interface>
