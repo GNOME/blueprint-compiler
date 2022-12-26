@@ -82,7 +82,7 @@ class BlueprintApp:
         except:
             report_bug()
 
-    def add_subcommand(self, name, help, func):
+    def add_subcommand(self, name: str, help: str, func):
         parser = self.subparsers.add_parser(name, help=help)
         parser.set_defaults(func=func)
         return parser

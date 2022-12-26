@@ -47,15 +47,15 @@ class CompileError(PrintableError):
 
     def __init__(
         self,
-        message,
-        start=None,
-        end=None,
-        did_you_mean=None,
-        hints=None,
-        actions=None,
-        fatal=False,
-        references=None,
-    ):
+        message: str,
+        start: T.Optional[int] = None,
+        end: T.Optional[int] = None,
+        did_you_mean: T.Optional[T.Tuple[str, T.List[str]]] = None,
+        hints: T.Optional[T.List[str]] = None,
+        actions: T.Optional[T.List["CodeAction"]] = None,
+        fatal: bool = False,
+        references: T.Optional[T.List[ErrorReference]] = None,
+    ) -> None:
         super().__init__(message)
 
         self.message = message
@@ -69,11 +69,11 @@ class CompileError(PrintableError):
         if did_you_mean is not None:
             self._did_you_mean(*did_you_mean)
 
-    def hint(self, hint: str):
+    def hint(self, hint: str) -> "CompileError":
         self.hints.append(hint)
         return self
 
-    def _did_you_mean(self, word: str, options: T.List[str]):
+    def _did_you_mean(self, word: str, options: T.List[str]) -> None:
         if word.replace("_", "-") in options:
             self.hint(f"use '-', not '_': `{word.replace('_', '-')}`")
             return
@@ -89,7 +89,9 @@ class CompileError(PrintableError):
             self.hint("Did you check your spelling?")
             self.hint("Are your dependencies up to date?")
 
-    def pretty_print(self, filename, code, stream=sys.stdout):
+    def pretty_print(self, filename: str, code: str, stream=sys.stdout) -> None:
+        assert self.start is not None
+
         line_num, col_num = utils.idx_to_pos(self.start + 1, code)
         line = code.splitlines(True)[line_num]
 
@@ -130,7 +132,7 @@ class UpgradeWarning(CompileWarning):
 
 
 class UnexpectedTokenError(CompileError):
-    def __init__(self, start, end):
+    def __init__(self, start, end) -> None:
         super().__init__("Unexpected tokens", start, end)
 
 
@@ -145,7 +147,7 @@ class MultipleErrors(PrintableError):
     a list and re-thrown using the MultipleErrors exception. It will
     pretty-print all of the errors and a count of how many errors there are."""
 
-    def __init__(self, errors: T.List[CompileError]):
+    def __init__(self, errors: T.List[CompileError]) -> None:
         super().__init__()
         self.errors = errors
 

@@ -31,7 +31,7 @@ def printerr(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def command(json_method):
+def command(json_method: str):
     def decorator(func):
         func._json_method = json_method
         return func
@@ -40,7 +40,7 @@ def command(json_method):
 
 
 class OpenFile:
-    def __init__(self, uri, text, version):
+    def __init__(self, uri: str, text: str, version: int):
         self.uri = uri
         self.text = text
         self.version = version
@@ -81,6 +81,9 @@ class OpenFile:
             self.diagnostics.append(e)
 
     def calc_semantic_tokens(self) -> T.List[int]:
+        if self.ast is None:
+            return []
+
         tokens = list(self.ast.get_semantic_tokens())
         token_lists = [
             [
@@ -318,8 +321,10 @@ class LanguageServer:
             },
         )
 
-    def _create_diagnostic(self, text, uri, err):
+    def _create_diagnostic(self, text: str, uri: str, err: CompileError):
         message = err.message
+
+        assert err.start is not None and err.end is not None
 
         for hint in err.hints:
             message += "\nhint: " + hint

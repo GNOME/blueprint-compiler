@@ -51,17 +51,17 @@ class LineType(Enum):
 
 
 class DecompileCtx:
-    def __init__(self):
-        self._result = ""
+    def __init__(self) -> None:
+        self._result: str = ""
         self.gir = GirContext()
-        self._indent = 0
-        self._blocks_need_end = []
-        self._last_line_type = LineType.NONE
+        self._indent: int = 0
+        self._blocks_need_end: T.List[str] = []
+        self._last_line_type: LineType = LineType.NONE
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
 
     @property
-    def result(self):
+    def result(self) -> str:
         imports = "\n".join(
             [
                 f"using {ns} {namespace.version};"
@@ -70,7 +70,7 @@ class DecompileCtx:
         )
         return imports + "\n" + self._result
 
-    def type_by_cname(self, cname):
+    def type_by_cname(self, cname: str) -> T.Optional[GirType]:
         if type := self.gir.get_type_by_cname(cname):
             return type
 
@@ -83,17 +83,19 @@ class DecompileCtx:
             except:
                 pass
 
-    def start_block(self):
-        self._blocks_need_end.append(None)
+        return None
 
-    def end_block(self):
+    def start_block(self) -> None:
+        self._blocks_need_end.append("")
+
+    def end_block(self) -> None:
         if close := self._blocks_need_end.pop():
             self.print(close)
 
-    def end_block_with(self, text):
+    def end_block_with(self, text: str) -> None:
         self._blocks_need_end[-1] = text
 
-    def print(self, line, newline=True):
+    def print(self, line: str, newline: bool = True) -> None:
         if line == "}" or line == "]":
             self._indent -= 1
 
@@ -124,7 +126,7 @@ class DecompileCtx:
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
             self._indent += 1
 
-    def print_attribute(self, name, value, type):
+    def print_attribute(self, name: str, value: str, type: GirType) -> None:
         def get_enum_name(value):
             for member in type.members.values():
                 if (
@@ -169,13 +171,17 @@ class DecompileCtx:
             self.print(f'{name}: "{escape_quote(value)}";')
 
 
-def _decompile_element(ctx: DecompileCtx, gir, xml):
+def _decompile_element(
+    ctx: DecompileCtx, gir: T.Optional[GirContext], xml: Element
+) -> None:
     try:
         decompiler = _DECOMPILERS.get(xml.tag)
         if decompiler is None:
             raise UnsupportedError(f"unsupported XML tag: <{xml.tag}>")
 
-        args = {canon(name): value for name, value in xml.attrs.items()}
+        args: T.Dict[str, T.Optional[str]] = {
+            canon(name): value for name, value in xml.attrs.items()
+        }
         if decompiler._cdata:
             if len(xml.children):
                 args["cdata"] = None
@@ -196,7 +202,7 @@ def _decompile_element(ctx: DecompileCtx, gir, xml):
         raise UnsupportedError(tag=xml.tag)
 
 
-def decompile(data):
+def decompile(data: str) -> str:
     ctx = DecompileCtx()
 
     xml = parse(data)
@@ -216,11 +222,11 @@ def truthy(string: str) -> bool:
     return string.lower() in ["yes", "true", "t", "y", "1"]
 
 
-def full_name(gir):
+def full_name(gir) -> str:
     return gir.name if gir.full_name.startswith("Gtk.") else gir.full_name
 
 
-def lookup_by_cname(gir, cname: str):
+def lookup_by_cname(gir, cname: str) -> T.Optional[GirType]:
     if isinstance(gir, GirContext):
         return gir.get_type_by_cname(cname)
     else:

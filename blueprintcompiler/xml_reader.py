@@ -46,7 +46,7 @@ PARSE_GIR = set(
 
 
 class Element:
-    def __init__(self, tag, attrs: T.Dict[str, str]):
+    def __init__(self, tag: str, attrs: T.Dict[str, str]):
         self.tag = tag
         self.attrs = attrs
         self.children: T.List["Element"] = []
@@ -56,10 +56,10 @@ class Element:
     def cdata(self):
         return "".join(self.cdata_chunks)
 
-    def get_elements(self, name) -> T.List["Element"]:
+    def get_elements(self, name: str) -> T.List["Element"]:
         return [child for child in self.children if child.tag == name]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self.attrs.get(key)
 
 

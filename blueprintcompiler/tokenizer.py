@@ -22,7 +22,7 @@ import typing as T
 import re
 from enum import Enum
 
-from .errors import CompileError
+from .errors import CompileError, CompilerBugError
 
 
 class TokenType(Enum):
@@ -53,18 +53,18 @@ _TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]
 
 
 class Token:
-    def __init__(self, type, start, end, string):
+    def __init__(self, type: TokenType, start: int, end: int, string: str):
         self.type = type
         self.start = start
         self.end = end
         self.string = string
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.string[self.start : self.end]
 
-    def get_number(self):
+    def get_number(self) -> T.Union[int, float]:
         if self.type != TokenType.NUMBER:
-            return None
+            raise CompilerBugError()
 
         string = str(self).replace("_", "")
         try:

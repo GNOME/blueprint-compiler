@@ -58,14 +58,14 @@ TYPE_UNICHAR = 21
 
 
 class Field:
-    def __init__(self, offset, type, shift=0, mask=None):
+    def __init__(self, offset: int, type: str, shift=0, mask=None):
         self._offset = offset
         self._type = type
         self._shift = shift
         self._mask = (1 << mask) - 1 if mask else None
         self._name = f"{offset}__{type}__{shift}__{mask}"
 
-    def __get__(self, typelib, _objtype=None):
+    def __get__(self, typelib: "Typelib", _objtype=None):
         if typelib is None:
             return self
 
@@ -181,47 +181,47 @@ class Typelib:
     VALUE_NAME = Field(0x4, "string")
     VALUE_VALUE = Field(0x8, "i32")
 
-    def __init__(self, typelib_file, offset):
+    def __init__(self, typelib_file, offset: int):
         self._typelib_file = typelib_file
         self._offset = offset
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return Typelib(self._typelib_file, self._offset + index)
 
     def attr(self, name):
         return self.header.attr(self._offset, name)
 
     @property
-    def header(self):
+    def header(self) -> "TypelibHeader":
         return TypelibHeader(self._typelib_file)
 
     @property
-    def u8(self):
+    def u8(self) -> int:
         """Gets the 8-bit unsigned int at this location."""
         return self._int(1, False)
 
     @property
-    def u16(self):
+    def u16(self) -> int:
         """Gets the 16-bit unsigned int at this location."""
         return self._int(2, False)
 
     @property
-    def u32(self):
+    def u32(self) -> int:
         """Gets the 32-bit unsigned int at this location."""
         return self._int(4, False)
 
     @property
-    def i8(self):
+    def i8(self) -> int:
         """Gets the 8-bit unsigned int at this location."""
         return self._int(1, True)
 
     @property
-    def i16(self):
+    def i16(self) -> int:
         """Gets the 16-bit unsigned int at this location."""
         return self._int(2, True)
 
     @property
-    def i32(self):
+    def i32(self) -> int:
         """Gets the 32-bit unsigned int at this location."""
         return self._int(4, True)
 
@@ -240,7 +240,7 @@ class Typelib:
             end += 1
         return self._typelib_file[loc:end].decode("utf-8")
 
-    def _int(self, size, signed):
+    def _int(self, size, signed) -> int:
         return int.from_bytes(
             self._typelib_file[self._offset : self._offset + size], sys.byteorder
         )
@@ -250,7 +250,7 @@ class TypelibHeader(Typelib):
     def __init__(self, typelib_file):
         super().__init__(typelib_file, 0)
 
-    def dir_entry(self, index):
+    def dir_entry(self, index) -> T.Optional[Typelib]:
         if index == 0:
             return None
         else:
