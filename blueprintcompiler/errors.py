@@ -28,7 +28,7 @@ class PrintableError(Exception):
     """Parent class for errors that can be pretty-printed for the user, e.g.
     compilation warnings and errors."""
 
-    def pretty_print(self, filename, code):
+    def pretty_print(self, filename, code, stream=sys.stdout):
         raise NotImplementedError()
 
 
@@ -144,9 +144,9 @@ class MultipleErrors(PrintableError):
         super().__init__()
         self.errors = errors
 
-    def pretty_print(self, filename, code) -> None:
+    def pretty_print(self, filename, code, stream=sys.stdout) -> None:
         for error in self.errors:
-            error.pretty_print(filename, code)
+            error.pretty_print(filename, code, stream)
         if len(self.errors) != 1:
             print(f"{len(self.errors)} errors")
 

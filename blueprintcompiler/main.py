@@ -104,7 +104,7 @@ class BlueprintApp:
                 with open(opts.output, "w") as file:
                     file.write(xml)
         except PrintableError as e:
-            e.pretty_print(opts.input.name, data)
+            e.pretty_print(opts.input.name, data, stream=sys.stderr)
             sys.exit(1)
 
     def cmd_batch_compile(self, opts):
