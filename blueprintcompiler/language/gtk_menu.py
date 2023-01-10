@@ -39,6 +39,10 @@ class Menu(AstNode):
     def tag(self) -> str:
         return self.tokens["tag"]
 
+    @property
+    def items(self) -> T.List[T.Union["Menu", "MenuAttribute"]]:
+        return self.children
+
     @validate("menu")
     def has_id(self):
         if self.tokens["tag"] == "menu" and self.tokens["id"] is None:

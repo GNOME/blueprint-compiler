@@ -14,12 +14,10 @@ class XmlOutput(OutputFormat):
     def _emit_ui(self, ui: UI, xml: XmlEmitter):
         xml.start_tag("interface")
 
-        for x in ui.children:
-            if isinstance(x, GtkDirective):
-                self._emit_gtk_directive(x, xml)
-            elif isinstance(x, Import):
-                pass
-            elif isinstance(x, Template):
+        self._emit_gtk_directive(ui.gtk_decl, xml)
+
+        for x in ui.contents:
+            if isinstance(x, Template):
                 self._emit_template(x, xml)
             elif isinstance(x, Object):
                 self._emit_object(x, xml)
@@ -74,7 +72,7 @@ class XmlOutput(OutputFormat):
 
     def _emit_menu(self, menu: Menu, xml: XmlEmitter):
         xml.start_tag(menu.tag, id=menu.id)
-        for child in menu.children:
+        for child in menu.items:
             if isinstance(child, Menu):
                 self._emit_menu(child, xml)
             elif isinstance(child, MenuAttribute):
@@ -167,7 +165,7 @@ class XmlOutput(OutputFormat):
             xml.put_text(value.value)
         elif isinstance(value, FlagsValue):
             xml.put_text(
-                "|".join([str(flag.value or flag.name) for flag in value.children])
+                "|".join([str(flag.value or flag.name) for flag in value.flags])
             )
         elif isinstance(value, TranslatedStringValue):
             raise CompilerBugError("translated values must be handled in the parent")
@@ -177,7 +175,7 @@ class XmlOutput(OutputFormat):
             raise CompilerBugError()
 
     def _emit_expression(self, expression: ExprChain, xml: XmlEmitter):
-        self._emit_expression_part(expression.children[-1], xml)
+        self._emit_expression_part(expression.last, xml)
 
     def _emit_expression_part(self, expression: Expr, xml: XmlEmitter):
         if isinstance(expression, IdentExpr):

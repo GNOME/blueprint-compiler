@@ -22,7 +22,7 @@ from .. import gir
 from .imports import GtkDirective, Import
 from .gtkbuilder_template import Template
 from .gobject_object import Object
-from .gtk_menu import menu
+from .gtk_menu import menu, Menu
 from .common import *
 
 
@@ -63,6 +63,24 @@ class UI(AstNode):
                 self._gir_errors.append(e)
 
         return gir_ctx
+
+    @property
+    def using(self) -> T.List[Import]:
+        return self.children[Import]
+
+    @property
+    def gtk_decl(self) -> GtkDirective:
+        return self.children[GtkDirective][0]
+
+    @property
+    def contents(self) -> T.List[T.Union[Object, Template, Menu]]:
+        return [
+            child
+            for child in self.children
+            if isinstance(child, Object)
+            or isinstance(child, Template)
+            or isinstance(child, Menu)
+        ]
 
     @property
     def objects_by_id(self):

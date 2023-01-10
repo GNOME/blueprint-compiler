@@ -203,6 +203,10 @@ class Flag(AstNode):
 class FlagsValue(Value):
     grammar = [Flag, "|", Delimited(Flag, "|")]
 
+    @property
+    def flags(self) -> T.List[Flag]:
+        return self.children
+
     @validate()
     def parent_is_bitfield(self):
         type = self.parent.value_type
