@@ -82,10 +82,11 @@ class Signal(AstNode):
     @validate("handler")
     def old_extern(self):
         if not self.tokens["extern"]:
-            raise UpgradeWarning(
-                "Use the '$' extern syntax introduced in blueprint 0.8.0",
-                actions=[CodeAction("Use '$' syntax", "$" + self.tokens["handler"])],
-            )
+            if self.handler is not None:
+                raise UpgradeWarning(
+                    "Use the '$' extern syntax introduced in blueprint 0.8.0",
+                    actions=[CodeAction("Use '$' syntax", "$" + self.handler)],
+                )
 
     @validate("name")
     def signal_exists(self):

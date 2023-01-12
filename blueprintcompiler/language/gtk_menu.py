@@ -24,6 +24,7 @@ from blueprintcompiler.language.values import Value
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
 from .common import *
+from .contexts import ValueTypeCtx
 
 
 class Menu(AstNode):
@@ -49,16 +50,22 @@ class Menu(AstNode):
             raise CompileError("Menu requires an ID")
 
 
-class MenuAttribute(BaseAttribute):
+class MenuAttribute(AstNode):
     tag_name = "attribute"
 
     @property
-    def value_type(self):
-        return None
+    def name(self) -> str:
+        return self.tokens["name"]
 
     @property
     def value(self) -> Value:
         return self.children[Value][0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(
+            None, binding_error=CompileError("Bindings are not permitted in menus")
+        )
 
 
 menu_contents = Sequence()
@@ -78,7 +85,7 @@ menu_attribute = Group(
     [
         UseIdent("name"),
         ":",
-        VALUE_HOOKS.expected("a value"),
+        Err(Value, "Expected a value"),
         Match(";").expected(),
     ],
 )
@@ -102,7 +109,7 @@ menu_item_shorthand = Group(
         "(",
         Group(
             MenuAttribute,
-            [UseLiteral("name", "label"), VALUE_HOOKS],
+            [UseLiteral("name", "label"), Value],
         ),
         Optional(
             [
@@ -111,14 +118,14 @@ menu_item_shorthand = Group(
                     [
                         Group(
                             MenuAttribute,
-                            [UseLiteral("name", "action"), VALUE_HOOKS],
+                            [UseLiteral("name", "action"), Value],
                         ),
                         Optional(
                             [
                                 ",",
                                 Group(
                                     MenuAttribute,
-                                    [UseLiteral("name", "icon"), VALUE_HOOKS],
+                                    [UseLiteral("name", "icon"), Value],
                                 ),
                             ]
                         ),

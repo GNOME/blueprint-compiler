@@ -82,51 +82,57 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_property(self, property: Property, xml: XmlEmitter):
-        values = property.children[Value]
-        value = values[0] if len(values) == 1 else None
+        value = property.value
+        child = value.child
 
-        bind_flags = []
-        if property.tokens["bind_source"] and not property.tokens["no_sync_create"]:
-            bind_flags.append("sync-create")
-        if property.tokens["inverted"]:
-            bind_flags.append("invert-boolean")
-        if property.tokens["bidirectional"]:
-            bind_flags.append("bidirectional")
-        bind_flags_str = "|".join(bind_flags) or None
-
-        props = {
-            "name": property.tokens["name"],
-            "bind-source": property.tokens["bind_source"],
-            "bind-property": property.tokens["bind_property"],
-            "bind-flags": bind_flags_str,
+        props: T.Dict[str, T.Optional[str]] = {
+            "name": property.name,
         }
 
-        if isinstance(value, TranslatedStringValue):
-            xml.start_tag("property", **props, **self._translated_string_attrs(value))
-            xml.put_text(value.string)
+        if isinstance(child, Translated):
+            xml.start_tag("property", **props, **self._translated_string_attrs(child))
+            xml.put_text(child.child.string)
             xml.end_tag()
-        elif len(property.children[Object]) == 1:
+        elif isinstance(child, Object):
             xml.start_tag("property", **props)
-            self._emit_object(property.children[Object][0], xml)
+            self._emit_object(child, xml)
             xml.end_tag()
-        elif value is None:
-            if property.tokens["binding"]:
-                xml.start_tag("binding", **props)
-                self._emit_expression(property.children[ExprChain][0], xml)
-                xml.end_tag()
-            else:
+        elif isinstance(child, Binding):
+            if simple := child.simple_binding:
+                props["bind-source"] = simple.source
+                props["bind-property"] = simple.property_name
+                props["bind-flags"] = "sync-create"
                 xml.put_self_closing("property", **props)
+            else:
+                xml.start_tag("binding", **props)
+                self._emit_expression(child.expression, xml)
+                xml.end_tag()
+        elif isinstance(child, PropertyBinding):
+            bind_flags = []
+            if not child.no_sync_create:
+                bind_flags.append("sync-create")
+            if child.inverted:
+                bind_flags.append("invert-boolean")
+            if child.bidirectional:
+                bind_flags.append("bidirectional")
+
+            props["bind-source"] = child.source
+            props["bind-property"] = child.property_name
+            props["bind-flags"] = "|".join(bind_flags) or None
+            xml.put_self_closing("property", **props)
         else:
             xml.start_tag("property", **props)
             self._emit_value(value, xml)
             xml.end_tag()
 
     def _translated_string_attrs(
-        self, translated: TranslatedStringValue
+        self, translated: Translated
     ) -> T.Dict[str, T.Optional[str]]:
         return {
             "translatable": "true",
-            "context": translated.context,
+            "context": translated.child.context
+            if isinstance(translated.child, TranslatedWithContext)
+            else None,
         }
 
     def _emit_signal(self, signal: Signal, xml: XmlEmitter):
@@ -154,23 +160,30 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_value(self, value: Value, xml: XmlEmitter):
-        if isinstance(value, IdentValue):
-            if isinstance(value.parent.value_type, gir.Enumeration):
-                xml.put_text(
-                    str(value.parent.value_type.members[value.tokens["value"]].value)
-                )
+        if isinstance(value.child, Literal):
+            literal = value.child.value
+            if isinstance(literal, IdentLiteral):
+                value_type = value.context[ValueTypeCtx].value_type
+                if isinstance(value_type, gir.BoolType):
+                    xml.put_text(literal.ident)
+                elif isinstance(value_type, gir.Enumeration):
+                    xml.put_text(str(value_type.members[literal.ident].value))
+                else:
+                    xml.put_text(literal.ident)
+            elif isinstance(literal, TypeLiteral):
+                xml.put_text(literal.type_name.glib_type_name)
             else:
-                xml.put_text(value.tokens["value"])
-        elif isinstance(value, QuotedValue) or isinstance(value, NumberValue):
-            xml.put_text(value.value)
-        elif isinstance(value, FlagsValue):
+                xml.put_text(literal.value)
+        elif isinstance(value.child, Flags):
             xml.put_text(
-                "|".join([str(flag.value or flag.name) for flag in value.flags])
+                "|".join([str(flag.value or flag.name) for flag in value.child.flags])
             )
-        elif isinstance(value, TranslatedStringValue):
+        elif isinstance(value.child, Translated):
             raise CompilerBugError("translated values must be handled in the parent")
-        elif isinstance(value, TypeValue):
-            xml.put_text(value.type_name.glib_type_name)
+        elif isinstance(value.child, TypeLiteral):
+            xml.put_text(value.child.type_name.glib_type_name)
+        elif isinstance(value.child, ObjectValue):
+            self._emit_object(value.child.object, xml)
         else:
             raise CompilerBugError()
 
@@ -215,9 +228,9 @@ class XmlOutput(OutputFormat):
     ):
         attrs = {attr: name}
 
-        if isinstance(value, TranslatedStringValue):
-            xml.start_tag(tag, **attrs, **self._translated_string_attrs(value))
-            xml.put_text(value.string)
+        if isinstance(value.child, Translated):
+            xml.start_tag(tag, **attrs, **self._translated_string_attrs(value.child))
+            xml.put_text(value.child.child.string)
             xml.end_tag()
         else:
             xml.start_tag(tag, **attrs)
@@ -227,43 +240,37 @@ class XmlOutput(OutputFormat):
     def _emit_extensions(self, extension, xml: XmlEmitter):
         if isinstance(extension, A11y):
             xml.start_tag("accessibility")
-            for child in extension.children:
-                self._emit_attribute(
-                    child.tag_name, "name", child.name, child.children[Value][0], xml
-                )
+            for prop in extension.properties:
+                self._emit_attribute(prop.tag_name, "name", prop.name, prop.value, xml)
             xml.end_tag()
 
         elif isinstance(extension, Filters):
             xml.start_tag(extension.tokens["tag_name"])
-            for child in extension.children:
-                xml.start_tag(child.tokens["tag_name"])
-                xml.put_text(child.tokens["name"])
+            for prop in extension.children:
+                xml.start_tag(prop.tokens["tag_name"])
+                xml.put_text(prop.tokens["name"])
                 xml.end_tag()
             xml.end_tag()
 
         elif isinstance(extension, Items):
             xml.start_tag("items")
-            for child in extension.children:
-                self._emit_attribute(
-                    "item", "id", child.name, child.children[Value][0], xml
-                )
+            for prop in extension.children:
+                self._emit_attribute("item", "id", prop.name, prop.value, xml)
             xml.end_tag()
 
         elif isinstance(extension, Layout):
             xml.start_tag("layout")
-            for child in extension.children:
-                self._emit_attribute(
-                    "property", "name", child.name, child.children[Value][0], xml
-                )
+            for prop in extension.children:
+                self._emit_attribute("property", "name", prop.name, prop.value, xml)
             xml.end_tag()
 
         elif isinstance(extension, Strings):
             xml.start_tag("items")
-            for child in extension.children:
-                value = child.children[Value][0]
-                if isinstance(value, TranslatedStringValue):
+            for prop in extension.children:
+                value = prop.children[Value][0]
+                if isinstance(value.child, Translated):
                     xml.start_tag("item", **self._translated_string_attrs(value))
-                    xml.put_text(value.string)
+                    xml.put_text(value.child.child.string)
                     xml.end_tag()
                 else:
                     xml.start_tag("item")
@@ -273,14 +280,14 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(extension, Styles):
             xml.start_tag("style")
-            for child in extension.children:
-                xml.put_self_closing("class", name=child.tokens["name"])
+            for prop in extension.children:
+                xml.put_self_closing("class", name=prop.tokens["name"])
             xml.end_tag()
 
         elif isinstance(extension, Widgets):
             xml.start_tag("widgets")
-            for child in extension.children:
-                xml.put_self_closing("widget", name=child.tokens["name"])
+            for prop in extension.children:
+                xml.put_self_closing("widget", name=prop.tokens["name"])
             xml.end_tag()
 
         else:

@@ -21,15 +21,22 @@
 from .attributes import BaseTypedAttribute
 from .gobject_object import ObjectContent, validate_parent_type
 from .common import *
+from .contexts import ValueTypeCtx
+from .values import Value
 
 
-class Item(BaseTypedAttribute):
-    tag_name = "item"
-    attr_name = "id"
+class Item(AstNode):
+    @property
+    def name(self) -> str:
+        return self.tokens["name"]
 
     @property
-    def value_type(self):
-        return StringType()
+    def value(self) -> Value:
+        return self.children[Value][0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(StringType())
 
 
 item = Group(
@@ -41,7 +48,7 @@ item = Group(
                 ":",
             ]
         ),
-        VALUE_HOOKS,
+        Value,
     ],
 )
 

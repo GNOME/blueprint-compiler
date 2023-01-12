@@ -94,7 +94,7 @@ class ClassName(TypeName):
     @validate("namespace", "class_name")
     def gir_class_exists(self):
         if (
-            self.gir_type
+            self.gir_type is not None
             and not isinstance(self.gir_type, UncheckedType)
             and not isinstance(self.gir_type, Class)
         ):

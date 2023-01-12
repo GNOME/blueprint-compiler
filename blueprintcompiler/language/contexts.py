@@ -1,6 +1,6 @@
-# common.py
+# contexts.py
 #
-# Copyright 2022 James Westman <james@jwestman.net>
+# Copyright 2023 James Westman <james@jwestman.net>
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as
@@ -17,30 +17,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
-from .. import gir
-from ..ast_utils import AstNode, validate, docs, context
-from ..errors import (
-    CompileError,
-    MultipleErrors,
-    UpgradeWarning,
-    CompileWarning,
-    CodeAction,
-)
-from ..completions_utils import *
-from .. import decompiler as decompile
-from ..decompiler import DecompileCtx, decompiler
-from ..gir import (
-    StringType,
-    BoolType,
-    IntType,
-    FloatType,
-    GirType,
-    Enumeration,
-    UncheckedType,
-)
-from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
-from ..parse_tree import *
+import typing as T
+from dataclasses import dataclass
+from .common import *
 
 
-OBJECT_CONTENT_HOOKS = AnyOf()
+@dataclass
+class ValueTypeCtx:
+    value_type: T.Optional[GirType]
+    binding_error: T.Optional[CompileError] = None

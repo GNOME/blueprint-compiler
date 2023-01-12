@@ -17,51 +17,28 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from dataclasses import dataclass
 
 from .expression import ExprChain
 from .gobject_object import Object
 from .gtkbuilder_template import Template
-from .values import Value, TranslatedStringValue
+from .values import Value, Translated
 from .common import *
+from .contexts import ValueTypeCtx
+from .property_binding import PropertyBinding
+from .binding import Binding
 
 
 class Property(AstNode):
-    grammar = AnyOf(
-        [
-            UseIdent("name"),
-            ":",
-            Keyword("bind"),
-            UseIdent("bind_source"),
-            ".",
-            UseIdent("bind_property"),
-            ZeroOrMore(
-                AnyOf(
-                    ["no-sync-create", UseLiteral("no_sync_create", True)],
-                    ["inverted", UseLiteral("inverted", True)],
-                    ["bidirectional", UseLiteral("bidirectional", True)],
-                    Match("sync-create").warn(
-                        "sync-create is deprecated in favor of no-sync-create"
-                    ),
-                )
-            ),
-            ";",
-        ],
-        Statement(
-            UseIdent("name"),
-            UseLiteral("binding", True),
-            ":",
-            "bind",
-            ExprChain,
-        ),
-        Statement(
-            UseIdent("name"),
-            ":",
-            AnyOf(
-                Object,
-                VALUE_HOOKS,
-            ).expected("a value"),
-        ),
-    )
+    grammar = [UseIdent("name"), ":", Value, ";"]
+
+    @property
+    def name(self) -> str:
+        return self.tokens["name"]
+
+    @property
+    def value(self) -> Value:
+        return self.children[0]
 
     @property
     def gir_class(self):
@@ -72,10 +49,29 @@ class Property(AstNode):
         if self.gir_class is not None and not isinstance(self.gir_class, UncheckedType):
             return self.gir_class.properties.get(self.tokens["name"])
 
-    @property
-    def value_type(self):
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        if (
+            (
+                isinstance(self.value.child, PropertyBinding)
+                or isinstance(self.value.child, Binding)
+            )
+            and self.gir_property is not None
+            and self.gir_property.construct_only
+        ):
+            binding_error = CompileError(
+                f"{self.gir_property.full_name} can't be bound because it is construct-only",
+                hints=["construct-only properties may only be set to a static value"],
+            )
+        else:
+            binding_error = None
+
         if self.gir_property is not None:
-            return self.gir_property.type
+            type = self.gir_property.type
+        else:
+            type = None
+
+        return ValueTypeCtx(type, binding_error)
 
     @validate("name")
     def property_exists(self):
@@ -95,39 +91,10 @@ class Property(AstNode):
                 did_you_mean=(self.tokens["name"], self.gir_class.properties.keys()),
             )
 
-    @validate("bind")
-    def property_bindable(self):
-        if (
-            self.tokens["bind"]
-            and self.gir_property is not None
-            and self.gir_property.construct_only
-        ):
-            raise CompileError(
-                f"{self.gir_property.full_name} can't be bound because it is construct-only",
-                hints=["construct-only properties may only be set to a static value"],
-            )
-
     @validate("name")
     def property_writable(self):
         if self.gir_property is not None and not self.gir_property.writable:
             raise CompileError(f"{self.gir_property.full_name} is not writable")
-
-    @validate()
-    def obj_property_type(self):
-        if len(self.children[Object]) == 0:
-            return
-
-        object = self.children[Object][0]
-        type = self.value_type
-        if (
-            object
-            and type
-            and object.gir_class
-            and not object.gir_class.assignable_to(type)
-        ):
-            raise CompileError(
-                f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
-            )
 
     @validate("name")
     def unique_in_parent(self):

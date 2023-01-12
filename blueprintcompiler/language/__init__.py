@@ -1,4 +1,6 @@
 from .attributes import BaseAttribute, BaseTypedAttribute
+from .binding import Binding
+from .contexts import ValueTypeCtx
 from .expression import CastExpr, ClosureExpr, Expr, ExprChain, IdentExpr, LookupOp
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
@@ -14,16 +16,21 @@ from .gtk_styles import Styles
 from .gtkbuilder_child import Child
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
+from .property_binding import PropertyBinding
 from .ui import UI
 from .types import ClassName
 from .values import (
-    TypeValue,
-    IdentValue,
-    TranslatedStringValue,
-    FlagsValue,
     Flag,
-    QuotedValue,
-    NumberValue,
+    Flags,
+    IdentLiteral,
+    Literal,
+    NumberLiteral,
+    ObjectValue,
+    QuotedLiteral,
+    Translated,
+    TranslatedWithContext,
+    TranslatedWithoutContext,
+    TypeLiteral,
     Value,
 )
 
@@ -42,13 +49,4 @@ OBJECT_CONTENT_HOOKS.children = [
     Items,
     Strings,
     Child,
-]
-
-VALUE_HOOKS.children = [
-    TypeValue,
-    TranslatedStringValue,
-    FlagsValue,
-    IdentValue,
-    QuotedValue,
-    NumberValue,
 ]

@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .values import Value, TranslatedStringValue
+from .values import Value, Translated
 from .common import *
 
 

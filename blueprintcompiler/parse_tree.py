@@ -567,6 +567,19 @@ class UseLiteral(ParseNode):
         return True
 
 
+class UseExact(ParseNode):
+    """Matches the given identifier and sets it as a named token."""
+
+    def __init__(self, key: str, string: str):
+        self.key = key
+        self.string = string
+
+    def _parse(self, ctx: ParseContext):
+        token = ctx.next_token()
+        ctx.set_group_val(self.key, self.string, token)
+        return str(token) == self.string
+
+
 class Keyword(ParseNode):
     """Matches the given identifier and sets it as a named token, with the name
     being the identifier itself."""

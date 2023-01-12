@@ -64,6 +64,9 @@ class GtkDirective(AstNode):
         self.gtk_version()
         if self.tokens["version"] is not None:
             return gir.get_namespace("Gtk", self.tokens["version"])
+        else:
+            # For better error handling, just assume it's 4.0
+            return gir.get_namespace("Gtk", "4.0")
 
 
 class Import(AstNode):

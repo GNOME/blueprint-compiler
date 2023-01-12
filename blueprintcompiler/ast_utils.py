@@ -24,6 +24,8 @@ import typing as T
 from .errors import *
 from .lsp_utils import SemanticToken
 
+TType = T.TypeVar("TType")
+
 
 class Children:
     """Allows accessing children by type using array syntax."""
@@ -34,11 +36,40 @@ class Children:
     def __iter__(self):
         return iter(self._children)
 
+    @T.overload
+    def __getitem__(self, key: T.Type[TType]) -> T.List[TType]:
+        ...
+
+    @T.overload
+    def __getitem__(self, key: int) -> "AstNode":
+        ...
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._children[key]
         else:
             return [child for child in self._children if isinstance(child, key)]
+
+
+TCtx = T.TypeVar("TCtx")
+TAttr = T.TypeVar("TAttr")
+
+
+class Ctx:
+    """Allows accessing values from higher in the syntax tree."""
+
+    def __init__(self, node: "AstNode") -> None:
+        self.node = node
+
+    def __getitem__(self, key: T.Type[TCtx]) -> T.Optional[TCtx]:
+        attrs = self.node._attrs_by_type(Context)
+        for name, attr in attrs:
+            if attr.type == key:
+                return getattr(self.node, name)
+        if self.node.parent is not None:
+            return self.node.parent.context[key]
+        else:
+            return None
 
 
 class AstNode:
@@ -61,6 +92,10 @@ class AstNode:
         cls.validators = [
             getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")
         ]
+
+    @cached_property
+    def context(self):
+        return Ctx(self)
 
     @property
     def root(self):
@@ -105,7 +140,9 @@ class AstNode:
         for child in self.children:
             yield from child._get_errors()
 
-    def _attrs_by_type(self, attr_type):
+    def _attrs_by_type(
+        self, attr_type: T.Type[TAttr]
+    ) -> T.Iterator[T.Tuple[str, TAttr]]:
         for name in dir(type(self)):
             item = getattr(type(self), name)
             if isinstance(item, attr_type):
@@ -215,5 +252,25 @@ def docs(*args, **kwargs):
 
     def decorator(func):
         return Docs(func, *args, **kwargs)
+
+    return decorator
+
+
+class Context:
+    def __init__(self, type: T.Type[TCtx], func: T.Callable[[AstNode], TCtx]) -> None:
+        self.type = type
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.func(instance)
+
+
+def context(type: T.Type[TCtx]):
+    """Decorator for functions that return a context object, which is passed down to ."""
+
+    def decorator(func: T.Callable[[AstNode], TCtx]) -> Context:
+        return Context(type, func)
 
     return decorator

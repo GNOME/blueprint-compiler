@@ -21,41 +21,57 @@ import typing as T
 
 from .common import *
 from .types import TypeName
+from .property_binding import PropertyBinding
+from .binding import Binding
+from .gobject_object import Object
+from .contexts import ValueTypeCtx
 
 
-class Value(AstNode):
-    pass
-
-
-class TranslatedStringValue(Value):
-    grammar = AnyOf(
-        [
-            "_",
-            "(",
-            UseQuoted("value").expected("a quoted string"),
-            Match(")").expected(),
-        ],
-        [
-            "C_",
-            "(",
-            UseQuoted("context").expected("a quoted string"),
-            ",",
-            UseQuoted("value").expected("a quoted string"),
-            Optional(","),
-            Match(")").expected(),
-        ],
-    )
+class TranslatedWithoutContext(AstNode):
+    grammar = ["_", "(", UseQuoted("string"), Optional(","), ")"]
 
     @property
     def string(self) -> str:
-        return self.tokens["value"]
+        return self.tokens["string"]
+
+
+class TranslatedWithContext(AstNode):
+    grammar = [
+        "C_",
+        "(",
+        UseQuoted("context"),
+        ",",
+        UseQuoted("string"),
+        Optional(","),
+        ")",
+    ]
 
     @property
-    def context(self) -> T.Optional[str]:
+    def string(self) -> str:
+        return self.tokens["string"]
+
+    @property
+    def context(self) -> str:
         return self.tokens["context"]
 
 
-class TypeValue(Value):
+class Translated(AstNode):
+    grammar = AnyOf(TranslatedWithoutContext, TranslatedWithContext)
+
+    @property
+    def child(self) -> T.Union[TranslatedWithContext, TranslatedWithoutContext]:
+        return self.children[0]
+
+    @validate()
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if expected_type is not None and not expected_type.assignable_to(StringType()):
+            raise CompileError(
+                f"Cannot convert translated string to {expected_type.full_name}"
+            )
+
+
+class TypeLiteral(AstNode):
     grammar = [
         "typeof",
         "(",
@@ -64,17 +80,17 @@ class TypeValue(Value):
     ]
 
     @property
-    def type_name(self):
+    def type_name(self) -> TypeName:
         return self.children[TypeName][0]
 
     @validate()
-    def validate_for_type(self):
-        type = self.parent.value_type
-        if type is not None and not isinstance(type, gir.TypeType):
-            raise CompileError(f"Cannot convert GType to {type.full_name}")
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if expected_type is not None and not isinstance(expected_type, gir.TypeType):
+            raise CompileError(f"Cannot convert GType to {expected_type.full_name}")
 
 
-class QuotedValue(Value):
+class QuotedLiteral(AstNode):
     grammar = UseQuoted("value")
 
     @property
@@ -82,22 +98,22 @@ class QuotedValue(Value):
         return self.tokens["value"]
 
     @validate()
-    def validate_for_type(self):
-        type = self.parent.value_type
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
         if (
-            isinstance(type, gir.IntType)
-            or isinstance(type, gir.UIntType)
-            or isinstance(type, gir.FloatType)
+            isinstance(expected_type, gir.IntType)
+            or isinstance(expected_type, gir.UIntType)
+            or isinstance(expected_type, gir.FloatType)
         ):
             raise CompileError(f"Cannot convert string to number")
 
-        elif isinstance(type, gir.StringType):
+        elif isinstance(expected_type, gir.StringType):
             pass
 
         elif (
-            isinstance(type, gir.Class)
-            or isinstance(type, gir.Interface)
-            or isinstance(type, gir.Boxed)
+            isinstance(expected_type, gir.Class)
+            or isinstance(expected_type, gir.Interface)
+            or isinstance(expected_type, gir.Boxed)
         ):
             parseable_types = [
                 "Gdk.Paintable",
@@ -111,31 +127,32 @@ class QuotedValue(Value):
                 "Gsk.Transform",
                 "GLib.Variant",
             ]
-            if type.full_name not in parseable_types:
+            if expected_type.full_name not in parseable_types:
                 hints = []
-                if isinstance(type, gir.TypeType):
-                    hints.append(
-                        f"use the typeof operator: 'typeof({self.tokens('value')})'"
-                    )
+                if isinstance(expected_type, gir.TypeType):
+                    hints.append(f"use the typeof operator: 'typeof({self.value})'")
                 raise CompileError(
-                    f"Cannot convert string to {type.full_name}", hints=hints
+                    f"Cannot convert string to {expected_type.full_name}", hints=hints
                 )
 
-        elif type is not None:
-            raise CompileError(f"Cannot convert string to {type.full_name}")
+        elif expected_type is not None:
+            raise CompileError(f"Cannot convert string to {expected_type.full_name}")
 
 
-class NumberValue(Value):
-    grammar = UseNumber("value")
+class NumberLiteral(AstNode):
+    grammar = [
+        Optional(AnyOf(UseExact("sign", "-"), UseExact("sign", "+"))),
+        UseNumber("value"),
+    ]
 
     @property
     def value(self) -> T.Union[int, float]:
         return self.tokens["value"]
 
     @validate()
-    def validate_for_type(self):
-        type = self.parent.value_type
-        if isinstance(type, gir.IntType):
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if isinstance(expected_type, gir.IntType):
             try:
                 int(self.tokens["value"])
             except:
@@ -143,7 +160,7 @@ class NumberValue(Value):
                     f"Cannot convert {self.group.tokens['value']} to integer"
                 )
 
-        elif isinstance(type, gir.UIntType):
+        elif isinstance(expected_type, gir.UIntType):
             try:
                 int(self.tokens["value"])
                 if int(self.tokens["value"]) < 0:
@@ -153,7 +170,7 @@ class NumberValue(Value):
                     f"Cannot convert {self.group.tokens['value']} to unsigned integer"
                 )
 
-        elif isinstance(type, gir.FloatType):
+        elif isinstance(expected_type, gir.FloatType):
             try:
                 float(self.tokens["value"])
             except:
@@ -161,8 +178,8 @@ class NumberValue(Value):
                     f"Cannot convert {self.group.tokens['value']} to float"
                 )
 
-        elif type is not None:
-            raise CompileError(f"Cannot convert number to {type.full_name}")
+        elif expected_type is not None:
+            raise CompileError(f"Cannot convert number to {expected_type.full_name}")
 
 
 class Flag(AstNode):
@@ -174,17 +191,17 @@ class Flag(AstNode):
 
     @property
     def value(self) -> T.Optional[int]:
-        type = self.parent.parent.value_type
+        type = self.context[ValueTypeCtx].value_type
         if not isinstance(type, Enumeration):
             return None
-        elif member := type.members.get(self.tokens["value"]):
+        elif member := type.members.get(self.name):
             return member.value
         else:
             return None
 
     @docs()
     def docs(self):
-        type = self.parent.parent.value_type
+        type = self.context[ValueTypeCtx].value_type
         if not isinstance(type, Enumeration):
             return
         if member := type.members.get(self.tokens["value"]):
@@ -192,15 +209,18 @@ class Flag(AstNode):
 
     @validate()
     def validate_for_type(self):
-        type = self.parent.parent.value_type
-        if isinstance(type, gir.Bitfield) and self.tokens["value"] not in type.members:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if (
+            isinstance(expected_type, gir.Bitfield)
+            and self.tokens["value"] not in expected_type.members
+        ):
             raise CompileError(
-                f"{self.tokens['value']} is not a member of {type.full_name}",
-                did_you_mean=(self.tokens["value"], type.members.keys()),
+                f"{self.tokens['value']} is not a member of {expected_type.full_name}",
+                did_you_mean=(self.tokens["value"], expected_type.members.keys()),
             )
 
 
-class FlagsValue(Value):
+class Flags(AstNode):
     grammar = [Flag, "|", Delimited(Flag, "|")]
 
     @property
@@ -208,57 +228,104 @@ class FlagsValue(Value):
         return self.children
 
     @validate()
-    def parent_is_bitfield(self):
-        type = self.parent.value_type
-        if type is not None and not isinstance(type, gir.Bitfield):
-            raise CompileError(f"{type.full_name} is not a bitfield type")
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if expected_type is not None and not isinstance(expected_type, gir.Bitfield):
+            raise CompileError(f"{expected_type.full_name} is not a bitfield type")
 
 
-class IdentValue(Value):
+class IdentLiteral(AstNode):
     grammar = UseIdent("value")
 
+    @property
+    def ident(self) -> str:
+        return self.tokens["value"]
+
     @validate()
-    def validate_for_type(self):
-        type = self.parent.value_type
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if isinstance(expected_type, gir.BoolType):
+            if self.ident not in ["true", "false"]:
+                raise CompileError(f"Expected 'true' or 'false' for boolean value")
 
-        if isinstance(type, gir.Enumeration):
-            if self.tokens["value"] not in type.members:
+        elif isinstance(expected_type, gir.Enumeration):
+            if self.ident not in expected_type.members:
                 raise CompileError(
-                    f"{self.tokens['value']} is not a member of {type.full_name}",
-                    did_you_mean=(self.tokens["value"], type.members.keys()),
+                    f"{self.ident} is not a member of {expected_type.full_name}",
+                    did_you_mean=(self.ident, list(expected_type.members.keys())),
                 )
 
-        elif isinstance(type, gir.BoolType):
-            if self.tokens["value"] not in ["true", "false"]:
-                raise CompileError(
-                    f"Expected 'true' or 'false' for boolean value",
-                    did_you_mean=(self.tokens["value"], ["true", "false"]),
-                )
-
-        elif type is not None:
-            object = self.root.objects_by_id.get(self.tokens["value"])
+        elif expected_type is not None:
+            object = self.root.objects_by_id.get(self.ident)
             if object is None:
                 raise CompileError(
-                    f"Could not find object with ID {self.tokens['value']}",
-                    did_you_mean=(self.tokens["value"], self.root.objects_by_id.keys()),
+                    f"Could not find object with ID {self.ident}",
+                    did_you_mean=(self.ident, self.root.objects_by_id.keys()),
                 )
-            elif object.gir_class and not object.gir_class.assignable_to(type):
+            elif object.gir_class and not object.gir_class.assignable_to(expected_type):
                 raise CompileError(
-                    f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
+                    f"Cannot assign {object.gir_class.full_name} to {expected_type.full_name}"
                 )
 
     @docs()
-    def docs(self):
-        type = self.parent.value_type
+    def docs(self) -> T.Optional[str]:
+        type = self.context[ValueTypeCtx].value_type
         if isinstance(type, gir.Enumeration):
-            if member := type.members.get(self.tokens["value"]):
+            if member := type.members.get(self.ident):
                 return member.doc
             else:
                 return type.doc
         elif isinstance(type, gir.GirNode):
             return type.doc
+        else:
+            return None
 
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         if isinstance(self.parent.value_type, gir.Enumeration):
             token = self.group.tokens["value"]
             yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
+
+
+class Literal(AstNode):
+    grammar = AnyOf(
+        TypeLiteral,
+        QuotedLiteral,
+        NumberLiteral,
+        IdentLiteral,
+    )
+
+    @property
+    def value(
+        self,
+    ) -> T.Union[TypeLiteral, QuotedLiteral, NumberLiteral, IdentLiteral]:
+        return self.children[0]
+
+
+class ObjectValue(AstNode):
+    grammar = Object
+
+    @property
+    def object(self) -> Object:
+        return self.children[Object][0]
+
+    @validate()
+    def validate_for_type(self) -> None:
+        expected_type = self.context[ValueTypeCtx].value_type
+        if (
+            expected_type is not None
+            and self.object.gir_class is not None
+            and not self.object.gir_class.assignable_to(expected_type)
+        ):
+            raise CompileError(
+                f"Cannot assign {self.object.gir_class.full_name} to {expected_type.full_name}"
+            )
+
+
+class Value(AstNode):
+    grammar = AnyOf(PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal)
+
+    @property
+    def child(
+        self,
+    ) -> T.Union[PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal,]:
+        return self.children[0]

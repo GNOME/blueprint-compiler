@@ -21,15 +21,25 @@
 from .attributes import BaseAttribute
 from .gobject_object import ObjectContent, validate_parent_type
 from .common import *
+from .contexts import ValueTypeCtx
+from .values import Value
 
 
-class LayoutProperty(BaseAttribute):
+class LayoutProperty(AstNode):
     tag_name = "property"
 
     @property
-    def value_type(self):
+    def name(self) -> str:
+        return self.tokens["name"]
+
+    @property
+    def value(self) -> Value:
+        return self.children[Value][0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
         # there isn't really a way to validate these
-        return None
+        return ValueTypeCtx(None)
 
     @validate("name")
     def unique_in_parent(self):
@@ -41,11 +51,7 @@ class LayoutProperty(BaseAttribute):
 
 layout_prop = Group(
     LayoutProperty,
-    Statement(
-        UseIdent("name"),
-        ":",
-        VALUE_HOOKS.expected("a value"),
-    ),
+    Statement(UseIdent("name"), ":", Err(Value, "Expected a value")),
 )
 
 

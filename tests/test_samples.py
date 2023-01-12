@@ -145,7 +145,6 @@ class TestSamples(unittest.TestCase):
     def test_samples(self):
         self.assert_sample("accessibility")
         self.assert_sample("action_widgets")
-        self.assert_sample("binding")
         self.assert_sample("child_type")
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")
@@ -163,6 +162,7 @@ class TestSamples(unittest.TestCase):
             "parseable", skip_run=True
         )  # The image resource doesn't exist
         self.assert_sample("property")
+        self.assert_sample("property_binding")
         self.assert_sample("signal", skip_run=True)  # The callback doesn't exist
         self.assert_sample("size_group")
         self.assert_sample("string_list")
@@ -235,12 +235,12 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("two_templates")
         self.assert_sample_error("uint")
         self.assert_sample_error("using_invalid_namespace")
+        self.assert_sample_error("warn_old_bind")
         self.assert_sample_error("warn_old_extern")
         self.assert_sample_error("widgets_in_non_size_group")
 
     def test_decompiler(self):
         self.assert_decompile("accessibility_dec")
-        self.assert_decompile("binding")
         self.assert_decompile("child_type")
         self.assert_decompile("file_filter")
         self.assert_decompile("flags")
@@ -248,6 +248,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("layout_dec")
         self.assert_decompile("menu_dec")
         self.assert_decompile("property")
+        self.assert_decompile("property_binding_dec")
         self.assert_decompile("placeholder_dec")
         self.assert_decompile("signal")
         self.assert_decompile("strings")

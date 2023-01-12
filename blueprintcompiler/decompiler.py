@@ -295,7 +295,7 @@ def decompile_property(
             flags += " inverted"
         if "bidirectional" in bind_flags:
             flags += " bidirectional"
-        ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
+        ctx.print(f"{name}: bind-property {bind_source}.{bind_property}{flags};")
     elif truthy(translatable):
         if context is not None:
             ctx.print(

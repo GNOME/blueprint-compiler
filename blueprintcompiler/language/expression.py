@@ -20,6 +20,7 @@
 
 from .common import *
 from .types import TypeName
+from .gtkbuilder_template import Template
 
 
 expr = Pratt()
@@ -29,6 +30,10 @@ class Expr(AstNode):
     @property
     def type(self) -> T.Optional[GirType]:
         raise NotImplementedError()
+
+    @property
+    def type_complete(self) -> bool:
+        return True
 
     @property
     def rhs(self) -> T.Optional["Expr"]:
@@ -52,6 +57,10 @@ class ExprChain(Expr):
     @property
     def type(self) -> T.Optional[GirType]:
         return self.last.type
+
+    @property
+    def type_complete(self) -> bool:
+        return self.last.type_complete
 
 
 class InfixExpr(Expr):
@@ -83,6 +92,13 @@ class IdentExpr(Expr):
         else:
             return None
 
+    @property
+    def type_complete(self) -> bool:
+        if object := self.root.objects_by_id.get(self.ident):
+            return not isinstance(object, Template)
+        else:
+            return True
+
 
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
@@ -103,17 +119,24 @@ class LookupOp(InfixExpr):
 
     @validate("property")
     def property_exists(self):
-        if self.lhs.type is None or isinstance(self.lhs.type, UncheckedType):
+        if (
+            self.lhs.type is None
+            or not self.lhs.type_complete
+            or isinstance(self.lhs.type, UncheckedType)
+        ):
             return
+
         elif not isinstance(self.lhs.type, gir.Class) and not isinstance(
             self.lhs.type, gir.Interface
         ):
             raise CompileError(
                 f"Type {self.lhs.type.full_name} does not have properties"
             )
+
         elif self.lhs.type.properties.get(self.property_name) is None:
             raise CompileError(
-                f"{self.lhs.type.full_name} does not have a property called {self.property_name}"
+                f"{self.lhs.type.full_name} does not have a property called {self.property_name}",
+                did_you_mean=(self.property_name, self.lhs.type.properties.keys()),
             )
 
 
@@ -124,9 +147,13 @@ class CastExpr(InfixExpr):
     def type(self) -> T.Optional[GirType]:
         return self.children[TypeName][0].gir_type
 
+    @property
+    def type_complete(self) -> bool:
+        return True
+
     @validate()
     def cast_makes_sense(self):
-        if self.lhs.type is None:
+        if self.type is None or self.lhs.type is None:
             return
 
         if not self.type.assignable_to(self.lhs.type):

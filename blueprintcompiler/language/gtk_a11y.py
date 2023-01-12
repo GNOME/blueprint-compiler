@@ -21,6 +21,7 @@ from .gobject_object import ObjectContent, validate_parent_type
 from .attributes import BaseTypedAttribute
 from .values import Value
 from .common import *
+from .contexts import ValueTypeCtx
 
 
 def get_property_types(gir):
@@ -108,7 +109,7 @@ class A11yProperty(BaseTypedAttribute):
     grammar = Statement(
         UseIdent("name"),
         ":",
-        VALUE_HOOKS.expected("a value"),
+        Value,
     )
 
     @property
@@ -129,8 +130,12 @@ class A11yProperty(BaseTypedAttribute):
         return self.tokens["name"].replace("_", "-")
 
     @property
-    def value_type(self) -> GirType:
-        return get_types(self.root.gir).get(self.tokens["name"])
+    def value(self) -> Value:
+        return self.children[0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(get_types(self.root.gir).get(self.tokens["name"]))
 
     @validate("name")
     def is_valid_property(self):
@@ -160,6 +165,10 @@ class A11y(AstNode):
         "{",
         Until(A11yProperty, "}"),
     ]
+
+    @property
+    def properties(self) -> T.List[A11yProperty]:
+        return self.children[A11yProperty]
 
     @validate("accessibility")
     def container_is_widget(self):
