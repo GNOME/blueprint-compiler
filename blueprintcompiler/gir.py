@@ -126,6 +126,22 @@ class UncheckedType(GirType):
         return self._name
 
 
+class ArrayType(GirType):
+    def __init__(self, inner: GirType) -> None:
+        self._inner = inner
+
+    def assignable_to(self, other: GirType) -> bool:
+        return isinstance(other, ArrayType) and self._inner.assignable_to(other._inner)
+
+    @property
+    def name(self) -> str:
+        return self._inner.name + "[]"
+
+    @property
+    def full_name(self) -> str:
+        return self._inner.full_name + "[]"
+
+
 class BasicType(GirType):
     name: str = "unknown type"
 
@@ -714,9 +730,15 @@ class Repository(GirNode):
             else:
                 raise CompilerBugError("Unknown type ID", type_id)
         else:
-            return self._resolve_dir_entry(
-                self.tl.header[type_id].INTERFACE_TYPE_INTERFACE
-            )
+            blob = self.tl.header[type_id]
+            if blob.TYPE_BLOB_TAG == typelib.TYPE_INTERFACE:
+                return self._resolve_dir_entry(
+                    self.tl.header[type_id].TYPE_BLOB_INTERFACE
+                )
+            elif blob.TYPE_BLOB_TAG == typelib.TYPE_ARRAY:
+                return ArrayType(self._resolve_type_id(blob.TYPE_BLOB_ARRAY_INNER))
+            else:
+                raise CompilerBugError(f"{blob.TYPE_BLOB_TAG}")
 
 
 class GirContext:

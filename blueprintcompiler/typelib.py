@@ -136,7 +136,9 @@ class Typelib:
     ATTR_NAME = Field(0x0, "string")
     ATTR_VALUE = Field(0x0, "string")
 
-    INTERFACE_TYPE_INTERFACE = Field(0x2, "dir_entry")
+    TYPE_BLOB_TAG = Field(0x0, "u8", 3, 5)
+    TYPE_BLOB_INTERFACE = Field(0x2, "dir_entry")
+    TYPE_BLOB_ARRAY_INNER = Field(0x4, "u32")
 
     BLOB_NAME = Field(0x4, "string")
 

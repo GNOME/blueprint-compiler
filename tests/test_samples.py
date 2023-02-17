@@ -231,6 +231,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("signal_object_dne")
         self.assert_sample_error("size_group_non_widget")
         self.assert_sample_error("size_group_obj_dne")
+        self.assert_sample_error("strv")
         self.assert_sample_error("styles_in_non_widget")
         self.assert_sample_error("two_templates")
         self.assert_sample_error("uint")
