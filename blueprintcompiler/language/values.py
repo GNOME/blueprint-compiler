@@ -146,36 +146,32 @@ class NumberLiteral(AstNode):
     ]
 
     @property
+    def type(self) -> gir.GirType:
+        if isinstance(self.value, int):
+            return gir.IntType()
+        else:
+            return gir.FloatType()
+
+    @property
     def value(self) -> T.Union[int, float]:
-        return self.tokens["value"]
+        if self.tokens["sign"] == "-":
+            return -self.tokens["value"]
+        else:
+            return self.tokens["value"]
 
     @validate()
     def validate_for_type(self) -> None:
         expected_type = self.context[ValueTypeCtx].value_type
         if isinstance(expected_type, gir.IntType):
-            try:
-                int(self.tokens["value"])
-            except:
+            if not isinstance(self.value, int):
                 raise CompileError(
                     f"Cannot convert {self.group.tokens['value']} to integer"
                 )
 
         elif isinstance(expected_type, gir.UIntType):
-            try:
-                int(self.tokens["value"])
-                if int(self.tokens["value"]) < 0:
-                    raise Exception()
-            except:
+            if self.value < 0:
                 raise CompileError(
                     f"Cannot convert {self.group.tokens['value']} to unsigned integer"
-                )
-
-        elif isinstance(expected_type, gir.FloatType):
-            try:
-                float(self.tokens["value"])
-            except:
-                raise CompileError(
-                    f"Cannot convert {self.group.tokens['value']} to float"
                 )
 
         elif expected_type is not None:

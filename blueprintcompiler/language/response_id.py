@@ -31,7 +31,13 @@ class ResponseId(AstNode):
     grammar = [
         Keyword("response"),
         "=",
-        AnyOf(UseIdent("response_id"), UseNumber("response_id")),
+        AnyOf(
+            UseIdent("response_id"),
+            [
+                Optional(UseExact("sign", "-")),
+                UseNumber("response_id"),
+            ],
+        ),
         Optional([Keyword("default"), UseLiteral("is_default", True)]),
     ]
 
@@ -81,14 +87,14 @@ class ResponseId(AstNode):
         gir = self.root.gir
         response = self.tokens["response_id"]
 
-        if isinstance(response, int):
-            if response < 0:
-                raise CompileError("Numeric response type can't be negative")
-        elif isinstance(response, float):
+        if self.tokens["sign"] == "-":
+            raise CompileError("Numeric response type can't be negative")
+
+        if isinstance(response, float):
             raise CompileError(
                 "Response type must be GtkResponseType member or integer," " not float"
             )
-        else:
+        elif not isinstance(response, int):
             responses = gir.get_type("ResponseType", "Gtk").members.keys()
             if response not in responses:
                 raise CompileError(f'Response type "{response}" doesn\'t exist')
