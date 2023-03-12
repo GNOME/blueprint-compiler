@@ -208,20 +208,11 @@ class TypeType(BasicType):
 
 _BASIC_TYPES = {
     "bool": BoolType,
-    "gboolean": BoolType,
     "string": StringType,
-    "gchararray": StringType,
     "int": IntType,
-    "gint": IntType,
-    "gint64": IntType,
-    "guint": UIntType,
-    "guint64": UIntType,
-    "gfloat": FloatType,
-    "gdouble": FloatType,
+    "uint": UIntType,
     "float": FloatType,
     "double": FloatType,
-    "utf8": StringType,
-    "gtype": TypeType,
     "type": TypeType,
 }
 
