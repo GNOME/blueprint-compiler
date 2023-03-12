@@ -221,7 +221,7 @@ class Flag(AstNode):
 
 
 class Flags(AstNode):
-    grammar = [Flag, "|", Delimited(Flag, "|")]
+    grammar = [Flag, "|", Flag, ZeroOrMore(["|", Flag])]
 
     @property
     def flags(self) -> T.List[Flag]:
@@ -327,5 +327,5 @@ class Value(AstNode):
     @property
     def child(
         self,
-    ) -> T.Union[PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal,]:
+    ) -> T.Union[PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal]:
         return self.children[0]
