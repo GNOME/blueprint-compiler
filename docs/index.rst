@@ -18,6 +18,7 @@ Blueprint is a markup language and compiler for GTK 4 user interfaces.
    setup
    translations
    flatpak
+   reference/index
    examples
    packaging
 

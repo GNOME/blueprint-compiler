@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Blueprint'
-copyright = '2021, James Westman'
+copyright = '2021-2023, James Westman'
 author = 'James Westman'
 
 
