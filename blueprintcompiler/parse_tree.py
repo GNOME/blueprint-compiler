@@ -594,68 +594,6 @@ class Keyword(ParseNode):
         return str(token) == self.kw
 
 
-class Prefix(ParseNode):
-    def __init__(self, child):
-        self.child = to_parse_node(child)
-
-    def _parse(self, ctx: ParseContext):
-        return self.child.parse(ctx).succeeded()
-
-
-class Infix(ParseNode):
-    def __init__(self, binding_power: int, child):
-        self.binding_power = binding_power
-        self.child = to_parse_node(child)
-
-    def _parse(self, ctx: ParseContext):
-        ctx.binding_power = self.binding_power
-        return self.child.parse(ctx).succeeded()
-
-    def __lt__(self, other):
-        return self.binding_power < other.binding_power
-
-    def __eq__(self, other):
-        return self.binding_power == other.binding_power
-
-
-class Pratt(ParseNode):
-    """Basic Pratt parser implementation."""
-
-    def __init__(self, *children):
-        self.children = children
-
-    @property
-    def children(self):
-        return self._children
-
-    @children.setter
-    def children(self, children):
-        self._children = children
-        self.prefixes = [child for child in children if isinstance(child, Prefix)]
-        self.infixes = sorted(
-            [child for child in children if isinstance(child, Infix)], reverse=True
-        )
-
-    def _parse(self, ctx: ParseContext) -> bool:
-        for prefix in self.prefixes:
-            if prefix.parse(ctx).succeeded():
-                break
-        else:
-            # none of the prefixes could be parsed
-            return False
-
-        while True:
-            succeeded = False
-            for infix in self.infixes:
-                if infix.binding_power <= ctx.binding_power:
-                    break
-                if infix.parse(ctx).succeeded():
-                    succeeded = True
-                    break
-            if not succeeded:
-                return True
-
-
 def to_parse_node(value) -> ParseNode:
     if isinstance(value, str):
         return Match(value)

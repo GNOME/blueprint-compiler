@@ -23,7 +23,7 @@ from .types import TypeName
 from .gtkbuilder_template import Template
 
 
-expr = Pratt()
+expr = Sequence()
 
 
 class Expr(AstNode):
@@ -200,9 +200,6 @@ class ClosureExpr(Expr):
 
 
 expr.children = [
-    Prefix(ClosureExpr),
-    Prefix(IdentExpr),
-    Prefix(["(", ExprChain, ")"]),
-    Infix(10, LookupOp),
-    Infix(10, CastExpr),
+    AnyOf(ClosureExpr, IdentExpr, ["(", ExprChain, ")"]),
+    ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]
