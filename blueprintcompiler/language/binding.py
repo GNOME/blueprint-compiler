@@ -20,7 +20,7 @@
 from dataclasses import dataclass
 
 from .common import *
-from .expression import ExprChain, LookupOp, IdentExpr
+from .expression import ExprChain, LookupOp, LiteralExpr
 from .contexts import ValueTypeCtx
 
 
@@ -37,10 +37,14 @@ class Binding(AstNode):
     @property
     def simple_binding(self) -> T.Optional["SimpleBinding"]:
         if isinstance(self.expression.last, LookupOp):
-            if isinstance(self.expression.last.lhs, IdentExpr):
-                return SimpleBinding(
-                    self.expression.last.lhs.ident, self.expression.last.property_name
-                )
+            if isinstance(self.expression.last.lhs, LiteralExpr):
+                from .values import IdentLiteral
+
+                if isinstance(self.expression.last.lhs.literal.value, IdentLiteral):
+                    return SimpleBinding(
+                        self.expression.last.lhs.literal.value.ident,
+                        self.expression.last.property_name,
+                    )
         return None
 
     @validate("bind")

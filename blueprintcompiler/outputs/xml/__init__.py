@@ -159,21 +159,24 @@ class XmlOutput(OutputFormat):
         self._emit_object(child.object, xml)
         xml.end_tag()
 
+    def _emit_literal(self, literal: Literal, xml: XmlEmitter):
+        literal = literal.value
+        if isinstance(literal, IdentLiteral):
+            value_type = literal.context[ValueTypeCtx].value_type
+            if isinstance(value_type, gir.BoolType):
+                xml.put_text(literal.ident)
+            elif isinstance(value_type, gir.Enumeration):
+                xml.put_text(str(value_type.members[literal.ident].value))
+            else:
+                xml.put_text(literal.ident)
+        elif isinstance(literal, TypeLiteral):
+            xml.put_text(literal.type_name.glib_type_name)
+        else:
+            xml.put_text(literal.value)
+
     def _emit_value(self, value: Value, xml: XmlEmitter):
         if isinstance(value.child, Literal):
-            literal = value.child.value
-            if isinstance(literal, IdentLiteral):
-                value_type = value.context[ValueTypeCtx].value_type
-                if isinstance(value_type, gir.BoolType):
-                    xml.put_text(literal.ident)
-                elif isinstance(value_type, gir.Enumeration):
-                    xml.put_text(str(value_type.members[literal.ident].value))
-                else:
-                    xml.put_text(literal.ident)
-            elif isinstance(literal, TypeLiteral):
-                xml.put_text(literal.type_name.glib_type_name)
-            else:
-                xml.put_text(literal.value)
+            self._emit_literal(value.child, xml)
         elif isinstance(value.child, Flags):
             xml.put_text(
                 "|".join([str(flag.value or flag.name) for flag in value.child.flags])
@@ -191,8 +194,8 @@ class XmlOutput(OutputFormat):
         self._emit_expression_part(expression.last, xml)
 
     def _emit_expression_part(self, expression: Expr, xml: XmlEmitter):
-        if isinstance(expression, IdentExpr):
-            self._emit_ident_expr(expression, xml)
+        if isinstance(expression, LiteralExpr):
+            self._emit_literal_expr(expression, xml)
         elif isinstance(expression, LookupOp):
             self._emit_lookup_op(expression, xml)
         elif isinstance(expression, ExprChain):
@@ -204,9 +207,12 @@ class XmlOutput(OutputFormat):
         else:
             raise CompilerBugError()
 
-    def _emit_ident_expr(self, expr: IdentExpr, xml: XmlEmitter):
-        xml.start_tag("constant")
-        xml.put_text(expr.ident)
+    def _emit_literal_expr(self, expr: LiteralExpr, xml: XmlEmitter):
+        if expr.is_object:
+            xml.start_tag("constant")
+        else:
+            xml.start_tag("constant", type=expr.type)
+        self._emit_literal(expr.literal, xml)
         xml.end_tag()
 
     def _emit_lookup_op(self, expr: LookupOp, xml: XmlEmitter):
@@ -220,7 +226,7 @@ class XmlOutput(OutputFormat):
     def _emit_closure_expr(self, expr: ClosureExpr, xml: XmlEmitter):
         xml.start_tag("closure", function=expr.closure_name, type=expr.type)
         for arg in expr.args:
-            self._emit_expression_part(arg, xml)
+            self._emit_expression_part(arg.expr, xml)
         xml.end_tag()
 
     def _emit_attribute(

@@ -80,6 +80,10 @@ class TypeLiteral(AstNode):
     ]
 
     @property
+    def type(self):
+        return gir.TypeType()
+
+    @property
     def type_name(self) -> TypeName:
         return self.children[TypeName][0]
 
@@ -96,6 +100,10 @@ class QuotedLiteral(AstNode):
     @property
     def value(self) -> str:
         return self.tokens["value"]
+
+    @property
+    def type(self):
+        return gir.StringType()
 
     @validate()
     def validate_for_type(self) -> None:
@@ -171,10 +179,10 @@ class NumberLiteral(AstNode):
         elif isinstance(expected_type, gir.UIntType):
             if self.value < 0:
                 raise CompileError(
-                    f"Cannot convert {self.group.tokens['value']} to unsigned integer"
+                    f"Cannot convert -{self.group.tokens['value']} to unsigned integer"
                 )
 
-        elif expected_type is not None:
+        elif not isinstance(expected_type, gir.FloatType) and expected_type is not None:
             raise CompileError(f"Cannot convert number to {expected_type.full_name}")
 
 
@@ -236,6 +244,18 @@ class IdentLiteral(AstNode):
     @property
     def ident(self) -> str:
         return self.tokens["value"]
+
+    @property
+    def type(self) -> T.Optional[gir.GirType]:
+        # If the expected type is known, then use that. Otherwise, guess.
+        if expected_type := self.context[ValueTypeCtx].value_type:
+            return expected_type
+        elif self.ident in ["true", "false"]:
+            return gir.BoolType()
+        elif object := self.root.objects_by_id.get(self.ident):
+            return object.gir_class
+        else:
+            return None
 
     @validate()
     def validate_for_type(self) -> None:

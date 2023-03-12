@@ -1,7 +1,15 @@
 from .attributes import BaseAttribute, BaseTypedAttribute
 from .binding import Binding
 from .contexts import ValueTypeCtx
-from .expression import CastExpr, ClosureExpr, Expr, ExprChain, IdentExpr, LookupOp
+from .expression import (
+    CastExpr,
+    ClosureArg,
+    ClosureExpr,
+    Expr,
+    ExprChain,
+    LiteralExpr,
+    LookupOp,
+)
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
@@ -50,3 +58,5 @@ OBJECT_CONTENT_HOOKS.children = [
     Strings,
     Child,
 ]
+
+LITERAL.children = [Literal]

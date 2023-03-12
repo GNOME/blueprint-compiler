@@ -19,6 +19,7 @@
 
 
 from .common import *
+from .contexts import ValueTypeCtx
 from .types import TypeName
 from .gtkbuilder_template import Template
 
@@ -27,6 +28,13 @@ expr = Sequence()
 
 
 class Expr(AstNode):
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        if rhs := self.rhs:
+            return rhs.context[ValueTypeCtx]
+        else:
+            return self.parent.context[ValueTypeCtx]
+
     @property
     def type(self) -> T.Optional[GirType]:
         raise NotImplementedError()
@@ -70,38 +78,44 @@ class InfixExpr(Expr):
         return children[children.index(self) - 1]
 
 
-class IdentExpr(Expr):
-    grammar = UseIdent("ident")
+class LiteralExpr(Expr):
+    grammar = LITERAL
 
     @property
-    def ident(self) -> str:
-        return self.tokens["ident"]
+    def is_object(self) -> bool:
+        from .values import IdentLiteral
 
-    @validate()
-    def exists(self):
-        if self.root.objects_by_id.get(self.ident) is None:
-            raise CompileError(
-                f"Could not find object with ID {self.ident}",
-                did_you_mean=(self.ident, self.root.objects_by_id.keys()),
-            )
+        return (
+            isinstance(self.literal.value, IdentLiteral)
+            and self.literal.value.ident in self.root.objects_by_id
+        )
+
+    @property
+    def literal(self):
+        from .values import Literal
+
+        return self.children[Literal][0]
 
     @property
     def type(self) -> T.Optional[GirType]:
-        if object := self.root.objects_by_id.get(self.ident):
-            return object.gir_class
-        else:
-            return None
+        return self.literal.value.type
 
     @property
     def type_complete(self) -> bool:
-        if object := self.root.objects_by_id.get(self.ident):
-            return not isinstance(object, Template)
-        else:
-            return True
+        from .values import IdentLiteral
+
+        if isinstance(self.literal, IdentLiteral):
+            if object := self.root.objects_by_id.get(self.ident):
+                return not isinstance(object, Template)
+        return True
 
 
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(None)
 
     @property
     def property_name(self) -> str:
@@ -119,11 +133,15 @@ class LookupOp(InfixExpr):
 
     @validate("property")
     def property_exists(self):
-        if (
-            self.lhs.type is None
-            or not self.lhs.type_complete
-            or isinstance(self.lhs.type, UncheckedType)
-        ):
+        if self.lhs.type is None:
+            raise CompileError(
+                f"Could not determine the type of the preceding expression",
+                hints=[
+                    f"add a type cast so blueprint knows which type the property {self.property_name} belongs to"
+                ],
+            )
+
+        if isinstance(self.lhs.type, UncheckedType):
             return
 
         elif not isinstance(self.lhs.type, gir.Class) and not isinstance(
@@ -142,6 +160,10 @@ class LookupOp(InfixExpr):
 
 class CastExpr(InfixExpr):
     grammar = ["as", "(", TypeName, ")"]
+
+    @context(ValueTypeCtx)
+    def value_type(self):
+        return ValueTypeCtx(self.type)
 
     @property
     def type(self) -> T.Optional[GirType]:
@@ -162,12 +184,24 @@ class CastExpr(InfixExpr):
             )
 
 
+class ClosureArg(AstNode):
+    grammar = ExprChain
+
+    @property
+    def expr(self) -> ExprChain:
+        return self.children[ExprChain][0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(None)
+
+
 class ClosureExpr(Expr):
     grammar = [
         Optional(["$", UseLiteral("extern", True)]),
         UseIdent("name"),
         "(",
-        Delimited(ExprChain, ","),
+        Delimited(ClosureArg, ","),
         ")",
     ]
 
@@ -183,8 +217,8 @@ class ClosureExpr(Expr):
         return self.tokens["name"]
 
     @property
-    def args(self) -> T.List[ExprChain]:
-        return self.children[ExprChain]
+    def args(self) -> T.List[ClosureArg]:
+        return self.children[ClosureArg]
 
     @validate()
     def cast_to_return_type(self):
@@ -200,6 +234,6 @@ class ClosureExpr(Expr):
 
 
 expr.children = [
-    AnyOf(ClosureExpr, IdentExpr, ["(", ExprChain, ")"]),
+    AnyOf(ClosureExpr, LiteralExpr, ["(", ExprChain, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]

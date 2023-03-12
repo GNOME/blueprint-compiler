@@ -44,3 +44,4 @@ from ..parse_tree import *
 
 
 OBJECT_CONTENT_HOOKS = AnyOf()
+LITERAL = AnyOf()
