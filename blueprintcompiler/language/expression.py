@@ -104,8 +104,8 @@ class LiteralExpr(Expr):
     def type_complete(self) -> bool:
         from .values import IdentLiteral
 
-        if isinstance(self.literal, IdentLiteral):
-            if object := self.root.objects_by_id.get(self.ident):
+        if isinstance(self.literal.value, IdentLiteral):
+            if object := self.root.objects_by_id.get(self.literal.value.ident):
                 return not isinstance(object, Template)
         return True
 
@@ -141,7 +141,7 @@ class LookupOp(InfixExpr):
                 ],
             )
 
-        if isinstance(self.lhs.type, UncheckedType):
+        if isinstance(self.lhs.type, UncheckedType) or not self.lhs.type_complete:
             return
 
         elif not isinstance(self.lhs.type, gir.Class) and not isinstance(

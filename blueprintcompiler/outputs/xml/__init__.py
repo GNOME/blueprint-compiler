@@ -160,19 +160,19 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_literal(self, literal: Literal, xml: XmlEmitter):
-        literal = literal.value
-        if isinstance(literal, IdentLiteral):
-            value_type = literal.context[ValueTypeCtx].value_type
+        value = literal.value
+        if isinstance(value, IdentLiteral):
+            value_type = value.context[ValueTypeCtx].value_type
             if isinstance(value_type, gir.BoolType):
-                xml.put_text(literal.ident)
+                xml.put_text(value.ident)
             elif isinstance(value_type, gir.Enumeration):
-                xml.put_text(str(value_type.members[literal.ident].value))
+                xml.put_text(str(value_type.members[value.ident].value))
             else:
-                xml.put_text(literal.ident)
-        elif isinstance(literal, TypeLiteral):
-            xml.put_text(literal.type_name.glib_type_name)
+                xml.put_text(value.ident)
+        elif isinstance(value, TypeLiteral):
+            xml.put_text(value.type_name.glib_type_name)
         else:
-            xml.put_text(literal.value)
+            xml.put_text(value.value)
 
     def _emit_value(self, value: Value, xml: XmlEmitter):
         if isinstance(value.child, Literal):
