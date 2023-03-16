@@ -32,9 +32,15 @@ from . import typelib, xml_reader
 _namespace_cache: T.Dict[str, "Namespace"] = {}
 _xml_cache = {}
 
+_user_search_paths = []
+
+
+def add_typelib_search_path(path: str):
+    _user_search_paths.append(path)
+
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    search_paths = GIRepository.Repository.get_search_path()
+    search_paths = [*GIRepository.Repository.get_search_path(), *_user_search_paths]
 
     filename = f"{namespace}-{version}.typelib"
 

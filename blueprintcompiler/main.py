@@ -22,6 +22,7 @@ import typing as T
 import argparse, json, os, sys
 
 from .errors import PrintableError, report_bug, MultipleErrors, CompilerBugError
+from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from . import parser, tokenizer, decompiler, interactive_port
 from .utils import Colors
@@ -41,6 +42,7 @@ class BlueprintApp:
             "compile", "Compile blueprint files", self.cmd_compile
         )
         compile.add_argument("--output", dest="output", default="-")
+        compile.add_argument("--typelib-path", nargs="?", action="append")
         compile.add_argument(
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
@@ -52,6 +54,7 @@ class BlueprintApp:
         )
         batch_compile.add_argument("output_dir", metavar="output-dir")
         batch_compile.add_argument("input_dir", metavar="input-dir")
+        batch_compile.add_argument("--typelib-path", nargs="?", action="append")
         batch_compile.add_argument(
             "inputs",
             nargs="+",
@@ -91,6 +94,10 @@ class BlueprintApp:
         self.parser.print_help()
 
     def cmd_compile(self, opts):
+        if opts.typelib_path != None:
+            for typelib_path in opts.typelib_path:
+                add_typelib_search_path(typelib_path)
+
         data = opts.input.read()
         try:
             xml, warnings = self._compile(data)
@@ -108,6 +115,10 @@ class BlueprintApp:
             sys.exit(1)
 
     def cmd_batch_compile(self, opts):
+        if opts.typelib_path != None:
+            for typelib_path in opts.typelib_path:
+                add_typelib_search_path(typelib_path)
+
         for file in opts.inputs:
             data = file.read()
 
