@@ -143,6 +143,17 @@ class TestSamples(unittest.TestCase):
             raise AssertionError()
 
     def test_samples(self):
+        try:
+            import gi
+
+            gi.require_version("Adw", "1")
+            from gi.repository import Adw
+
+            have_adw = True
+            Adw.init()
+        except:
+            have_adw = False
+
         self.assert_sample("accessibility")
         self.assert_sample("action_widgets")
         self.assert_sample("child_type")
@@ -166,6 +177,7 @@ class TestSamples(unittest.TestCase):
         )  # The image resource doesn't exist
         self.assert_sample("property")
         self.assert_sample("property_binding")
+        self.assert_sample("responses", skip_run=not have_adw)
         self.assert_sample("signal", skip_run=True)  # The callback doesn't exist
         self.assert_sample("size_group")
         self.assert_sample("string_list")
@@ -257,6 +269,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("property")
         self.assert_decompile("property_binding_dec")
         self.assert_decompile("placeholder_dec")
+        self.assert_decompile("responses")
         self.assert_decompile("signal")
         self.assert_decompile("strings")
         self.assert_decompile("style_dec")

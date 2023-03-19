@@ -126,14 +126,17 @@ class XmlOutput(OutputFormat):
             xml.end_tag()
 
     def _translated_string_attrs(
-        self, translated: Translated
+        self, translated: T.Union[QuotedLiteral, Translated]
     ) -> T.Dict[str, T.Optional[str]]:
-        return {
-            "translatable": "true",
-            "context": translated.child.context
-            if isinstance(translated.child, TranslatedWithContext)
-            else None,
-        }
+        if isinstance(translated, QuotedLiteral):
+            return {}
+        else:
+            return {
+                "translatable": "true",
+                "context": translated.child.context
+                if isinstance(translated.child, TranslatedWithContext)
+                else None,
+            }
 
     def _emit_signal(self, signal: Signal, xml: XmlEmitter):
         name = signal.name
@@ -268,6 +271,24 @@ class XmlOutput(OutputFormat):
             xml.start_tag("layout")
             for prop in extension.children:
                 self._emit_attribute("property", "name", prop.name, prop.value, xml)
+            xml.end_tag()
+
+        elif isinstance(extension, Responses):
+            xml.start_tag("responses")
+            for response in extension.responses:
+                # todo: translated
+                xml.start_tag(
+                    "response",
+                    id=response.id,
+                    **self._translated_string_attrs(response.value),
+                    enabled=None if response.enabled else "false",
+                    appearance=response.appearance,
+                )
+                if isinstance(response.value, Translated):
+                    xml.put_text(response.value.child.string)
+                else:
+                    xml.put_text(response.value.value)
+                xml.end_tag()
             xml.end_tag()
 
         elif isinstance(extension, Strings):

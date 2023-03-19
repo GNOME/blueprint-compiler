@@ -1,3 +1,4 @@
+from .adw_message_dialog import Responses
 from .attributes import BaseAttribute, BaseTypedAttribute
 from .binding import Binding
 from .contexts import ValueTypeCtx
@@ -56,6 +57,7 @@ OBJECT_CONTENT_HOOKS.children = [
     Widgets,
     Items,
     Strings,
+    Responses,
     Child,
 ]
 

@@ -275,9 +275,28 @@ def decompile_placeholder(ctx, gir):
     pass
 
 
+def decompile_translatable(
+    string: str,
+    translatable: T.Optional[str],
+    context: T.Optional[str],
+    comments: T.Optional[str],
+) -> T.Tuple[T.Optional[str], str]:
+    if translatable is not None and truthy(translatable):
+        if comments is not None:
+            comments = comments.replace("/*", " ").replace("*/", " ")
+            comments = f"/* Translators: {comments} */"
+
+        if context is not None:
+            return comments, f'C_("{escape_quote(context)}", "{escape_quote(string)}")'
+        else:
+            return comments, f'_("{escape_quote(string)}")'
+    else:
+        return comments, f'"{escape_quote(string)}"'
+
+
 @decompiler("property", cdata=True)
 def decompile_property(
-    ctx,
+    ctx: DecompileCtx,
     gir,
     name,
     cdata,
@@ -306,12 +325,12 @@ def decompile_property(
             flags += " bidirectional"
         ctx.print(f"{name}: bind-property {bind_source}.{bind_property}{flags};")
     elif truthy(translatable):
-        if context is not None:
-            ctx.print(
-                f'{name}: C_("{escape_quote(context)}", "{escape_quote(cdata)}");'
-            )
-        else:
-            ctx.print(f'{name}: _("{escape_quote(cdata)}");')
+        comments, translatable = decompile_translatable(
+            cdata, translatable, context, comments
+        )
+        if comments is not None:
+            ctx.print(comments)
+        ctx.print(f"{name}: {translatable};")
     elif gir is None or gir.properties.get(name) is None:
         ctx.print(f'{name}: "{escape_quote(cdata)}";')
     else:
