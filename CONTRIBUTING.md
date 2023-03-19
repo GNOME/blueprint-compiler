@@ -8,6 +8,10 @@ If you learn something useful, please add it to this file.
 python -m unittest
 ```
 
+# Formatting
+
+Blueprint uses [Black](https://github.com/psf/black) for code formatting.
+
 # Build the docs
 
 ```sh

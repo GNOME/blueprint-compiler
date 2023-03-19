@@ -92,3 +92,9 @@ def parse(filename):
     parser.setContentHandler(handler)
     parser.parse(filename)
     return handler.root
+
+
+def parse_string(xml):
+    handler = Handler()
+    parser = sax.parseString(xml, handler)
+    return handler.root

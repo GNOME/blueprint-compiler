@@ -24,7 +24,8 @@ import json, sys, traceback
 from .completions import complete
 from .errors import PrintableError, CompileError, MultipleErrors
 from .lsp_utils import *
-from . import tokenizer, parser, utils, xml_reader
+from .outputs.xml import XmlOutput
+from . import tokenizer, parser, utils, xml_reader, decompiler
 
 
 def printerr(*args, **kwargs):
@@ -149,6 +150,18 @@ class LanguageServer:
         )
         sys.stdout.flush()
 
+    def _send_error(self, id, code, message, data=None):
+        self._send(
+            {
+                "id": id,
+                "error": {
+                    "code": code,
+                    "message": message,
+                    "data": data,
+                },
+            }
+        )
+
     def _send_response(self, id, result):
         self._send(
             {
@@ -169,7 +182,7 @@ class LanguageServer:
     def initialize(self, id, params):
         from . import main
 
-        self.client_capabilities = params.get("capabilities")
+        self.client_capabilities = params.get("capabilities", {})
         self._send_response(
             id,
             {
@@ -255,6 +268,41 @@ class LanguageServer:
         self._send_response(
             id, [completion.to_json(True) for completion in completions]
         )
+
+    @command("textDocument/x-blueprint-compile")
+    def compile(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        if open_file.ast is None:
+            self._send_error(id, ErrorCode.RequestFailed, "Document is not open")
+            return
+
+        xml = None
+        try:
+            output = XmlOutput()
+            xml = output.emit(open_file.ast)
+        except:
+            printerr(traceback.format_exc())
+            self._send_error(id, ErrorCode.RequestFailed, "Could not compile document")
+            return
+        self._send_response(id, {"xml": xml})
+
+    @command("x-blueprint/decompile")
+    def decompile(self, id, params):
+        text = params.get("text")
+        blp = None
+
+        try:
+            blp = decompiler.decompile_string(text)
+        except decompiler.UnsupportedError as e:
+            self._send_error(id, ErrorCode.RequestFailed, e.message)
+            return
+        except:
+            printerr(traceback.format_exc())
+            self._send_error(id, ErrorCode.RequestFailed, "Invalid input")
+            return
+
+        self._send_response(id, {"blp": blp})
 
     @command("textDocument/semanticTokens/full")
     def semantic_tokens(self, id, params):

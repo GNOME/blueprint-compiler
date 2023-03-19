@@ -69,6 +69,10 @@ class CompletionItemKind(enum.IntEnum):
     TypeParameter = 25
 
 
+class ErrorCode(enum.IntEnum):
+    RequestFailed = -32803
+
+
 @dataclass
 class Completion:
     label: str

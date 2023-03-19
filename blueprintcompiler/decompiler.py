@@ -22,7 +22,7 @@ from enum import Enum
 import typing as T
 from dataclasses import dataclass
 
-from .xml_reader import Element, parse
+from .xml_reader import Element, parse, parse_string
 from .gir import *
 from .utils import Colors
 
@@ -206,6 +206,15 @@ def decompile(data: str) -> str:
     ctx = DecompileCtx()
 
     xml = parse(data)
+    _decompile_element(ctx, None, xml)
+
+    return ctx.result
+
+
+def decompile_string(data):
+    ctx = DecompileCtx()
+
+    xml = parse_string(data)
     _decompile_element(ctx, None, xml)
 
     return ctx.result
