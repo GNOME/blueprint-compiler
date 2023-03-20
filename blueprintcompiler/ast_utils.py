@@ -76,6 +76,7 @@ class AstNode:
     """Base class for nodes in the abstract syntax tree."""
 
     completers: T.List = []
+    attrs_by_type: T.Dict[T.Type, T.List] = {}
 
     def __init__(self, group, children, tokens, incomplete=False):
         self.group = group
@@ -92,12 +93,13 @@ class AstNode:
         cls.validators = [
             getattr(cls, f) for f in dir(cls) if hasattr(getattr(cls, f), "_validator")
         ]
+        cls.attrs_by_type = {}
 
     @cached_property
     def context(self):
         return Ctx(self)
 
-    @property
+    @cached_property
     def root(self):
         if self.parent is None:
             return self
@@ -140,13 +142,14 @@ class AstNode:
         for child in self.children:
             yield from child._get_errors()
 
-    def _attrs_by_type(
-        self, attr_type: T.Type[TAttr]
-    ) -> T.Iterator[T.Tuple[str, TAttr]]:
-        for name in dir(type(self)):
-            item = getattr(type(self), name)
-            if isinstance(item, attr_type):
-                yield name, item
+    def _attrs_by_type(self, attr_type: T.Type[TAttr]) -> T.List[T.Tuple[str, TAttr]]:
+        if attr_type not in self.attrs_by_type:
+            self.attrs_by_type[attr_type] = []
+            for name in dir(type(self)):
+                item = getattr(type(self), name)
+                if isinstance(item, attr_type):
+                    self.attrs_by_type[attr_type].append((name, item))
+        return self.attrs_by_type[attr_type]
 
     def get_docs(self, idx: int) -> T.Optional[str]:
         for name, attr in self._attrs_by_type(Docs):

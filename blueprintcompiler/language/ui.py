@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from functools import cached_property
 
 from .. import gir
 from .imports import GtkDirective, Import
@@ -82,7 +83,7 @@ class UI(AstNode):
             or isinstance(child, Menu)
         ]
 
-    @property
+    @cached_property
     def objects_by_id(self):
         return {
             obj.tokens["id"]: obj
