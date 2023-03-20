@@ -107,7 +107,7 @@ class ParseContext:
     """Contains the state of the parser."""
 
     def __init__(self, tokens: T.List[Token], index=0):
-        self.tokens = list(tokens)
+        self.tokens = tokens
 
         self.binding_power = 0
         self.index = index
