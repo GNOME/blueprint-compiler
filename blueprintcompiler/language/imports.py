@@ -76,6 +76,14 @@ class Import(AstNode):
         UseNumberText("version").expected("a version number"),
     )
 
+    @property
+    def namespace(self):
+        return self.tokens["namespace"]
+
+    @property
+    def version(self):
+        return self.tokens["version"]
+
     @validate("namespace", "version")
     def namespace_exists(self):
         gir.get_namespace(self.tokens["namespace"], self.tokens["version"])

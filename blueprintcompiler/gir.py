@@ -741,6 +741,7 @@ class Repository(GirNode):
 class GirContext:
     def __init__(self):
         self.namespaces = {}
+        self.not_found_namespaces: T.Set[str] = set()
 
     def add_namespace(self, namespace: Namespace):
         other = self.namespaces.get(namespace.name)
@@ -781,7 +782,7 @@ class GirContext:
 
         ns = ns or "Gtk"
 
-        if ns not in self.namespaces:
+        if ns not in self.namespaces and ns not in self.not_found_namespaces:
             raise CompileError(
                 f"Namespace {ns} was not imported",
                 did_you_mean=(ns, self.namespaces.keys()),

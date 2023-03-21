@@ -58,6 +58,8 @@ class UI(AstNode):
             try:
                 if i.gir_namespace is not None:
                     gir_ctx.add_namespace(i.gir_namespace)
+                else:
+                    gir_ctx.not_found_namespaces.add(i.namespace)
             except CompileError as e:
                 e.start = i.group.tokens["namespace"].start
                 e.end = i.group.tokens["version"].end
