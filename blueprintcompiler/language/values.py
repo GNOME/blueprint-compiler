@@ -297,7 +297,8 @@ class IdentLiteral(AstNode):
             return None
 
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
-        if isinstance(self.parent.value_type, gir.Enumeration):
+        type = self.context[ValueTypeCtx].value_type
+        if isinstance(type, gir.Enumeration):
             token = self.group.tokens["value"]
             yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
 

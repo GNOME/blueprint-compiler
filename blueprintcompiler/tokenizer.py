@@ -82,7 +82,7 @@ def _tokenize(ui_ml: str):
     i = 0
     while i < len(ui_ml):
         matched = False
-        for (type, regex) in _TOKENS:
+        for type, regex in _TOKENS:
             match = regex.match(ui_ml, i)
 
             if match is not None:
