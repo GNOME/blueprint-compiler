@@ -210,6 +210,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("duplicates")
         self.assert_sample_error("empty")
         self.assert_sample_error("enum_member_dne")
+        self.assert_sample_error("expected_semicolon")
         self.assert_sample_error("expr_cast_conversion")
         self.assert_sample_error("expr_cast_needed")
         self.assert_sample_error("expr_closure_not_cast")

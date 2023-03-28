@@ -30,7 +30,7 @@ from .binding import Binding
 
 
 class Property(AstNode):
-    grammar = [UseIdent("name"), ":", Value, ";"]
+    grammar = Statement(UseIdent("name"), ":", Value)
 
     @property
     def name(self) -> str:
