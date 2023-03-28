@@ -141,7 +141,7 @@ class LookupOp(InfixExpr):
                 ],
             )
 
-        if isinstance(self.lhs.type, UncheckedType) or not self.lhs.type_complete:
+        if self.lhs.type.incomplete:
             return
 
         elif not isinstance(self.lhs.type, gir.Class) and not isinstance(

@@ -188,6 +188,12 @@ class TestSamples(unittest.TestCase):
             "template", skip_run=True
         )  # The template class doesn't exist
         self.assert_sample(
+            "template_binding", skip_run=True
+        )  # The template class doesn't exist
+        self.assert_sample(
+            "template_binding_extern", skip_run=True
+        )  # The template class doesn't exist
+        self.assert_sample(
             "template_no_parent", skip_run=True
         )  # The template class doesn't exist
         self.assert_sample("translated")

@@ -50,11 +50,10 @@ class Template(Object):
 
     @property
     def gir_class(self):
-        # Templates might not have a parent class defined
-        if class_name := self.class_name:
-            return class_name.gir_type
+        if self.class_name is None:
+            return gir.TemplateType(self.id, None)
         else:
-            return gir.UncheckedType(self.id)
+            return gir.TemplateType(self.id, self.class_name.gir_type)
 
     @validate("id")
     def unique_in_parent(self):

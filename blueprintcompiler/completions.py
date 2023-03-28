@@ -120,7 +120,7 @@ def gtk_object_completer(ast_node, match_variables):
     matches=new_statement_patterns,
 )
 def property_completer(ast_node, match_variables):
-    if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.UncheckedType):
+    if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.ExternType):
         for prop in ast_node.gir_class.properties:
             yield Completion(prop, CompletionItemKind.Property, snippet=f"{prop}: $0;")
 
@@ -144,7 +144,7 @@ def prop_value_completer(ast_node, match_variables):
     matches=new_statement_patterns,
 )
 def signal_completer(ast_node, match_variables):
-    if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.UncheckedType):
+    if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.ExternType):
         for signal in ast_node.gir_class.signals:
             if not isinstance(ast_node.parent, language.Object):
                 name = "on"

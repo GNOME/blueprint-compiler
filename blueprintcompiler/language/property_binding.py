@@ -108,11 +108,7 @@ class PropertyBinding(AstNode):
 
         gir_class = self.source_obj.gir_class
 
-        if (
-            isinstance(self.source_obj, Template)
-            or gir_class is None
-            or isinstance(gir_class, UncheckedType)
-        ):
+        if gir_class is None or gir_class.incomplete:
             # Objects that we have no gir data on should not be validated
             # This happens for classes defined by the app itself
             return

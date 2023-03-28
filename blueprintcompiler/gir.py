@@ -114,8 +114,12 @@ class GirType:
         """The name of the type in the GObject type system, suitable to pass to `g_type_from_name()`."""
         raise NotImplementedError()
 
+    @property
+    def incomplete(self) -> bool:
+        return False
 
-class UncheckedType(GirType):
+
+class ExternType(GirType):
     def __init__(self, name: str) -> None:
         super().__init__()
         self._name = name
@@ -130,6 +134,10 @@ class UncheckedType(GirType):
     @property
     def glib_type_name(self) -> str:
         return self._name
+
+    @property
+    def incomplete(self) -> bool:
+        return True
 
 
 class ArrayType(GirType):
@@ -505,6 +513,60 @@ class Class(GirNode, GirType):
 
         for impl in self.implements:
             yield from impl.signals.values()
+
+
+class TemplateType(GirType):
+    def __init__(self, name: str, parent: T.Optional[Class]):
+        self._name = name
+        self.parent = parent
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def full_name(self) -> str:
+        return self._name
+
+    @property
+    def glib_type_name(self) -> str:
+        return self._name
+
+    @cached_property
+    def properties(self) -> T.Mapping[str, Property]:
+        if self.parent is None or isinstance(self.parent, ExternType):
+            return {}
+        else:
+            return self.parent.properties
+
+    @cached_property
+    def signals(self) -> T.Mapping[str, Signal]:
+        if self.parent is None or isinstance(self.parent, ExternType):
+            return {}
+        else:
+            return self.parent.signals
+
+    def assignable_to(self, other: "GirType") -> bool:
+        if self == other:
+            return True
+        elif isinstance(other, Interface):
+            # we don't know the template type's interfaces, assume yes
+            return True
+        elif self.parent is None or isinstance(self.parent, ExternType):
+            return isinstance(other, Class)
+        else:
+            return self.parent.assignable_to(other)
+
+    @cached_property
+    def signature(self) -> str:
+        if self.parent is None:
+            return f"template {self.name}"
+        else:
+            return f"template {self.name} : {self.parent.full_name}"
+
+    @property
+    def incomplete(self) -> bool:
+        return True
 
 
 class EnumMember(GirNode):

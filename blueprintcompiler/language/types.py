@@ -20,7 +20,7 @@
 
 import typing as T
 from .common import *
-from ..gir import Class, Interface
+from ..gir import Class, ExternType, Interface
 
 
 class TypeName(AstNode):
@@ -70,7 +70,7 @@ class TypeName(AstNode):
                 self.tokens["class_name"], self.tokens["namespace"]
             )
 
-        return gir.UncheckedType(self.tokens["class_name"])
+        return gir.ExternType(self.tokens["class_name"])
 
     @property
     def glib_type_name(self) -> str:
@@ -95,7 +95,7 @@ class ClassName(TypeName):
     def gir_class_exists(self):
         if (
             self.gir_type is not None
-            and not isinstance(self.gir_type, UncheckedType)
+            and not isinstance(self.gir_type, ExternType)
             and not isinstance(self.gir_type, Class)
         ):
             if isinstance(self.gir_type, Interface):

@@ -37,7 +37,7 @@ from ..gir import (
     FloatType,
     GirType,
     Enumeration,
-    UncheckedType,
+    ExternType,
 )
 from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from ..parse_tree import *

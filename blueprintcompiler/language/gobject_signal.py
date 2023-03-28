@@ -72,7 +72,7 @@ class Signal(AstNode):
 
     @property
     def gir_signal(self):
-        if self.gir_class is not None and not isinstance(self.gir_class, UncheckedType):
+        if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.signals.get(self.tokens["name"])
 
     @property
@@ -90,7 +90,7 @@ class Signal(AstNode):
 
     @validate("name")
     def signal_exists(self):
-        if self.gir_class is None or isinstance(self.gir_class, UncheckedType):
+        if self.gir_class is None or self.gir_class.incomplete:
             # Objects that we have no gir data on should not be validated
             # This happens for classes defined by the app itself
             return
