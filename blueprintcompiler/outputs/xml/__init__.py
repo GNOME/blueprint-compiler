@@ -304,6 +304,16 @@ class XmlOutput(OutputFormat):
                     self._emit_value(value, xml)
                     xml.end_tag()
             xml.end_tag()
+        elif isinstance(extension, ListItemFactory):
+            child_xml = XmlEmitter()
+            child_xml.start_tag("interface")
+            child_xml.start_tag("template", **{"class": "GtkListItem"})
+            self._emit_object_or_template(extension, child_xml)
+            child_xml.end_tag()
+            child_xml.end_tag()
+            xml.start_tag("property", name="bytes")
+            xml.put_cdata(child_xml.result)
+            xml.end_tag()
 
         elif isinstance(extension, Styles):
             xml.start_tag("style")

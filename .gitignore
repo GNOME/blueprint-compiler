@@ -12,3 +12,5 @@ coverage.xml
 
 /corpus
 /crashes
+
+.vscode

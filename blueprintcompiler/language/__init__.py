@@ -1,3 +1,4 @@
+from .gtk_list_item_factory import ListItemFactory
 from .adw_message_dialog import Responses
 from .attributes import BaseAttribute, BaseTypedAttribute
 from .binding import Binding
@@ -57,6 +58,7 @@ OBJECT_CONTENT_HOOKS.children = [
     Widgets,
     Items,
     Strings,
+    ListItemFactory,
     Responses,
     Child,
 ]

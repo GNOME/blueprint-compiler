@@ -62,6 +62,10 @@ class XmlEmitter:
         self.result += saxutils.escape(str(text))
         self._needs_newline = False
 
+    def put_cdata(self, text: str):
+        self.result += f"<![CDATA[{text}]]>"
+        self._needs_newline = False
+
     def _indent(self):
         if self.indent is not None:
             self.result += "\n" + " " * (self.indent * len(self._tag_stack))

@@ -414,6 +414,21 @@ Gtk.SizeGroup
    Gtk.Label label1 {}
    Gtk.Label label2 {}
 
+Gtk.BuilderListItemFactory
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block::
+
+    Gtk.ListView {
+      factory: Gtk.BuilderListItemFactory {
+          template {
+              child: Label {
+                  label: "Hello";
+              };
+          }
+      };
+    }
+
 Gtk.StringList
 ~~~~~~~~~~~~~~
 
