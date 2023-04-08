@@ -45,7 +45,9 @@ class XmlOutput(OutputFormat):
         self._emit_object_or_template(obj, xml)
         xml.end_tag()
 
-    def _emit_object_or_template(self, obj: T.Union[Object, Template], xml: XmlEmitter):
+    def _emit_object_or_template(
+        self, obj: T.Union[Object, Template, ListItemFactory], xml: XmlEmitter
+    ):
         for child in obj.content.children:
             if isinstance(child, Property):
                 self._emit_property(child, xml)
