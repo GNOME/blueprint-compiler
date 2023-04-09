@@ -121,11 +121,6 @@ class PropertyBinding(AstNode):
                 f"{gir_class.full_name} does not have a property called {self.property_name}"
             )
 
-    @validate("bind-property")
-    def not_bindable(self) -> None:
-        if binding_error := self.context[ValueTypeCtx].binding_error:
-            raise binding_error
-
     @validate("bind")
     def old_bind(self):
         if self.tokens["bind"]:

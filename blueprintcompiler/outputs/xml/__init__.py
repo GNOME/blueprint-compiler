@@ -91,47 +91,57 @@ class XmlOutput(OutputFormat):
 
     def _emit_property(self, property: Property, xml: XmlEmitter):
         value = property.value
-        child = value.child
 
         props: T.Dict[str, T.Optional[str]] = {
             "name": property.name,
         }
 
-        if isinstance(child, Translated):
-            xml.start_tag("property", **props, **self._translated_string_attrs(child))
-            xml.put_text(child.child.string)
-            xml.end_tag()
-        elif isinstance(child, Object):
-            xml.start_tag("property", **props)
-            self._emit_object(child, xml)
-            xml.end_tag()
-        elif isinstance(child, Binding):
-            if simple := child.simple_binding:
+        if isinstance(value, Value):
+            child = value.child
+
+            if isinstance(child, Translated):
+                xml.start_tag(
+                    "property", **props, **self._translated_string_attrs(child)
+                )
+                xml.put_text(child.child.string)
+                xml.end_tag()
+            else:
+                xml.start_tag("property", **props)
+                self._emit_value(value, xml)
+                xml.end_tag()
+
+        elif isinstance(value, Binding):
+            if simple := value.simple_binding:
                 props["bind-source"] = simple.source
                 props["bind-property"] = simple.property_name
                 props["bind-flags"] = "sync-create"
                 xml.put_self_closing("property", **props)
             else:
                 xml.start_tag("binding", **props)
-                self._emit_expression(child.expression, xml)
+                self._emit_expression(value.expression, xml)
                 xml.end_tag()
-        elif isinstance(child, PropertyBinding):
+
+        elif isinstance(value, PropertyBinding):
             bind_flags = []
-            if not child.no_sync_create:
+            if not value.no_sync_create:
                 bind_flags.append("sync-create")
-            if child.inverted:
+            if value.inverted:
                 bind_flags.append("invert-boolean")
-            if child.bidirectional:
+            if value.bidirectional:
                 bind_flags.append("bidirectional")
 
-            props["bind-source"] = child.source
-            props["bind-property"] = child.property_name
+            props["bind-source"] = value.source
+            props["bind-property"] = value.property_name
             props["bind-flags"] = "|".join(bind_flags) or None
             xml.put_self_closing("property", **props)
-        else:
+
+        elif isinstance(value, ObjectValue):
             xml.start_tag("property", **props)
-            self._emit_value(value, xml)
+            self._emit_object(value.object, xml)
             xml.end_tag()
+
+        else:
+            raise CompilerBugError()
 
     def _translated_string_attrs(
         self, translated: T.Union[QuotedLiteral, Translated]

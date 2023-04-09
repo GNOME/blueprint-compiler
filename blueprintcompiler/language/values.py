@@ -361,12 +361,12 @@ class ObjectValue(AstNode):
 
 
 class Value(AstNode):
-    grammar = AnyOf(PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal)
+    grammar = AnyOf(Translated, Flags, Literal)
 
     @property
     def child(
         self,
-    ) -> T.Union[PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal]:
+    ) -> T.Union[Translated, Flags, Literal]:
         return self.children[0]
 
 

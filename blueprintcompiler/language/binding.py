@@ -47,11 +47,6 @@ class Binding(AstNode):
                     )
         return None
 
-    @validate("bind")
-    def not_bindable(self) -> None:
-        if binding_error := self.context[ValueTypeCtx].binding_error:
-            raise binding_error
-
 
 @dataclass
 class SimpleBinding:

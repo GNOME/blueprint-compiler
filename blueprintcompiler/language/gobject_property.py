@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from .expression import ExprChain
 from .gobject_object import Object
 from .gtkbuilder_template import Template
-from .values import Value, Translated
+from .values import Value, ObjectValue
 from .common import *
 from .contexts import ValueTypeCtx
 from .property_binding import PropertyBinding
@@ -30,14 +30,16 @@ from .binding import Binding
 
 
 class Property(AstNode):
-    grammar = Statement(UseIdent("name"), ":", Value)
+    grammar = Statement(
+        UseIdent("name"), ":", AnyOf(PropertyBinding, Binding, ObjectValue, Value)
+    )
 
     @property
     def name(self) -> str:
         return self.tokens["name"]
 
     @property
-    def value(self) -> Value:
+    def value(self) -> T.Union[PropertyBinding, Binding, ObjectValue, Value]:
         return self.children[0]
 
     @property
@@ -49,29 +51,26 @@ class Property(AstNode):
         if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.properties.get(self.tokens["name"])
 
-    @context(ValueTypeCtx)
-    def value_type(self) -> ValueTypeCtx:
+    @validate()
+    def binding_valid(self):
         if (
-            (
-                isinstance(self.value.child, PropertyBinding)
-                or isinstance(self.value.child, Binding)
-            )
+            (isinstance(self.value, PropertyBinding) or isinstance(self.value, Binding))
             and self.gir_property is not None
             and self.gir_property.construct_only
         ):
-            binding_error = CompileError(
+            raise CompileError(
                 f"{self.gir_property.full_name} can't be bound because it is construct-only",
                 hints=["construct-only properties may only be set to a static value"],
             )
-        else:
-            binding_error = None
 
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
         if self.gir_property is not None:
             type = self.gir_property.type
         else:
             type = None
 
-        return ValueTypeCtx(type, binding_error)
+        return ValueTypeCtx(type)
 
     @validate("name")
     def property_exists(self):

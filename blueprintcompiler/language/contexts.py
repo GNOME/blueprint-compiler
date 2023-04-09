@@ -25,4 +25,3 @@ from .common import *
 @dataclass
 class ValueTypeCtx:
     value_type: T.Optional[GirType]
-    binding_error: T.Optional[CompileError] = None
