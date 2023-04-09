@@ -26,7 +26,7 @@ class StyleClass(AstNode):
     grammar = UseQuoted("name")
 
 
-class Styles(AstNode):
+class ExtStyles(AstNode):
     grammar = [
         Keyword("styles"),
         "[",

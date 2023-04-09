@@ -67,9 +67,9 @@ def create_node(tag_name: str, singular: str):
     )
 
 
-mime_types = create_node("mime-types", "mime-type")
-patterns = create_node("patterns", "pattern")
-suffixes = create_node("suffixes", "suffix")
+ext_file_filter_mime_types = create_node("mime-types", "mime-type")
+ext_file_filter_patterns = create_node("patterns", "pattern")
+ext_file_filter_suffixes = create_node("suffixes", "suffix")
 
 
 @completer(

@@ -32,7 +32,7 @@ class Item(AstNode):
         return self.children[StringValue][0]
 
 
-class Strings(AstNode):
+class ExtStringListStrings(AstNode):
     grammar = [
         Keyword("strings"),
         "[",

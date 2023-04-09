@@ -46,7 +46,7 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_object_or_template(
-        self, obj: T.Union[Object, Template, ListItemFactory], xml: XmlEmitter
+        self, obj: T.Union[Object, Template, ExtListItemFactory], xml: XmlEmitter
     ):
         for child in obj.content.children:
             if isinstance(child, Property):
@@ -274,7 +274,7 @@ class XmlOutput(OutputFormat):
             xml.end_tag()
 
     def _emit_extensions(self, extension, xml: XmlEmitter):
-        if isinstance(extension, A11y):
+        if isinstance(extension, ExtAccessibility):
             xml.start_tag("accessibility")
             for prop in extension.properties:
                 self._emit_attribute(prop.tag_name, "name", prop.name, prop.value, xml)
@@ -288,19 +288,19 @@ class XmlOutput(OutputFormat):
                 xml.end_tag()
             xml.end_tag()
 
-        elif isinstance(extension, Items):
+        elif isinstance(extension, ExtComboBoxItems):
             xml.start_tag("items")
             for prop in extension.children:
                 self._emit_attribute("item", "id", prop.name, prop.value, xml)
             xml.end_tag()
 
-        elif isinstance(extension, Layout):
+        elif isinstance(extension, ExtLayout):
             xml.start_tag("layout")
             for prop in extension.children:
                 self._emit_attribute("property", "name", prop.name, prop.value, xml)
             xml.end_tag()
 
-        elif isinstance(extension, Responses):
+        elif isinstance(extension, ExtAdwMessageDialog):
             xml.start_tag("responses")
             for response in extension.responses:
                 xml.start_tag(
@@ -314,7 +314,7 @@ class XmlOutput(OutputFormat):
                 xml.end_tag()
             xml.end_tag()
 
-        elif isinstance(extension, Strings):
+        elif isinstance(extension, ExtStringListStrings):
             xml.start_tag("items")
             for string in extension.children:
                 value = string.child
@@ -322,7 +322,7 @@ class XmlOutput(OutputFormat):
                 xml.put_text(value.string)
                 xml.end_tag()
             xml.end_tag()
-        elif isinstance(extension, ListItemFactory):
+        elif isinstance(extension, ExtListItemFactory):
             child_xml = XmlEmitter()
             child_xml.start_tag("interface")
             child_xml.start_tag("template", **{"class": "GtkListItem"})
@@ -333,13 +333,13 @@ class XmlOutput(OutputFormat):
             xml.put_cdata(child_xml.result)
             xml.end_tag()
 
-        elif isinstance(extension, Styles):
+        elif isinstance(extension, ExtStyles):
             xml.start_tag("style")
             for prop in extension.children:
                 xml.put_self_closing("class", name=prop.tokens["name"])
             xml.end_tag()
 
-        elif isinstance(extension, Widgets):
+        elif isinstance(extension, ExtSizeGroupWidgets):
             xml.start_tag("widgets")
             for prop in extension.children:
                 xml.put_self_closing("widget", name=prop.tokens["name"])

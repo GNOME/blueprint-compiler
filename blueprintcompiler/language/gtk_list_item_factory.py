@@ -5,7 +5,7 @@ from .common import *
 from .contexts import ScopeCtx
 
 
-class ListItemFactory(AstNode):
+class ExtListItemFactory(AstNode):
     grammar = [Keyword("template"), ObjectContent]
 
     @property

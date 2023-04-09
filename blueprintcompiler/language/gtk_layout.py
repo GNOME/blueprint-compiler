@@ -55,7 +55,7 @@ layout_prop = Group(
 )
 
 
-class Layout(AstNode):
+class ExtLayout(AstNode):
     grammar = Sequence(
         Keyword("layout"),
         "{",

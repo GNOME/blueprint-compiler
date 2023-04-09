@@ -159,7 +159,7 @@ class A11yProperty(BaseTypedAttribute):
             return _get_docs(self.root.gir, self.tokens["name"])
 
 
-class A11y(AstNode):
+class ExtAccessibility(AstNode):
     grammar = [
         Keyword("accessibility"),
         "{",
@@ -190,7 +190,7 @@ def a11y_completer(ast_node, match_variables):
 
 
 @completer(
-    applies_in=[A11y],
+    applies_in=[ExtAccessibility],
     matches=new_statement_patterns,
 )
 def a11y_name_completer(ast_node, match_variables):

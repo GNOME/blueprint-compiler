@@ -67,7 +67,7 @@ class Response(AstNode):
         )
 
 
-class Responses(AstNode):
+class ExtAdwMessageDialog(AstNode):
     grammar = [
         Keyword("responses"),
         Match("[").expected(),

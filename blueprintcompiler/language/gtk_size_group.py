@@ -44,7 +44,7 @@ class Widget(AstNode):
             )
 
 
-class Widgets(AstNode):
+class ExtSizeGroupWidgets(AstNode):
     grammar = [
         Keyword("widgets"),
         "[",

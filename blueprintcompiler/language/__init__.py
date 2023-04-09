@@ -1,5 +1,5 @@
-from .gtk_list_item_factory import ListItemFactory
-from .adw_message_dialog import Responses
+from .gtk_list_item_factory import ExtListItemFactory
+from .adw_message_dialog import ExtAdwMessageDialog
 from .attributes import BaseAttribute, BaseTypedAttribute
 from .binding import Binding
 from .contexts import ValueTypeCtx
@@ -15,14 +15,19 @@ from .expression import (
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
-from .gtk_a11y import A11y
-from .gtk_combo_box_text import Items
-from .gtk_file_filter import mime_types, patterns, suffixes, Filters
-from .gtk_layout import Layout
+from .gtk_a11y import ExtAccessibility
+from .gtk_combo_box_text import ExtComboBoxItems
+from .gtk_file_filter import (
+    ext_file_filter_mime_types,
+    ext_file_filter_patterns,
+    ext_file_filter_suffixes,
+    Filters,
+)
+from .gtk_layout import ExtLayout
 from .gtk_menu import menu, Menu, MenuAttribute
-from .gtk_size_group import Widgets
-from .gtk_string_list import Strings
-from .gtk_styles import Styles
+from .gtk_size_group import ExtSizeGroupWidgets
+from .gtk_string_list import ExtStringListStrings
+from .gtk_styles import ExtStyles
 from .gtkbuilder_child import Child, ChildType, ChildInternal, ChildExtension
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
@@ -48,17 +53,17 @@ from .common import *
 OBJECT_CONTENT_HOOKS.children = [
     Signal,
     Property,
-    A11y,
-    Styles,
-    Layout,
-    mime_types,
-    patterns,
-    suffixes,
-    Widgets,
-    Items,
-    Strings,
-    ListItemFactory,
-    Responses,
+    ExtAccessibility,
+    ExtAdwMessageDialog,
+    ExtComboBoxItems,
+    ext_file_filter_mime_types,
+    ext_file_filter_patterns,
+    ext_file_filter_suffixes,
+    ExtLayout,
+    ExtListItemFactory,
+    ExtSizeGroupWidgets,
+    ExtStringListStrings,
+    ExtStyles,
     Child,
 ]
 

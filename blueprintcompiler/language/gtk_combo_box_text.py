@@ -49,7 +49,7 @@ item = Group(
 )
 
 
-class Items(AstNode):
+class ExtComboBoxItems(AstNode):
     grammar = [
         Keyword("items"),
         "[",
