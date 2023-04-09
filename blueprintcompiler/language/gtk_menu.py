@@ -24,6 +24,7 @@ from blueprintcompiler.language.values import StringValue
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
 from .common import *
+from .values import Translated, QuotedLiteral
 from .contexts import ValueTypeCtx
 
 
@@ -50,6 +51,14 @@ class Menu(AstNode):
             raise CompileError("Menu requires an ID")
 
 
+class MenuValue(AstNode):
+    grammar = AnyOf(QuotedLiteral, Translated)
+
+    @property
+    def child(self) -> T.Union[QuotedLiteral, Translated]:
+        return self.children[0]
+
+
 class MenuAttribute(AstNode):
     tag_name = "attribute"
 
@@ -63,22 +72,10 @@ class MenuAttribute(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(
-            None, binding_error=CompileError("Bindings are not permitted in menus")
-        )
+        return ValueTypeCtx(None)
 
 
-menu_contents = Sequence()
-
-menu_section = Group(
-    Menu,
-    ["section", UseLiteral("tag", "section"), Optional(UseIdent("id")), menu_contents],
-)
-
-menu_submenu = Group(
-    Menu,
-    ["submenu", UseLiteral("tag", "submenu"), Optional(UseIdent("id")), menu_contents],
-)
+menu_child = AnyOf()
 
 menu_attribute = Group(
     MenuAttribute,
@@ -90,12 +87,33 @@ menu_attribute = Group(
     ],
 )
 
+menu_section = Group(
+    Menu,
+    [
+        "section",
+        UseLiteral("tag", "section"),
+        Optional(UseIdent("id")),
+        Match("{").expected(),
+        Until(AnyOf(menu_child, menu_attribute), "}"),
+    ],
+)
+
+menu_submenu = Group(
+    Menu,
+    [
+        "submenu",
+        UseLiteral("tag", "submenu"),
+        Optional(UseIdent("id")),
+        Match("{").expected(),
+        Until(AnyOf(menu_child, menu_attribute), "}"),
+    ],
+)
+
 menu_item = Group(
     Menu,
     [
         "item",
         UseLiteral("tag", "item"),
-        Optional(UseIdent("id")),
         Match("{").expected(),
         Until(menu_attribute, "}"),
     ],
@@ -137,18 +155,11 @@ menu_item_shorthand = Group(
     ],
 )
 
-menu_contents.children = [
-    Match("{"),
-    Until(
-        AnyOf(
-            menu_section,
-            menu_submenu,
-            menu_item_shorthand,
-            menu_item,
-            menu_attribute,
-        ),
-        "}",
-    ),
+menu_child.children = [
+    menu_section,
+    menu_submenu,
+    menu_item_shorthand,
+    menu_item,
 ]
 
 menu: Group = Group(
