@@ -170,8 +170,11 @@ def assert_true(truth: bool, message: T.Optional[str] = None):
 def report_bug():  # pragma: no cover
     """Report an error and ask people to report it."""
 
+    from . import main
+
     print(traceback.format_exc())
-    print(f"Arguments: {sys.argv}\n")
+    print(f"Arguments: {sys.argv}")
+    print(f"Version: {main.VERSION}\n")
     print(
         f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
 The blueprint-compiler program has crashed. Please report the above stacktrace,
