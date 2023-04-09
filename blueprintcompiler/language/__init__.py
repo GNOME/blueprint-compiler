@@ -7,8 +7,8 @@ from .expression import (
     CastExpr,
     ClosureArg,
     ClosureExpr,
-    Expr,
-    ExprChain,
+    ExprBase,
+    Expression,
     LiteralExpr,
     LookupOp,
 )

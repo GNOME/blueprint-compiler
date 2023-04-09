@@ -27,7 +27,7 @@ from .gtkbuilder_template import Template
 expr = Sequence()
 
 
-class Expr(AstNode):
+class ExprBase(AstNode):
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         if rhs := self.rhs:
@@ -44,8 +44,8 @@ class Expr(AstNode):
         return True
 
     @property
-    def rhs(self) -> T.Optional["Expr"]:
-        if isinstance(self.parent, ExprChain):
+    def rhs(self) -> T.Optional["ExprBase"]:
+        if isinstance(self.parent, Expression):
             children = list(self.parent.children)
             if children.index(self) + 1 < len(children):
                 return children[children.index(self) + 1]
@@ -55,11 +55,11 @@ class Expr(AstNode):
             return None
 
 
-class ExprChain(Expr):
+class Expression(ExprBase):
     grammar = expr
 
     @property
-    def last(self) -> Expr:
+    def last(self) -> ExprBase:
         return self.children[-1]
 
     @property
@@ -71,14 +71,14 @@ class ExprChain(Expr):
         return self.last.type_complete
 
 
-class InfixExpr(Expr):
+class InfixExpr(ExprBase):
     @property
     def lhs(self):
-        children = list(self.parent_by_type(ExprChain).children)
+        children = list(self.parent_by_type(Expression).children)
         return children[children.index(self) - 1]
 
 
-class LiteralExpr(Expr):
+class LiteralExpr(ExprBase):
     grammar = LITERAL
 
     @property
@@ -208,18 +208,18 @@ class CastExpr(InfixExpr):
 
 
 class ClosureArg(AstNode):
-    grammar = ExprChain
+    grammar = Expression
 
     @property
-    def expr(self) -> ExprChain:
-        return self.children[ExprChain][0]
+    def expr(self) -> Expression:
+        return self.children[Expression][0]
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(None)
 
 
-class ClosureExpr(Expr):
+class ClosureExpr(ExprBase):
     grammar = [
         Optional(["$", UseLiteral("extern", True)]),
         UseIdent("name"),
@@ -257,6 +257,6 @@ class ClosureExpr(Expr):
 
 
 expr.children = [
-    AnyOf(ClosureExpr, LiteralExpr, ["(", ExprChain, ")"]),
+    AnyOf(ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]

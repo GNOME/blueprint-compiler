@@ -211,15 +211,15 @@ class XmlOutput(OutputFormat):
         else:
             raise CompilerBugError()
 
-    def _emit_expression(self, expression: ExprChain, xml: XmlEmitter):
+    def _emit_expression(self, expression: Expression, xml: XmlEmitter):
         self._emit_expression_part(expression.last, xml)
 
-    def _emit_expression_part(self, expression: Expr, xml: XmlEmitter):
+    def _emit_expression_part(self, expression: ExprBase, xml: XmlEmitter):
         if isinstance(expression, LiteralExpr):
             self._emit_literal_expr(expression, xml)
         elif isinstance(expression, LookupOp):
             self._emit_lookup_op(expression, xml)
-        elif isinstance(expression, ExprChain):
+        elif isinstance(expression, Expression):
             self._emit_expression(expression, xml)
         elif isinstance(expression, CastExpr):
             self._emit_cast_expr(expression, xml)

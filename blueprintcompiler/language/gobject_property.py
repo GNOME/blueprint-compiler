@@ -19,7 +19,7 @@
 
 from dataclasses import dataclass
 
-from .expression import ExprChain
+from .expression import Expression
 from .gobject_object import Object
 from .gtkbuilder_template import Template
 from .values import Value, ObjectValue

@@ -20,19 +20,19 @@
 from dataclasses import dataclass
 
 from .common import *
-from .expression import ExprChain, LookupOp, LiteralExpr
+from .expression import Expression, LookupOp, LiteralExpr
 from .contexts import ValueTypeCtx
 
 
 class Binding(AstNode):
     grammar = [
         Keyword("bind"),
-        ExprChain,
+        Expression,
     ]
 
     @property
-    def expression(self) -> ExprChain:
-        return self.children[ExprChain][0]
+    def expression(self) -> Expression:
+        return self.children[Expression][0]
 
     @property
     def simple_binding(self) -> T.Optional["SimpleBinding"]:
