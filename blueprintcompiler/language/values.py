@@ -74,9 +74,18 @@ class Translated(AstNode):
 class TypeLiteral(AstNode):
     grammar = [
         "typeof",
-        "(",
-        to_parse_node(TypeName).expected("type name"),
-        Match(")").expected(),
+        AnyOf(
+            [
+                "<",
+                to_parse_node(TypeName).expected("type name"),
+                Match(">").expected(),
+            ],
+            [
+                UseExact("lparen", "("),
+                to_parse_node(TypeName).expected("type name"),
+                UseExact("rparen", ")").expected("')'"),
+            ],
+        ),
     ]
 
     @property
@@ -92,6 +101,19 @@ class TypeLiteral(AstNode):
         expected_type = self.context[ValueTypeCtx].value_type
         if expected_type is not None and not isinstance(expected_type, gir.TypeType):
             raise CompileError(f"Cannot convert GType to {expected_type.full_name}")
+
+    @validate("lparen", "rparen")
+    def upgrade_to_angle_brackets(self):
+        if self.tokens["lparen"]:
+            raise UpgradeWarning(
+                "Use angle bracket syntax introduced in blueprint 0.8.0",
+                actions=[
+                    CodeAction(
+                        "Use <> instead of ()",
+                        f"<{self.children[TypeName][0].as_string}>",
+                    )
+                ],
+            )
 
 
 class QuotedLiteral(AstNode):

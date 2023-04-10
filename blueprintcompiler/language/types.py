@@ -89,6 +89,15 @@ class TypeName(AstNode):
         if self.gir_type:
             return self.gir_type.doc
 
+    @property
+    def as_string(self) -> str:
+        if self.tokens["extern"]:
+            return "$" + self.tokens["class_name"]
+        elif self.tokens["namespace"]:
+            return f"{self.tokens['namespace']}.{self.tokens['class_name']}"
+        else:
+            return self.tokens["class_name"]
+
 
 class ClassName(TypeName):
     @validate("namespace", "class_name")

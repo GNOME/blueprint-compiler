@@ -159,7 +159,17 @@ class LookupOp(InfixExpr):
 
 
 class CastExpr(InfixExpr):
-    grammar = ["as", "(", TypeName, ")"]
+    grammar = [
+        "as",
+        AnyOf(
+            ["<", TypeName, Match(">").expected()],
+            [
+                UseExact("lparen", "("),
+                TypeName,
+                UseExact("rparen", ")").expected("')'"),
+            ],
+        ),
+    ]
 
     @context(ValueTypeCtx)
     def value_type(self):
@@ -181,6 +191,19 @@ class CastExpr(InfixExpr):
         if not self.type.assignable_to(self.lhs.type):
             raise CompileError(
                 f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}."
+            )
+
+    @validate("lparen", "rparen")
+    def upgrade_to_angle_brackets(self):
+        if self.tokens["lparen"]:
+            raise UpgradeWarning(
+                "Use angle bracket syntax introduced in blueprint 0.8.0",
+                actions=[
+                    CodeAction(
+                        "Use <> instead of ()",
+                        f"<{self.children[TypeName][0].as_string}>",
+                    )
+                ],
             )
 
 
