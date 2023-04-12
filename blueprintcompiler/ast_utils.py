@@ -46,7 +46,10 @@ class Children:
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self._children[key]
+            if key >= len(self._children):
+                return None
+            else:
+                return self._children[key]
         else:
             return [child for child in self._children if isinstance(child, key)]
 
