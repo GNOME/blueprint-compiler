@@ -78,7 +78,13 @@ class XmlOutput(OutputFormat):
             if isinstance(child, Menu):
                 self._emit_menu(child, xml)
             elif isinstance(child, MenuAttribute):
-                self._emit_attribute("attribute", "name", child.name, child.value, xml)
+                xml.start_tag(
+                    "attribute",
+                    name=child.name,
+                    **self._translated_string_attrs(child.value.child),
+                )
+                xml.put_text(child.value.string)
+                xml.end_tag()
             else:
                 raise CompilerBugError()
         xml.end_tag()
@@ -235,13 +241,22 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_attribute(
-        self, tag: str, attr: str, name: str, value: Value, xml: XmlEmitter
+        self,
+        tag: str,
+        attr: str,
+        name: str,
+        value: T.Union[Value, StringValue],
+        xml: XmlEmitter,
     ):
         attrs = {attr: name}
 
         if isinstance(value.child, Translated):
             xml.start_tag(tag, **attrs, **self._translated_string_attrs(value.child))
             xml.put_text(value.child.child.string)
+            xml.end_tag()
+        elif isinstance(value.child, QuotedLiteral):
+            xml.start_tag(tag, **attrs)
+            xml.put_text(value.child.value)
             xml.end_tag()
         else:
             xml.start_tag(tag, **attrs)
@@ -282,29 +297,21 @@ class XmlOutput(OutputFormat):
                 xml.start_tag(
                     "response",
                     id=response.id,
-                    **self._translated_string_attrs(response.value),
+                    **self._translated_string_attrs(response.value.child),
                     enabled=None if response.enabled else "false",
                     appearance=response.appearance,
                 )
-                if isinstance(response.value, Translated):
-                    xml.put_text(response.value.child.string)
-                else:
-                    xml.put_text(response.value.value)
+                xml.put_text(response.value.string)
                 xml.end_tag()
             xml.end_tag()
 
         elif isinstance(extension, Strings):
             xml.start_tag("items")
-            for prop in extension.children:
-                value = prop.children[Value][0]
-                if isinstance(value.child, Translated):
-                    xml.start_tag("item", **self._translated_string_attrs(value))
-                    xml.put_text(value.child.child.string)
-                    xml.end_tag()
-                else:
-                    xml.start_tag("item")
-                    self._emit_value(value, xml)
-                    xml.end_tag()
+            for string in extension.children:
+                value = string.child
+                xml.start_tag("item", **self._translated_string_attrs(value.child))
+                xml.put_text(value.string)
+                xml.end_tag()
             xml.end_tag()
         elif isinstance(extension, ListItemFactory):
             child_xml = XmlEmitter()

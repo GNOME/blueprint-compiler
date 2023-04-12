@@ -368,3 +368,24 @@ class Value(AstNode):
         self,
     ) -> T.Union[PropertyBinding, Binding, Translated, ObjectValue, Flags, Literal]:
         return self.children[0]
+
+
+class StringValue(AstNode):
+    grammar = AnyOf(Translated, QuotedLiteral)
+
+    @property
+    def child(
+        self,
+    ) -> T.Union[Translated, QuotedLiteral]:
+        return self.children[0]
+
+    @property
+    def string(self) -> str:
+        if isinstance(self.child, Translated):
+            return self.child.child.string
+        else:
+            return self.child.value
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(StringType())

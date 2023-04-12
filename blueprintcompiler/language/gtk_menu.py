@@ -19,7 +19,7 @@
 
 import typing as T
 
-from blueprintcompiler.language.values import Value
+from blueprintcompiler.language.values import StringValue
 
 from .attributes import BaseAttribute
 from .gobject_object import Object, ObjectContent
@@ -58,8 +58,8 @@ class MenuAttribute(AstNode):
         return self.tokens["name"]
 
     @property
-    def value(self) -> Value:
-        return self.children[Value][0]
+    def value(self) -> StringValue:
+        return self.children[StringValue][0]
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
@@ -85,7 +85,7 @@ menu_attribute = Group(
     [
         UseIdent("name"),
         ":",
-        Err(Value, "Expected a value"),
+        Err(StringValue, "Expected string or translated string"),
         Match(";").expected(),
     ],
 )
@@ -109,7 +109,7 @@ menu_item_shorthand = Group(
         "(",
         Group(
             MenuAttribute,
-            [UseLiteral("name", "label"), Value],
+            [UseLiteral("name", "label"), StringValue],
         ),
         Optional(
             [
@@ -118,14 +118,14 @@ menu_item_shorthand = Group(
                     [
                         Group(
                             MenuAttribute,
-                            [UseLiteral("name", "action"), Value],
+                            [UseLiteral("name", "action"), StringValue],
                         ),
                         Optional(
                             [
                                 ",",
                                 Group(
                                     MenuAttribute,
-                                    [UseLiteral("name", "icon"), Value],
+                                    [UseLiteral("name", "icon"), StringValue],
                                 ),
                             ]
                         ),

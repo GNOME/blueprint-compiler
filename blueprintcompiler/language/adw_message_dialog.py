@@ -22,14 +22,14 @@ from ..decompiler import truthy, decompile_translatable
 from .common import *
 from .contexts import ValueTypeCtx
 from .gobject_object import ObjectContent, validate_parent_type
-from .values import QuotedLiteral, Translated
+from .values import StringValue
 
 
 class Response(AstNode):
     grammar = [
         UseIdent("id"),
         Match(":").expected(),
-        AnyOf(QuotedLiteral, Translated).expected("a value"),
+        to_parse_node(StringValue).expected("a string or translatable string"),
         ZeroOrMore(
             AnyOf(Keyword("destructive"), Keyword("suggested"), Keyword("disabled"))
         ),
@@ -52,7 +52,7 @@ class Response(AstNode):
         return "disabled" not in self.tokens
 
     @property
-    def value(self) -> T.Union[QuotedLiteral, Translated]:
+    def value(self) -> StringValue:
         return self.children[0]
 
     @context(ValueTypeCtx)

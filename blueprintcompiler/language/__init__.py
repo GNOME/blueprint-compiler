@@ -37,6 +37,7 @@ from .values import (
     NumberLiteral,
     ObjectValue,
     QuotedLiteral,
+    StringValue,
     Translated,
     TranslatedWithContext,
     TranslatedWithoutContext,

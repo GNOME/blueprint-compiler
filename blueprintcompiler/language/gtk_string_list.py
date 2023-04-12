@@ -20,17 +20,16 @@
 
 from .attributes import BaseTypedAttribute
 from .gobject_object import ObjectContent, validate_parent_type
-from .values import Value, Translated
+from .values import StringValue
 from .common import *
-from .contexts import ValueTypeCtx
 
 
 class Item(AstNode):
-    grammar = Value
+    grammar = StringValue
 
-    @context(ValueTypeCtx)
-    def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(StringType())
+    @property
+    def child(self) -> StringValue:
+        return self.children[StringValue][0]
 
 
 class Strings(AstNode):

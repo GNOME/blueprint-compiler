@@ -22,7 +22,7 @@ from .attributes import BaseTypedAttribute
 from .gobject_object import ObjectContent, validate_parent_type
 from .common import *
 from .contexts import ValueTypeCtx
-from .values import Value
+from .values import StringValue
 
 
 class Item(AstNode):
@@ -31,12 +31,8 @@ class Item(AstNode):
         return self.tokens["name"]
 
     @property
-    def value(self) -> Value:
-        return self.children[Value][0]
-
-    @context(ValueTypeCtx)
-    def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(StringType())
+    def value(self) -> StringValue:
+        return self.children[StringValue][0]
 
 
 item = Group(
@@ -48,7 +44,7 @@ item = Group(
                 ":",
             ]
         ),
-        Value,
+        StringValue,
     ],
 )
 
