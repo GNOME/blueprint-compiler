@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .values import Value, Translated
 from .common import *
 
 
@@ -31,8 +30,3 @@ class BaseAttribute(AstNode):
     @property
     def name(self):
         return self.tokens["name"]
-
-
-class BaseTypedAttribute(BaseAttribute):
-    """A BaseAttribute whose parent has a value_type property that can assist
-    in validation."""

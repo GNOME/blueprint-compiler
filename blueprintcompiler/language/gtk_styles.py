@@ -25,6 +25,10 @@ from .common import *
 class StyleClass(AstNode):
     grammar = UseQuoted("name")
 
+    @property
+    def name(self) -> str:
+        return self.tokens["name"]
+
 
 class ExtStyles(AstNode):
     grammar = [

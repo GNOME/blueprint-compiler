@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .attributes import BaseTypedAttribute
 from .gobject_object import ObjectContent, validate_parent_type
 from .common import *
 from .contexts import ValueTypeCtx

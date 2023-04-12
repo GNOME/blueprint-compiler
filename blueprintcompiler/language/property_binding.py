@@ -20,7 +20,6 @@
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import Object
-from .gtkbuilder_template import Template
 
 
 class PropertyBindingFlag(AstNode):

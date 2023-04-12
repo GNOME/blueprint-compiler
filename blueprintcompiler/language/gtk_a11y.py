@@ -18,10 +18,11 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from .gobject_object import ObjectContent, validate_parent_type
-from .attributes import BaseTypedAttribute
+from .attributes import BaseAttribute
 from .values import Value
 from .common import *
 from .contexts import ValueTypeCtx
+from ..decompiler import escape_quote
 
 
 def get_property_types(gir):
@@ -105,7 +106,7 @@ def _get_docs(gir, name):
         return gir_type.doc
 
 
-class A11yProperty(BaseTypedAttribute):
+class A11yProperty(BaseAttribute):
     grammar = Statement(
         UseIdent("name"),
         ":",
@@ -208,7 +209,7 @@ def decompile_relation(ctx, gir, name, cdata):
 @decompiler("state", cdata=True)
 def decompile_state(ctx, gir, name, cdata, translatable="false"):
     if decompile.truthy(translatable):
-        ctx.print(f'{name}: _("{_escape_quote(cdata)}");')
+        ctx.print(f'{name}: _("{escape_quote(cdata)}");')
     else:
         ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
 

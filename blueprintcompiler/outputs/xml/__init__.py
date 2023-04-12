@@ -335,8 +335,8 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(extension, ExtStyles):
             xml.start_tag("style")
-            for prop in extension.children:
-                xml.put_self_closing("class", name=prop.tokens["name"])
+            for style in extension.children:
+                xml.put_self_closing("class", name=style.name)
             xml.end_tag()
 
         elif isinstance(extension, ExtSizeGroupWidgets):

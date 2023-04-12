@@ -126,7 +126,7 @@ def property_completer(ast_node, match_variables):
 
 
 @completer(
-    applies_in=[language.Property, language.BaseTypedAttribute],
+    applies_in=[language.Property, language.BaseAttribute],
     matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
 )
 def prop_value_completer(ast_node, match_variables):

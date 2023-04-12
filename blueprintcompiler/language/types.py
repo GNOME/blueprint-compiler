@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
 from .common import *
 from ..gir import Class, ExternType, Interface
 

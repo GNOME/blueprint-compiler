@@ -21,7 +21,6 @@ from dataclasses import dataclass
 
 from .common import *
 from .expression import Expression, LookupOp, LiteralExpr
-from .contexts import ValueTypeCtx
 
 
 class Binding(AstNode):

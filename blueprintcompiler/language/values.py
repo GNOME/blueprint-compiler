@@ -21,8 +21,6 @@ import typing as T
 
 from .common import *
 from .types import TypeName
-from .property_binding import PropertyBinding
-from .binding import Binding
 from .gobject_object import Object
 from .contexts import ScopeCtx, ValueTypeCtx
 

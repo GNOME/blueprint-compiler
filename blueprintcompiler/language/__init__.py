@@ -1,6 +1,6 @@
 from .gtk_list_item_factory import ExtListItemFactory
 from .adw_message_dialog import ExtAdwMessageDialog
-from .attributes import BaseAttribute, BaseTypedAttribute
+from .attributes import BaseAttribute
 from .binding import Binding
 from .contexts import ValueTypeCtx
 from .expression import (

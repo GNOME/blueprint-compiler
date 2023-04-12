@@ -21,10 +21,7 @@ import typing as T
 
 from blueprintcompiler.language.values import StringValue
 
-from .attributes import BaseAttribute
-from .gobject_object import Object, ObjectContent
 from .common import *
-from .values import Translated, QuotedLiteral
 from .contexts import ValueTypeCtx
 
 
@@ -49,14 +46,6 @@ class Menu(AstNode):
     def has_id(self):
         if self.tokens["tag"] == "menu" and self.tokens["id"] is None:
             raise CompileError("Menu requires an ID")
-
-
-class MenuValue(AstNode):
-    grammar = AnyOf(QuotedLiteral, Translated)
-
-    @property
-    def child(self) -> T.Union[QuotedLiteral, Translated]:
-        return self.children[0]
 
 
 class MenuAttribute(AstNode):
