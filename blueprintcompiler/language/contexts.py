@@ -28,6 +28,7 @@ from .gobject_object import Object
 @dataclass
 class ValueTypeCtx:
     value_type: T.Optional[GirType]
+    allow_null: bool = False
 
 
 @dataclass

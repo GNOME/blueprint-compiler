@@ -1,8 +1,13 @@
 from .gtk_list_item_factory import ExtListItemFactory
 from .adw_message_dialog import ExtAdwMessageDialog
 from .attributes import BaseAttribute
+from .adw_breakpoint import (
+    AdwBreakpointSetters,
+    AdwBreakpointSetter,
+    AdwBreakpointCondition,
+)
 from .binding import Binding
-from .contexts import ValueTypeCtx
+from .contexts import ScopeCtx, ValueTypeCtx
 from .expression import (
     CastExpr,
     ClosureArg,
@@ -53,6 +58,8 @@ from .common import *
 OBJECT_CONTENT_HOOKS.children = [
     Signal,
     Property,
+    AdwBreakpointCondition,
+    AdwBreakpointSetters,
     ExtAccessibility,
     ExtAdwMessageDialog,
     ExtComboBoxItems,

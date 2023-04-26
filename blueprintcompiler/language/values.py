@@ -280,10 +280,17 @@ class IdentLiteral(AstNode):
         elif expected_type is not None:
             object = self.context[ScopeCtx].objects.get(self.ident)
             if object is None:
-                raise CompileError(
-                    f"Could not find object with ID {self.ident}",
-                    did_you_mean=(self.ident, self.context[ScopeCtx].objects.keys()),
-                )
+                if self.ident == "null":
+                    if not self.context[ValueTypeCtx].allow_null:
+                        raise CompileError("null is not permitted here")
+                else:
+                    raise CompileError(
+                        f"Could not find object with ID {self.ident}",
+                        did_you_mean=(
+                            self.ident,
+                            self.context[ScopeCtx].objects.keys(),
+                        ),
+                    )
             elif object.gir_class and not object.gir_class.assignable_to(expected_type):
                 raise CompileError(
                     f"Cannot assign {object.gir_class.full_name} to {expected_type.full_name}"

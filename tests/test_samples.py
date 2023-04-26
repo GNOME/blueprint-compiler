@@ -143,6 +143,9 @@ class TestSamples(unittest.TestCase):
             raise AssertionError()
 
     def test_samples(self):
+        have_adw = False
+        have_adw_1_4 = False
+
         try:
             import gi
 
@@ -151,11 +154,15 @@ class TestSamples(unittest.TestCase):
 
             have_adw = True
             Adw.init()
+            if Adw.MINOR_VERSION >= 4:
+                have_adw_1_4 = True
         except:
-            have_adw = False
+            pass
 
         self.assert_sample("accessibility")
         self.assert_sample("action_widgets")
+        if have_adw_1_4:
+            self.assert_sample("adw_breakpoint")
         self.assert_sample("child_type")
         self.assert_sample("combo_box_text")
         self.assert_sample("comments")
@@ -208,6 +215,22 @@ class TestSamples(unittest.TestCase):
         self.assert_sample("using")
 
     def test_sample_errors(self):
+        have_adw = False
+        have_adw_1_4 = False
+
+        try:
+            import gi
+
+            gi.require_version("Adw", "1")
+            from gi.repository import Adw
+
+            have_adw = True
+            Adw.init()
+            if Adw.MINOR_VERSION >= 4:
+                have_adw_1_4 = True
+        except:
+            pass
+
         self.assert_sample_error("a11y_in_non_widget")
         self.assert_sample_error("a11y_prop_dne")
         self.assert_sample_error("a11y_prop_obj_dne")
@@ -219,6 +242,8 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("action_widget_in_invalid_container")
         self.assert_sample_error("action_widget_response_dne")
         self.assert_sample_error("action_widget_negative_response")
+        if have_adw_1_4:
+            self.assert_sample_error("adw_breakpoint")
         self.assert_sample_error("bitfield_member_dne")
         self.assert_sample_error("children")
         self.assert_sample_error("class_assign")

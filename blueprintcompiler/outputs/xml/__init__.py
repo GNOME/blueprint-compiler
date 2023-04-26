@@ -280,6 +280,37 @@ class XmlOutput(OutputFormat):
                 self._emit_attribute(prop.tag_name, "name", prop.name, prop.value, xml)
             xml.end_tag()
 
+        elif isinstance(extension, AdwBreakpointCondition):
+            xml.start_tag("condition")
+            xml.put_text(extension.condition)
+            xml.end_tag()
+
+        elif isinstance(extension, AdwBreakpointSetters):
+            for setter in extension.setters:
+                attrs = {}
+
+                if isinstance(setter.value.child, Translated):
+                    attrs = self._translated_string_attrs(setter.value.child)
+
+                xml.start_tag(
+                    "setter",
+                    object=setter.object_id,
+                    property=setter.property_name,
+                    **attrs,
+                )
+                if isinstance(setter.value.child, Translated):
+                    xml.put_text(setter.value.child.string)
+                elif (
+                    isinstance(setter.value.child, Literal)
+                    and isinstance(setter.value.child.value, IdentLiteral)
+                    and setter.value.child.value.ident == "null"
+                    and setter.context[ScopeCtx].objects.get("null") is None
+                ):
+                    pass
+                else:
+                    self._emit_value(setter.value, xml)
+                xml.end_tag()
+
         elif isinstance(extension, Filters):
             xml.start_tag(extension.tokens["tag_name"])
             for prop in extension.children:

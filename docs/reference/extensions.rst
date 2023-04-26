@@ -42,6 +42,26 @@ Valid in any `Gtk.Widget <https://docs.gtk.org/gtk4/class.Widget.html>`_.
 The ``accessibility`` block defines values relevant to accessibility software. The property names and acceptable values are described in the `Gtk.AccessibleRelation <https://docs.gtk.org/gtk4/enum.AccessibleRelation.html>`_, `Gtk.AccessibleState <https://docs.gtk.org/gtk4/enum.AccessibleState.html>`_, and `Gtk.AccessibleProperty <https://docs.gtk.org/gtk4/enum.AccessibleProperty.html>`_ enums.
 
 
+.. _Syntax ExtAdwBreakpoint:
+
+Adw.Breakpoint
+--------------
+
+.. rst-class:: grammar-block
+
+   ExtAdwBreakpointCondition = 'condition' '(' <condition::ref:`QUOTED<Syntax QUOTED>`> ')'
+   ExtAdwBreakpoint = 'setters' '{' ExtAdwBreakpointSetter* '}'
+   ExtAdwBreakpointSetter = <object::ref:`IDENT<Syntax IDENT>`> '.' <property::ref:`IDENT<Syntax IDENT>`> ':' :ref:`Value <Syntax Value>` ';'
+
+Valid in `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
+
+Defines the condition for a breakpoint and the properties that will be set at that breakpoint. See the documentation for `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
+
+.. note::
+
+   The `Adw.Breakpoint:condition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/property.Breakpoint.condition.html>`_ property has type `Adw.BreakpointCondition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/struct.BreakpointCondition.html>`_, which GtkBuilder doesn't know how to parse from a string. Therefore, the ``condition`` syntax is used instead.
+
+
 .. _Syntax ExtAdwMessageDialog:
 
 Adw.MessageDialog Responses
