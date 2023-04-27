@@ -1,8 +1,13 @@
 FROM fedora:latest
 
-RUN dnf install -y meson python3-pip gtk4-devel gobject-introspection-devel \
-	libadwaita-devel python3-devel python3-gobject git diffutils xorg-x11-server-Xvfb
+RUN dnf install -y meson gcc g++ python3-pip gobject-introspection-devel \
+	python3-devel python3-gobject git diffutils xorg-x11-server-Xvfb \
+    appstream-devel "dnf-command(builddep)"
+RUN dnf build-dep -y gtk4 libadwaita
 RUN pip3 install furo mypy sphinx coverage black
+
+COPY install_deps.sh .
+RUN ./install_deps.sh
 
 # The version on PyPI is very old and doesn't install. Use the upstream package registry instead.
 RUN pip install pythonfuzz --extra-index-url https://gitlab.com/api/v4/projects/19904939/packages/pypi/simple
