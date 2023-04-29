@@ -19,7 +19,7 @@
 
 
 from .common import *
-from .contexts import ValueTypeCtx
+from .contexts import ScopeCtx, ValueTypeCtx
 from .types import TypeName
 from .gtkbuilder_template import Template
 
@@ -87,7 +87,7 @@ class LiteralExpr(Expr):
 
         return (
             isinstance(self.literal.value, IdentLiteral)
-            and self.literal.value.ident in self.root.objects_by_id
+            and self.literal.value.ident in self.context[ScopeCtx].objects
         )
 
     @property
@@ -105,7 +105,7 @@ class LiteralExpr(Expr):
         from .values import IdentLiteral
 
         if isinstance(self.literal.value, IdentLiteral):
-            if object := self.root.objects_by_id.get(self.literal.value.ident):
+            if object := self.context[ScopeCtx].objects.get(self.literal.value.ident):
                 return not isinstance(object, Template)
         return True
 

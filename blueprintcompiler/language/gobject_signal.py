@@ -20,6 +20,7 @@
 import typing as T
 
 from .gtkbuilder_template import Template
+from .contexts import ScopeCtx
 from .common import *
 
 
@@ -112,7 +113,7 @@ class Signal(AstNode):
         if object_id is None:
             return
 
-        if self.root.objects_by_id.get(object_id) is None:
+        if self.context[ScopeCtx].objects.get(object_id) is None:
             raise CompileError(f"Could not find object with ID '{object_id}'")
 
     @docs("name")

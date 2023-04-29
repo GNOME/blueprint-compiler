@@ -33,7 +33,7 @@ class Children:
     def __init__(self, children):
         self._children = children
 
-    def __iter__(self):
+    def __iter__(self) -> T.Iterator["AstNode"]:
         return iter(self._children)
 
     @T.overload
@@ -175,11 +175,6 @@ class AstNode:
         for child in self.children:
             yield from child.get_semantic_tokens()
 
-    def iterate_children_recursive(self) -> T.Iterator["AstNode"]:
-        yield self
-        for child in self.children:
-            yield from child.iterate_children_recursive()
-
     def validate_unique_in_parent(self, error, check=None):
         for child in self.parent.children:
             if child is self:
@@ -270,7 +265,12 @@ class Context:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return self.func(instance)
+        if ctx := getattr(instance, "_context_" + self.type.__name__, None):
+            return ctx
+        else:
+            ctx = self.func(instance)
+            setattr(instance, "_context_" + self.type.__name__, ctx)
+            return ctx
 
 
 def context(type: T.Type[TCtx]):

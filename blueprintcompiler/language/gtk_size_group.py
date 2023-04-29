@@ -20,6 +20,7 @@
 
 from .gobject_object import ObjectContent, validate_parent_type
 from .common import *
+from .contexts import ScopeCtx
 
 
 class Widget(AstNode):
@@ -27,12 +28,15 @@ class Widget(AstNode):
 
     @validate("name")
     def obj_widget(self):
-        object = self.root.objects_by_id.get(self.tokens["name"])
+        object = self.context[ScopeCtx].objects.get(self.tokens["name"])
         type = self.root.gir.get_type("Widget", "Gtk")
         if object is None:
             raise CompileError(
                 f"Could not find object with ID {self.tokens['name']}",
-                did_you_mean=(self.tokens["name"], self.root.objects_by_id.keys()),
+                did_you_mean=(
+                    self.tokens["name"],
+                    self.context[ScopeCtx].objects.keys(),
+                ),
             )
         elif object.gir_class and not object.gir_class.assignable_to(type):
             raise CompileError(

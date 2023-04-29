@@ -17,14 +17,13 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from functools import cached_property
-
 from .. import gir
 from .imports import GtkDirective, Import
 from .gtkbuilder_template import Template
 from .gobject_object import Object
 from .gtk_menu import menu, Menu
 from .common import *
+from .contexts import ScopeCtx
 
 
 class UI(AstNode):
@@ -85,13 +84,9 @@ class UI(AstNode):
             or isinstance(child, Menu)
         ]
 
-    @cached_property
-    def objects_by_id(self):
-        return {
-            obj.tokens["id"]: obj
-            for obj in self.iterate_children_recursive()
-            if obj.tokens["id"] is not None
-        }
+    @context(ScopeCtx)
+    def scope_ctx(self) -> ScopeCtx:
+        return ScopeCtx(node=self)
 
     @validate()
     def gir_errors(self):
@@ -102,14 +97,4 @@ class UI(AstNode):
 
     @validate()
     def unique_ids(self):
-        passed = {}
-        for obj in self.iterate_children_recursive():
-            if obj.tokens["id"] is None:
-                continue
-
-            if obj.tokens["id"] in passed:
-                token = obj.group.tokens["id"]
-                raise CompileError(
-                    f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end
-                )
-            passed[obj.tokens["id"]] = obj
+        self.context[ScopeCtx].validate_unique_ids()

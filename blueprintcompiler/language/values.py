@@ -24,7 +24,7 @@ from .types import TypeName
 from .property_binding import PropertyBinding
 from .binding import Binding
 from .gobject_object import Object
-from .contexts import ValueTypeCtx
+from .contexts import ScopeCtx, ValueTypeCtx
 
 
 class TranslatedWithoutContext(AstNode):
@@ -274,7 +274,7 @@ class IdentLiteral(AstNode):
             return expected_type
         elif self.ident in ["true", "false"]:
             return gir.BoolType()
-        elif object := self.root.objects_by_id.get(self.ident):
+        elif object := self.context[ScopeCtx].objects.get(self.ident):
             return object.gir_class
         else:
             return None
@@ -294,11 +294,11 @@ class IdentLiteral(AstNode):
                 )
 
         elif expected_type is not None:
-            object = self.root.objects_by_id.get(self.ident)
+            object = self.context[ScopeCtx].objects.get(self.ident)
             if object is None:
                 raise CompileError(
                     f"Could not find object with ID {self.ident}",
-                    did_you_mean=(self.ident, self.root.objects_by_id.keys()),
+                    did_you_mean=(self.ident, self.context[ScopeCtx].objects.keys()),
                 )
             elif object.gir_class and not object.gir_class.assignable_to(expected_type):
                 raise CompileError(

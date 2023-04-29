@@ -19,9 +19,44 @@
 
 import typing as T
 from dataclasses import dataclass
+from functools import cached_property
+
 from .common import *
+from .gobject_object import Object
 
 
 @dataclass
 class ValueTypeCtx:
     value_type: T.Optional[GirType]
+
+
+@dataclass
+class ScopeCtx:
+    node: AstNode
+
+    @cached_property
+    def objects(self) -> T.Dict[str, Object]:
+        return {
+            obj.tokens["id"]: obj
+            for obj in self._iter_recursive(self.node)
+            if obj.tokens["id"] is not None
+        }
+
+    def validate_unique_ids(self) -> None:
+        passed = {}
+        for obj in self._iter_recursive(self.node):
+            if obj.tokens["id"] is None:
+                continue
+
+            if obj.tokens["id"] in passed:
+                token = obj.group.tokens["id"]
+                raise CompileError(
+                    f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end
+                )
+            passed[obj.tokens["id"]] = obj
+
+    def _iter_recursive(self, node: AstNode):
+        yield node
+        for child in node.children:
+            if child.context[ScopeCtx] is self:
+                yield from self._iter_recursive(child)

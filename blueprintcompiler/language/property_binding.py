@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from .common import *
-from .contexts import ValueTypeCtx
+from .contexts import ScopeCtx
 from .gobject_object import Object
 from .gtkbuilder_template import Template
 
@@ -71,7 +71,7 @@ class PropertyBinding(AstNode):
 
     @property
     def source_obj(self) -> T.Optional[Object]:
-        return self.root.objects_by_id.get(self.source)
+        return self.context[ScopeCtx].objects.get(self.source)
 
     @property
     def property_name(self) -> str:
@@ -98,7 +98,7 @@ class PropertyBinding(AstNode):
         if self.source_obj is None:
             raise CompileError(
                 f"Could not find object with ID {self.source}",
-                did_you_mean=(self.source, self.root.objects_by_id.keys()),
+                did_you_mean=(self.source, self.context[ScopeCtx].objects.keys()),
             )
 
     @validate("property")
