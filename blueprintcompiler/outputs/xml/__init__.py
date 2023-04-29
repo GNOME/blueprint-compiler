@@ -151,7 +151,7 @@ class XmlOutput(OutputFormat):
         else:
             return {
                 "translatable": "true",
-                "context": translated.child.context
+                "context": translated.child.translate_context
                 if isinstance(translated.child, TranslatedWithContext)
                 else None,
             }

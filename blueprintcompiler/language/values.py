@@ -51,7 +51,7 @@ class TranslatedWithContext(AstNode):
         return self.tokens["string"]
 
     @property
-    def context(self) -> str:
+    def translate_context(self) -> str:
         return self.tokens["context"]
 
 
