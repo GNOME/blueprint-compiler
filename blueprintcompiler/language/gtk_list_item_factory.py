@@ -1,6 +1,8 @@
 from .gobject_object import ObjectContent, validate_parent_type
 from ..parse_tree import Keyword
 from ..ast_utils import AstNode, validate
+from .common import *
+from .contexts import ScopeCtx
 
 
 class ListItemFactory(AstNode):
@@ -18,6 +20,14 @@ class ListItemFactory(AstNode):
             "BuilderListItemFactory",
             "sub-templates",
         )
+
+    @context(ScopeCtx)
+    def scope_ctx(self) -> ScopeCtx:
+        return ScopeCtx(node=self)
+
+    @validate()
+    def unique_ids(self):
+        self.context[ScopeCtx].validate_unique_ids()
 
     @property
     def content(self) -> ObjectContent:
