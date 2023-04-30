@@ -172,10 +172,7 @@ menu: Group = Group(
             Match("{"),
             Until(
                 AnyOf(
-                    menu_section,
-                    menu_submenu,
-                    menu_item_shorthand,
-                    menu_item,
+                    menu_child,
                     Fail(
                         menu_attribute,
                         "Attributes are not permitted at the top level of a menu",
