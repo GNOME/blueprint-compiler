@@ -21,7 +21,7 @@
 from functools import cached_property
 
 from .gobject_object import Object
-from .response_id import ResponseId
+from .response_id import ExtResponse
 from .common import *
 
 ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
@@ -30,19 +30,48 @@ ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
 ]
 
 
+class ChildInternal(AstNode):
+    grammar = ["internal-child", UseIdent("internal_child")]
+
+    @property
+    def internal_child(self) -> str:
+        return self.tokens["internal_child"]
+
+
+class ChildType(AstNode):
+    grammar = UseIdent("child_type").expected("a child type")
+
+    @property
+    def child_type(self) -> str:
+        return self.tokens["child_type"]
+
+
+class ChildExtension(AstNode):
+    grammar = ExtResponse
+
+    @property
+    def child(self) -> ExtResponse:
+        return self.children[0]
+
+
+class ChildAnnotation(AstNode):
+    grammar = ["[", AnyOf(ChildInternal, ChildExtension, ChildType), "]"]
+
+    @property
+    def child(self) -> T.Union[ChildInternal, ChildExtension, ChildType]:
+        return self.children[0]
+
+
 class Child(AstNode):
     grammar = [
-        Optional(
-            [
-                "[",
-                Optional(["internal-child", UseLiteral("internal_child", True)]),
-                UseIdent("child_type").expected("a child type"),
-                Optional(ResponseId),
-                "]",
-            ]
-        ),
+        Optional(ChildAnnotation),
         Object,
     ]
+
+    @property
+    def annotation(self) -> T.Optional[ChildAnnotation]:
+        annotations = self.children[ChildAnnotation]
+        return annotations[0] if len(annotations) else None
 
     @property
     def object(self) -> Object:
@@ -69,15 +98,17 @@ class Child(AstNode):
                 )
 
     @cached_property
-    def response_id(self) -> T.Optional[ResponseId]:
+    def response_id(self) -> T.Optional[ExtResponse]:
         """Get action widget's response ID.
 
         If child is not action widget, returns `None`.
         """
-        response_ids = self.children[ResponseId]
-
-        if response_ids:
-            return response_ids[0]
+        if (
+            self.annotation is not None
+            and isinstance(self.annotation.child, ChildExtension)
+            and isinstance(self.annotation.child.child, ExtResponse)
+        ):
+            return self.annotation.child.child
         else:
             return None
 

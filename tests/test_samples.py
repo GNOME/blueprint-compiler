@@ -216,7 +216,6 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("action_widget_float_response")
         self.assert_sample_error("action_widget_have_no_id")
         self.assert_sample_error("action_widget_multiple_default")
-        self.assert_sample_error("action_widget_not_action")
         self.assert_sample_error("action_widget_in_invalid_container")
         self.assert_sample_error("action_widget_response_dne")
         self.assert_sample_error("action_widget_negative_response")

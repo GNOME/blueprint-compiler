@@ -109,9 +109,9 @@ class AstNode:
         else:
             return self.parent.root
 
-    def parent_by_type(self, type):
+    def parent_by_type(self, type: T.Type[TType]) -> TType:
         if self.parent is None:
-            return None
+            raise CompilerBugError()
         elif isinstance(self.parent, type):
             return self.parent
         else:

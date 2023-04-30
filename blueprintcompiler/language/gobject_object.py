@@ -22,7 +22,7 @@ import typing as T
 from functools import cached_property
 
 from .common import *
-from .response_id import ResponseId
+from .response_id import ExtResponse
 from .types import ClassName, ConcreteClassName
 
 
@@ -60,7 +60,7 @@ class Object(AstNode):
         return self.class_name.gir_type
 
     @cached_property
-    def action_widgets(self) -> T.List[ResponseId]:
+    def action_widgets(self) -> T.List[ExtResponse]:
         """Get list of widget's action widgets.
 
         Empty if object doesn't have action widgets.
@@ -69,7 +69,7 @@ class Object(AstNode):
 
         return [
             child.response_id
-            for child in self.children[ObjectContent][0].children[Child]
+            for child in self.content.children[Child]
             if child.response_id
         ]
 

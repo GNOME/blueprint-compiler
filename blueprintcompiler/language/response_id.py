@@ -23,12 +23,13 @@ import typing as T
 from .common import *
 
 
-class ResponseId(AstNode):
+class ExtResponse(AstNode):
     """Response ID of action widget."""
 
     ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [("Gtk", "Dialog"), ("Gtk", "InfoBar")]
 
     grammar = [
+        Keyword("action"),
         Keyword("response"),
         "=",
         AnyOf(
@@ -42,13 +43,6 @@ class ResponseId(AstNode):
     ]
 
     @validate()
-    def child_type_is_action(self) -> None:
-        """Check that child type is "action"."""
-        child_type = self.parent.tokens["child_type"]
-        if child_type != "action":
-            raise CompileError(f"Only action widget can have response ID")
-
-    @validate()
     def parent_has_action_widgets(self) -> None:
         """Chech that parent widget has allowed type."""
         from .gobject_object import Object
@@ -59,7 +53,7 @@ class ResponseId(AstNode):
 
         gir = self.root.gir
 
-        for namespace, name in ResponseId.ALLOWED_PARENTS:
+        for namespace, name in ExtResponse.ALLOWED_PARENTS:
             parent_type = gir.get_type(name, namespace)
             if container_type.assignable_to(parent_type):
                 break
@@ -71,10 +65,10 @@ class ResponseId(AstNode):
     @validate()
     def widget_have_id(self) -> None:
         """Check that action widget have ID."""
-        from .gobject_object import Object
+        from .gtkbuilder_child import Child
 
-        _object = self.parent.children[Object][0]
-        if _object.tokens["id"] is None:
+        object = self.parent_by_type(Child).object
+        if object.id is None:
             raise CompileError(f"Action widget must have ID")
 
     @validate("response_id")
@@ -102,10 +96,9 @@ class ResponseId(AstNode):
     @validate("default")
     def no_multiple_default(self) -> None:
         """Only one action widget in dialog can be default."""
-        from .gtkbuilder_child import Child
         from .gobject_object import Object
 
-        if not self.tokens["is_default"]:
+        if not self.is_default:
             return
 
         action_widgets = self.parent_by_type(Object).action_widgets
@@ -126,7 +119,7 @@ class ResponseId(AstNode):
     @property
     def widget_id(self) -> str:
         """Get action widget ID."""
-        from .gobject_object import Object
+        from .gtkbuilder_child import Child
 
-        _object: Object = self.parent.children[Object][0]
-        return _object.tokens["id"]
+        object = self.parent_by_type(Child).object
+        return object.id

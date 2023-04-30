@@ -170,11 +170,16 @@ class XmlOutput(OutputFormat):
 
     def _emit_child(self, child: Child, xml: XmlEmitter):
         child_type = internal_child = None
-
-        if child.tokens["internal_child"]:
-            internal_child = child.tokens["child_type"]
-        else:
-            child_type = child.tokens["child_type"]
+        if child.annotation is not None:
+            annotation = child.annotation.child
+            if isinstance(annotation, ChildType):
+                child_type = annotation.child_type
+            elif isinstance(annotation, ChildInternal):
+                internal_child = annotation.internal_child
+            elif isinstance(annotation, ChildExtension):
+                child_type = "action"
+            else:
+                raise CompilerBugError()
 
         xml.start_tag("child", type=child_type, internal_child=internal_child)
         self._emit_object(child.object, xml)

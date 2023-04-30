@@ -23,7 +23,7 @@ from .gtk_menu import menu, Menu, MenuAttribute
 from .gtk_size_group import Widgets
 from .gtk_string_list import Strings
 from .gtk_styles import Styles
-from .gtkbuilder_child import Child
+from .gtkbuilder_child import Child, ChildType, ChildInternal, ChildExtension
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .property_binding import PropertyBinding
