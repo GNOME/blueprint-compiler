@@ -103,7 +103,7 @@ class XmlOutput(OutputFormat):
                 xml.start_tag(
                     "property", **props, **self._translated_string_attrs(child)
                 )
-                xml.put_text(child.child.string)
+                xml.put_text(child.string)
                 xml.end_tag()
             else:
                 xml.start_tag("property", **props)
@@ -149,12 +149,7 @@ class XmlOutput(OutputFormat):
         if isinstance(translated, QuotedLiteral):
             return {}
         else:
-            return {
-                "translatable": "true",
-                "context": translated.child.translate_context
-                if isinstance(translated.child, TranslatedWithContext)
-                else None,
-            }
+            return {"translatable": "true", "context": translated.translate_context}
 
     def _emit_signal(self, signal: Signal, xml: XmlEmitter):
         name = signal.name
@@ -267,7 +262,7 @@ class XmlOutput(OutputFormat):
 
         if isinstance(value.child, Translated):
             xml.start_tag(tag, **attrs, **self._translated_string_attrs(value.child))
-            xml.put_text(value.child.child.string)
+            xml.put_text(value.child.string)
             xml.end_tag()
         elif isinstance(value.child, QuotedLiteral):
             xml.start_tag(tag, **attrs)
@@ -308,7 +303,6 @@ class XmlOutput(OutputFormat):
         elif isinstance(extension, Responses):
             xml.start_tag("responses")
             for response in extension.responses:
-                # todo: translated
                 xml.start_tag(
                     "response",
                     id=response.id,

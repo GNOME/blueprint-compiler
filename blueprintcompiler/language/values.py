@@ -27,40 +27,27 @@ from .gobject_object import Object
 from .contexts import ScopeCtx, ValueTypeCtx
 
 
-class TranslatedWithoutContext(AstNode):
-    grammar = ["_", "(", UseQuoted("string"), Optional(","), ")"]
-
-    @property
-    def string(self) -> str:
-        return self.tokens["string"]
-
-
-class TranslatedWithContext(AstNode):
-    grammar = [
-        "C_",
-        "(",
-        UseQuoted("context"),
-        ",",
-        UseQuoted("string"),
-        Optional(","),
-        ")",
-    ]
-
-    @property
-    def string(self) -> str:
-        return self.tokens["string"]
-
-    @property
-    def translate_context(self) -> str:
-        return self.tokens["context"]
-
-
 class Translated(AstNode):
-    grammar = AnyOf(TranslatedWithoutContext, TranslatedWithContext)
+    grammar = AnyOf(
+        ["_", "(", UseQuoted("string"), Optional(","), ")"],
+        [
+            "C_",
+            "(",
+            UseQuoted("context"),
+            ",",
+            UseQuoted("string"),
+            Optional(","),
+            ")",
+        ],
+    )
 
     @property
-    def child(self) -> T.Union[TranslatedWithContext, TranslatedWithoutContext]:
-        return self.children[0]
+    def string(self) -> str:
+        return self.tokens["string"]
+
+    @property
+    def translate_context(self) -> T.Optional[str]:
+        return self.tokens["context"]
 
     @validate()
     def validate_for_type(self) -> None:
@@ -382,7 +369,7 @@ class StringValue(AstNode):
     @property
     def string(self) -> str:
         if isinstance(self.child, Translated):
-            return self.child.child.string
+            return self.child.string
         else:
             return self.child.value
 
