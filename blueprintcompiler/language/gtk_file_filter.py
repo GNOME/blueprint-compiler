@@ -42,7 +42,9 @@ class Filters(AstNode):
 
 
 class FilterString(AstNode):
-    pass
+    @property
+    def item(self) -> str:
+        return self.tokens["name"]
 
 
 def create_node(tag_name: str, singular: str):

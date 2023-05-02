@@ -25,6 +25,11 @@ from .values import StringValue
 
 
 class Item(AstNode):
+    grammar = [
+        Optional([UseIdent("name"), ":"]),
+        StringValue,
+    ]
+
     @property
     def name(self) -> str:
         return self.tokens["name"]
@@ -34,25 +39,11 @@ class Item(AstNode):
         return self.children[StringValue][0]
 
 
-item = Group(
-    Item,
-    [
-        Optional(
-            [
-                UseIdent("name"),
-                ":",
-            ]
-        ),
-        StringValue,
-    ],
-)
-
-
 class ExtComboBoxItems(AstNode):
     grammar = [
         Keyword("items"),
         "[",
-        Delimited(item, ","),
+        Delimited(Item, ","),
         "]",
     ]
 

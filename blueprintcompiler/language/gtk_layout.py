@@ -25,6 +25,7 @@ from .values import Value
 
 
 class LayoutProperty(AstNode):
+    grammar = Statement(UseIdent("name"), ":", Err(Value, "Expected a value"))
     tag_name = "property"
 
     @property
@@ -48,17 +49,11 @@ class LayoutProperty(AstNode):
         )
 
 
-layout_prop = Group(
-    LayoutProperty,
-    Statement(UseIdent("name"), ":", Err(Value, "Expected a value")),
-)
-
-
 class ExtLayout(AstNode):
     grammar = Sequence(
         Keyword("layout"),
         "{",
-        Until(layout_prop, "}"),
+        Until(LayoutProperty, "}"),
     )
 
     @validate("layout")
