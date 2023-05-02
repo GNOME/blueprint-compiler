@@ -27,14 +27,13 @@ from .contexts import ScopeCtx, ValueTypeCtx
 
 class Translated(AstNode):
     grammar = AnyOf(
-        ["_", "(", UseQuoted("string"), Optional(","), ")"],
+        ["_", "(", UseQuoted("string"), ")"],
         [
             "C_",
             "(",
             UseQuoted("context"),
             ",",
             UseQuoted("string"),
-            Optional(","),
             ")",
         ],
     )

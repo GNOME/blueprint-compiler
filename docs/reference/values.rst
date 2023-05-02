@@ -80,7 +80,7 @@ Translated Strings
 
 .. rst-class:: grammar-block
 
-   Translated = ( '_' '(' <string::ref:`QUOTED<Syntax QUOTED>`> ','? ')' ) | ( '\C_' '(' <context::ref:`QUOTED<Syntax QUOTED>`> ',' <string::ref:`QUOTED<Syntax QUOTED>`> ','? ')' )
+   Translated = ( '_' '(' <string::ref:`QUOTED<Syntax QUOTED>`> ')' ) | ( '\C_' '(' <context::ref:`QUOTED<Syntax QUOTED>`> ',' <string::ref:`QUOTED<Syntax QUOTED>`> ')' )
 
 
 Use ``_("...")`` to mark strings as translatable. You can put a comment for translators on the line above if needed.
