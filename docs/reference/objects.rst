@@ -174,7 +174,7 @@ Child extensions
    }
 
 Internal children
-++++++++++++++++
++++++++++++++++++
 
 .. code-block:: blueprintui
 

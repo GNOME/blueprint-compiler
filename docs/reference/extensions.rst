@@ -202,7 +202,7 @@ The template type is `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.htm
        template {
          child: Label {
            label: bind item.string;
-         }
+         };
        }
      }
 

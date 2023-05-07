@@ -85,7 +85,7 @@ Translated Strings
 
 Use ``_("...")`` to mark strings as translatable. You can put a comment for translators on the line above if needed.
 
-.. code-block::
+.. code-block:: blueprintui
 
    Gtk.Label label {
      /* Translators: This is the main text of the welcome screen */
@@ -94,7 +94,7 @@ Use ``_("...")`` to mark strings as translatable. You can put a comment for tran
 
 Use ``C_("context", "...")`` to add a *message context* to a string to disambiguate it, in case the same string appears in different places. Remember, two strings might be the same in one language but different in another depending on context.
 
-.. code-block::
+.. code-block:: blueprintui
 
    Gtk.Label label {
      /* Translators: This is a section in the preferences window */
@@ -165,4 +165,4 @@ String Values
 
    StringValue = :ref:`Translated<Syntax Translated>` | :ref:`QuotedLiteral<Syntax Literal>`
 
-Menus, as well as some :ref:`extensions<Syntax Extensions>`, have properties that can only be string literals or translated strings.
+Menus, as well as some :ref:`extensions<Syntax Extension>`, have properties that can only be string literals or translated strings.

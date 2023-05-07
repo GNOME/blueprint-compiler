@@ -53,9 +53,7 @@ Features
 - **Concise syntax.** No more clumsy XML! Blueprint is designed from the ground
   up to match GTK's widget model, including templates, child types, signal
   handlers, and menus.
-- **Easy to learn.** The syntax should be very familiar to most people. Scroll
-  through the :doc:`examples page <examples>` for a quick overview of the whole
-  language.
+- **Easy to learn.** The syntax should be very familiar to most people. Take a look at the :doc:`reference <reference/index>` to get started.
 - **Modern tooling.** Blueprint ships a `Language Server <https://microsoft.github.io/language-server-protocol/>`_ for IDE integration.
 
 Links
