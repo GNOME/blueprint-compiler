@@ -89,6 +89,8 @@ def listdir_recursive(subdir):
     for file in files:
         if file in ["_build", "build"]:
             continue
+        if file.startswith("."):
+            continue
         full = os.path.join(subdir, file)
         if full == "./subprojects":
             # skip the subprojects directory
