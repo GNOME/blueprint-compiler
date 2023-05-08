@@ -23,6 +23,7 @@ from blueprintcompiler.language.values import StringValue
 
 from .common import *
 from .contexts import ValueTypeCtx
+from .gobject_object import RESERVED_IDS
 
 
 class Menu(AstNode):
@@ -46,6 +47,11 @@ class Menu(AstNode):
     def has_id(self):
         if self.tokens["tag"] == "menu" and self.tokens["id"] is None:
             raise CompileError("Menu requires an ID")
+
+    @validate("id")
+    def object_id_not_reserved(self):
+        if self.id in RESERVED_IDS:
+            raise CompileWarning(f"{self.id} may be a confusing object ID")
 
 
 class MenuAttribute(AstNode):

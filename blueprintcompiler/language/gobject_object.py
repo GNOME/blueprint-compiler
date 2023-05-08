@@ -26,6 +26,9 @@ from .response_id import ExtResponse
 from .types import ClassName, ConcreteClassName
 
 
+RESERVED_IDS = {"this", "self", "template", "true", "false", "null", "none"}
+
+
 class ObjectContent(AstNode):
     grammar = ["{", Until(OBJECT_CONTENT_HOOKS, "}")]
 
@@ -72,6 +75,11 @@ class Object(AstNode):
             for child in self.content.children[Child]
             if child.response_id
         ]
+
+    @validate("id")
+    def object_id_not_reserved(self):
+        if self.id in RESERVED_IDS:
+            raise CompileWarning(f"{self.id} may be a confusing object ID")
 
 
 def validate_parent_type(node, ns: str, name: str, err_msg: str):
