@@ -122,3 +122,42 @@ class ConcreteClassName(ClassName):
                 f"{self.gir_type.full_name} can't be instantiated because it's abstract",
                 hints=[f"did you mean to use a subclass of {self.gir_type.full_name}?"],
             )
+
+
+class TemplateClassName(ClassName):
+    """Handles the special case of a template type. The old syntax uses an identifier,
+    which is ambiguous with the new syntax. So this class displays an appropriate
+    upgrade warning instead of a class not found error."""
+
+    @property
+    def is_legacy(self):
+        return (
+            self.tokens["extern"] is None
+            and self.tokens["namespace"] is None
+            and self.root.gir.get_type(self.tokens["class_name"], "Gtk") is None
+        )
+
+    @property
+    def gir_type(self) -> gir.GirType:
+        if self.is_legacy:
+            return gir.ExternType(self.tokens["class_name"])
+        else:
+            return super().gir_type
+
+    @validate("class_name")
+    def type_exists(self):
+        if self.is_legacy:
+            if type := self.root.gir.get_type_by_cname(self.tokens["class_name"]):
+                replacement = type.full_name
+            else:
+                replacement = "$" + self.tokens["class_name"]
+
+            raise UpgradeWarning(
+                "Use type syntax here (introduced in blueprint 0.8.0)",
+                actions=[CodeAction("Use type syntax", replace_with=replacement)],
+            )
+
+        if not self.tokens["extern"] and self.gir_ns is not None:
+            self.root.gir.validate_type(
+                self.tokens["class_name"], self.tokens["namespace"]
+            )

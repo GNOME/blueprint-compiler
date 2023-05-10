@@ -57,6 +57,7 @@ class DecompileCtx:
         self._indent: int = 0
         self._blocks_need_end: T.List[str] = []
         self._last_line_type: LineType = LineType.NONE
+        self.template_class: T.Optional[str] = None
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
 
@@ -158,6 +159,8 @@ class DecompileCtx:
             )
         ):
             self.print(f'{name}: "{escape_quote(value)}";')
+        elif value == self.template_class:
+            self.print(f"{name}: template;")
         elif type.assignable_to(
             self.gir.namespaces["Gtk"].lookup_type("GObject.Object")
         ):

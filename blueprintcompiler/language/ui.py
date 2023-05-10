@@ -43,7 +43,7 @@ class UI(AstNode):
     ]
 
     @property
-    def gir(self):
+    def gir(self) -> gir.GirContext:
         gir_ctx = gir.GirContext()
         self._gir_errors = []
 
@@ -83,6 +83,20 @@ class UI(AstNode):
             or isinstance(child, Template)
             or isinstance(child, Menu)
         ]
+
+    @property
+    def template(self) -> T.Optional[Template]:
+        if len(self.children[Template]):
+            return self.children[Template][0]
+        else:
+            return None
+
+    def is_legacy_template(self, id: str) -> bool:
+        return (
+            id not in self.context[ScopeCtx].objects
+            and self.template is not None
+            and self.template.class_name.glib_type_name == id
+        )
 
     @context(ScopeCtx)
     def scope_ctx(self) -> ScopeCtx:

@@ -8,6 +8,7 @@ from .xml_emitter import XmlEmitter
 class XmlOutput(OutputFormat):
     def emit(self, ui: UI) -> str:
         xml = XmlEmitter()
+        self._ui = ui
         self._emit_ui(ui, xml)
         return xml.result
 
@@ -32,7 +33,9 @@ class XmlOutput(OutputFormat):
         xml.put_self_closing("requires", lib="gtk", version=gtk.gir_namespace.version)
 
     def _emit_template(self, template: Template, xml: XmlEmitter):
-        xml.start_tag("template", **{"class": template.id}, parent=template.class_name)
+        xml.start_tag(
+            "template", **{"class": template.gir_class}, parent=template.parent_type
+        )
         self._emit_object_or_template(template, xml)
         xml.end_tag()
 
@@ -188,6 +191,8 @@ class XmlOutput(OutputFormat):
                 xml.put_text(value.ident)
             elif isinstance(value_type, gir.Enumeration):
                 xml.put_text(str(value_type.members[value.ident].value))
+            elif value.ident == "template" and self._ui.template is not None:
+                xml.put_text(self._ui.template.gir_class.glib_type_name)
             else:
                 xml.put_text(value.ident)
         elif isinstance(value, TypeLiteral):

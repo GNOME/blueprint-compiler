@@ -85,9 +85,9 @@ class LiteralExpr(ExprBase):
     def is_object(self) -> bool:
         from .values import IdentLiteral
 
-        return (
-            isinstance(self.literal.value, IdentLiteral)
-            and self.literal.value.ident in self.context[ScopeCtx].objects
+        return isinstance(self.literal.value, IdentLiteral) and (
+            self.literal.value.ident in self.context[ScopeCtx].objects
+            or self.root.is_legacy_template(self.literal.value.ident)
         )
 
     @property

@@ -23,6 +23,7 @@ from functools import cached_property
 
 from .common import *
 from .gobject_object import Object
+from .gtkbuilder_template import Template
 
 
 @dataclass
@@ -51,9 +52,12 @@ class ScopeCtx:
 
             if obj.tokens["id"] in passed:
                 token = obj.group.tokens["id"]
-                raise CompileError(
-                    f"Duplicate object ID '{obj.tokens['id']}'", token.start, token.end
-                )
+                if not isinstance(obj, Template):
+                    raise CompileError(
+                        f"Duplicate object ID '{obj.tokens['id']}'",
+                        token.start,
+                        token.end,
+                    )
             passed[obj.tokens["id"]] = obj
 
     def _iter_recursive(self, node: AstNode):

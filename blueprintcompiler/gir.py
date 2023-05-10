@@ -516,7 +516,7 @@ class Class(GirNode, GirType):
 
 
 class TemplateType(GirType):
-    def __init__(self, name: str, parent: T.Optional[Class]):
+    def __init__(self, name: str, parent: T.Optional[GirType]):
         self._name = name
         self.parent = parent
 
@@ -534,14 +534,14 @@ class TemplateType(GirType):
 
     @cached_property
     def properties(self) -> T.Mapping[str, Property]:
-        if self.parent is None or isinstance(self.parent, ExternType):
+        if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
             return self.parent.properties
 
     @cached_property
     def signals(self) -> T.Mapping[str, Signal]:
-        if self.parent is None or isinstance(self.parent, ExternType):
+        if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
             return self.parent.signals

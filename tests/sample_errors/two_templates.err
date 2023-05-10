@@ -1,1 +1,2 @@
-4,10,10,Only one template may be defined per file, but this file contains 2
+6,7,8,Duplicate object ID 'template'
+4,1,8,Only one template may be defined per file, but this file contains 2

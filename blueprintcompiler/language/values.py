@@ -260,6 +260,8 @@ class IdentLiteral(AstNode):
             return gir.BoolType()
         elif object := self.context[ScopeCtx].objects.get(self.ident):
             return object.gir_class
+        elif self.root.is_legacy_template(self.ident):
+            return self.root.template.class_name.gir_type
         else:
             return None
 
@@ -276,6 +278,12 @@ class IdentLiteral(AstNode):
                     f"{self.ident} is not a member of {expected_type.full_name}",
                     did_you_mean=(self.ident, list(expected_type.members.keys())),
                 )
+
+        elif self.root.is_legacy_template(self.ident):
+            raise UpgradeWarning(
+                "Use 'template' instead of the class name (introduced in 0.8.0)",
+                actions=[CodeAction("Use 'template'", "template")],
+            )
 
         elif expected_type is not None:
             object = self.context[ScopeCtx].objects.get(self.ident)

@@ -70,6 +70,8 @@ class PropertyBinding(AstNode):
 
     @property
     def source_obj(self) -> T.Optional[Object]:
+        if self.root.is_legacy_template(self.source):
+            return self.root.template
         return self.context[ScopeCtx].objects.get(self.source)
 
     @property
@@ -126,4 +128,12 @@ class PropertyBinding(AstNode):
             raise UpgradeWarning(
                 "Use 'bind-property', introduced in blueprint 0.8.0, to use binding flags",
                 actions=[CodeAction("Use 'bind-property'", "bind-property")],
+            )
+
+    @validate("source")
+    def legacy_template(self):
+        if self.root.is_legacy_template(self.source):
+            raise UpgradeWarning(
+                "Use 'template' instead of the class name (introduced in 0.8.0)",
+                actions=[CodeAction("Use 'template'", "template")],
             )

@@ -19,15 +19,18 @@
 
 import typing as T
 
+from blueprintcompiler.language.common import GirType
+
 from .gobject_object import Object, ObjectContent
 from .common import *
-from .types import ClassName
+from ..gir import TemplateType
+from .types import ClassName, TemplateClassName
 
 
 class Template(Object):
     grammar = [
-        "template",
-        UseIdent("id").expected("template class name"),
+        UseExact("id", "template"),
+        to_parse_node(TemplateClassName).expected("template type"),
         Optional(
             [
                 Match(":"),
@@ -39,21 +42,29 @@ class Template(Object):
 
     @property
     def id(self) -> str:
-        return self.tokens["id"]
+        return "template"
 
     @property
-    def class_name(self) -> T.Optional[ClassName]:
-        if len(self.children[ClassName]):
-            return self.children[ClassName][0]
+    def gir_class(self) -> GirType:
+        if isinstance(self.class_name.gir_type, ExternType):
+            if gir := self.parent_type:
+                return TemplateType(self.class_name.gir_type.full_name, gir.gir_type)
+        return self.class_name.gir_type
+
+    @property
+    def parent_type(self) -> T.Optional[ClassName]:
+        if len(self.children[ClassName]) == 2:
+            return self.children[ClassName][1]
         else:
             return None
 
-    @property
-    def gir_class(self):
-        if self.class_name is None:
-            return gir.TemplateType(self.id, None)
-        else:
-            return gir.TemplateType(self.id, self.class_name.gir_type)
+    @validate()
+    def parent_only_if_extern(self):
+        if not isinstance(self.class_name.gir_type, ExternType):
+            if self.parent_type is not None:
+                raise CompileError(
+                    "Parent type may only be specified if the template type is extern"
+                )
 
     @validate("id")
     def unique_in_parent(self):
@@ -63,10 +74,15 @@ class Template(Object):
 
 
 @decompiler("template")
-def decompile_template(ctx: DecompileCtx, gir, klass, parent="Widget"):
-    gir_class = ctx.type_by_cname(parent)
-    if gir_class is None:
-        ctx.print(f"template {klass} : .{parent} {{")
-    else:
-        ctx.print(f"template {klass} : {decompile.full_name(gir_class)} {{")
-    return gir_class
+def decompile_template(ctx: DecompileCtx, gir, klass, parent=None):
+    def class_name(cname: str) -> str:
+        if gir := ctx.type_by_cname(cname):
+            return decompile.full_name(gir)
+        else:
+            return "$" + cname
+
+    ctx.print(f"template {class_name(klass)} : {class_name(parent)} {{")
+
+    ctx.template_class = klass
+
+    return ctx.type_by_cname(klass) or ctx.type_by_cname(parent)

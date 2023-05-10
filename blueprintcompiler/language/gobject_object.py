@@ -49,7 +49,7 @@ class Object(AstNode):
         return self.tokens["id"]
 
     @property
-    def class_name(self) -> T.Optional[ClassName]:
+    def class_name(self) -> ClassName:
         return self.children[ClassName][0]
 
     @property
@@ -78,7 +78,9 @@ class Object(AstNode):
 
     @validate("id")
     def object_id_not_reserved(self):
-        if self.id in RESERVED_IDS:
+        from .gtkbuilder_template import Template
+
+        if not isinstance(self, Template) and self.id in RESERVED_IDS:
             raise CompileWarning(f"{self.id} may be a confusing object ID")
 
 
