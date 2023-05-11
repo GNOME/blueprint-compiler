@@ -133,7 +133,7 @@ class QuotedLiteral(AstNode):
                 "Gdk.Paintable",
                 "Gdk.Texture",
                 "Gdk.Pixbuf",
-                "GLib.File",
+                "Gio.File",
                 "Gtk.ShortcutTrigger",
                 "Gtk.ShortcutAction",
                 "Gdk.RGBA",
