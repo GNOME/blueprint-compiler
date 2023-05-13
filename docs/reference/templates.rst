@@ -9,7 +9,7 @@ Composite Templates
 
 .. rst-class:: grammar-block
 
-   Template = 'template' <id::ref:`IDENT<Syntax IDENT>`> ( ':' :ref:`TypeName<Syntax TypeName>` )? :ref:`ObjectContent<Syntax Object>`
+   Template = 'template' :ref:`TypeName<Syntax TypeName>` ( ':' :ref:`TypeName<Syntax TypeName>` )? :ref:`ObjectContent<Syntax Object>`
 
 Widget subclassing is one of the primary techniques for structuring an application. For example, a maps app might have a `Gtk.ApplicationWindow <https://docs.gtk.org/gtk4/class.ApplicationWindow.html>`_ subclass, ``MapsApplicationWindow``, that implements the functionality of its main window. But a maps app has a lot of functionality, so the headerbar might be split into its own `Gtk.HeaderBar <https://docs.gtk.org/gtk4/class.HeaderBar.html>`_ subclass, ``MapsHeaderBar``, for the sake of organization.
 
@@ -43,7 +43,7 @@ For this to work, we need to specify in the blueprint which object is the one be
 
    using Gtk 4.0;
 
-   template MapsHeaderBar : Gtk.HeaderBar {
+   template $MapsHeaderBar : Gtk.HeaderBar {
      /* probably a lot of buttons ... */
    }
 
@@ -69,9 +69,9 @@ This ``MapsHeaderBar`` class, along with its blueprint template, can then be ref
 ID & Parent Parameters
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The ID of a template must match the full class name in your application code. The ID can be used elsewhere in the blueprint to reference the template object, just like any other object ID.
+The type name that directly follows the ``template`` keyword is the type of the template class. In most cases, this will be an extern type starting with ``$`` and matching the class name in the application code. Templates for use in a `Gtk.BuilderListItemFactory <https://docs.gtk.org/gtk4/class.BuilderListItemFactory.html>`_ use ``ListItem`` as the type name instead.
 
-The parent type is optional and enables type checking for the template object.
+The parent type is optional, and may only be present if the template type is extern. It enables limited type checking for the properties and signals of the template object.
 
 
 Language Implementations
