@@ -96,7 +96,7 @@ class AdwBreakpointSetter(AstNode):
             # This happens for classes defined by the app itself
             return
 
-        if self.gir_property is None:
+        if self.gir_property is None and self.property_name is not None:
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not have a property called {self.property_name}",
                 did_you_mean=(self.property_name, self.gir_class.properties.keys()),
