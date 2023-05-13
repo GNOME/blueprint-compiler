@@ -159,140 +159,46 @@ class TestSamples(unittest.TestCase):
         except:
             pass
 
-        self.assert_sample("accessibility")
-        self.assert_sample("action_widgets")
-        if have_adw_1_4:
-            self.assert_sample("adw_breakpoint")
-        self.assert_sample("child_type")
-        self.assert_sample("combo_box_text")
-        self.assert_sample("comments")
-        self.assert_sample("enum")
-        self.assert_sample("expr_closure", skip_run=True)  # The closure doesn't exist
-        self.assert_sample(
-            "expr_closure_args", skip_run=True
-        )  # The closure doesn't exist
-        self.assert_sample("expr_lookup")
-        self.assert_sample("file_filter")
-        self.assert_sample("flags")
-        self.assert_sample("id_prop")
-        self.assert_sample("layout")
-        self.assert_sample("list_factory")
-        self.assert_sample("menu")
-        self.assert_sample("numbers")
-        self.assert_sample("object_prop")
-        self.assert_sample(
-            "parseable", skip_run=True
-        )  # The image resource doesn't exist
-        self.assert_sample("property")
-        self.assert_sample("property_binding")
-        self.assert_sample("responses", skip_run=not have_adw)
-        self.assert_sample("signal", skip_run=True)  # The callback doesn't exist
-        self.assert_sample("size_group")
-        self.assert_sample("string_list")
-        self.assert_sample("strings")
-        self.assert_sample("style")
-        self.assert_sample("subscope")
-        self.assert_sample(
-            "template", skip_run=True
-        )  # The template class doesn't exist
-        self.assert_sample(
-            "template_binding", skip_run=True
-        )  # The template class doesn't exist
-        self.assert_sample(
-            "template_binding_extern", skip_run=True
-        )  # The template class doesn't exist
-        self.assert_sample(
-            "template_no_parent", skip_run=True
-        )  # The template class doesn't exist
-        self.assert_sample("translated")
-        self.assert_sample(
-            "typeof", skip_run=True
-        )  # The custom object type doesn't exist
-        self.assert_sample("uint")
-        self.assert_sample(
-            "unchecked_class", skip_run=True
-        )  # The custom object type doesn't exist
-        self.assert_sample("using")
+        # list the samples directory
+        samples = [
+            f.stem
+            for f in Path(__file__).parent.glob("samples/*.blp")
+            if not f.stem.endswith("_dec")
+        ]
+        for sample in samples:
+            REQUIRE_ADW_1_4 = ["adw_breakpoint"]
 
-    def test_sample_errors(self):
-        have_adw = False
-        have_adw_1_4 = False
+            SKIP_RUN = [
+                "expr_closure",
+                "expr_closure_args",
+                "parseable",
+                "signal",
+                "template",
+                "template_binding",
+                "template_binding_extern",
+                "template_no_parent",
+                "typeof",
+                "unchecked_class",
+            ]
 
-        try:
-            import gi
+            if sample in REQUIRE_ADW_1_4 and not have_adw_1_4:
+                continue
 
-            gi.require_version("Adw", "1")
-            from gi.repository import Adw
+            with self.subTest(sample):
+                self.assert_sample(sample, skip_run=sample in SKIP_RUN)
 
-            have_adw = True
-            Adw.init()
-            if Adw.MINOR_VERSION >= 4:
-                have_adw_1_4 = True
-        except:
-            pass
+        # list the sample_errors directory
+        sample_errors = [
+            f.stem for f in Path(__file__).parent.glob("sample_errors/*.blp")
+        ]
+        for sample_error in sample_errors:
+            REQUIRE_ADW_1_4 = ["adw_breakpoint"]
 
-        self.assert_sample_error("a11y_in_non_widget")
-        self.assert_sample_error("a11y_prop_dne")
-        self.assert_sample_error("a11y_prop_obj_dne")
-        self.assert_sample_error("a11y_prop_type")
-        self.assert_sample_error("abstract_class")
-        self.assert_sample_error("action_widget_float_response")
-        self.assert_sample_error("action_widget_have_no_id")
-        self.assert_sample_error("action_widget_multiple_default")
-        self.assert_sample_error("action_widget_in_invalid_container")
-        self.assert_sample_error("action_widget_response_dne")
-        self.assert_sample_error("action_widget_negative_response")
-        if have_adw_1_4:
-            self.assert_sample_error("adw_breakpoint")
-        self.assert_sample_error("bitfield_member_dne")
-        self.assert_sample_error("children")
-        self.assert_sample_error("class_assign")
-        self.assert_sample_error("class_dne")
-        self.assert_sample_error("consecutive_unexpected_tokens")
-        self.assert_sample_error("does_not_implement")
-        self.assert_sample_error("duplicate_obj_id")
-        self.assert_sample_error("duplicates")
-        self.assert_sample_error("empty")
-        self.assert_sample_error("enum_member_dne")
-        self.assert_sample_error("expected_semicolon")
-        self.assert_sample_error("expr_cast_conversion")
-        self.assert_sample_error("expr_cast_needed")
-        self.assert_sample_error("expr_closure_not_cast")
-        self.assert_sample_error("expr_lookup_dne")
-        self.assert_sample_error("expr_lookup_no_properties")
-        self.assert_sample_error("filters_in_non_file_filter")
-        self.assert_sample_error("gtk_3")
-        self.assert_sample_error("gtk_exact_version")
-        self.assert_sample_error("inline_menu")
-        self.assert_sample_error("invalid_bool")
-        self.assert_sample_error("layout_in_non_widget")
-        self.assert_sample_error("legacy_template")
-        self.assert_sample_error("list_factory")
-        self.assert_sample_error("menu_no_id")
-        self.assert_sample_error("menu_toplevel_attribute")
-        self.assert_sample_error("no_import_version")
-        self.assert_sample_error("ns_not_found")
-        self.assert_sample_error("ns_not_imported")
-        self.assert_sample_error("not_a_class")
-        self.assert_sample_error("object_dne")
-        self.assert_sample_error("obj_in_string_list")
-        self.assert_sample_error("obj_prop_type")
-        self.assert_sample_error("property_dne")
-        self.assert_sample_error("read_only_properties")
-        self.assert_sample_error("signal_dne")
-        self.assert_sample_error("signal_object_dne")
-        self.assert_sample_error("size_group_non_widget")
-        self.assert_sample_error("size_group_obj_dne")
-        self.assert_sample_error("strv")
-        self.assert_sample_error("styles_in_non_widget")
-        self.assert_sample_error("subscope")
-        self.assert_sample_error("template_parent")
-        self.assert_sample_error("two_templates")
-        self.assert_sample_error("uint")
-        self.assert_sample_error("using_invalid_namespace")
-        self.assert_sample_error("warn_old_bind")
-        self.assert_sample_error("warn_old_extern")
-        self.assert_sample_error("widgets_in_non_size_group")
+            if sample_error in REQUIRE_ADW_1_4 and not have_adw_1_4:
+                continue
+
+            with self.subTest(sample_error):
+                self.assert_sample_error(sample_error)
 
     def test_decompiler(self):
         self.assert_decompile("accessibility_dec")
