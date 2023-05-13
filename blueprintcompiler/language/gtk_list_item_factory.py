@@ -2,11 +2,19 @@ from .gobject_object import ObjectContent, validate_parent_type
 from ..parse_tree import Keyword
 from ..ast_utils import AstNode, validate
 from .common import *
+from .types import TypeName
 from .contexts import ScopeCtx
 
 
 class ExtListItemFactory(AstNode):
-    grammar = [Keyword("template"), ObjectContent]
+    grammar = [Keyword("template"), Optional(TypeName), ObjectContent]
+
+    @property
+    def type_name(self) -> T.Optional[TypeName]:
+        if len(self.children[TypeName]) == 1:
+            return self.children[TypeName][0]
+        else:
+            return None
 
     @property
     def gir_class(self):
@@ -20,6 +28,25 @@ class ExtListItemFactory(AstNode):
             "BuilderListItemFactory",
             "sub-templates",
         )
+
+    @validate()
+    def type_is_list_item(self):
+        if self.type_name is not None:
+            if self.type_name.glib_type_name != "GtkListItem":
+                raise CompileError(f"Only Gtk.ListItem is allowed as a type here")
+
+    @validate("template")
+    def type_name_upgrade(self):
+        if self.type_name is None:
+            raise UpgradeWarning(
+                "Expected type name after 'template' keyword",
+                actions=[
+                    CodeAction(
+                        "Add ListItem type to template block (introduced in blueprint 0.8.0)",
+                        "template ListItem",
+                    )
+                ],
+            )
 
     @context(ScopeCtx)
     def scope_ctx(self) -> ScopeCtx:

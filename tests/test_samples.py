@@ -267,6 +267,7 @@ class TestSamples(unittest.TestCase):
         self.assert_sample_error("invalid_bool")
         self.assert_sample_error("layout_in_non_widget")
         self.assert_sample_error("legacy_template")
+        self.assert_sample_error("list_factory")
         self.assert_sample_error("menu_no_id")
         self.assert_sample_error("menu_toplevel_attribute")
         self.assert_sample_error("no_import_version")
