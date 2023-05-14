@@ -147,9 +147,11 @@ class XmlOutput(OutputFormat):
             raise CompilerBugError()
 
     def _translated_string_attrs(
-        self, translated: T.Union[QuotedLiteral, Translated]
+        self, translated: T.Optional[T.Union[QuotedLiteral, Translated]]
     ) -> T.Dict[str, T.Optional[str]]:
-        if isinstance(translated, QuotedLiteral):
+        if translated is None:
+            return {}
+        elif isinstance(translated, QuotedLiteral):
             return {}
         else:
             return {"translatable": "true", "context": translated.translate_context}
@@ -347,6 +349,20 @@ class XmlOutput(OutputFormat):
                     appearance=response.appearance,
                 )
                 xml.put_text(response.value.string)
+                xml.end_tag()
+            xml.end_tag()
+
+        elif isinstance(extension, ExtScaleMarks):
+            xml.start_tag("marks")
+            for mark in extension.children:
+                xml.start_tag(
+                    "mark",
+                    value=mark.value,
+                    position=mark.position,
+                    **self._translated_string_attrs(mark.label and mark.label.child),
+                )
+                if mark.label is not None:
+                    xml.put_text(mark.label.string)
                 xml.end_tag()
             xml.end_tag()
 

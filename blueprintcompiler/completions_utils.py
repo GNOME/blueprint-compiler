@@ -27,6 +27,7 @@ from .lsp_utils import Completion
 new_statement_patterns = [
     [(TokenType.PUNCTUATION, "{")],
     [(TokenType.PUNCTUATION, "}")],
+    [(TokenType.PUNCTUATION, "]")],
     [(TokenType.PUNCTUATION, ";")],
 ]
 

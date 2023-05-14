@@ -165,6 +165,7 @@ class TestSamples(unittest.TestCase):
             for f in Path(__file__).parent.glob("samples/*.blp")
             if not f.stem.endswith("_dec")
         ]
+        samples.sort()
         for sample in samples:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
 
@@ -191,6 +192,7 @@ class TestSamples(unittest.TestCase):
         sample_errors = [
             f.stem for f in Path(__file__).parent.glob("sample_errors/*.blp")
         ]
+        sample_errors.sort()
         for sample_error in sample_errors:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
 
@@ -212,6 +214,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("property_binding_dec")
         self.assert_decompile("placeholder_dec")
         self.assert_decompile("responses")
+        self.assert_decompile("scale_marks")
         self.assert_decompile("signal")
         self.assert_decompile("strings")
         self.assert_decompile("style_dec")

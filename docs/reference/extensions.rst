@@ -212,6 +212,21 @@ The template type is `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.htm
    }
 
 
+.. _Syntax ExtScaleMarks:
+
+Gtk.Scale Marks
+---------------
+
+.. rst-class:: grammar-block
+
+   ExtScaleMarks = 'marks' '[' (ExtScaleMark),* ']'
+   ExtScaleMark = 'mark' '(' ( '-' | '+' )? <value::ref:`NUMBER<Syntax NUMBER>`> ( ',' <position::ref:`IDENT<Syntax IDENT>`> ( ',' :ref:`StringValue<Syntax StringValue>` )? )? ')'
+
+Valid in `Gtk.Scale <https://docs.gtk.org/gtk4/class.Scale.html>`_.
+
+The ``marks`` block defines the marks on a scale. A single ``mark`` has up to three arguments: a value, an optional position, and an optional label. The position can be ``left``, ``right``, ``top``, or ``bottom``. The label may be translated.
+
+
 .. _Syntax ExtSizeGroupWidgets:
 
 Gtk.SizeGroup Widgets

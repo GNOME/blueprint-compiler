@@ -244,7 +244,7 @@ class ParseNode:
         what it does and how the parser works before using it."""
         return Err(self, message)
 
-    def expected(self, expect) -> "Err":
+    def expected(self, expect: str) -> "Err":
         """Convenience method for err()."""
         return self.err("Expected " + expect)
 
@@ -390,9 +390,12 @@ class Until(ParseNode):
     the child does not match, one token is skipped and the match is attempted
     again."""
 
-    def __init__(self, child, delimiter):
+    def __init__(self, child, delimiter, between_delimiter=None):
         self.child = to_parse_node(child)
         self.delimiter = to_parse_node(delimiter)
+        self.between_delimiter = (
+            to_parse_node(between_delimiter) if between_delimiter is not None else None
+        )
 
     def _parse(self, ctx: ParseContext):
         while not self.delimiter.parse(ctx).succeeded():
@@ -402,6 +405,17 @@ class Until(ParseNode):
             try:
                 if not self.child.parse(ctx).matched():
                     ctx.skip_unexpected_token()
+
+                if (
+                    self.between_delimiter is not None
+                    and not self.between_delimiter.parse(ctx).succeeded()
+                ):
+                    if self.delimiter.parse(ctx).succeeded():
+                        return True
+                    else:
+                        if ctx.is_eof():
+                            return False
+                        ctx.skip_unexpected_token()
             except CompileError as e:
                 ctx.errors.append(e)
                 ctx.next_token()

@@ -29,7 +29,13 @@ from ..errors import (
 )
 from ..completions_utils import *
 from .. import decompiler as decompile
-from ..decompiler import DecompileCtx, decompiler
+from ..decompiler import (
+    DecompileCtx,
+    decompiler,
+    escape_quote,
+    truthy,
+    decompile_translatable,
+)
 from ..gir import (
     StringType,
     BoolType,

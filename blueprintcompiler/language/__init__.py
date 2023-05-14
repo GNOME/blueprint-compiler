@@ -30,6 +30,7 @@ from .gtk_file_filter import (
 )
 from .gtk_layout import ExtLayout
 from .gtk_menu import menu, Menu, MenuAttribute
+from .gtk_scale import ExtScaleMarks
 from .gtk_size_group import ExtSizeGroupWidgets
 from .gtk_string_list import ExtStringListStrings
 from .gtk_styles import ExtStyles
@@ -68,6 +69,7 @@ OBJECT_CONTENT_HOOKS.children = [
     ext_file_filter_suffixes,
     ExtLayout,
     ExtListItemFactory,
+    ExtScaleMarks,
     ExtSizeGroupWidgets,
     ExtStringListStrings,
     ExtStyles,
