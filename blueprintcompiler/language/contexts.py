@@ -37,6 +37,16 @@ class ScopeCtx:
     node: AstNode
 
     @cached_property
+    def template(self):
+        from .ui import UI
+        from .gtk_list_item_factory import ExtListItemFactory
+
+        if isinstance(self.node, UI):
+            return self.node.template
+        elif isinstance(self.node, ExtListItemFactory):
+            return self.node
+
+    @cached_property
     def objects(self) -> T.Dict[str, Object]:
         return {
             obj.tokens["id"]: obj
@@ -45,6 +55,8 @@ class ScopeCtx:
         }
 
     def validate_unique_ids(self) -> None:
+        from .gtk_list_item_factory import ExtListItemFactory
+
         passed = {}
         for obj in self._iter_recursive(self.node):
             if obj.tokens["id"] is None:
@@ -52,7 +64,9 @@ class ScopeCtx:
 
             if obj.tokens["id"] in passed:
                 token = obj.group.tokens["id"]
-                if not isinstance(obj, Template):
+                if not isinstance(obj, Template) and not isinstance(
+                    obj, ExtListItemFactory
+                ):
                     raise CompileError(
                         f"Duplicate object ID '{obj.tokens['id']}'",
                         token.start,

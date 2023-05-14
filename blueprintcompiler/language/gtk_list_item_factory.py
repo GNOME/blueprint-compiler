@@ -7,7 +7,7 @@ from .contexts import ScopeCtx
 
 
 class ExtListItemFactory(AstNode):
-    grammar = [Keyword("template"), Optional(TypeName), ObjectContent]
+    grammar = [UseExact("id", "template"), Optional(TypeName), ObjectContent]
 
     @property
     def type_name(self) -> T.Optional[TypeName]:

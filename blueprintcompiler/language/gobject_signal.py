@@ -96,11 +96,6 @@ class Signal(AstNode):
             # This happens for classes defined by the app itself
             return
 
-        if isinstance(self.parent.parent, Template):
-            # If the signal is part of a template, it might be defined by
-            # the application and thus not in gir
-            return
-
         if self.gir_signal is None:
             raise CompileError(
                 f"Class {self.gir_class.full_name} does not contain a signal called {self.tokens['name']}",

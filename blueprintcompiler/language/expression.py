@@ -106,7 +106,7 @@ class LiteralExpr(ExprBase):
 
         if isinstance(self.literal.value, IdentLiteral):
             if object := self.context[ScopeCtx].objects.get(self.literal.value.ident):
-                return not isinstance(object, Template)
+                return not object.gir_class.incomplete
         return True
 
 

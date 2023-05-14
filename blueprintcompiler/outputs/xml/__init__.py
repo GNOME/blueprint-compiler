@@ -8,7 +8,6 @@ from .xml_emitter import XmlEmitter
 class XmlOutput(OutputFormat):
     def emit(self, ui: UI) -> str:
         xml = XmlEmitter()
-        self._ui = ui
         self._emit_ui(ui, xml)
         return xml.result
 
@@ -193,8 +192,11 @@ class XmlOutput(OutputFormat):
                 xml.put_text(value.ident)
             elif isinstance(value_type, gir.Enumeration):
                 xml.put_text(str(value_type.members[value.ident].value))
-            elif value.ident == "template" and self._ui.template is not None:
-                xml.put_text(self._ui.template.gir_class.glib_type_name)
+            elif (
+                value.ident == "template"
+                and value.context[ScopeCtx].template is not None
+            ):
+                xml.put_text(value.context[ScopeCtx].template.gir_class.glib_type_name)
             else:
                 xml.put_text(value.ident)
         elif isinstance(value, TypeLiteral):
