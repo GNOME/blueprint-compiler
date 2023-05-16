@@ -178,6 +178,7 @@ class TestSamples(unittest.TestCase):
                 "template_binding",
                 "template_binding_extern",
                 "template_no_parent",
+                "template_simple_binding",
                 "typeof",
                 "unchecked_class",
             ]

@@ -114,7 +114,16 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(value, Binding):
             if simple := value.simple_binding:
-                props["bind-source"] = simple.source
+                if (
+                    simple.source == "template"
+                    and value.context[ScopeCtx].template is not None
+                ):
+                    props["bind-source"] = value.context[
+                        ScopeCtx
+                    ].template.gir_class.glib_type_name
+                else:
+                    props["bind-source"] = simple.source
+
                 props["bind-property"] = simple.property_name
                 props["bind-flags"] = "sync-create"
                 xml.put_self_closing("property", **props)
