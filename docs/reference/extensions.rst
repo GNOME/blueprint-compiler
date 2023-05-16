@@ -187,28 +187,30 @@ Gtk.BuilderListItemFactory Templates
 
 .. rst-class:: grammar-block
 
-   ExtListItemFactory = 'template' :ref:`ObjectContent<Syntax Object>`
+   ExtListItemFactory = 'template' :ref:`TypeName<Syntax TypeName>` :ref:`ObjectContent<Syntax Object>`
 
 Valid in `Gtk.BuilderListItemFactory <https://docs.gtk.org/gtk4/class.BuilderListItemFactory.html>`_.
 
-The ``template`` block defines the template that will be used to create list items. This block is unique within Blueprint because it defines a completely separate sub-blueprint which is used to create the list items. The sub-blueprint may not reference objects in the main blueprint or vice versa.
+The ``template`` block defines the template that will be used to create list items. This block is unique within Blueprint because it defines a completely separate sub-blueprint which is used to create each list item. The sub-blueprint may not reference objects in the main blueprint or vice versa.
 
-The template type is `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.html>`_, and the template should have a ``child`` property.
+The template type must be `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.html>`_. The template object can be referenced with the ``template`` keyword.
 
 .. code-block:: blueprintui
 
-   ListBox {
-     factory: ListItemFactory {
-       template {
+   ListView {
+     factory: BuilderListItemFactory {
+       template ListItem {
          child: Label {
-           label: bind item.string;
+           label: bind template.item as <StringObject>.string;
          };
        }
-     }
+     };
 
-     model: StringList {
-       strings [ "Item 1", "Item 2", "Item 3" ]
-     }
+     model: NoSelection {
+       model: StringList {
+         strings [ "Item 1", "Item 2", "Item 3" ]
+       };
+     };
    }
 
 
