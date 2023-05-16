@@ -26,6 +26,10 @@ from .contexts import ScopeCtx
 class Widget(AstNode):
     grammar = UseIdent("name")
 
+    @property
+    def name(self) -> str:
+        return self.tokens["name"]
+
     @validate("name")
     def obj_widget(self):
         object = self.context[ScopeCtx].objects.get(self.tokens["name"])

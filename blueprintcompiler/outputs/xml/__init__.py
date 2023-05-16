@@ -114,16 +114,7 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(value, Binding):
             if simple := value.simple_binding:
-                if (
-                    simple.source == "template"
-                    and value.context[ScopeCtx].template is not None
-                ):
-                    props["bind-source"] = value.context[
-                        ScopeCtx
-                    ].template.gir_class.glib_type_name
-                else:
-                    props["bind-source"] = simple.source
-
+                props["bind-source"] = self._object_id(value, simple.source)
                 props["bind-property"] = simple.property_name
                 props["bind-flags"] = "sync-create"
                 xml.put_self_closing("property", **props)
@@ -141,16 +132,7 @@ class XmlOutput(OutputFormat):
             if value.bidirectional:
                 bind_flags.append("bidirectional")
 
-            if (
-                value.source == "template"
-                and value.context[ScopeCtx].template is not None
-            ):
-                props["bind-source"] = value.context[
-                    ScopeCtx
-                ].template.gir_class.glib_type_name
-            else:
-                props["bind-source"] = value.source
-
+            props["bind-source"] = self._object_id(value, value.source)
             props["bind-property"] = value.property_name
             props["bind-flags"] = "|".join(bind_flags) or None
             xml.put_self_closing("property", **props)
@@ -182,7 +164,9 @@ class XmlOutput(OutputFormat):
             name=name,
             handler=signal.handler,
             swapped=signal.is_swapped or None,
-            object=signal.object_id,
+            object=(
+                self._object_id(signal, signal.object_id) if signal.object_id else None
+            ),
         )
 
     def _emit_child(self, child: Child, xml: XmlEmitter):
@@ -210,13 +194,8 @@ class XmlOutput(OutputFormat):
                 xml.put_text(value.ident)
             elif isinstance(value_type, gir.Enumeration):
                 xml.put_text(str(value_type.members[value.ident].value))
-            elif (
-                value.ident == "template"
-                and value.context[ScopeCtx].template is not None
-            ):
-                xml.put_text(value.context[ScopeCtx].template.gir_class.glib_type_name)
             else:
-                xml.put_text(value.ident)
+                xml.put_text(self._object_id(value, value.ident))
         elif isinstance(value, TypeLiteral):
             xml.put_text(value.type_name.glib_type_name)
         else:
@@ -394,6 +373,7 @@ class XmlOutput(OutputFormat):
                 xml.put_text(value.string)
                 xml.end_tag()
             xml.end_tag()
+
         elif isinstance(extension, ExtListItemFactory):
             child_xml = XmlEmitter()
             child_xml.start_tag("interface")
@@ -414,8 +394,14 @@ class XmlOutput(OutputFormat):
         elif isinstance(extension, ExtSizeGroupWidgets):
             xml.start_tag("widgets")
             for prop in extension.children:
-                xml.put_self_closing("widget", name=prop.tokens["name"])
+                xml.put_self_closing("widget", name=prop.name)
             xml.end_tag()
 
         else:
             raise CompilerBugError()
+
+    def _object_id(self, node: AstNode, id: str) -> str:
+        if id == "template" and node.context[ScopeCtx].template is not None:
+            return node.context[ScopeCtx].template.gir_class.glib_type_name
+        else:
+            return id
