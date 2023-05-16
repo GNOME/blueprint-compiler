@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="MyTemplate">
+    <property name="object" bind-source="MyTemplate" bind-property="object2" bind-flags="sync-create"/>
+  </template>
+</interface>

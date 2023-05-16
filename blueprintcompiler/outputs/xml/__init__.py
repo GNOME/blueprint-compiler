@@ -141,7 +141,16 @@ class XmlOutput(OutputFormat):
             if value.bidirectional:
                 bind_flags.append("bidirectional")
 
-            props["bind-source"] = value.source
+            if (
+                value.source == "template"
+                and value.context[ScopeCtx].template is not None
+            ):
+                props["bind-source"] = value.context[
+                    ScopeCtx
+                ].template.gir_class.glib_type_name
+            else:
+                props["bind-source"] = value.source
+
             props["bind-property"] = value.property_name
             props["bind-flags"] = "|".join(bind_flags) or None
             xml.put_self_closing("property", **props)
