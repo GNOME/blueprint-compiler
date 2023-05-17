@@ -300,7 +300,7 @@ class XmlOutput(OutputFormat):
 
                 xml.start_tag(
                     "setter",
-                    object=setter.object_id,
+                    object=self._object_id(setter, setter.object_id),
                     property=setter.property_name,
                     **attrs,
                 )
