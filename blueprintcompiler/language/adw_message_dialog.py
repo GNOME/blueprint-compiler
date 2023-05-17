@@ -25,14 +25,38 @@ from .gobject_object import ObjectContent, validate_parent_type
 from .values import StringValue
 
 
-class Response(AstNode):
+class ExtAdwMessageDialogFlag(AstNode):
+    grammar = AnyOf(
+        UseExact("flag", "destructive"),
+        UseExact("flag", "suggested"),
+        UseExact("flag", "disabled"),
+    )
+
+    @property
+    def flag(self) -> str:
+        return self.tokens["flag"]
+
+    @validate()
+    def unique(self):
+        self.validate_unique_in_parent(
+            f"Duplicate '{self.flag}' flag", check=lambda child: child.flag == self.flag
+        )
+
+    @validate()
+    def exclusive(self):
+        if self.flag in ["destructive", "suggested"]:
+            self.validate_unique_in_parent(
+                "'suggested' and 'destructive' are exclusive",
+                check=lambda child: child.flag in ["destructive", "suggested"],
+            )
+
+
+class ExtAdwMessageDialogResponse(AstNode):
     grammar = [
         UseIdent("id"),
         Match(":").expected(),
         to_parse_node(StringValue).expected("a string or translatable string"),
-        ZeroOrMore(
-            AnyOf(Keyword("destructive"), Keyword("suggested"), Keyword("disabled"))
-        ),
+        ZeroOrMore(ExtAdwMessageDialogFlag),
     ]
 
     @property
@@ -40,16 +64,21 @@ class Response(AstNode):
         return self.tokens["id"]
 
     @property
+    def flags(self) -> T.List[ExtAdwMessageDialogFlag]:
+        return self.children[ExtAdwMessageDialogFlag]
+
+    @property
     def appearance(self) -> T.Optional[str]:
-        if "destructive" in self.tokens:
+        if any(flag.flag == "destructive" for flag in self.flags):
             return "destructive"
-        if "suggested" in self.tokens:
+        elif any(flag.flag == "suggested" for flag in self.flags):
             return "suggested"
-        return None
+        else:
+            return None
 
     @property
     def enabled(self) -> bool:
-        return "disabled" not in self.tokens
+        return not any(flag.flag == "disabled" for flag in self.flags)
 
     @property
     def value(self) -> StringValue:
@@ -71,12 +100,12 @@ class ExtAdwMessageDialog(AstNode):
     grammar = [
         Keyword("responses"),
         Match("[").expected(),
-        Delimited(Response, ","),
+        Delimited(ExtAdwMessageDialogResponse, ","),
         "]",
     ]
 
     @property
-    def responses(self) -> T.List[Response]:
+    def responses(self) -> T.List[ExtAdwMessageDialogResponse]:
         return self.children
 
     @validate("responses")
