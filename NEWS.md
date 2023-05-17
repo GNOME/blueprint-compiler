@@ -1,3 +1,18 @@
+# v0.8.1
+
+## Breaking Changes
+
+- Duplicates in a number of places are now considered errors. For example, duplicate flags in several places, duplicate
+  strings in Gtk.FileFilters, etc.
+
+## Fixed
+
+- Fixed a number of bugs in the XML output when using `template` to refer to the template object.
+
+## Documentation
+
+- Fixed the example for ExtListItemFactory
+
 # v0.8.0
 
 ## Breaking Changes
