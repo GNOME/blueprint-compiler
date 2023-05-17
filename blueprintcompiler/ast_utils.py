@@ -175,7 +175,9 @@ class AstNode:
         for child in self.children:
             yield from child.get_semantic_tokens()
 
-    def validate_unique_in_parent(self, error, check=None):
+    def validate_unique_in_parent(
+        self, error: str, check: T.Optional[T.Callable[["AstNode"], bool]] = None
+    ):
         for child in self.parent.children:
             if child is self:
                 break

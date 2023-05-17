@@ -47,6 +47,12 @@ class Widget(AstNode):
                 f"Cannot assign {object.gir_class.full_name} to {type.full_name}"
             )
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Object '{self.name}' is listed twice", lambda x: x.name == self.name
+        )
+
 
 class ExtSizeGroupWidgets(AstNode):
     grammar = [

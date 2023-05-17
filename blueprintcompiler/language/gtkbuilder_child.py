@@ -112,6 +112,20 @@ class Child(AstNode):
         else:
             return None
 
+    @validate()
+    def internal_child_unique(self):
+        if self.annotation is not None:
+            if isinstance(self.annotation.child, ChildInternal):
+                internal_child = self.annotation.child.internal_child
+                self.validate_unique_in_parent(
+                    f"Duplicate internal child '{internal_child}'",
+                    lambda x: (
+                        x.annotation
+                        and isinstance(x.annotation.child, ChildInternal)
+                        and x.annotation.child.internal_child == internal_child
+                    ),
+                )
+
 
 @decompiler("child")
 def decompile_child(ctx, gir, type=None, internal_child=None):

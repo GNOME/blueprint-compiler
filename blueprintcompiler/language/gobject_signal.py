@@ -24,6 +24,23 @@ from .contexts import ScopeCtx
 from .common import *
 
 
+class SignalFlag(AstNode):
+    grammar = AnyOf(
+        UseExact("flag", "swapped"),
+        UseExact("flag", "after"),
+    )
+
+    @property
+    def flag(self) -> str:
+        return self.tokens["flag"]
+
+    @validate()
+    def unique(self):
+        self.validate_unique_in_parent(
+            f"Duplicate flag '{self.flag}'", lambda x: x.flag == self.flag
+        )
+
+
 class Signal(AstNode):
     grammar = Statement(
         UseIdent("name"),
@@ -39,12 +56,7 @@ class Signal(AstNode):
         Match("(").expected("argument list"),
         Optional(UseIdent("object")).expected("object identifier"),
         Match(")").expected(),
-        ZeroOrMore(
-            AnyOf(
-                [Keyword("swapped"), UseLiteral("swapped", True)],
-                [Keyword("after"), UseLiteral("after", True)],
-            )
-        ),
+        ZeroOrMore(SignalFlag),
     )
 
     @property
@@ -56,6 +68,13 @@ class Signal(AstNode):
         return self.tokens["detail_name"]
 
     @property
+    def full_name(self) -> str:
+        if self.detail_name is None:
+            return self.name
+        else:
+            return self.name + "::" + self.detail_name
+
+    @property
     def handler(self) -> str:
         return self.tokens["handler"]
 
@@ -64,12 +83,16 @@ class Signal(AstNode):
         return self.tokens["object"]
 
     @property
+    def flags(self) -> T.List[SignalFlag]:
+        return self.children[SignalFlag]
+
+    @property
     def is_swapped(self) -> bool:
-        return self.tokens["swapped"] or False
+        return any(x.flag == "swapped" for x in self.flags)
 
     @property
     def is_after(self) -> bool:
-        return self.tokens["after"] or False
+        return any(x.flag == "after" for x in self.flags)
 
     @property
     def gir_signal(self):

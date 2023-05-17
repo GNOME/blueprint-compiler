@@ -46,6 +46,13 @@ class FilterString(AstNode):
     def item(self) -> str:
         return self.tokens["name"]
 
+    @validate()
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Duplicate {self.tokens['tag_name']} '{self.item}'",
+            check=lambda child: child.item == self.item,
+        )
+
 
 def create_node(tag_name: str, singular: str):
     return Group(

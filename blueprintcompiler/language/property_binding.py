@@ -44,6 +44,12 @@ class PropertyBindingFlag(AstNode):
                 actions=[CodeAction("remove 'sync-create'", "")],
             )
 
+    @validate()
+    def unique(self):
+        self.validate_unique_in_parent(
+            f"Duplicate flag '{self.flag}'", lambda x: x.flag == self.flag
+        )
+
 
 class PropertyBinding(AstNode):
     grammar = AnyOf(

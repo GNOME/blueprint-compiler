@@ -69,6 +69,12 @@ class MenuAttribute(AstNode):
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(None)
 
+    @validate("name")
+    def unique(self):
+        self.validate_unique_in_parent(
+            f"Duplicate attribute '{self.name}'", lambda x: x.name == self.name
+        )
+
 
 menu_child = AnyOf()
 

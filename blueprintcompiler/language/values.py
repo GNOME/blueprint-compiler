@@ -229,6 +229,12 @@ class Flag(AstNode):
                 did_you_mean=(self.tokens["value"], expected_type.members.keys()),
             )
 
+    @validate()
+    def unique(self):
+        self.validate_unique_in_parent(
+            f"Duplicate flag '{self.name}'", lambda x: x.name == self.name
+        )
+
 
 class Flags(AstNode):
     grammar = [Flag, "|", Flag, ZeroOrMore(["|", Flag])]

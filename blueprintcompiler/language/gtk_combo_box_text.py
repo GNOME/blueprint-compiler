@@ -38,6 +38,13 @@ class Item(AstNode):
     def value(self) -> StringValue:
         return self.children[StringValue][0]
 
+    @validate("name")
+    def unique_in_parent(self):
+        if self.name is not None:
+            self.validate_unique_in_parent(
+                f"Duplicate item '{self.name}'", lambda x: x.name == self.name
+            )
+
 
 class ExtComboBoxItems(AstNode):
     grammar = [

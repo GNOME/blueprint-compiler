@@ -29,6 +29,12 @@ class StyleClass(AstNode):
     def name(self) -> str:
         return self.tokens["name"]
 
+    @validate("name")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent(
+            f"Duplicate style class '{self.name}'", lambda x: x.name == self.name
+        )
+
 
 class ExtStyles(AstNode):
     grammar = [

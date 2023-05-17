@@ -29,6 +29,10 @@ class ExtListItemFactory(AstNode):
             "sub-templates",
         )
 
+    @validate("template")
+    def unique_in_parent(self):
+        self.validate_unique_in_parent("Duplicate template block")
+
     @validate()
     def type_is_list_item(self):
         if self.type_name is not None:
