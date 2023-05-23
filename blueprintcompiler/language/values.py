@@ -291,7 +291,7 @@ class IdentLiteral(AstNode):
                 actions=[CodeAction("Use 'template'", "template")],
             )
 
-        elif expected_type is not None:
+        elif expected_type is not None or self.context[ValueTypeCtx].must_infer_type:
             object = self.context[ScopeCtx].objects.get(self.ident)
             if object is None:
                 if self.ident == "null":
@@ -305,7 +305,11 @@ class IdentLiteral(AstNode):
                             self.context[ScopeCtx].objects.keys(),
                         ),
                     )
-            elif object.gir_class and not object.gir_class.assignable_to(expected_type):
+            elif (
+                expected_type is not None
+                and object.gir_class is not None
+                and not object.gir_class.assignable_to(expected_type)
+            ):
                 raise CompileError(
                     f"Cannot assign {object.gir_class.full_name} to {expected_type.full_name}"
                 )

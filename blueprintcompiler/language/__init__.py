@@ -38,7 +38,6 @@ from .gtk_styles import ExtStyles
 from .gtkbuilder_child import Child, ChildExtension, ChildInternal, ChildType
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
-from .property_binding import PropertyBinding
 from .types import ClassName
 from .ui import UI
 from .values import (
