@@ -16,6 +16,7 @@ Properties are the main way to set values on objects, but they are limited by th
 
    Extension = :ref:`ExtAccessibility<Syntax ExtAccessibility>`
    | :ref:`ExtAdwMessageDialog<Syntax ExtAdwMessageDialog>`
+   | :ref:`ExtAdwBreakpoint<Syntax ExtAdwBreakpoint>`
    | :ref:`ExtComboBoxItems<Syntax ExtComboBoxItems>`
    | :ref:`ExtFileFilterMimeTypes<Syntax ExtFileFilter>`
    | :ref:`ExtFileFilterPatterns<Syntax ExtFileFilter>`
