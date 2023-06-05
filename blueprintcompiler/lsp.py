@@ -194,6 +194,7 @@ class LanguageServer:
                     "semanticTokensProvider": {
                         "legend": {
                             "tokenTypes": ["enumMember"],
+                            "tokenModifiers": [],
                         },
                         "full": True,
                     },
