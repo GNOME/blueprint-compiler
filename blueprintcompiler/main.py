@@ -63,6 +63,16 @@ class BlueprintApp:
             type=argparse.FileType("r"),
         )
 
+        format = self.add_subcommand("format", "Format given blueprint files", self.cmd_format)
+        format.add_argument("--check", help="don't write to the files, just return whether they would be formatted", action="store_true")
+        format.add_argument(
+            "inputs",
+            nargs="+",
+            metavar="filenames",
+            default=sys.stdin,
+            type=argparse.FileType("r"), # idk, but opening with "rw" somehow throws an error
+        )
+
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
 
         lsp = self.add_subcommand(
@@ -146,6 +156,45 @@ class BlueprintApp:
             except PrintableError as e:
                 e.pretty_print(file.name, data)
                 sys.exit(1)
+
+    def cmd_format(self, opts):
+        to_be_reformatted = 0
+        reformatted = 0
+        for file in opts.inputs:
+            data = file.read()
+            try:
+                xml, warnings = self._compile(data)
+
+                for warning in warnings:
+                    warning.pretty_print(file.name, data, stream=sys.stderr)
+
+                formatted = decompiler.decompile_string(xml)
+
+                if data != formatted:
+                    if opts.check:
+                        to_be_reformatted += 1
+                    else:
+                        open(file.name, "w").write(formatted) # This is very unelegant, should actually be `file.write(formatted)`
+                        reformatted += 1
+
+            except PrintableError as e:
+                e.pretty_print(file.name, data, stream=sys.stderr)
+                sys.exit(1)
+
+        if to_be_reformatted == 0 and reformatted == 0:
+            print(
+                f"{Colors.GREEN}{Colors.BOLD}Nothing to do.{Colors.CLEAR}"
+            )
+        elif opts.check:
+            print(
+                f"{Colors.RED}{Colors.BOLD}{to_be_reformatted} files would be reformatted.{Colors.CLEAR}"
+            )
+        else:
+            print(
+                f"{Colors.RED}{Colors.BOLD}Reformatted {reformatted} file.{Colors.CLEAR}"
+            )
+
+
 
     def cmd_lsp(self, opts):
         langserv = LanguageServer()
