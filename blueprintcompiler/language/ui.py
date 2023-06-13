@@ -17,6 +17,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from functools import cached_property
+
 from .. import gir
 from .imports import GtkDirective, Import
 from .gtkbuilder_template import Template
@@ -42,7 +44,7 @@ class UI(AstNode):
         ),
     ]
 
-    @property
+    @cached_property
     def gir(self) -> gir.GirContext:
         gir_ctx = gir.GirContext()
         self._gir_errors = []

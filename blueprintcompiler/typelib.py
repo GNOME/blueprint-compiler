@@ -237,9 +237,7 @@ class Typelib:
         if loc == 0:
             return None
 
-        end = loc
-        while self._typelib_file[end] != 0:
-            end += 1
+        end = self._typelib_file.find(b"\0", loc)
         return self._typelib_file[loc:end].decode("utf-8")
 
     def _int(self, size, signed) -> int:
