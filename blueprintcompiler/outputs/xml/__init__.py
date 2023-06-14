@@ -193,7 +193,10 @@ class XmlOutput(OutputFormat):
         elif isinstance(value, TypeLiteral):
             xml.put_text(value.type_name.glib_type_name)
         else:
-            xml.put_text(value.value)
+            if isinstance(value.value, float) and value.value == int(value.value):
+                xml.put_text(int(value.value))
+            else:
+                xml.put_text(value.value)
 
     def _emit_value(self, value: Value, xml: XmlEmitter):
         if isinstance(value.child, Literal):
