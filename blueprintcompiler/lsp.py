@@ -292,16 +292,19 @@ class LanguageServer:
     def decompile(self, id, params):
         text = params.get("text")
         blp = None
-
-        try:
-            blp = decompiler.decompile_string(text)
-        except decompiler.UnsupportedError as e:
-            self._send_error(id, ErrorCode.RequestFailed, e.message)
-            return
-        except:
-            printerr(traceback.format_exc())
-            self._send_error(id, ErrorCode.RequestFailed, "Invalid input")
-            return
+        if text.strip() == "":
+            blp = ""
+            printerr("Decompiled to empty blueprint because input was empty")
+        else:
+            try:
+                blp = decompiler.decompile_string(text)
+            except decompiler.UnsupportedError as e:
+                self._send_error(id, ErrorCode.RequestFailed, e.message)
+                return
+            except:
+                printerr(traceback.format_exc())
+                self._send_error(id, ErrorCode.RequestFailed, "Invalid input")
+                return
 
         self._send_response(id, {"blp": blp})
 

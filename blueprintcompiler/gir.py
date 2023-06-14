@@ -638,29 +638,35 @@ class Namespace(GirNode):
     def __init__(self, repo: "Repository", tl: typelib.Typelib) -> None:
         super().__init__(repo, tl)
 
-        self.entries: T.Dict[str, GirType] = {}
+    @cached_property
+    def entries(self) -> T.Mapping[str, GirType]:
+        entries: dict[str, GirType] = {}
 
-        n_local_entries: int = tl.HEADER_N_ENTRIES
-        directory: typelib.Typelib = tl.HEADER_DIRECTORY
+        n_local_entries: int = self.tl.HEADER_N_ENTRIES
+        directory: typelib.Typelib = self.tl.HEADER_DIRECTORY
+        blob_size: int = self.tl.header.HEADER_ENTRY_BLOB_SIZE
+
         for i in range(n_local_entries):
-            entry = directory[i * tl.HEADER_ENTRY_BLOB_SIZE]
+            entry = directory[i * blob_size]
             entry_name: str = entry.DIR_ENTRY_NAME
             entry_type: int = entry.DIR_ENTRY_BLOB_TYPE
             entry_blob: typelib.Typelib = entry.DIR_ENTRY_OFFSET
 
             if entry_type == typelib.BLOB_TYPE_ENUM:
-                self.entries[entry_name] = Enumeration(self, entry_blob)
+                entries[entry_name] = Enumeration(self, entry_blob)
             elif entry_type == typelib.BLOB_TYPE_FLAGS:
-                self.entries[entry_name] = Bitfield(self, entry_blob)
+                entries[entry_name] = Bitfield(self, entry_blob)
             elif entry_type == typelib.BLOB_TYPE_OBJECT:
-                self.entries[entry_name] = Class(self, entry_blob)
+                entries[entry_name] = Class(self, entry_blob)
             elif entry_type == typelib.BLOB_TYPE_INTERFACE:
-                self.entries[entry_name] = Interface(self, entry_blob)
+                entries[entry_name] = Interface(self, entry_blob)
             elif (
                 entry_type == typelib.BLOB_TYPE_BOXED
                 or entry_type == typelib.BLOB_TYPE_STRUCT
             ):
-                self.entries[entry_name] = Boxed(self, entry_blob)
+                entries[entry_name] = Boxed(self, entry_blob)
+
+        return entries
 
     @cached_property
     def xml(self):
