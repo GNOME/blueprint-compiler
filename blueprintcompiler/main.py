@@ -166,8 +166,7 @@ class BlueprintApp:
                 sys.exit(1)
 
     def cmd_format(self, opts):
-        to_be_reformatted = 0
-        reformatted = 0
+        formatted_files = 0
         for file in opts.inputs:
             data = file.read()
             try:
@@ -179,27 +178,27 @@ class BlueprintApp:
                 formatted = decompiler.decompile_string(xml)
 
                 if data != formatted:
-                    if opts.check:
-                        to_be_reformatted += 1
-                    else:
+                    if not opts.check:
                         open(file.name, "w").write(
                             formatted
                         )  # This is very unelegant, should actually be `file.write(formatted)`
-                        reformatted += 1
+
+                    formatted_files += 1
 
             except PrintableError as e:
                 e.pretty_print(file.name, data, stream=sys.stderr)
                 sys.exit(1)
 
-        if to_be_reformatted == 0 and reformatted == 0:
+        if formatted_files == 0:
             print(f"{Colors.GREEN}{Colors.BOLD}Nothing to do.{Colors.CLEAR}")
         elif opts.check:
             print(
-                f"{Colors.RED}{Colors.BOLD}{to_be_reformatted} files would be reformatted.{Colors.CLEAR}"
+                f"{Colors.RED}{Colors.BOLD}{formatted_files} files would be reformatted.{Colors.CLEAR}"
             )
+            sys.exit(1)
         else:
             print(
-                f"{Colors.RED}{Colors.BOLD}Reformatted {reformatted} file.{Colors.CLEAR}"
+                f"{Colors.RED}{Colors.BOLD}Reformatted {formatted_files} files.{Colors.CLEAR}"
             )
 
     def cmd_lsp(self, opts):
