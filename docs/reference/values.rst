@@ -102,34 +102,6 @@ Use ``C_("context", "...")`` to add a *message context* to a string to disambigu
    }
 
 
-.. _Syntax PropertyBinding:
-
-Property Bindings
------------------
-
-.. rst-class:: grammar-block
-
-   PropertyBinding = 'bind-property' <source::ref:`IDENT<Syntax IDENT>`> '.' <property::ref:`IDENT<Syntax IDENT>`> (PropertyBindingFlag)*
-   PropertyBindingFlag = 'inverted' | 'bidirectional' | 'no-sync-create'
-
-Bindings keep a property updated as another property changes. They can be used to keep the UI in sync with application data, or to connect two parts of the UI.
-
-Example
-~~~~~~~
-
-.. code-block:: blueprintui
-
-   /* Use property bindings to show a label when a switch
-    * is active, without any application code */
-
-   Switch advanced_feature {}
-
-   Label warning {
-     visible: bind-property advanced_feature.active;
-     label: _("This is an advanced feature. Use with caution!");
-   }
-
-
 .. _Syntax Binding:
 
 Expression Bindings
@@ -139,7 +111,27 @@ Expression Bindings
 
    Binding = 'bind' :ref:`Expression<Syntax Expression>`
 
-Expression bindings serve the same purpose as property bindings, but are more powerful. They can call application code to compute the value of a property, and they can do multi-step property lookups. See :ref:`the expressions page<Syntax Expression>`.
+Bindings keep a property updated as other properties change. They can be used to keep the UI in sync with application data, or to connect two parts of the UI.
+
+The simplest bindings connect to a property of another object in the blueprint. When that other property changes, the bound property updates as well. More advanced bindings can do multi-step property lookups and can even call application code to compute values. See :ref:`the expressions page<Syntax Expression>`.
+
+Example
+~~~~~~~
+
+.. code-block:: blueprintui
+
+   /* Use bindings to show a label when a switch
+    * is active, without any application code */
+
+   Switch advanced_feature {}
+
+   Label warning {
+     visible: bind-property advanced_feature.active;
+     label: _("This is an advanced feature. Use with caution!");
+   }
+
+.. code-block: blueprintui
+
 
 
 .. _Syntax ObjectValue:
