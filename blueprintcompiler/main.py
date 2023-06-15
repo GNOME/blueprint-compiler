@@ -76,9 +76,7 @@ class BlueprintApp:
             nargs="+",
             metavar="filenames",
             default=sys.stdin,
-            type=argparse.FileType(
-                "r"
-            ),  # idk, but opening with "rw" somehow throws an error
+            type=argparse.FileType("r+"),
         )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
@@ -179,9 +177,9 @@ class BlueprintApp:
 
                 if data != formatted:
                     if not opts.check:
-                        open(file.name, "w").write(
-                            formatted
-                        )  # This is very unelegant, should actually be `file.write(formatted)`
+                        file.seek(0)
+                        file.truncate()
+                        file.write(formatted)
 
                     formatted_files += 1
 
