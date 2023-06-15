@@ -75,8 +75,6 @@ class BlueprintApp:
             "inputs",
             nargs="+",
             metavar="filenames",
-            default=sys.stdin,
-            type=argparse.FileType("r+"),
         )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
@@ -164,8 +162,25 @@ class BlueprintApp:
                 sys.exit(1)
 
     def cmd_format(self, opts):
+        input_files = []
+
+        for path in opts.inputs:
+            if os.path.isfile(path):
+                input_files.append(open(path, "r+"))
+            elif os.path.isdir(path):
+                for root, subfolders, files in os.walk(path):
+                    for file in files:
+                        if file.endswith(".blp"):
+                            input_files.append(open(os.path.join(root, file), "r+"))
+            else:
+                print(
+                    f"{Colors.RED}{Colors.BOLD}Could not find file: {path}{Colors.CLEAR}"
+                )
+                sys.exit(1)
+
         formatted_files = 0
-        for file in opts.inputs:
+
+        for file in input_files:
             data = file.read()
             try:
                 xml, warnings = self._compile(data)
