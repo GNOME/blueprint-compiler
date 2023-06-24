@@ -194,8 +194,6 @@ class BlueprintApp:
                 for item in tokens:
                     tokenized_str += str(item)
 
-                print(tokenized_str)
-
                 if data != tokenized_str:
                     if not opts.check:
                         file.seek(0)
