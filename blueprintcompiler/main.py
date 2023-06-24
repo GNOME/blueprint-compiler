@@ -19,7 +19,7 @@
 
 
 import typing as T
-import argparse, json, os, sys
+import argparse, json, os, sys, re
 
 from .errors import PrintableError, report_bug, MultipleErrors, CompilerBugError
 from .gir import add_typelib_search_path
@@ -188,13 +188,19 @@ class BlueprintApp:
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
 
-                formatted = decompiler.decompile_string(xml)
+                tokens = tokenizer.tokenize(data)
 
-                if data != formatted:
+                tokenized_str = ""
+                for item in tokens:
+                    tokenized_str += str(item)
+
+                print(tokenized_str)
+
+                if data != tokenized_str:
                     if not opts.check:
                         file.seek(0)
                         file.truncate()
-                        file.write(formatted)
+                        file.write(tokenized_str)
 
                     formatted_files += 1
 
