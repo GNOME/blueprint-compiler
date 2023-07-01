@@ -191,31 +191,38 @@ class BlueprintApp:
                 tokens = tokenizer.tokenize(data)
 
                 tokenized_str = ""
-                for item in tokens:
+                for index, item in enumerate(tokens):
                     tokenized_str += str(item)
 
                 if data != tokenized_str:
+                    happened = "Would reformat"
+
                     if not opts.check:
                         file.seek(0)
                         file.truncate()
                         file.write(tokenized_str)
+                        happened = "Reformatted"
 
+                    print(f"{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}")
                     formatted_files += 1
 
             except PrintableError as e:
                 e.pretty_print(file.name, data, stream=sys.stderr)
                 sys.exit(1)
 
+        print("\n")  # This actually prints two newlines
+        left_files = len(input_files) - formatted_files
+
         if formatted_files == 0:
             print(f"{Colors.GREEN}{Colors.BOLD}Nothing to do.{Colors.CLEAR}")
         elif opts.check:
             print(
-                f"{Colors.RED}{Colors.BOLD}{formatted_files} files would be reformatted.{Colors.CLEAR}"
+                f"{Colors.RED}{Colors.BOLD}{formatted_files} files would be reformatted, {left_files} would be left unchanged.{Colors.CLEAR}"
             )
             sys.exit(1)
         else:
             print(
-                f"{Colors.RED}{Colors.BOLD}Reformatted {formatted_files} files.{Colors.CLEAR}"
+                f"{Colors.RED}{Colors.BOLD}Reformatted {formatted_files} files, {left_files} were left unchanged.{Colors.CLEAR}"
             )
 
     def cmd_lsp(self, opts):
