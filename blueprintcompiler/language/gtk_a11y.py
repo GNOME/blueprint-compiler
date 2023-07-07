@@ -98,6 +98,7 @@ def get_types(gir):
 
 
 def _get_docs(gir, name):
+    name = name.replace("-", "_")
     if gir_type := (
         gir.get_type("AccessibleProperty", "Gtk").members.get(name)
         or gir.get_type("AccessibleRelation", "Gtk").members.get(name)
@@ -197,7 +198,9 @@ def a11y_completer(ast_node, match_variables):
 def a11y_name_completer(ast_node, match_variables):
     for name, type in get_types(ast_node.root.gir).items():
         yield Completion(
-            name, CompletionItemKind.Property, docs=_get_docs(ast_node.root.gir, type)
+            name,
+            CompletionItemKind.Property,
+            docs=_get_docs(ast_node.root.gir, type.name),
         )
 
 
