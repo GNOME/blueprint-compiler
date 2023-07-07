@@ -253,6 +253,8 @@ TNode = T.TypeVar("TNode", bound="GirNode")
 
 
 class GirNode:
+    xml_tag: str
+
     def __init__(self, container: T.Optional["GirNode"], tl: typelib.Typelib) -> None:
         self.container = container
         self.tl = tl
@@ -269,7 +271,8 @@ class GirNode:
     def xml(self):
         for el in self.container.xml.children:
             if el.attrs.get("name") == self.name:
-                return el
+                if el.tag == self.xml_tag:
+                    return el
 
     @cached_property
     def glib_type_name(self) -> str:
@@ -329,6 +332,8 @@ class GirNode:
 
 
 class Property(GirNode):
+    xml_tag = "property"
+
     def __init__(self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib):
         super().__init__(klass, tl)
 
@@ -396,6 +401,8 @@ class Signature(GirNode):
 
 
 class Signal(GirNode):
+    xml_tag = "glib:signal"
+
     def __init__(
         self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib
     ) -> None:
@@ -422,6 +429,8 @@ class Signal(GirNode):
 
 
 class Interface(GirNode, GirType):
+    xml_tag = "interface"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib):
         super().__init__(ns, tl)
 
@@ -481,6 +490,8 @@ class Interface(GirNode, GirType):
 
 
 class Class(GirNode, GirType):
+    xml_tag = "class"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -654,6 +665,8 @@ class TemplateType(GirType):
 
 
 class EnumMember(GirNode):
+    xml_tag = "member"
+
     def __init__(self, enum: "Enumeration", tl: typelib.Typelib) -> None:
         super().__init__(enum, tl)
 
@@ -679,6 +692,8 @@ class EnumMember(GirNode):
 
 
 class Enumeration(GirNode, GirType):
+    xml_tag = "enumeration"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -709,6 +724,8 @@ class Enumeration(GirNode, GirType):
 
 
 class Boxed(GirNode, GirType):
+    xml_tag = "glib:boxed"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -728,6 +745,8 @@ class Boxed(GirNode, GirType):
 
 
 class Bitfield(Enumeration):
+    xml_tag = "bitfield"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
