@@ -24,11 +24,25 @@ from .values import Value
 
 
 class AdwBreakpointCondition(AstNode):
-    grammar = ["condition", "(", UseQuoted("condition"), Match(")").expected()]
+    grammar = [
+        UseExact("kw", "condition"),
+        "(",
+        UseQuoted("condition"),
+        Match(")").expected(),
+    ]
 
     @property
     def condition(self) -> str:
         return self.tokens["condition"]
+
+    @docs("kw")
+    def keyword_docs(self):
+        klass = self.root.gir.get_type("Breakpoint", "Adw")
+        if klass is None:
+            return None
+        prop = klass.properties.get("condition")
+        assert isinstance(prop, gir.Property)
+        return prop.doc
 
     @validate()
     def unique(self):
@@ -68,9 +82,16 @@ class AdwBreakpointSetter(AstNode):
             return None
 
     @property
-    def gir_property(self):
-        if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
+    def gir_property(self) -> T.Optional[gir.Property]:
+        if (
+            self.gir_class is not None
+            and not isinstance(self.gir_class, ExternType)
+            and self.property_name is not None
+        ):
+            assert isinstance(self.gir_class, gir.Class)
             return self.gir_class.properties.get(self.property_name)
+        else:
+            return None
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
@@ -80,6 +101,20 @@ class AdwBreakpointSetter(AstNode):
             type = None
 
         return ValueTypeCtx(type, allow_null=True)
+
+    @docs("object")
+    def object_docs(self):
+        if self.object is not None:
+            return f"```\n{self.object.signature}\n```"
+        else:
+            return None
+
+    @docs("property")
+    def property_docs(self):
+        if self.gir_property is not None:
+            return self.gir_property.doc
+        else:
+            return None
 
     @validate("object")
     def object_exists(self):
