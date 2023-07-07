@@ -92,6 +92,23 @@ def get_xml(namespace: str, version: str):
     return _xml_cache[filename]
 
 
+ONLINE_DOCS = {
+    "Adw-1": "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/",
+    "Gdk-4.0": "https://docs.gtk.org/gdk4/",
+    "GdkPixbuf-2.0": "https://docs.gtk.org/gdk-pixbuf/",
+    "Gio-2.0": "https://docs.gtk.org/gio/",
+    "GLib-2.0": "https://docs.gtk.org/glib/",
+    "GModule-2.0": "https://docs.gtk.org/gmodule/",
+    "GObject-2.0": "https://docs.gtk.org/gobject/",
+    "Gsk-4.0": "https://docs.gtk.org/gsk4/",
+    "Gtk-4.0": "https://docs.gtk.org/gtk4/",
+    "GtkSource-5": "https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5",
+    "Pango-1.0": "https://docs.gtk.org/Pango/",
+    "Shumate-1.0": "https://gnome.pages.gitlab.gnome.org/libshumate/",
+    "WebKit2-4.1": "https://webkitgtk.org/reference/webkit2gtk/stable/",
+}
+
+
 class GirType:
     @property
     def doc(self) -> T.Optional[str]:
@@ -291,9 +308,16 @@ class GirNode:
         except:
             # Not a huge deal, but if you want docs in the language server you
             # should ensure .gir files are installed
-            pass
+            sections.append("Documentation is not installed")
+
+        if self.online_docs:
+            sections.append(f"[Online documentation]({self.online_docs})")
 
         return "\n\n---\n\n".join(sections)
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        return None
 
     @property
     def signature(self) -> T.Optional[str]:
@@ -327,6 +351,14 @@ class Property(GirNode):
     @property
     def construct_only(self) -> bool:
         return self.tl.PROP_CONSTRUCT_ONLY == 1
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            assert self.container is not None
+            return f"{ns}property.{self.container.name}.{self.name}.html"
+        else:
+            return None
 
 
 class Argument(GirNode):
@@ -380,6 +412,14 @@ class Signal(GirNode):
         )
         return f"signal {self.container.full_name}::{self.name} ({args})"
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            assert self.container is not None
+            return f"{ns}signal.{self.container.name}.{self.name}.html"
+        else:
+            return None
+
 
 class Interface(GirNode, GirType):
     def __init__(self, ns: "Namespace", tl: typelib.Typelib):
@@ -431,6 +471,13 @@ class Interface(GirNode, GirType):
             if pre.assignable_to(other):
                 return True
         return False
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}interface.{self.name}.html"
+        else:
+            return None
 
 
 class Class(GirNode, GirType):
@@ -544,6 +591,13 @@ class Class(GirNode, GirType):
         for impl in self.implements:
             yield from impl.signals.values()
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}class.{self.name}.html"
+        else:
+            return None
+
 
 class TemplateType(GirType):
     def __init__(self, name: str, parent: T.Optional[GirType]):
@@ -646,6 +700,13 @@ class Enumeration(GirNode, GirType):
     def assignable_to(self, type: GirType) -> bool:
         return type == self
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}enum.{self.name}.html"
+        else:
+            return None
+
 
 class Boxed(GirNode, GirType):
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
@@ -657,6 +718,13 @@ class Boxed(GirNode, GirType):
 
     def assignable_to(self, type) -> bool:
         return type == self
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}boxed.{self.name}.html"
+        else:
+            return None
 
 
 class Bitfield(Enumeration):
@@ -752,6 +820,10 @@ class Namespace(GirNode):
             return self.get_containing(Repository).get_type(name, ns)
         else:
             return self.get_type(type_name)
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        return ONLINE_DOCS.get(f"{self.name}-{self.version}")
 
 
 class Repository(GirNode):
