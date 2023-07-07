@@ -318,7 +318,7 @@ class Property(GirNode):
 
     @cached_property
     def signature(self):
-        return f"{self.full_name} {self.container.name}.{self.name}"
+        return f"{self.type.full_name} {self.container.name}:{self.name}"
 
     @property
     def writable(self) -> bool:
@@ -329,9 +329,38 @@ class Property(GirNode):
         return self.tl.PROP_CONSTRUCT_ONLY == 1
 
 
-class Parameter(GirNode):
+class Argument(GirNode):
     def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
         super().__init__(container, tl)
+
+    @cached_property
+    def name(self) -> str:
+        return self.tl.ARG_NAME
+
+    @cached_property
+    def type(self) -> GirType:
+        return self.get_containing(Repository)._resolve_type_id(self.tl.ARG_TYPE)
+
+
+class Signature(GirNode):
+    def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
+        super().__init__(container, tl)
+
+    @cached_property
+    def args(self) -> T.List[Argument]:
+        n_arguments = self.tl.SIGNATURE_N_ARGUMENTS
+        blob_size = self.tl.header.HEADER_ARG_BLOB_SIZE
+        result = []
+        for i in range(n_arguments):
+            entry = self.tl.SIGNATURE_ARGUMENTS[i * blob_size]
+            result.append(Argument(self, entry))
+        return result
+
+    @cached_property
+    def return_type(self) -> GirType:
+        return self.get_containing(Repository)._resolve_type_id(
+            self.tl.SIGNATURE_RETURN_TYPE
+        )
 
 
 class Signal(GirNode):
@@ -339,17 +368,17 @@ class Signal(GirNode):
         self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib
     ) -> None:
         super().__init__(klass, tl)
-        # if parameters := xml.get_elements('parameters'):
-        #     self.params = [Parameter(self, child) for child in parameters[0].get_elements('parameter')]
-        # else:
-        #     self.params = []
+
+    @cached_property
+    def gir_signature(self) -> Signature:
+        return Signature(self, self.tl.SIGNAL_SIGNATURE)
 
     @property
     def signature(self):
-        # TODO: fix
-        # args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
-        args = ""
-        return f"signal {self.container.name}.{self.name} ({args})"
+        args = ", ".join(
+            [f"{a.type.full_name} {a.name}" for a in self.gir_signature.args]
+        )
+        return f"signal {self.container.full_name}::{self.name} ({args})"
 
 
 class Interface(GirNode, GirType):

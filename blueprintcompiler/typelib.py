@@ -118,6 +118,7 @@ class Typelib:
     HEADER_FUNCTION_BLOB_SIZE = Field(0x3E, "u16")
     HEADER_CALLBACK_BLOB_SIZE = Field(0x40, "u16")
     HEADER_SIGNAL_BLOB_SIZE = Field(0x42, "u16")
+    HEADER_ARG_BLOB_SIZE = Field(0x46, "u16")
     HEADER_PROPERTY_BLOB_SIZE = Field(0x48, "u16")
     HEADER_FIELD_BLOB_SIZE = Field(0x4A, "u16")
     HEADER_VALUE_BLOB_SIZE = Field(0x4C, "u16")
@@ -131,6 +132,13 @@ class Typelib:
     DIR_ENTRY_NAME = Field(0x4, "string")
     DIR_ENTRY_OFFSET = Field(0x8, "pointer")
     DIR_ENTRY_NAMESPACE = Field(0x8, "string")
+
+    ARG_NAME = Field(0x0, "string")
+    ARG_TYPE = Field(0xC, "u32")
+
+    SIGNATURE_RETURN_TYPE = Field(0x0, "u32")
+    SIGNATURE_N_ARGUMENTS = Field(0x6, "u16")
+    SIGNATURE_ARGUMENTS = Field(0x8, "offset")
 
     ATTR_OFFSET = Field(0x0, "u32")
     ATTR_NAME = Field(0x0, "string")
@@ -179,6 +187,11 @@ class Typelib:
     PROP_CONSTRUCT = Field(0x4, "u32", 3, 1)
     PROP_CONSTRUCT_ONLY = Field(0x4, "u32", 4, 1)
     PROP_TYPE = Field(0xC, "u32")
+
+    SIGNAL_DEPRECATED = Field(0x0, "u16", 0, 1)
+    SIGNAL_DETAILED = Field(0x0, "u16", 5, 1)
+    SIGNAL_NAME = Field(0x4, "string")
+    SIGNAL_SIGNATURE = Field(0xC, "pointer")
 
     VALUE_NAME = Field(0x4, "string")
     VALUE_VALUE = Field(0x8, "i32")
