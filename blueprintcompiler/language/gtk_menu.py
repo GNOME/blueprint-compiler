@@ -36,6 +36,13 @@ class Menu(AstNode):
         return self.tokens["id"]
 
     @property
+    def signature(self) -> str:
+        if self.id:
+            return f"Gio.Menu {self.id}"
+        else:
+            return "Gio.Menu"
+
+    @property
     def tag(self) -> str:
         return self.tokens["tag"]
 

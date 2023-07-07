@@ -10,6 +10,14 @@ class ExtListItemFactory(AstNode):
     grammar = [UseExact("id", "template"), Optional(TypeName), ObjectContent]
 
     @property
+    def id(self) -> str:
+        return "template"
+
+    @property
+    def signature(self) -> str:
+        return f"template {self.gir_class.full_name}"
+
+    @property
     def type_name(self) -> T.Optional[TypeName]:
         if len(self.children[TypeName]) == 1:
             return self.children[TypeName][0]
