@@ -18,15 +18,18 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import argparse
+import json
+import os
+import sys
 import typing as T
-import argparse, json, os, sys
 
-from .errors import PrintableError, report_bug, MultipleErrors, CompilerBugError
+from . import decompiler, interactive_port, parser, tokenizer
+from .errors import CompilerBugError, MultipleErrors, PrintableError, report_bug
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
-from . import parser, tokenizer, decompiler, interactive_port
-from .utils import Colors
 from .outputs import XmlOutput
+from .utils import Colors
 
 VERSION = "uninstalled"
 LIBDIR = None

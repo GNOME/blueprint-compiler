@@ -19,7 +19,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import os, sys
+import os
+import sys
 
 # These variables should be set by meson. If they aren't, we're running
 # uninstalled, and we might have to guess some values.

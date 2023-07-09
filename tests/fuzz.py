@@ -1,20 +1,21 @@
-import os, sys
+import os
+import sys
+
 from pythonfuzz.main import PythonFuzz
 
 from blueprintcompiler.outputs.xml import XmlOutput
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from blueprintcompiler import tokenizer, parser, decompiler, gir
+from blueprintcompiler import decompiler, gir, parser, tokenizer, utils
 from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import (
-    PrintableError,
-    MultipleErrors,
     CompileError,
     CompilerBugError,
+    MultipleErrors,
+    PrintableError,
 )
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
-from blueprintcompiler import utils
 
 
 @PythonFuzz

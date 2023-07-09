@@ -7,6 +7,7 @@ build:
   stage: build
   script:
     - black --check --diff blueprintcompiler tests
+    - isort --check --diff --profile black blueprintcompiler tests
     - mypy --python-version=3.9 blueprintcompiler
     - G_DEBUG=fatal-warnings xvfb-run coverage run -m unittest
     - coverage report

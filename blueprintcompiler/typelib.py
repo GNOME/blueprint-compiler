@@ -17,14 +17,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import math
+import mmap
+import os
 import sys
 import typing as T
-import math
 from ctypes import *
-import mmap, os
 
 from .errors import CompilerBugError
-
 
 BLOB_TYPE_STRUCT = 3
 BLOB_TYPE_BOXED = 4

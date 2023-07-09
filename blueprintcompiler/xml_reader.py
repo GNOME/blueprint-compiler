@@ -18,11 +18,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import typing as T
 from collections import defaultdict
 from functools import cached_property
-import typing as T
 from xml import sax
-
 
 # To speed up parsing, we ignore all tags except these
 PARSE_GIR = set(

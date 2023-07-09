@@ -17,9 +17,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
 from collections import ChainMap, defaultdict
 from functools import cached_property
-import typing as T
 
 from .errors import *
 from .lsp_utils import SemanticToken

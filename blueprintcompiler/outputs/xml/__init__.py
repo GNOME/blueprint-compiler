@@ -1,7 +1,7 @@
 import typing as T
 
-from .. import OutputFormat
 from ...language import *
+from .. import OutputFormat
 from .xml_emitter import XmlEmitter
 
 
