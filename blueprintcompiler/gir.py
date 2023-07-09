@@ -17,17 +17,18 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from functools import cached_property
+import os
+import sys
 import typing as T
-import os, sys
+from functools import cached_property
 
 import gi  # type: ignore
 
 gi.require_version("GIRepository", "2.0")
 from gi.repository import GIRepository  # type: ignore
 
-from .errors import CompileError, CompilerBugError
 from . import typelib, xml_reader
+from .errors import CompileError, CompilerBugError
 
 _namespace_cache: T.Dict[str, "Namespace"] = {}
 _xml_cache = {}

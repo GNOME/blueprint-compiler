@@ -4,7 +4,7 @@ RUN dnf install -y meson gcc g++ python3-pip gobject-introspection-devel \
 	python3-devel python3-gobject git diffutils xorg-x11-server-Xvfb \
     appstream-devel "dnf-command(builddep)"
 RUN dnf build-dep -y gtk4 libadwaita
-RUN pip3 install furo mypy sphinx coverage black
+RUN pip3 install furo mypy sphinx coverage black isort
 
 COPY install_deps.sh .
 RUN ./install_deps.sh

@@ -19,9 +19,9 @@
 
 import typing as T
 
-from .gtkbuilder_template import Template
-from .contexts import ScopeCtx
 from .common import *
+from .contexts import ScopeCtx
+from .gtkbuilder_template import Template
 
 
 class SignalFlag(AstNode):

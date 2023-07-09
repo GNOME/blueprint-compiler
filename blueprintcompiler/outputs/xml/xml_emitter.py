@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import typing as T
-
 from xml.sax import saxutils
 
 from blueprintcompiler.gir import GirType

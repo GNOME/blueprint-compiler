@@ -17,12 +17,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from .gobject_object import ObjectContent, validate_parent_type
+from ..decompiler import escape_quote
 from .attributes import BaseAttribute
-from .values import Value
 from .common import *
 from .contexts import ValueTypeCtx
-from ..decompiler import escape_quote
+from .gobject_object import ObjectContent, validate_parent_type
+from .values import Value
 
 
 def get_property_types(gir):
