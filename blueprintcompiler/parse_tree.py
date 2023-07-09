@@ -20,18 +20,20 @@
 """ Utilities for parsing an AST from a token stream. """
 
 import typing as T
+
 from collections import defaultdict
 from enum import Enum
-
 from .ast_utils import AstNode
+
 from .errors import (
-    CompileError,
+    assert_true,
     CompilerBugError,
+    CompileError,
     CompileWarning,
     UnexpectedTokenError,
-    assert_true,
 )
 from .tokenizer import Token, TokenType
+
 
 SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
 

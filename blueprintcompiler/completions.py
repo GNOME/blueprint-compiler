@@ -20,12 +20,12 @@
 import typing as T
 
 from . import gir, language
+from .language.types import ClassName
 from .ast_utils import AstNode
 from .completions_utils import *
-from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind
 from .parser import SKIP_TOKENS
-from .tokenizer import Token, TokenType
+from .tokenizer import TokenType, Token
 
 Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 

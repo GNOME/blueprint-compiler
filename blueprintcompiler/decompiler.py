@@ -18,13 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import re
+from enum import Enum
 import typing as T
 from dataclasses import dataclass
-from enum import Enum
 
+from .xml_reader import Element, parse, parse_string
 from .gir import *
 from .utils import Colors
-from .xml_reader import Element, parse, parse_string
+
 
 __all__ = ["decompile"]
 

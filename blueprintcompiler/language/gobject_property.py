@@ -18,12 +18,12 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .binding import Binding
+from .gtkbuilder_template import Template
+from .values import Value, ObjectValue
 from .common import *
 from .contexts import ValueTypeCtx
-from .gtkbuilder_template import Template
 from .property_binding import PropertyBinding
-from .values import ObjectValue, Value
+from .binding import Binding
 
 
 class Property(AstNode):

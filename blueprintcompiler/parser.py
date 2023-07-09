@@ -19,9 +19,9 @@
 
 
 from .errors import MultipleErrors, PrintableError
-from .language import OBJECT_CONTENT_HOOKS, UI, Template
 from .parse_tree import *
 from .tokenizer import TokenType
+from .language import OBJECT_CONTENT_HOOKS, Template, UI
 
 
 def parse(

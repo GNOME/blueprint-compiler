@@ -17,11 +17,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import sys
-import traceback
-import typing as T
 from dataclasses import dataclass
-
+import typing as T
+import sys, traceback
 from . import utils
 from .utils import Colors
 

@@ -20,12 +20,12 @@
 from functools import cached_property
 
 from .. import gir
+from .imports import GtkDirective, Import
+from .gtkbuilder_template import Template
+from .gobject_object import Object
+from .gtk_menu import menu, Menu
 from .common import *
 from .contexts import ScopeCtx
-from .gobject_object import Object
-from .gtk_menu import Menu, menu
-from .gtkbuilder_template import Template
-from .imports import GtkDirective, Import
 
 
 class UI(AstNode):

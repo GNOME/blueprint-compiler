@@ -18,9 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .common import *
 from .gobject_object import ObjectContent, validate_parent_type
 from .values import StringValue
+from .common import *
 
 
 class Item(AstNode):

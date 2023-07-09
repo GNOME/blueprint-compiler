@@ -18,8 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import re
 import typing as T
+import re
 from enum import Enum
 
 from .errors import CompileError, CompilerBugError

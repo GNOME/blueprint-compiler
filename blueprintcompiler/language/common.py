@@ -18,35 +18,36 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .. import decompiler as decompile
 from .. import gir
-from ..ast_utils import AstNode, context, docs, validate
+from ..ast_utils import AstNode, validate, docs, context
+from ..errors import (
+    CompileError,
+    MultipleErrors,
+    UpgradeWarning,
+    CompileWarning,
+    CodeAction,
+)
 from ..completions_utils import *
+from .. import decompiler as decompile
 from ..decompiler import (
     DecompileCtx,
-    decompile_translatable,
     decompiler,
     escape_quote,
     truthy,
-)
-from ..errors import (
-    CodeAction,
-    CompileError,
-    CompileWarning,
-    MultipleErrors,
-    UpgradeWarning,
+    decompile_translatable,
 )
 from ..gir import (
+    StringType,
     BoolType,
-    Enumeration,
-    ExternType,
+    IntType,
     FloatType,
     GirType,
-    IntType,
-    StringType,
+    Enumeration,
+    ExternType,
 )
 from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
 from ..parse_tree import *
+
 
 OBJECT_CONTENT_HOOKS = AnyOf()
 LITERAL = AnyOf()

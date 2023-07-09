@@ -19,19 +19,20 @@
 
 
 import difflib  # I love Python
-import unittest
 from pathlib import Path
+import unittest
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
-from blueprintcompiler import decompiler, parser, tokenizer, utils
+from blueprintcompiler import tokenizer, parser, decompiler
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import CompileError, MultipleErrors, PrintableError
-from blueprintcompiler.outputs.xml import XmlOutput
+from blueprintcompiler.errors import PrintableError, MultipleErrors, CompileError
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
+from blueprintcompiler import utils
+from blueprintcompiler.outputs.xml import XmlOutput
 
 
 class TestSamples(unittest.TestCase):

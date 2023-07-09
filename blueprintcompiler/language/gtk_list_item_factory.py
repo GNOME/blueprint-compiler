@@ -1,9 +1,9 @@
-from ..ast_utils import AstNode, validate
-from ..parse_tree import Keyword
-from .common import *
-from .contexts import ScopeCtx
 from .gobject_object import ObjectContent, validate_parent_type
+from ..parse_tree import Keyword
+from ..ast_utils import AstNode, validate
+from .common import *
 from .types import TypeName
+from .contexts import ScopeCtx
 
 
 class ExtListItemFactory(AstNode):

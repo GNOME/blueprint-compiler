@@ -18,16 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import json
-import sys
-import traceback
 import typing as T
+import json, sys, traceback
 
-from . import decompiler, parser, tokenizer, utils, xml_reader
 from .completions import complete
-from .errors import CompileError, MultipleErrors, PrintableError
+from .errors import PrintableError, CompileError, MultipleErrors
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
+from . import tokenizer, parser, utils, xml_reader, decompiler
 
 
 def printerr(*args, **kwargs):

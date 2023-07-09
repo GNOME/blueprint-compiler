@@ -18,8 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..gir import Class, ExternType, Interface
 from .common import *
+from ..gir import Class, ExternType, Interface
 
 
 class TypeName(AstNode):

@@ -21,9 +21,9 @@ import typing as T
 
 from blueprintcompiler.language.common import GirType
 
-from ..gir import TemplateType
-from .common import *
 from .gobject_object import Object, ObjectContent
+from .common import *
+from ..gir import TemplateType
 from .types import ClassName, TemplateClassName
 
 

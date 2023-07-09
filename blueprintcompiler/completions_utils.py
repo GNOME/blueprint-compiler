@@ -20,8 +20,9 @@
 
 import typing as T
 
-from .lsp_utils import Completion
 from .tokenizer import Token, TokenType
+from .lsp_utils import Completion
+
 
 new_statement_patterns = [
     [(TokenType.PUNCTUATION, "{")],

@@ -38,8 +38,8 @@ class ScopeCtx:
 
     @cached_property
     def template(self):
-        from .gtk_list_item_factory import ExtListItemFactory
         from .ui import UI
+        from .gtk_list_item_factory import ExtListItemFactory
 
         if isinstance(self.node, UI):
             return self.node.template
