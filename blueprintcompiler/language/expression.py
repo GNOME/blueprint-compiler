@@ -20,9 +20,8 @@
 
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
-from .types import TypeName
 from .gtkbuilder_template import Template
-
+from .types import TypeName
 
 expr = Sequence()
 

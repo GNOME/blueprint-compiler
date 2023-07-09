@@ -18,9 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from dataclasses import dataclass
 import enum
 import typing as T
+from dataclasses import dataclass
 
 from .errors import *
 from .utils import *

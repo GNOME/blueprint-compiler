@@ -20,7 +20,7 @@
 from dataclasses import dataclass
 
 from .common import *
-from .expression import Expression, LookupOp, LiteralExpr
+from .expression import Expression, LiteralExpr, LookupOp
 
 
 class Binding(AstNode):

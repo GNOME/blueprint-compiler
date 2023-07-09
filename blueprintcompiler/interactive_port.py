@@ -18,15 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
 import difflib
 import os
+import typing as T
 
-from . import decompiler, tokenizer, parser
+from . import decompiler, parser, tokenizer
+from .errors import CompilerBugError, MultipleErrors, PrintableError
 from .outputs.xml import XmlOutput
-from .errors import MultipleErrors, PrintableError, CompilerBugError
 from .utils import Colors
-
 
 # A tool to interactively port projects to blueprints.
 

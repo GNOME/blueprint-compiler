@@ -20,9 +20,9 @@
 
 from functools import cached_property
 
+from .common import *
 from .gobject_object import Object
 from .response_id import ExtResponse
-from .common import *
 
 ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
     ("Gtk", "Buildable"),

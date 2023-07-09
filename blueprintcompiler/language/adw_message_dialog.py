@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..decompiler import truthy, decompile_translatable
+from ..decompiler import decompile_translatable, truthy
 from .common import *
 from .contexts import ValueTypeCtx
 from .gobject_object import ObjectContent, validate_parent_type
