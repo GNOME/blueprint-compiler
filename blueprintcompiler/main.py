@@ -208,7 +208,7 @@ class BlueprintApp:
                             indent_levels += 1
 
                         try:
-                            if str(tokens[index+1]) in closing_tokens:
+                            if str(tokens[index + 1]) in closing_tokens:
                                 indent_levels -= 1
                         except:
                             pass
