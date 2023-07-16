@@ -179,12 +179,19 @@ class BlueprintApp:
                 print(
                     f"{Colors.RED}{Colors.BOLD}Could not find file: {path}{Colors.CLEAR}"
                 )
-                sys.exit(1)
 
         formatted_files = 0
 
+        newline_after = [";", "]"]
+
+        opening_tokens = ["{"]
+
+        closing_tokens = ["}"]
+
         for file in input_files:
             data = file.read()
+            indent_levels = 0
+
             try:
                 xml, warnings = self._compile(data)
 
@@ -195,7 +202,22 @@ class BlueprintApp:
 
                 tokenized_str = ""
                 for index, item in enumerate(tokens):
-                    tokenized_str += str(item)
+                    if item.type != tokenizer.TokenType.WHITESPACE:
+                        tokenized_str += str(item)
+                        if str(item) in opening_tokens:
+                            indent_levels += 1
+
+                        try:
+                            if str(tokens[index+1]) in closing_tokens:
+                                indent_levels -= 1
+                        except:
+                            pass
+
+                        if str(item) in newline_after + closing_tokens + opening_tokens:
+                            tokenized_str += "\n"
+                            tokenized_str += indent_levels * "  "
+                    else:
+                        tokenized_str += " "
 
                 if data != tokenized_str:
                     happened = "Would reformat"
