@@ -92,6 +92,23 @@ def get_xml(namespace: str, version: str):
     return _xml_cache[filename]
 
 
+ONLINE_DOCS = {
+    "Adw-1": "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/",
+    "Gdk-4.0": "https://docs.gtk.org/gdk4/",
+    "GdkPixbuf-2.0": "https://docs.gtk.org/gdk-pixbuf/",
+    "Gio-2.0": "https://docs.gtk.org/gio/",
+    "GLib-2.0": "https://docs.gtk.org/glib/",
+    "GModule-2.0": "https://docs.gtk.org/gmodule/",
+    "GObject-2.0": "https://docs.gtk.org/gobject/",
+    "Gsk-4.0": "https://docs.gtk.org/gsk4/",
+    "Gtk-4.0": "https://docs.gtk.org/gtk4/",
+    "GtkSource-5": "https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5",
+    "Pango-1.0": "https://docs.gtk.org/Pango/",
+    "Shumate-1.0": "https://gnome.pages.gitlab.gnome.org/libshumate/",
+    "WebKit2-4.1": "https://webkitgtk.org/reference/webkit2gtk/stable/",
+}
+
+
 class GirType:
     @property
     def doc(self) -> T.Optional[str]:
@@ -236,6 +253,8 @@ TNode = T.TypeVar("TNode", bound="GirNode")
 
 
 class GirNode:
+    xml_tag: str
+
     def __init__(self, container: T.Optional["GirNode"], tl: typelib.Typelib) -> None:
         self.container = container
         self.tl = tl
@@ -252,7 +271,8 @@ class GirNode:
     def xml(self):
         for el in self.container.xml.children:
             if el.attrs.get("name") == self.name:
-                return el
+                if el.tag == self.xml_tag:
+                    return el
 
     @cached_property
     def glib_type_name(self) -> str:
@@ -291,9 +311,16 @@ class GirNode:
         except:
             # Not a huge deal, but if you want docs in the language server you
             # should ensure .gir files are installed
-            pass
+            sections.append("Documentation is not installed")
+
+        if self.online_docs:
+            sections.append(f"[Online documentation]({self.online_docs})")
 
         return "\n\n---\n\n".join(sections)
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        return None
 
     @property
     def signature(self) -> T.Optional[str]:
@@ -305,6 +332,8 @@ class GirNode:
 
 
 class Property(GirNode):
+    xml_tag = "property"
+
     def __init__(self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib):
         super().__init__(klass, tl)
 
@@ -318,7 +347,7 @@ class Property(GirNode):
 
     @cached_property
     def signature(self):
-        return f"{self.full_name} {self.container.name}.{self.name}"
+        return f"{self.type.full_name} {self.container.name}:{self.name}"
 
     @property
     def writable(self) -> bool:
@@ -328,31 +357,80 @@ class Property(GirNode):
     def construct_only(self) -> bool:
         return self.tl.PROP_CONSTRUCT_ONLY == 1
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            assert self.container is not None
+            return f"{ns}property.{self.container.name}.{self.name}.html"
+        else:
+            return None
 
-class Parameter(GirNode):
+
+class Argument(GirNode):
     def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
         super().__init__(container, tl)
 
+    @cached_property
+    def name(self) -> str:
+        return self.tl.ARG_NAME
+
+    @cached_property
+    def type(self) -> GirType:
+        return self.get_containing(Repository)._resolve_type_id(self.tl.ARG_TYPE)
+
+
+class Signature(GirNode):
+    def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
+        super().__init__(container, tl)
+
+    @cached_property
+    def args(self) -> T.List[Argument]:
+        n_arguments = self.tl.SIGNATURE_N_ARGUMENTS
+        blob_size = self.tl.header.HEADER_ARG_BLOB_SIZE
+        result = []
+        for i in range(n_arguments):
+            entry = self.tl.SIGNATURE_ARGUMENTS[i * blob_size]
+            result.append(Argument(self, entry))
+        return result
+
+    @cached_property
+    def return_type(self) -> GirType:
+        return self.get_containing(Repository)._resolve_type_id(
+            self.tl.SIGNATURE_RETURN_TYPE
+        )
+
 
 class Signal(GirNode):
+    xml_tag = "glib:signal"
+
     def __init__(
         self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib
     ) -> None:
         super().__init__(klass, tl)
-        # if parameters := xml.get_elements('parameters'):
-        #     self.params = [Parameter(self, child) for child in parameters[0].get_elements('parameter')]
-        # else:
-        #     self.params = []
+
+    @cached_property
+    def gir_signature(self) -> Signature:
+        return Signature(self, self.tl.SIGNAL_SIGNATURE)
 
     @property
     def signature(self):
-        # TODO: fix
-        # args = ", ".join([f"{p.type_name} {p.name}" for p in self.params])
-        args = ""
-        return f"signal {self.container.name}.{self.name} ({args})"
+        args = ", ".join(
+            [f"{a.type.full_name} {a.name}" for a in self.gir_signature.args]
+        )
+        return f"signal {self.container.full_name}::{self.name} ({args})"
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            assert self.container is not None
+            return f"{ns}signal.{self.container.name}.{self.name}.html"
+        else:
+            return None
 
 
 class Interface(GirNode, GirType):
+    xml_tag = "interface"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib):
         super().__init__(ns, tl)
 
@@ -403,8 +481,17 @@ class Interface(GirNode, GirType):
                 return True
         return False
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}interface.{self.name}.html"
+        else:
+            return None
+
 
 class Class(GirNode, GirType):
+    xml_tag = "class"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -515,6 +602,13 @@ class Class(GirNode, GirType):
         for impl in self.implements:
             yield from impl.signals.values()
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}class.{self.name}.html"
+        else:
+            return None
+
 
 class TemplateType(GirType):
     def __init__(self, name: str, parent: T.Optional[GirType]):
@@ -571,6 +665,8 @@ class TemplateType(GirType):
 
 
 class EnumMember(GirNode):
+    xml_tag = "member"
+
     def __init__(self, enum: "Enumeration", tl: typelib.Typelib) -> None:
         super().__init__(enum, tl)
 
@@ -596,6 +692,8 @@ class EnumMember(GirNode):
 
 
 class Enumeration(GirNode, GirType):
+    xml_tag = "enumeration"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -617,8 +715,17 @@ class Enumeration(GirNode, GirType):
     def assignable_to(self, type: GirType) -> bool:
         return type == self
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}enum.{self.name}.html"
+        else:
+            return None
+
 
 class Boxed(GirNode, GirType):
+    xml_tag = "glib:boxed"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -629,8 +736,17 @@ class Boxed(GirNode, GirType):
     def assignable_to(self, type) -> bool:
         return type == self
 
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        if ns := self.get_containing(Namespace).online_docs:
+            return f"{ns}boxed.{self.name}.html"
+        else:
+            return None
+
 
 class Bitfield(Enumeration):
+    xml_tag = "bitfield"
+
     def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
         super().__init__(ns, tl)
 
@@ -723,6 +839,10 @@ class Namespace(GirNode):
             return self.get_containing(Repository).get_type(name, ns)
         else:
             return self.get_type(type_name)
+
+    @property
+    def online_docs(self) -> T.Optional[str]:
+        return ONLINE_DOCS.get(f"{self.name}-{self.version}")
 
 
 class Repository(GirNode):

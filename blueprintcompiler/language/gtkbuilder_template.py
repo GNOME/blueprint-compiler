@@ -45,6 +45,13 @@ class Template(Object):
         return "template"
 
     @property
+    def signature(self) -> str:
+        if self.parent_type:
+            return f"template {self.gir_class.full_name} : {self.parent_type.gir_type.full_name}"
+        else:
+            return f"template {self.gir_class.full_name}"
+
+    @property
     def gir_class(self) -> GirType:
         if isinstance(self.class_name.gir_type, ExternType):
             if gir := self.parent_type:

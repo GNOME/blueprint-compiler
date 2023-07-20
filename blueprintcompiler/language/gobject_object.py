@@ -56,6 +56,13 @@ class Object(AstNode):
         return self.children[ObjectContent][0]
 
     @property
+    def signature(self) -> str:
+        if self.id:
+            return f"{self.class_name.gir_type.full_name} {self.id}"
+        else:
+            return f"{self.class_name.gir_type.full_name}"
+
+    @property
     def gir_class(self) -> GirType:
         if self.class_name is None:
             raise CompilerBugError()

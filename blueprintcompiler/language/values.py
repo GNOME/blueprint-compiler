@@ -312,14 +312,20 @@ class IdentLiteral(AstNode):
 
     @docs()
     def docs(self) -> T.Optional[str]:
-        type = self.context[ValueTypeCtx].value_type
-        if isinstance(type, gir.Enumeration):
-            if member := type.members.get(self.ident):
+        expected_type = self.context[ValueTypeCtx].value_type
+        if isinstance(expected_type, gir.BoolType):
+            return None
+        elif isinstance(expected_type, gir.Enumeration):
+            if member := expected_type.members.get(self.ident):
                 return member.doc
             else:
-                return type.doc
-        elif isinstance(type, gir.GirNode):
-            return type.doc
+                return expected_type.doc
+        elif self.ident == "null" and self.context[ValueTypeCtx].allow_null:
+            return None
+        elif object := self.context[ScopeCtx].objects.get(self.ident):
+            return f"```\n{object.signature}\n```"
+        elif self.root.is_legacy_template(self.ident):
+            return f"```\n{self.root.template.signature}\n```"
         else:
             return None
 
