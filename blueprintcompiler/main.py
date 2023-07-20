@@ -26,6 +26,7 @@ import typing as T
 
 from . import decompiler, interactive_port, parser, tokenizer
 from .errors import CompilerBugError, MultipleErrors, PrintableError, report_bug
+from .formatter import Format
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -182,15 +183,8 @@ class BlueprintApp:
 
         formatted_files = 0
 
-        newline_after = [";", "]"]
-
-        opening_tokens = ["{"]
-
-        closing_tokens = ["}"]
-
         for file in input_files:
             data = file.read()
-            indent_levels = 0
 
             try:
                 xml, warnings = self._compile(data)
@@ -198,34 +192,15 @@ class BlueprintApp:
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
 
-                tokens = tokenizer.tokenize(data)
+                formatted_str = Format.format(data)
 
-                tokenized_str = ""
-                for index, item in enumerate(tokens):
-                    if item.type != tokenizer.TokenType.WHITESPACE:
-                        tokenized_str += str(item)
-                        if str(item) in opening_tokens:
-                            indent_levels += 1
-
-                        try:
-                            if str(tokens[index + 1]) in closing_tokens:
-                                indent_levels -= 1
-                        except:
-                            pass
-
-                        if str(item) in newline_after + closing_tokens + opening_tokens:
-                            tokenized_str += "\n"
-                            tokenized_str += indent_levels * "  "
-                    else:
-                        tokenized_str += " "
-
-                if data != tokenized_str:
+                if data != formatted_str:
                     happened = "Would reformat"
 
                     if not opts.check:
                         file.seek(0)
                         file.truncate()
-                        file.write(tokenized_str)
+                        file.write(formatted_str)
                         happened = "Reformatted"
 
                     print(f"{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}")
