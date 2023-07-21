@@ -2,12 +2,12 @@
 
 ## Added
 
-- The hover documentation now includes a link to the documentation for the symbol, if available.
+- The hover documentation now includes a link to the online documentation for the symbol, if available.
 - Added hover documentation for the Adw.Breakpoint extensions, `condition` and `setters`.
 
 ## Changed
 
-- Decompiling an empty file now produces an empty file rather than an error.
+- Decompiling an empty file now produces an empty file rather than an error. (AkshayWarrier)
 - More relevant documentation is shown when hovering over an identifier literal (such as an enum value or an object ID).
 
 ## Fixed
