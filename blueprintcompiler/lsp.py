@@ -391,6 +391,9 @@ class LanguageServer:
             else DiagnosticSeverity.Error,
         }
 
+        if isinstance(err, DeprecationWarning):
+            result["tags"] = [DiagnosticTag.Deprecated]
+
         if len(err.references) > 0:
             result["relatedInformation"] = [
                 {

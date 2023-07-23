@@ -99,7 +99,7 @@ class Property(AstNode):
             hints = []
             if self.gir_property.deprecated_doc:
                 hints.append(self.gir_property.deprecated_doc)
-            raise CompileWarning(
+            raise DeprecatedWarning(
                 f"{self.gir_property.signature} is deprecated",
                 hints=hints,
             )

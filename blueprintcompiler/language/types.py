@@ -63,7 +63,7 @@ class TypeName(AstNode):
             hints = []
             if self.gir_type.deprecated_doc:
                 hints.append(self.gir_type.deprecated_doc)
-            raise CompileWarning(
+            raise DeprecatedWarning(
                 f"{self.gir_type.full_name} is deprecated",
                 hints=hints,
             )

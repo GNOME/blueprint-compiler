@@ -29,7 +29,12 @@ from gi.repository import Gtk
 
 from blueprintcompiler import decompiler, parser, tokenizer, utils
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import CompileError, MultipleErrors, PrintableError
+from blueprintcompiler.errors import (
+    CompileError,
+    DeprecatedWarning,
+    MultipleErrors,
+    PrintableError,
+)
 from blueprintcompiler.outputs.xml import XmlOutput
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
@@ -59,7 +64,7 @@ class TestSamples(unittest.TestCase):
             warnings = [
                 warning
                 for warning in warnings
-                if "is deprecated" not in warning.message
+                if not isinstance(warning, DeprecatedWarning)
             ]
 
             if errors:

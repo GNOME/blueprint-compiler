@@ -33,6 +33,7 @@ from ..errors import (
     CodeAction,
     CompileError,
     CompileWarning,
+    DeprecatedWarning,
     MultipleErrors,
     UpgradeWarning,
 )

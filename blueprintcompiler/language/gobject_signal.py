@@ -142,7 +142,7 @@ class Signal(AstNode):
             hints = []
             if self.gir_signal.deprecated_doc:
                 hints.append(self.gir_signal.deprecated_doc)
-            raise CompileWarning(
+            raise DeprecatedWarning(
                 f"{self.gir_signal.signature} is deprecated",
                 hints=hints,
             )
