@@ -57,6 +57,17 @@ class TypeName(AstNode):
         if not self.tokens["extern"]:
             self.root.gir.validate_ns(self.tokens["namespace"])
 
+    @validate()
+    def deprecated(self) -> None:
+        if self.gir_type and self.gir_type.deprecated:
+            hints = []
+            if self.gir_type.deprecated_doc:
+                hints.append(self.gir_type.deprecated_doc)
+            raise CompileWarning(
+                f"{self.gir_type.full_name} is deprecated",
+                hints=hints,
+            )
+
     @property
     def gir_ns(self):
         if not self.tokens["extern"]:

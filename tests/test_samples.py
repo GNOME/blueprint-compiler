@@ -54,6 +54,14 @@ class TestSamples(unittest.TestCase):
             tokens = tokenizer.tokenize(blueprint)
             ast, errors, warnings = parser.parse(tokens)
 
+            # Ignore deprecation warnings because some of the things we're testing
+            # are deprecated
+            warnings = [
+                warning
+                for warning in warnings
+                if "is deprecated" not in warning.message
+            ]
+
             if errors:
                 raise errors
             if len(warnings):

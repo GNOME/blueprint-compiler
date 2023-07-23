@@ -95,9 +95,11 @@ class Signal(AstNode):
         return any(x.flag == "after" for x in self.flags)
 
     @property
-    def gir_signal(self):
+    def gir_signal(self) -> T.Optional[gir.Signal]:
         if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.signals.get(self.tokens["name"])
+        else:
+            return None
 
     @property
     def gir_class(self):
@@ -133,6 +135,17 @@ class Signal(AstNode):
 
         if self.context[ScopeCtx].objects.get(object_id) is None:
             raise CompileError(f"Could not find object with ID '{object_id}'")
+
+    @validate("name")
+    def deprecated(self) -> None:
+        if self.gir_signal is not None and self.gir_signal.deprecated:
+            hints = []
+            if self.gir_signal.deprecated_doc:
+                hints.append(self.gir_signal.deprecated_doc)
+            raise CompileWarning(
+                f"{self.gir_signal.signature} is deprecated",
+                hints=hints,
+            )
 
     @docs("name")
     def signal_docs(self):

@@ -41,9 +41,11 @@ class Property(AstNode):
         return self.parent.parent.gir_class
 
     @property
-    def gir_property(self):
+    def gir_property(self) -> T.Optional[gir.Property]:
         if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.properties.get(self.tokens["name"])
+        else:
+            return None
 
     @validate()
     def binding_valid(self):
@@ -90,6 +92,17 @@ class Property(AstNode):
             f"Duplicate property '{self.tokens['name']}'",
             check=lambda child: child.tokens["name"] == self.tokens["name"],
         )
+
+    @validate("name")
+    def deprecated(self) -> None:
+        if self.gir_property is not None and self.gir_property.deprecated:
+            hints = []
+            if self.gir_property.deprecated_doc:
+                hints.append(self.gir_property.deprecated_doc)
+            raise CompileWarning(
+                f"{self.gir_property.signature} is deprecated",
+                hints=hints,
+            )
 
     @docs("name")
     def property_docs(self):
