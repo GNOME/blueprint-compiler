@@ -136,6 +136,14 @@ class GirType:
     def incomplete(self) -> bool:
         return False
 
+    @property
+    def deprecated(self) -> bool:
+        return False
+
+    @property
+    def deprecated_doc(self) -> T.Optional[str]:
+        return None
+
 
 class ExternType(GirType):
     def __init__(self, name: str) -> None:
@@ -330,6 +338,13 @@ class GirNode:
     def type(self) -> GirType:
         raise NotImplementedError()
 
+    @property
+    def deprecated_doc(self) -> T.Optional[str]:
+        try:
+            return self.xml.get_elements("doc-deprecated")[0].cdata.strip()
+        except:
+            return None
+
 
 class Property(GirNode):
     xml_tag = "property"
@@ -364,6 +379,10 @@ class Property(GirNode):
             return f"{ns}property.{self.container.name}.{self.name}.html"
         else:
             return None
+
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.PROP_DEPRECATED == 1
 
 
 class Argument(GirNode):
@@ -427,6 +446,10 @@ class Signal(GirNode):
         else:
             return None
 
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.SIGNAL_DEPRECATED == 1
+
 
 class Interface(GirNode, GirType):
     xml_tag = "interface"
@@ -487,6 +510,10 @@ class Interface(GirNode, GirType):
             return f"{ns}interface.{self.name}.html"
         else:
             return None
+
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.INTERFACE_DEPRECATED == 1
 
 
 class Class(GirNode, GirType):
@@ -609,6 +636,10 @@ class Class(GirNode, GirType):
         else:
             return None
 
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.OBJ_DEPRECATED == 1
+
 
 class TemplateType(GirType):
     def __init__(self, name: str, parent: T.Optional[GirType]):
@@ -722,6 +753,10 @@ class Enumeration(GirNode, GirType):
         else:
             return None
 
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.ENUM_DEPRECATED == 1
+
 
 class Boxed(GirNode, GirType):
     xml_tag = "glib:boxed"
@@ -742,6 +777,10 @@ class Boxed(GirNode, GirType):
             return f"{ns}boxed.{self.name}.html"
         else:
             return None
+
+    @property
+    def deprecated(self) -> bool:
+        return self.tl.STRUCT_DEPRECATED == 1
 
 
 class Bitfield(Enumeration):

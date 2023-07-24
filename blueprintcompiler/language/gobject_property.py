@@ -22,21 +22,18 @@ from .binding import Binding
 from .common import *
 from .contexts import ValueTypeCtx
 from .gtkbuilder_template import Template
-from .property_binding import PropertyBinding
 from .values import ObjectValue, Value
 
 
 class Property(AstNode):
-    grammar = Statement(
-        UseIdent("name"), ":", AnyOf(PropertyBinding, Binding, ObjectValue, Value)
-    )
+    grammar = Statement(UseIdent("name"), ":", AnyOf(Binding, ObjectValue, Value))
 
     @property
     def name(self) -> str:
         return self.tokens["name"]
 
     @property
-    def value(self) -> T.Union[PropertyBinding, Binding, ObjectValue, Value]:
+    def value(self) -> T.Union[Binding, ObjectValue, Value]:
         return self.children[0]
 
     @property
@@ -44,14 +41,16 @@ class Property(AstNode):
         return self.parent.parent.gir_class
 
     @property
-    def gir_property(self):
+    def gir_property(self) -> T.Optional[gir.Property]:
         if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.properties.get(self.tokens["name"])
+        else:
+            return None
 
     @validate()
     def binding_valid(self):
         if (
-            (isinstance(self.value, PropertyBinding) or isinstance(self.value, Binding))
+            isinstance(self.value, Binding)
             and self.gir_property is not None
             and self.gir_property.construct_only
         ):
@@ -93,6 +92,17 @@ class Property(AstNode):
             f"Duplicate property '{self.tokens['name']}'",
             check=lambda child: child.tokens["name"] == self.tokens["name"],
         )
+
+    @validate("name")
+    def deprecated(self) -> None:
+        if self.gir_property is not None and self.gir_property.deprecated:
+            hints = []
+            if self.gir_property.deprecated_doc:
+                hints.append(self.gir_property.deprecated_doc)
+            raise DeprecatedWarning(
+                f"{self.gir_property.signature} is deprecated",
+                hints=hints,
+            )
 
     @docs("name")
     def property_docs(self):

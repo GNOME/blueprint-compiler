@@ -520,8 +520,6 @@ class UseNumber(ParseNode):
             return False
 
         number = token.get_number()
-        if number % 1.0 == 0:
-            number = int(number)
         ctx.set_group_val(self.key, number, token)
         return True
 

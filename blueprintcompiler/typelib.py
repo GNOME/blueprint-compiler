@@ -150,11 +150,15 @@ class Typelib:
 
     BLOB_NAME = Field(0x4, "string")
 
+    STRUCT_DEPRECATED = Field(0x2, "u16", 0, 1)
+
+    ENUM_DEPRECATED = Field(0x2, "u16", 0, 1)
     ENUM_GTYPE_NAME = Field(0x8, "string")
     ENUM_N_VALUES = Field(0x10, "u16")
     ENUM_N_METHODS = Field(0x12, "u16")
     ENUM_VALUES = Field(0x18, "offset")
 
+    INTERFACE_DEPRECATED = Field(0x2, "u16", 0, 1)
     INTERFACE_GTYPE_NAME = Field(0x8, "string")
     INTERFACE_N_PREREQUISITES = Field(0x12, "u16")
     INTERFACE_N_PROPERTIES = Field(0x14, "u16")

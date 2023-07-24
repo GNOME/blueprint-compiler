@@ -1,0 +1,10 @@
+using Gtk 4.0;
+using Gio 2.0;
+
+Dialog {
+  use-header-bar: 1;
+}
+
+Window {
+  keys-changed => $on_window_keys_changed();
+}

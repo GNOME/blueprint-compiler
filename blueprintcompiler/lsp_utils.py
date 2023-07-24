@@ -119,6 +119,11 @@ class DiagnosticSeverity(enum.IntEnum):
     Hint = 4
 
 
+class DiagnosticTag(enum.IntEnum):
+    Unnecessary = 1
+    Deprecated = 2
+
+
 @dataclass
 class SemanticToken:
     start: int

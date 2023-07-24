@@ -114,7 +114,7 @@ class LookupOp(InfixExpr):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None)
+        return ValueTypeCtx(None, must_infer_type=True)
 
     @property
     def property_name(self) -> str:
@@ -133,6 +133,10 @@ class LookupOp(InfixExpr):
     @validate("property")
     def property_exists(self):
         if self.lhs.type is None:
+            # Literal values throw their own errors if the type isn't known
+            if isinstance(self.lhs, LiteralExpr):
+                return
+
             raise CompileError(
                 f"Could not determine the type of the preceding expression",
                 hints=[

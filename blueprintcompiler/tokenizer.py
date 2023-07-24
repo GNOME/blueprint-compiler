@@ -70,8 +70,10 @@ class Token:
         try:
             if string.startswith("0x"):
                 return int(string, 16)
-            else:
+            elif "." in string:
                 return float(string)
+            else:
+                return int(string)
         except:
             raise CompileError(
                 f"{str(self)} is not a valid number literal", self.start, self.end

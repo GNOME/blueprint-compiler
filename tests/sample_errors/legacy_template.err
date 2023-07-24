@@ -1,2 +1,3 @@
 3,10,12,Use type syntax here (introduced in blueprint 0.8.0)
+8,1,6,Gtk.Dialog is deprecated
 9,18,12,Use 'template' instead of the class name (introduced in 0.8.0)

@@ -1,3 +1,32 @@
+# v0.10.0
+
+## Added
+
+- The hover documentation now includes a link to the online documentation for the symbol, if available.
+- Added hover documentation for the Adw.Breakpoint extensions, `condition` and `setters`.
+
+## Changed
+
+- Decompiling an empty file now produces an empty file rather than an error. (AkshayWarrier)
+- More relevant documentation is shown when hovering over an identifier literal (such as an enum value or an object ID).
+
+## Fixed
+
+- Fixed an issue with the language server not conforming the spec. (seshotake)
+- Fixed the signature section of the hover documentation for properties and signals.
+- Fixed a bug where documentation was sometimes shown for a different symbol with the same name.
+- Fixed a bug where documentation was not shown for accessibility properties that contain `-`.
+- Number literals are now correctly parsed as floats if they contain a `.`, even if they are divisible by 1.
+
+## Removed
+
+- The `bind-property` keyword has been removed. Use `bind` instead. The old syntax is still accepted with a warning.
+
+## Documentation
+
+- Fixed the grammar for Extension, which was missing ExtAdwBreakpoint.
+
+
 # v0.8.1
 
 ## Breaking Changes

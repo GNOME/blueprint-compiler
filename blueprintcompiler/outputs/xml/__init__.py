@@ -116,26 +116,20 @@ class XmlOutput(OutputFormat):
             if simple := value.simple_binding:
                 props["bind-source"] = self._object_id(value, simple.source)
                 props["bind-property"] = simple.property_name
-                props["bind-flags"] = "sync-create"
+                flags = []
+                if not simple.no_sync_create:
+                    flags.append("sync-create")
+                if simple.inverted:
+                    flags.append("invert-boolean")
+                if simple.bidirectional:
+                    flags.append("bidirectional")
+                props["bind-flags"] = "|".join(flags) or None
+
                 xml.put_self_closing("property", **props)
             else:
                 xml.start_tag("binding", **props)
                 self._emit_expression(value.expression, xml)
                 xml.end_tag()
-
-        elif isinstance(value, PropertyBinding):
-            bind_flags = []
-            if not value.no_sync_create:
-                bind_flags.append("sync-create")
-            if value.inverted:
-                bind_flags.append("invert-boolean")
-            if value.bidirectional:
-                bind_flags.append("bidirectional")
-
-            props["bind-source"] = self._object_id(value, value.source)
-            props["bind-property"] = value.property_name
-            props["bind-flags"] = "|".join(bind_flags) or None
-            xml.put_self_closing("property", **props)
 
         elif isinstance(value, ObjectValue):
             xml.start_tag("property", **props)
@@ -199,7 +193,10 @@ class XmlOutput(OutputFormat):
         elif isinstance(value, TypeLiteral):
             xml.put_text(value.type_name.glib_type_name)
         else:
-            xml.put_text(value.value)
+            if isinstance(value.value, float) and value.value == int(value.value):
+                xml.put_text(int(value.value))
+            else:
+                xml.put_text(value.value)
 
     def _emit_value(self, value: Value, xml: XmlEmitter):
         if isinstance(value.child, Literal):

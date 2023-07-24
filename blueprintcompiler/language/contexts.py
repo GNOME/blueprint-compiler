@@ -30,6 +30,7 @@ from .gtkbuilder_template import Template
 class ValueTypeCtx:
     value_type: T.Optional[GirType]
     allow_null: bool = False
+    must_infer_type: bool = False
 
 
 @dataclass

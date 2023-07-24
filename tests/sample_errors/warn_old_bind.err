@@ -1,2 +1,2 @@
-4,12,4,Use 'bind-property', introduced in blueprint 0.8.0, to use binding flags
-6,12,4,Use 'bind-property', introduced in blueprint 0.8.0, to use binding flags
+4,12,13,'bind-property' is no longer needed. Use 'bind' instead. (blueprint 0.8.2)
+5,16,13,'bind-property' is no longer needed. Use 'bind' instead. (blueprint 0.8.2)
