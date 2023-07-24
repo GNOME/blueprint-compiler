@@ -20,6 +20,7 @@
 
 import re
 import typing as T
+from dataclasses import dataclass
 from enum import Enum
 
 from .errors import CompileError, CompilerBugError
@@ -62,6 +63,10 @@ class Token:
     def __str__(self) -> str:
         return self.string[self.start : self.end]
 
+    @property
+    def range(self) -> "Range":
+        return Range(self.start, self.end, self.string)
+
     def get_number(self) -> T.Union[int, float]:
         if self.type != TokenType.NUMBER:
             raise CompilerBugError()
@@ -103,3 +108,22 @@ def _tokenize(ui_ml: str):
 
 def tokenize(data: str) -> T.List[Token]:
     return list(_tokenize(data))
+
+
+@dataclass
+class Range:
+    start: int
+    end: int
+    original_text: str
+
+    @property
+    def text(self) -> str:
+        return self.original_text[self.start : self.end]
+
+    @staticmethod
+    def join(a: T.Optional["Range"], b: T.Optional["Range"]) -> T.Optional["Range"]:
+        if a is None:
+            return b
+        if b is None:
+            return a
+        return Range(min(a.start, b.start), max(a.end, b.end), a.original_text)

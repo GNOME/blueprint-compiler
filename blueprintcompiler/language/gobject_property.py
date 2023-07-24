@@ -47,6 +47,21 @@ class Property(AstNode):
         else:
             return None
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        if isinstance(self.value, ObjectValue):
+            detail = None
+        else:
+            detail = self.value.range.text
+
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.Property,
+            self.range,
+            self.group.tokens["name"].range,
+            detail,
+        )
+
     @validate()
     def binding_valid(self):
         if (

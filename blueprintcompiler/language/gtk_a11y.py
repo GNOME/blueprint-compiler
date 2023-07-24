@@ -139,6 +139,16 @@ class A11yProperty(BaseAttribute):
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(get_types(self.root.gir).get(self.tokens["name"]))
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["name"].range,
+            self.value.range.text,
+        )
+
     @validate("name")
     def is_valid_property(self):
         types = get_types(self.root.gir)
@@ -171,6 +181,15 @@ class ExtAccessibility(AstNode):
     @property
     def properties(self) -> T.List[A11yProperty]:
         return self.children[A11yProperty]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "accessibility",
+            SymbolKind.Struct,
+            self.range,
+            self.group.tokens["accessibility"].range,
+        )
 
     @validate("accessibility")
     def container_is_widget(self):

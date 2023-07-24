@@ -1,5 +1,9 @@
+import typing as T
+
+from blueprintcompiler.errors import T
+from blueprintcompiler.lsp_utils import DocumentSymbol
+
 from ..ast_utils import AstNode, validate
-from ..parse_tree import Keyword
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import ObjectContent, validate_parent_type
@@ -16,6 +20,15 @@ class ExtListItemFactory(AstNode):
     @property
     def signature(self) -> str:
         return f"template {self.gir_class.full_name}"
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.signature,
+            SymbolKind.Object,
+            self.range,
+            self.group.tokens["id"].range,
+        )
 
     @property
     def type_name(self) -> T.Optional[TypeName]:

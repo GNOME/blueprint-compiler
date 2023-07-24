@@ -29,6 +29,15 @@ class StyleClass(AstNode):
     def name(self) -> str:
         return self.tokens["name"]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.String,
+            self.range,
+            self.range,
+        )
+
     @validate("name")
     def unique_in_parent(self):
         self.validate_unique_in_parent(
@@ -43,6 +52,15 @@ class ExtStyles(AstNode):
         Delimited(StyleClass, ","),
         "]",
     ]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "styles",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["styles"].range,
+        )
 
     @validate("styles")
     def container_is_widget(self):

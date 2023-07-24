@@ -30,7 +30,8 @@ def parse(
     """Parses a list of tokens into an abstract syntax tree."""
 
     try:
-        ctx = ParseContext(tokens)
+        original_text = tokens[0].string if len(tokens) else ""
+        ctx = ParseContext(tokens, original_text)
         AnyOf(UI).parse(ctx)
         ast_node = ctx.last_group.to_ast() if ctx.last_group else None
 

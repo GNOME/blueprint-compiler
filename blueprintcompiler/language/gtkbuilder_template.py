@@ -46,10 +46,19 @@ class Template(Object):
 
     @property
     def signature(self) -> str:
-        if self.parent_type:
-            return f"template {self.gir_class.full_name} : {self.parent_type.gir_type.full_name}"
+        if self.parent_type and self.parent_type.gir_type:
+            return f"template {self.class_name.as_string} : {self.parent_type.gir_type.full_name}"
         else:
-            return f"template {self.gir_class.full_name}"
+            return f"template {self.class_name.as_string}"
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.signature,
+            SymbolKind.Object,
+            self.range,
+            self.group.tokens["id"].range,
+        )
 
     @property
     def gir_class(self) -> GirType:

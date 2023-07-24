@@ -30,6 +30,15 @@ class Widget(AstNode):
     def name(self) -> str:
         return self.tokens["name"]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["name"].range,
+        )
+
     @validate("name")
     def obj_widget(self):
         object = self.context[ScopeCtx].objects.get(self.tokens["name"])
@@ -61,6 +70,15 @@ class ExtSizeGroupWidgets(AstNode):
         Delimited(Widget, ","),
         "]",
     ]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "widgets",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["widgets"].range,
+        )
 
     @validate("widgets")
     def container_is_size_group(self):

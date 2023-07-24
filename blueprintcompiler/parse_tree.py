@@ -20,7 +20,6 @@
 """ Utilities for parsing an AST from a token stream. """
 
 import typing as T
-from collections import defaultdict
 from enum import Enum
 
 from .ast_utils import AstNode
@@ -31,7 +30,7 @@ from .errors import (
     UnexpectedTokenError,
     assert_true,
 )
-from .tokenizer import Token, TokenType
+from .tokenizer import Range, Token, TokenType
 
 SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
 
@@ -63,14 +62,16 @@ class ParseGroup:
     be converted to AST nodes by passing the children and key=value pairs to
     the AST node constructor."""
 
-    def __init__(self, ast_type: T.Type[AstNode], start: int):
+    def __init__(self, ast_type: T.Type[AstNode], start: int, text: str):
         self.ast_type = ast_type
         self.children: T.List[ParseGroup] = []
         self.keys: T.Dict[str, T.Any] = {}
         self.tokens: T.Dict[str, T.Optional[Token]] = {}
+        self.ranges: T.Dict[str, Range] = {}
         self.start = start
         self.end: T.Optional[int] = None
         self.incomplete = False
+        self.text = text
 
     def add_child(self, child: "ParseGroup"):
         self.children.append(child)
@@ -80,6 +81,10 @@ class ParseGroup:
 
         self.keys[key] = val
         self.tokens[key] = token
+
+    def set_range(self, key: str, range: Range):
+        assert_true(key not in self.ranges)
+        self.ranges[key] = range
 
     def to_ast(self):
         """Creates an AST node from the match group."""
@@ -104,8 +109,9 @@ class ParseGroup:
 class ParseContext:
     """Contains the state of the parser."""
 
-    def __init__(self, tokens: T.List[Token], index=0):
+    def __init__(self, tokens: T.List[Token], text: str, index=0):
         self.tokens = tokens
+        self.text = text
 
         self.binding_power = 0
         self.index = index
@@ -113,6 +119,7 @@ class ParseContext:
         self.group: T.Optional[ParseGroup] = None
         self.group_keys: T.Dict[str, T.Tuple[T.Any, T.Optional[Token]]] = {}
         self.group_children: T.List[ParseGroup] = []
+        self.group_ranges: T.Dict[str, Range] = {}
         self.last_group: T.Optional[ParseGroup] = None
         self.group_incomplete = False
 
@@ -124,7 +131,7 @@ class ParseContext:
         context will be used to parse one node. If parsing is successful, the
         new context will be applied to "self". If parsing fails, the new
         context will be discarded."""
-        ctx = ParseContext(self.tokens, self.index)
+        ctx = ParseContext(self.tokens, self.text, self.index)
         ctx.errors = self.errors
         ctx.warnings = self.warnings
         ctx.binding_power = self.binding_power
@@ -140,6 +147,8 @@ class ParseContext:
                 other.group.set_val(key, val, token)
             for child in other.group_children:
                 other.group.add_child(child)
+            for key, range in other.group_ranges.items():
+                other.group.set_range(key, range)
             other.group.end = other.tokens[other.index - 1].end
             other.group.incomplete = other.group_incomplete
             self.group_children.append(other.group)
@@ -148,6 +157,7 @@ class ParseContext:
             # its matched values
             self.group_keys = {**self.group_keys, **other.group_keys}
             self.group_children += other.group_children
+            self.group_ranges = {**self.group_ranges, **other.group_ranges}
             self.group_incomplete |= other.group_incomplete
 
         self.index = other.index
@@ -161,12 +171,18 @@ class ParseContext:
     def start_group(self, ast_type: T.Type[AstNode]):
         """Sets this context to have its own match group."""
         assert_true(self.group is None)
-        self.group = ParseGroup(ast_type, self.tokens[self.index].start)
+        self.group = ParseGroup(ast_type, self.tokens[self.index].start, self.text)
 
     def set_group_val(self, key: str, value: T.Any, token: T.Optional[Token]):
         """Sets a matched key=value pair on the current match group."""
         assert_true(key not in self.group_keys)
         self.group_keys[key] = (value, token)
+
+    def set_mark(self, key: str):
+        """Sets a zero-length range on the current match group at the current position."""
+        self.group_ranges[key] = Range(
+            self.tokens[self.index].start, self.tokens[self.index].start, self.text
+        )
 
     def set_group_incomplete(self):
         """Marks the current match group as incomplete (it could not be fully
@@ -602,6 +618,15 @@ class Keyword(ParseNode):
         token = ctx.next_token()
         ctx.set_group_val(self.kw, True, token)
         return str(token) == self.kw
+
+
+class Mark(ParseNode):
+    def __init__(self, key: str):
+        self.key = key
+
+    def _parse(self, ctx: ParseContext):
+        ctx.set_mark(self.key)
+        return True
 
 
 def to_parse_node(value) -> ParseNode:

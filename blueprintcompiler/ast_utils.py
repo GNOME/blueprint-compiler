@@ -22,7 +22,8 @@ from collections import ChainMap, defaultdict
 from functools import cached_property
 
 from .errors import *
-from .lsp_utils import SemanticToken
+from .lsp_utils import DocumentSymbol, SemanticToken
+from .tokenizer import Range
 
 TType = T.TypeVar("TType")
 
@@ -52,6 +53,18 @@ class Children:
                 return self._children[key]
         else:
             return [child for child in self._children if isinstance(child, key)]
+
+
+class Ranges:
+    def __init__(self, ranges: T.Dict[str, Range]):
+        self._ranges = ranges
+
+    def __getitem__(self, key: T.Union[str, tuple[str, str]]) -> T.Optional[Range]:
+        if isinstance(key, str):
+            return self._ranges.get(key)
+        elif isinstance(key, tuple):
+            start, end = key
+            return Range.join(self._ranges.get(start), self._ranges.get(end))
 
 
 TCtx = T.TypeVar("TCtx")
@@ -103,11 +116,19 @@ class AstNode:
         return Ctx(self)
 
     @cached_property
+    def ranges(self):
+        return Ranges(self.group.ranges)
+
+    @cached_property
     def root(self):
         if self.parent is None:
             return self
         else:
             return self.parent.root
+
+    @property
+    def range(self):
+        return Range(self.group.start, self.group.end, self.group.text)
 
     def parent_by_type(self, type: T.Type[TType]) -> TType:
         if self.parent is None:
@@ -174,6 +195,20 @@ class AstNode:
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         for child in self.children:
             yield from child.get_semantic_tokens()
+
+    @property
+    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+        return None
+
+    def get_document_symbols(self) -> T.List[DocumentSymbol]:
+        result = []
+        for child in self.children:
+            if s := child.document_symbol:
+                s.children = child.get_document_symbols()
+                result.append(s)
+            else:
+                result.extend(child.get_document_symbols())
+        return result
 
     def validate_unique_in_parent(
         self, error: str, check: T.Optional[T.Callable[["AstNode"], bool]] = None

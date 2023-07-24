@@ -31,12 +31,22 @@ class Item(AstNode):
     ]
 
     @property
-    def name(self) -> str:
+    def name(self) -> T.Optional[str]:
         return self.tokens["name"]
 
     @property
     def value(self) -> StringValue:
         return self.children[StringValue][0]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.value.range.text,
+            SymbolKind.String,
+            self.range,
+            self.value.range,
+            self.name,
+        )
 
     @validate("name")
     def unique_in_parent(self):
@@ -53,6 +63,15 @@ class ExtComboBoxItems(AstNode):
         Delimited(Item, ","),
         "]",
     ]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "items",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["items"].range,
+        )
 
     @validate("items")
     def container_is_combo_box_text(self):

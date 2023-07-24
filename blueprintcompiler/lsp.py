@@ -203,6 +203,7 @@ class LanguageServer:
                     "completionProvider": {},
                     "codeActionProvider": {},
                     "hoverProvider": True,
+                    "documentSymbolProvider": True,
                 },
                 "serverInfo": {
                     "name": "Blueprint",
@@ -362,6 +363,31 @@ class LanguageServer:
         ]
 
         self._send_response(id, actions)
+
+    @command("textDocument/documentSymbol")
+    def document_symbols(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+        symbols = open_file.ast.get_document_symbols()
+
+        def to_json(symbol: DocumentSymbol):
+            result = {
+                "name": symbol.name,
+                "kind": symbol.kind,
+                "range": utils.idxs_to_range(
+                    symbol.range.start, symbol.range.end, open_file.text
+                ),
+                "selectionRange": utils.idxs_to_range(
+                    symbol.selection_range.start,
+                    symbol.selection_range.end,
+                    open_file.text,
+                ),
+                "children": [to_json(child) for child in symbol.children],
+            }
+            if symbol.detail is not None:
+                result["detail"] = symbol.detail
+            return result
+
+        self._send_response(id, [to_json(symbol) for symbol in symbols])
 
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification(

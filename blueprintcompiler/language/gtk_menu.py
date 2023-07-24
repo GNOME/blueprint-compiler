@@ -43,6 +43,16 @@ class Menu(AstNode):
             return "Gio.Menu"
 
     @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.tokens["tag"],
+            SymbolKind.Object,
+            self.range,
+            self.group.tokens[self.tokens["tag"]].range,
+            self.id,
+        )
+
+    @property
     def tag(self) -> str:
         return self.tokens["tag"]
 
@@ -72,6 +82,18 @@ class MenuAttribute(AstNode):
     def value(self) -> StringValue:
         return self.children[StringValue][0]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["name"].range
+            if self.group.tokens["name"]
+            else self.range,
+            self.value.range.text,
+        )
+
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(None)
@@ -98,7 +120,7 @@ menu_attribute = Group(
 menu_section = Group(
     Menu,
     [
-        "section",
+        Keyword("section"),
         UseLiteral("tag", "section"),
         Optional(UseIdent("id")),
         Match("{").expected(),
@@ -109,7 +131,7 @@ menu_section = Group(
 menu_submenu = Group(
     Menu,
     [
-        "submenu",
+        Keyword("submenu"),
         UseLiteral("tag", "submenu"),
         Optional(UseIdent("id")),
         Match("{").expected(),
@@ -120,7 +142,7 @@ menu_submenu = Group(
 menu_item = Group(
     Menu,
     [
-        "item",
+        Keyword("item"),
         UseLiteral("tag", "item"),
         Match("{").expected(),
         Until(menu_attribute, "}"),
@@ -130,7 +152,7 @@ menu_item = Group(
 menu_item_shorthand = Group(
     Menu,
     [
-        "item",
+        Keyword("item"),
         UseLiteral("tag", "item"),
         "(",
         Group(

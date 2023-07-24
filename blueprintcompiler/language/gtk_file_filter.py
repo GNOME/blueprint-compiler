@@ -23,6 +23,15 @@ from .gobject_object import ObjectContent, validate_parent_type
 
 
 class Filters(AstNode):
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.tokens["tag_name"],
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens[self.tokens["tag_name"]].range,
+        )
+
     @validate()
     def container_is_file_filter(self):
         validate_parent_type(self, "Gtk", "FileFilter", "file filter properties")
@@ -45,6 +54,15 @@ class FilterString(AstNode):
     @property
     def item(self) -> str:
         return self.tokens["name"]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.item,
+            SymbolKind.String,
+            self.range,
+            self.group.tokens["name"].range,
+        )
 
     @validate()
     def unique_in_parent(self):

@@ -40,13 +40,12 @@ from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
 
 class TestSamples(unittest.TestCase):
-    def assert_docs_dont_crash(self, text, ast):
+    def assert_ast_doesnt_crash(self, text, tokens, ast):
         for i in range(len(text)):
             ast.get_docs(i)
-
-    def assert_completions_dont_crash(self, text, ast, tokens):
         for i in range(len(text)):
             list(complete(ast, tokens, i))
+        ast.get_document_symbols()
 
     def assert_sample(self, name, skip_run=False):
         print(f'assert_sample("{name}", skip_run={skip_run})')
@@ -79,8 +78,7 @@ class TestSamples(unittest.TestCase):
                 print("\n".join(diff))
                 raise AssertionError()
 
-            self.assert_docs_dont_crash(blueprint, ast)
-            self.assert_completions_dont_crash(blueprint, ast, tokens)
+            self.assert_ast_doesnt_crash(blueprint, tokens, ast)
         except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
@@ -105,8 +103,7 @@ class TestSamples(unittest.TestCase):
             ast, errors, warnings = parser.parse(tokens)
 
             if ast is not None:
-                self.assert_docs_dont_crash(blueprint, ast)
-                self.assert_completions_dont_crash(blueprint, ast, tokens)
+                self.assert_ast_doesnt_crash(blueprint, tokens, ast)
 
             if errors:
                 raise errors

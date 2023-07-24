@@ -51,12 +51,14 @@ class Signal(AstNode):
             ]
         ),
         "=>",
+        Mark("detail_start"),
         Optional(["$", UseLiteral("extern", True)]),
         UseIdent("handler").expected("the name of a function to handle the signal"),
         Match("(").expected("argument list"),
         Optional(UseIdent("object")).expected("object identifier"),
         Match(")").expected(),
         ZeroOrMore(SignalFlag),
+        Mark("detail_end"),
     )
 
     @property
@@ -104,6 +106,16 @@ class Signal(AstNode):
     @property
     def gir_class(self):
         return self.parent.parent.gir_class
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.full_name,
+            SymbolKind.Event,
+            self.range,
+            self.group.tokens["name"].range,
+            self.ranges["detail_start", "detail_end"].text,
+        )
 
     @validate("handler")
     def old_extern(self):

@@ -46,7 +46,14 @@ from ..gir import (
     IntType,
     StringType,
 )
-from ..lsp_utils import Completion, CompletionItemKind, SemanticToken, SemanticTokenType
+from ..lsp_utils import (
+    Completion,
+    CompletionItemKind,
+    DocumentSymbol,
+    SemanticToken,
+    SemanticTokenType,
+    SymbolKind,
+)
 from ..parse_tree import *
 
 OBJECT_CONTENT_HOOKS = AnyOf()
