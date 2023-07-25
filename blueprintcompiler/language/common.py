@@ -50,6 +50,7 @@ from ..lsp_utils import (
     Completion,
     CompletionItemKind,
     DocumentSymbol,
+    LocationLink,
     SemanticToken,
     SemanticTokenType,
     SymbolKind,

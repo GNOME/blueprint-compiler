@@ -81,6 +81,8 @@ class ParseGroup:
 
         self.keys[key] = val
         self.tokens[key] = token
+        if token:
+            self.set_range(key, token.range)
 
     def set_range(self, key: str, range: Range):
         assert_true(key not in self.ranges)

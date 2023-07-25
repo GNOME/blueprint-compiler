@@ -339,6 +339,16 @@ class IdentLiteral(AstNode):
             token = self.group.tokens["value"]
             yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
 
+    def get_reference(self, _idx: int) -> T.Optional[LocationLink]:
+        ref = self.context[ScopeCtx].objects.get(self.ident)
+        if ref is None and self.root.is_legacy_template(self.ident):
+            ref = self.root.template
+
+        if ref:
+            return LocationLink(self.range, ref.range, ref.ranges["id"])
+        else:
+            return None
+
 
 class Literal(AstNode):
     grammar = AnyOf(

@@ -204,6 +204,7 @@ class LanguageServer:
                     "codeActionProvider": {},
                     "hoverProvider": True,
                     "documentSymbolProvider": True,
+                    "definitionProvider": True,
                 },
                 "serverInfo": {
                     "name": "Blueprint",
@@ -388,6 +389,21 @@ class LanguageServer:
             return result
 
         self._send_response(id, [to_json(symbol) for symbol in symbols])
+
+    @command("textDocument/definition")
+    def definition(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+        idx = utils.pos_to_idx(
+            params["position"]["line"], params["position"]["character"], open_file.text
+        )
+        definition = open_file.ast.get_reference(idx)
+        if definition is None:
+            self._send_response(id, None)
+        else:
+            self._send_response(
+                id,
+                definition.to_json(open_file.uri),
+            )
 
     def _send_file_updates(self, open_file: OpenFile):
         self._send_notification(

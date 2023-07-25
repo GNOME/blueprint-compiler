@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .errors import CompileError, CompilerBugError
+from . import utils
 
 
 class TokenType(Enum):
@@ -127,3 +128,12 @@ class Range:
         if b is None:
             return a
         return Range(min(a.start, b.start), max(a.end, b.end), a.original_text)
+
+    def __contains__(self, other: T.Union[int, "Range"]) -> bool:
+        if isinstance(other, int):
+            return self.start <= other <= self.end
+        else:
+            return self.start <= other.start and self.end >= other.end
+
+    def to_json(self):
+        return utils.idxs_to_range(self.start, self.end, self.original_text)

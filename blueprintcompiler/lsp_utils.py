@@ -169,3 +169,18 @@ class DocumentSymbol:
     selection_range: Range
     detail: T.Optional[str] = None
     children: T.List["DocumentSymbol"] = field(default_factory=list)
+
+
+@dataclass
+class LocationLink:
+    origin_selection_range: Range
+    target_range: Range
+    target_selection_range: Range
+
+    def to_json(self, target_uri: str):
+        return {
+            "originSelectionRange": self.origin_selection_range.to_json(),
+            "targetUri": target_uri,
+            "targetRange": self.target_range.to_json(),
+            "targetSelectionRange": self.target_selection_range.to_json(),
+        }

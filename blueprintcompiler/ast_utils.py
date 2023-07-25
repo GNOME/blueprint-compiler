@@ -22,7 +22,7 @@ from collections import ChainMap, defaultdict
 from functools import cached_property
 
 from .errors import *
-from .lsp_utils import DocumentSymbol, SemanticToken
+from .lsp_utils import DocumentSymbol, SemanticToken, LocationLink
 from .tokenizer import Range
 
 TType = T.TypeVar("TType")
@@ -185,9 +185,8 @@ class AstNode:
                 return getattr(self, name)
 
         for child in self.children:
-            if child.group.start <= idx < child.group.end:
-                docs = child.get_docs(idx)
-                if docs is not None:
+            if idx in child.range:
+                if docs := child.get_docs(idx):
                     return docs
 
         return None
@@ -195,6 +194,13 @@ class AstNode:
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         for child in self.children:
             yield from child.get_semantic_tokens()
+
+    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+        for child in self.children:
+            if idx in child.range:
+                if ref := child.get_reference(idx):
+                    return ref
+        return None
 
     @property
     def document_symbol(self) -> T.Optional[DocumentSymbol]:
