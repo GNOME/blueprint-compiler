@@ -158,7 +158,7 @@ def signal_completer(ast_node, match_variables):
             yield Completion(
                 signal,
                 CompletionItemKind.Property,
-                snippet=f"{signal} => ${{1:{name}_{signal.replace('-', '_')}}}()$0;",
+                snippet=f"{signal} => \$${{1:{name}_{signal.replace('-', '_')}}}()$0;",
             )
 
 
