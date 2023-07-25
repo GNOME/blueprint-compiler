@@ -68,6 +68,14 @@ class ExtScaleMark(AstNode):
             self.label.string if self.label else None,
         )
 
+    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+        if range := self.ranges["position"]:
+            yield SemanticToken(
+                range.start,
+                range.end,
+                SemanticTokenType.EnumMember,
+            )
+
     @docs("position")
     def position_docs(self) -> T.Optional[str]:
         if member := self.root.gir.get_type("PositionType", "Gtk").members.get(
