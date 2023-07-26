@@ -31,9 +31,7 @@ class Format:
         tokenized_str = ""
 
         for index, item in enumerate(tokens):
-
             if item.type != tokenizer.TokenType.WHITESPACE:
-
                 if str(item) in opening_tokens:
                     indent_levels += 1
                 elif str(item) in closing_tokens:
