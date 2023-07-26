@@ -22,7 +22,7 @@ from collections import ChainMap, defaultdict
 from functools import cached_property
 
 from .errors import *
-from .lsp_utils import DocumentSymbol, SemanticToken, LocationLink
+from .lsp_utils import DocumentSymbol, LocationLink, SemanticToken
 from .tokenizer import Range
 
 TType = T.TypeVar("TType")

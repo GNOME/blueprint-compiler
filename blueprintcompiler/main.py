@@ -25,7 +25,7 @@ import sys
 import typing as T
 
 from . import interactive_port, parser, tokenizer
-from .errors import CompilerBugError, CompileError, PrintableError, report_bug
+from .errors import CompileError, CompilerBugError, PrintableError, report_bug
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
