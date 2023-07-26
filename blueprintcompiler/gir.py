@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import os
-import sys
 import typing as T
 from functools import cached_property
 
@@ -29,6 +28,7 @@ from gi.repository import GIRepository  # type: ignore
 
 from . import typelib, xml_reader
 from .errors import CompileError, CompilerBugError
+from .lsp_utils import CodeAction
 
 _namespace_cache: T.Dict[str, "Namespace"] = {}
 _xml_cache = {}
@@ -63,6 +63,27 @@ def get_namespace(namespace: str, version: str) -> "Namespace":
             )
 
     return _namespace_cache[filename]
+
+
+_available_namespaces: list[tuple[str, str]] = []
+
+
+def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
+    if len(_available_namespaces):
+        return _available_namespaces
+
+    search_paths: list[str] = [
+        *GIRepository.Repository.get_search_path(),
+        *_user_search_paths,
+    ]
+
+    for search_path in search_paths:
+        for filename in os.listdir(search_path):
+            if filename.endswith(".typelib"):
+                namespace, version = filename.removesuffix(".typelib").rsplit("-", 1)
+                _available_namespaces.append((namespace, version))
+
+    return _available_namespaces
 
 
 def get_xml(namespace: str, version: str):
@@ -1011,9 +1032,11 @@ class GirContext:
         ns = ns or "Gtk"
 
         if ns not in self.namespaces and ns not in self.not_found_namespaces:
+            all_available = list(set(ns for ns, _version in get_available_namespaces()))
+
             raise CompileError(
                 f"Namespace {ns} was not imported",
-                did_you_mean=(ns, self.namespaces.keys()),
+                did_you_mean=(ns, all_available),
             )
 
     def validate_type(self, name: str, ns: str) -> None:

@@ -99,6 +99,18 @@ class UI(AstNode):
             and self.template.class_name.glib_type_name == id
         )
 
+    def import_code_action(self, ns: str, version: str) -> CodeAction:
+        if len(self.children[Import]):
+            pos = self.children[Import][-1].range.end
+        else:
+            pos = self.children[GtkDirective][0].range.end
+
+        return CodeAction(
+            f"Import {ns} {version}",
+            f"\nusing {ns} {version};",
+            Range(pos, pos, self.group.text),
+        )
+
     @context(ScopeCtx)
     def scope_ctx(self) -> ScopeCtx:
         return ScopeCtx(node=self)
