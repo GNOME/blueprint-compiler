@@ -113,9 +113,9 @@ class TestSamples(unittest.TestCase):
                 raise MultipleErrors(warnings)
         except PrintableError as e:
 
-            def error_str(error):
-                line, col = utils.idx_to_pos(error.start + 1, blueprint)
-                len = error.end - error.start
+            def error_str(error: CompileError):
+                line, col = utils.idx_to_pos(error.range.start + 1, blueprint)
+                len = error.range.length
                 return ",".join([str(line + 1), str(col), str(len), error.message])
 
             if isinstance(e, CompileError):

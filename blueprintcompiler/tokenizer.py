@@ -23,7 +23,6 @@ import typing as T
 from dataclasses import dataclass
 from enum import Enum
 
-from .errors import CompileError, CompilerBugError
 from . import utils
 
 
@@ -69,6 +68,8 @@ class Token:
         return Range(self.start, self.end, self.string)
 
     def get_number(self) -> T.Union[int, float]:
+        from .errors import CompileError, CompilerBugError
+
         if self.type != TokenType.NUMBER:
             raise CompilerBugError()
 
@@ -81,12 +82,12 @@ class Token:
             else:
                 return int(string)
         except:
-            raise CompileError(
-                f"{str(self)} is not a valid number literal", self.start, self.end
-            )
+            raise CompileError(f"{str(self)} is not a valid number literal", self.range)
 
 
 def _tokenize(ui_ml: str):
+    from .errors import CompileError
+
     i = 0
     while i < len(ui_ml):
         matched = False
@@ -101,7 +102,8 @@ def _tokenize(ui_ml: str):
 
         if not matched:
             raise CompileError(
-                "Could not determine what kind of syntax is meant here", i, i
+                "Could not determine what kind of syntax is meant here",
+                Range(i, i, ui_ml),
             )
 
     yield Token(TokenType.EOF, i, i, ui_ml)
@@ -116,6 +118,10 @@ class Range:
     start: int
     end: int
     original_text: str
+
+    @property
+    def length(self) -> int:
+        return self.end - self.start
 
     @property
     def text(self) -> str:
@@ -137,3 +143,6 @@ class Range:
 
     def to_json(self):
         return utils.idxs_to_range(self.start, self.end, self.original_text)
+
+    def overlaps(self, other: "Range") -> bool:
+        return not (self.end < other.start or self.start > other.end)

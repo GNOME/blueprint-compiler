@@ -229,20 +229,23 @@ class AstNode:
                         error,
                         references=[
                             ErrorReference(
-                                child.group.start,
-                                child.group.end,
+                                child.range,
                                 "previous declaration was here",
                             )
                         ],
                     )
 
 
-def validate(token_name=None, end_token_name=None, skip_incomplete=False):
+def validate(
+    token_name: T.Optional[str] = None,
+    end_token_name: T.Optional[str] = None,
+    skip_incomplete: bool = False,
+):
     """Decorator for functions that validate an AST node. Exceptions raised
     during validation are marked with range information from the tokens."""
 
     def decorator(func):
-        def inner(self):
+        def inner(self: AstNode):
             if skip_incomplete and self.incomplete:
                 return
 
@@ -254,22 +257,14 @@ def validate(token_name=None, end_token_name=None, skip_incomplete=False):
                 if self.incomplete:
                     return
 
-                # This mess of code sets the error's start and end positions
-                # from the tokens passed to the decorator, if they have not
-                # already been set
-                if e.start is None:
-                    if token := self.group.tokens.get(token_name):
-                        e.start = token.start
-                    else:
-                        e.start = self.group.start
-
-                if e.end is None:
-                    if token := self.group.tokens.get(end_token_name):
-                        e.end = token.end
-                    elif token := self.group.tokens.get(token_name):
-                        e.end = token.end
-                    else:
-                        e.end = self.group.end
+                if e.range is None:
+                    e.range = (
+                        Range.join(
+                            self.ranges[token_name],
+                            self.ranges[end_token_name],
+                        )
+                        or self.range
+                    )
 
                 # Re-raise the exception
                 raise e

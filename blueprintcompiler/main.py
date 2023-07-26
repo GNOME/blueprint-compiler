@@ -24,8 +24,8 @@ import os
 import sys
 import typing as T
 
-from . import decompiler, interactive_port, parser, tokenizer
-from .errors import CompilerBugError, MultipleErrors, PrintableError, report_bug
+from . import interactive_port, parser, tokenizer
+from .errors import CompilerBugError, CompileError, PrintableError, report_bug
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -157,7 +157,7 @@ class BlueprintApp:
     def cmd_port(self, opts):
         interactive_port.run(opts)
 
-    def _compile(self, data: str) -> T.Tuple[str, T.List[PrintableError]]:
+    def _compile(self, data: str) -> T.Tuple[str, T.List[CompileError]]:
         tokens = tokenizer.tokenize(data)
         ast, errors, warnings = parser.parse(tokens)
 

@@ -224,11 +224,11 @@ class ParseContext:
         if (
             len(self.errors)
             and isinstance((err := self.errors[-1]), UnexpectedTokenError)
-            and err.end == start
+            and err.range.end == start
         ):
-            err.end = end
+            err.range.end = end
         else:
-            self.errors.append(UnexpectedTokenError(start, end))
+            self.errors.append(UnexpectedTokenError(Range(start, end, self.text)))
 
     def is_eof(self) -> bool:
         return self.index >= len(self.tokens) or self.peek_token().type == TokenType.EOF
@@ -281,10 +281,11 @@ class Err(ParseNode):
             start_idx = ctx.start
             while ctx.tokens[start_idx].type in SKIP_TOKENS:
                 start_idx += 1
-
             start_token = ctx.tokens[start_idx]
-            end_token = ctx.tokens[ctx.index]
-            raise CompileError(self.message, start_token.start, end_token.end)
+
+            raise CompileError(
+                self.message, Range(start_token.start, start_token.start, ctx.text)
+            )
         return True
 
 
@@ -324,7 +325,9 @@ class Fail(ParseNode):
 
             start_token = ctx.tokens[start_idx]
             end_token = ctx.tokens[ctx.index]
-            raise CompileError(self.message, start_token.start, end_token.end)
+            raise CompileError(
+                self.message, Range.join(start_token.range, end_token.range)
+            )
         return True
 
 
@@ -373,7 +376,7 @@ class Statement(ParseNode):
 
         token = ctx.peek_token()
         if str(token) != ";":
-            ctx.errors.append(CompileError("Expected `;`", token.start, token.end))
+            ctx.errors.append(CompileError("Expected `;`", token.range))
         else:
             ctx.next_token()
         return True

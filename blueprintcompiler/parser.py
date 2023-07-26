@@ -26,7 +26,7 @@ from .tokenizer import TokenType
 
 def parse(
     tokens: T.List[Token],
-) -> T.Tuple[T.Optional[UI], T.Optional[MultipleErrors], T.List[PrintableError]]:
+) -> T.Tuple[T.Optional[UI], T.Optional[MultipleErrors], T.List[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
 
     try:

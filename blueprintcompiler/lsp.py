@@ -24,10 +24,12 @@ import traceback
 import typing as T
 
 from . import decompiler, parser, tokenizer, utils, xml_reader
+from .ast_utils import AstNode
 from .completions import complete
-from .errors import CompileError, MultipleErrors, PrintableError
+from .errors import CompileError, MultipleErrors
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
+from .tokenizer import Token
 
 
 def printerr(*args, **kwargs):
@@ -43,16 +45,16 @@ def command(json_method: str):
 
 
 class OpenFile:
-    def __init__(self, uri: str, text: str, version: int):
+    def __init__(self, uri: str, text: str, version: int) -> None:
         self.uri = uri
         self.text = text
         self.version = version
-        self.ast = None
-        self.tokens = None
+        self.ast: T.Optional[AstNode] = None
+        self.tokens: T.Optional[list[Token]] = None
 
         self._update()
 
-    def apply_changes(self, changes):
+    def apply_changes(self, changes) -> None:
         for change in changes:
             if "range" not in change:
                 self.text = change["text"]
@@ -70,8 +72,8 @@ class OpenFile:
             self.text = self.text[:start] + change["text"] + self.text[end:]
         self._update()
 
-    def _update(self):
-        self.diagnostics = []
+    def _update(self) -> None:
+        self.diagnostics: list[CompileError] = []
         try:
             self.tokens = tokenizer.tokenize(self.text)
             self.ast, errors, warnings = parser.parse(self.tokens)
@@ -327,14 +329,17 @@ class LanguageServer:
     def code_actions(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
 
-        range_start = utils.pos_to_idx(
-            params["range"]["start"]["line"],
-            params["range"]["start"]["character"],
-            open_file.text,
-        )
-        range_end = utils.pos_to_idx(
-            params["range"]["end"]["line"],
-            params["range"]["end"]["character"],
+        range = Range(
+            utils.pos_to_idx(
+                params["range"]["start"]["line"],
+                params["range"]["start"]["character"],
+                open_file.text,
+            ),
+            utils.pos_to_idx(
+                params["range"]["end"]["line"],
+                params["range"]["end"]["character"],
+                open_file.text,
+            ),
             open_file.text,
         )
 
@@ -342,16 +347,14 @@ class LanguageServer:
             {
                 "title": action.title,
                 "kind": "quickfix",
-                "diagnostics": [
-                    self._create_diagnostic(open_file.text, open_file.uri, diagnostic)
-                ],
+                "diagnostics": [self._create_diagnostic(open_file.uri, diagnostic)],
                 "edit": {
                     "changes": {
                         open_file.uri: [
                             {
-                                "range": utils.idxs_to_range(
-                                    diagnostic.start, diagnostic.end, open_file.text
-                                ),
+                                "range": action.edit_range.to_json()
+                                if action.edit_range
+                                else diagnostic.range.to_json(),
                                 "newText": action.replace_with,
                             }
                         ]
@@ -359,7 +362,7 @@ class LanguageServer:
                 },
             }
             for diagnostic in open_file.diagnostics
-            if not (diagnostic.end < range_start or diagnostic.start > range_end)
+            if range.overlaps(diagnostic.range)
             for action in diagnostic.actions
         ]
 
@@ -374,14 +377,8 @@ class LanguageServer:
             result = {
                 "name": symbol.name,
                 "kind": symbol.kind,
-                "range": utils.idxs_to_range(
-                    symbol.range.start, symbol.range.end, open_file.text
-                ),
-                "selectionRange": utils.idxs_to_range(
-                    symbol.selection_range.start,
-                    symbol.selection_range.end,
-                    open_file.text,
-                ),
+                "range": symbol.range.to_json(),
+                "selectionRange": symbol.selection_range.to_json(),
                 "children": [to_json(child) for child in symbol.children],
             }
             if symbol.detail is not None:
@@ -411,22 +408,22 @@ class LanguageServer:
             {
                 "uri": open_file.uri,
                 "diagnostics": [
-                    self._create_diagnostic(open_file.text, open_file.uri, err)
+                    self._create_diagnostic(open_file.uri, err)
                     for err in open_file.diagnostics
                 ],
             },
         )
 
-    def _create_diagnostic(self, text: str, uri: str, err: CompileError):
+    def _create_diagnostic(self, uri: str, err: CompileError):
         message = err.message
 
-        assert err.start is not None and err.end is not None
+        assert err.range is not None
 
         for hint in err.hints:
             message += "\nhint: " + hint
 
         result = {
-            "range": utils.idxs_to_range(err.start, err.end, text),
+            "range": err.range.to_json(),
             "message": message,
             "severity": DiagnosticSeverity.Warning
             if isinstance(err, CompileWarning)
@@ -441,7 +438,7 @@ class LanguageServer:
                 {
                     "location": {
                         "uri": uri,
-                        "range": utils.idxs_to_range(ref.start, ref.end, text),
+                        "range": ref.range.to_json(),
                     },
                     "message": ref.message,
                 }
