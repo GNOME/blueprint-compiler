@@ -32,15 +32,13 @@ class Format:
         tokenized_str = ""
         for index, item in enumerate(tokens):
             if item.type != tokenizer.TokenType.WHITESPACE:
-                tokenized_str += str(item)
                 if str(item) in opening_tokens:
                     indent_levels += 1
+                elif str(item) in closing_tokens:
+                    tokenized_str = tokenized_str[:-2]
+                    indent_levels -= 1
 
-                try:
-                    if str(tokens[index + 1]) in closing_tokens:
-                        indent_levels -= 1
-                except:
-                    pass
+                tokenized_str += str(item)
 
                 if str(item) in newline_after + closing_tokens + opening_tokens:
                     tokenized_str += "\n"
