@@ -58,6 +58,24 @@ class ExtScaleMark(AstNode):
         else:
             return None
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            str(self.value),
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["mark"].range,
+            self.label.string if self.label else None,
+        )
+
+    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+        if range := self.ranges["position"]:
+            yield SemanticToken(
+                range.start,
+                range.end,
+                SemanticTokenType.EnumMember,
+            )
+
     @docs("position")
     def position_docs(self) -> T.Optional[str]:
         if member := self.root.gir.get_type("PositionType", "Gtk").members.get(
@@ -87,6 +105,15 @@ class ExtScaleMarks(AstNode):
     @property
     def marks(self) -> T.List[ExtScaleMark]:
         return self.children
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "marks",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["marks"].range,
+        )
 
     @validate("marks")
     def container_is_size_group(self):

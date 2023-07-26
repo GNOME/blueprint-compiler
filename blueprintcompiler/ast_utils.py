@@ -22,7 +22,8 @@ from collections import ChainMap, defaultdict
 from functools import cached_property
 
 from .errors import *
-from .lsp_utils import SemanticToken
+from .lsp_utils import DocumentSymbol, LocationLink, SemanticToken
+from .tokenizer import Range
 
 TType = T.TypeVar("TType")
 
@@ -52,6 +53,18 @@ class Children:
                 return self._children[key]
         else:
             return [child for child in self._children if isinstance(child, key)]
+
+
+class Ranges:
+    def __init__(self, ranges: T.Dict[str, Range]):
+        self._ranges = ranges
+
+    def __getitem__(self, key: T.Union[str, tuple[str, str]]) -> T.Optional[Range]:
+        if isinstance(key, str):
+            return self._ranges.get(key)
+        elif isinstance(key, tuple):
+            start, end = key
+            return Range.join(self._ranges.get(start), self._ranges.get(end))
 
 
 TCtx = T.TypeVar("TCtx")
@@ -103,11 +116,19 @@ class AstNode:
         return Ctx(self)
 
     @cached_property
+    def ranges(self):
+        return Ranges(self.group.ranges)
+
+    @cached_property
     def root(self):
         if self.parent is None:
             return self
         else:
             return self.parent.root
+
+    @property
+    def range(self):
+        return Range(self.group.start, self.group.end, self.group.text)
 
     def parent_by_type(self, type: T.Type[TType]) -> TType:
         if self.parent is None:
@@ -164,9 +185,8 @@ class AstNode:
                 return getattr(self, name)
 
         for child in self.children:
-            if child.group.start <= idx < child.group.end:
-                docs = child.get_docs(idx)
-                if docs is not None:
+            if idx in child.range:
+                if docs := child.get_docs(idx):
                     return docs
 
         return None
@@ -174,6 +194,27 @@ class AstNode:
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         for child in self.children:
             yield from child.get_semantic_tokens()
+
+    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+        for child in self.children:
+            if idx in child.range:
+                if ref := child.get_reference(idx):
+                    return ref
+        return None
+
+    @property
+    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+        return None
+
+    def get_document_symbols(self) -> T.List[DocumentSymbol]:
+        result = []
+        for child in self.children:
+            if s := child.document_symbol:
+                s.children = child.get_document_symbols()
+                result.append(s)
+            else:
+                result.extend(child.get_document_symbols())
+        return result
 
     def validate_unique_in_parent(
         self, error: str, check: T.Optional[T.Callable[["AstNode"], bool]] = None
@@ -188,20 +229,23 @@ class AstNode:
                         error,
                         references=[
                             ErrorReference(
-                                child.group.start,
-                                child.group.end,
+                                child.range,
                                 "previous declaration was here",
                             )
                         ],
                     )
 
 
-def validate(token_name=None, end_token_name=None, skip_incomplete=False):
+def validate(
+    token_name: T.Optional[str] = None,
+    end_token_name: T.Optional[str] = None,
+    skip_incomplete: bool = False,
+):
     """Decorator for functions that validate an AST node. Exceptions raised
     during validation are marked with range information from the tokens."""
 
     def decorator(func):
-        def inner(self):
+        def inner(self: AstNode):
             if skip_incomplete and self.incomplete:
                 return
 
@@ -213,22 +257,14 @@ def validate(token_name=None, end_token_name=None, skip_incomplete=False):
                 if self.incomplete:
                     return
 
-                # This mess of code sets the error's start and end positions
-                # from the tokens passed to the decorator, if they have not
-                # already been set
-                if e.start is None:
-                    if token := self.group.tokens.get(token_name):
-                        e.start = token.start
-                    else:
-                        e.start = self.group.start
-
-                if e.end is None:
-                    if token := self.group.tokens.get(end_token_name):
-                        e.end = token.end
-                    elif token := self.group.tokens.get(token_name):
-                        e.end = token.end
-                    else:
-                        e.end = self.group.end
+                if e.range is None:
+                    e.range = (
+                        Range.join(
+                            self.ranges[token_name],
+                            self.ranges[end_token_name],
+                        )
+                        or self.range
+                    )
 
                 # Re-raise the exception
                 raise e

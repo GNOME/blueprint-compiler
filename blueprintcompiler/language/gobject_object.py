@@ -21,6 +21,9 @@
 import typing as T
 from functools import cached_property
 
+from blueprintcompiler.errors import T
+from blueprintcompiler.lsp_utils import DocumentSymbol
+
 from .common import *
 from .response_id import ExtResponse
 from .types import ClassName, ConcreteClassName
@@ -59,8 +62,20 @@ class Object(AstNode):
     def signature(self) -> str:
         if self.id:
             return f"{self.class_name.gir_type.full_name} {self.id}"
+        elif t := self.class_name.gir_type:
+            return f"{t.full_name}"
         else:
-            return f"{self.class_name.gir_type.full_name}"
+            return f"{self.class_name.as_string}"
+
+    @property
+    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+        return DocumentSymbol(
+            self.class_name.as_string,
+            SymbolKind.Object,
+            self.range,
+            self.children[ClassName][0].range,
+            self.id,
+        )
 
     @property
     def gir_class(self) -> GirType:

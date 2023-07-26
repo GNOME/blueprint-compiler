@@ -70,8 +70,7 @@ class ScopeCtx:
                 ):
                     raise CompileError(
                         f"Duplicate object ID '{obj.tokens['id']}'",
-                        token.start,
-                        token.end,
+                        token.range,
                     )
             passed[obj.tokens["id"]] = obj
 

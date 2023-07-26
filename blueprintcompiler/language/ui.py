@@ -62,8 +62,7 @@ class UI(AstNode):
                 else:
                     gir_ctx.not_found_namespaces.add(i.namespace)
             except CompileError as e:
-                e.start = i.group.tokens["namespace"].start
-                e.end = i.group.tokens["version"].end
+                e.range = i.range
                 self._gir_errors.append(e)
 
         return gir_ctx
@@ -98,6 +97,18 @@ class UI(AstNode):
             id not in self.context[ScopeCtx].objects
             and self.template is not None
             and self.template.class_name.glib_type_name == id
+        )
+
+    def import_code_action(self, ns: str, version: str) -> CodeAction:
+        if len(self.children[Import]):
+            pos = self.children[Import][-1].range.end
+        else:
+            pos = self.children[GtkDirective][0].range.end
+
+        return CodeAction(
+            f"Import {ns} {version}",
+            f"\nusing {ns} {version};",
+            Range(pos, pos, self.group.text),
         )
 
     @context(ScopeCtx)

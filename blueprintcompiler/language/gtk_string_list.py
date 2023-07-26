@@ -30,6 +30,15 @@ class Item(AstNode):
     def child(self) -> StringValue:
         return self.children[StringValue][0]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.child.range.text,
+            SymbolKind.String,
+            self.range,
+            self.range,
+        )
+
 
 class ExtStringListStrings(AstNode):
     grammar = [
@@ -38,6 +47,15 @@ class ExtStringListStrings(AstNode):
         Delimited(Item, ","),
         "]",
     ]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "strings",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["strings"].range,
+        )
 
     @validate("items")
     def container_is_string_list(self):

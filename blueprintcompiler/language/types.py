@@ -55,7 +55,16 @@ class TypeName(AstNode):
     @validate("namespace")
     def gir_ns_exists(self):
         if not self.tokens["extern"]:
-            self.root.gir.validate_ns(self.tokens["namespace"])
+            try:
+                self.root.gir.validate_ns(self.tokens["namespace"])
+            except CompileError as e:
+                ns = self.tokens["namespace"]
+                e.actions = [
+                    self.root.import_code_action(n, version)
+                    for n, version in gir.get_available_namespaces()
+                    if n == ns
+                ]
+                raise e
 
     @validate()
     def deprecated(self) -> None:

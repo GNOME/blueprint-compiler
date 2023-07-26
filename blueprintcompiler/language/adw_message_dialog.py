@@ -84,6 +84,16 @@ class ExtAdwMessageDialogResponse(AstNode):
     def value(self) -> StringValue:
         return self.children[0]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.id,
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["id"].range,
+            self.value.range.text,
+        )
+
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(StringType())
@@ -107,6 +117,15 @@ class ExtAdwMessageDialog(AstNode):
     @property
     def responses(self) -> T.List[ExtAdwMessageDialogResponse]:
         return self.children
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "responses",
+            SymbolKind.Array,
+            self.range,
+            self.group.tokens["responses"].range,
+        )
 
     @validate("responses")
     def container_is_message_dialog(self):

@@ -36,6 +36,16 @@ class LayoutProperty(AstNode):
     def value(self) -> Value:
         return self.children[Value][0]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            self.name,
+            SymbolKind.Field,
+            self.range,
+            self.group.tokens["name"].range,
+            self.value.range.text,
+        )
+
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         # there isn't really a way to validate these
@@ -55,6 +65,15 @@ class ExtLayout(AstNode):
         "{",
         Until(LayoutProperty, "}"),
     )
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "layout",
+            SymbolKind.Struct,
+            self.range,
+            self.group.tokens["layout"].range,
+        )
 
     @validate("layout")
     def container_is_widget(self):

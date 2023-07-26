@@ -35,6 +35,16 @@ class AdwBreakpointCondition(AstNode):
     def condition(self) -> str:
         return self.tokens["condition"]
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "condition",
+            SymbolKind.Property,
+            self.range,
+            self.group.tokens["kw"].range,
+            self.condition,
+        )
+
     @docs("kw")
     def keyword_docs(self):
         klass = self.root.gir.get_type("Breakpoint", "Adw")
@@ -93,6 +103,16 @@ class AdwBreakpointSetter(AstNode):
         else:
             return None
 
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            f"{self.object_id}.{self.property_name}",
+            SymbolKind.Property,
+            self.range,
+            self.group.tokens["object"].range,
+            self.value.range.text,
+        )
+
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         if self.gir_property is not None:
@@ -147,11 +167,24 @@ class AdwBreakpointSetter(AstNode):
 
 
 class AdwBreakpointSetters(AstNode):
-    grammar = ["setters", Match("{").expected(), Until(AdwBreakpointSetter, "}")]
+    grammar = [
+        Keyword("setters"),
+        Match("{").expected(),
+        Until(AdwBreakpointSetter, "}"),
+    ]
 
     @property
     def setters(self) -> T.List[AdwBreakpointSetter]:
         return self.children[AdwBreakpointSetter]
+
+    @property
+    def document_symbol(self) -> DocumentSymbol:
+        return DocumentSymbol(
+            "setters",
+            SymbolKind.Struct,
+            self.range,
+            self.group.tokens["setters"].range,
+        )
 
     @validate()
     def container_is_breakpoint(self):

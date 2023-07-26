@@ -23,6 +23,7 @@ import typing as T
 from dataclasses import dataclass
 
 from . import utils
+from .tokenizer import Range
 from .utils import Colors
 
 
@@ -36,8 +37,7 @@ class PrintableError(Exception):
 
 @dataclass
 class ErrorReference:
-    start: int
-    end: int
+    range: Range
     message: str
 
 
@@ -50,8 +50,7 @@ class CompileError(PrintableError):
     def __init__(
         self,
         message: str,
-        start: T.Optional[int] = None,
-        end: T.Optional[int] = None,
+        range: T.Optional[Range] = None,
         did_you_mean: T.Optional[T.Tuple[str, T.List[str]]] = None,
         hints: T.Optional[T.List[str]] = None,
         actions: T.Optional[T.List["CodeAction"]] = None,
@@ -61,8 +60,7 @@ class CompileError(PrintableError):
         super().__init__(message)
 
         self.message = message
-        self.start = start
-        self.end = end
+        self.range = range
         self.hints = hints or []
         self.actions = actions or []
         self.references = references or []
@@ -92,9 +90,9 @@ class CompileError(PrintableError):
             self.hint("Are your dependencies up to date?")
 
     def pretty_print(self, filename: str, code: str, stream=sys.stdout) -> None:
-        assert self.start is not None
+        assert self.range is not None
 
-        line_num, col_num = utils.idx_to_pos(self.start + 1, code)
+        line_num, col_num = utils.idx_to_pos(self.range.start + 1, code)
         line = code.splitlines(True)[line_num]
 
         # Display 1-based line numbers
@@ -110,7 +108,7 @@ at {filename} line {line_num} column {col_num}:
             stream.write(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}\n")
 
         for ref in self.references:
-            line_num, col_num = utils.idx_to_pos(ref.start + 1, code)
+            line_num, col_num = utils.idx_to_pos(ref.range.start + 1, code)
             line = code.splitlines(True)[line_num]
             line_num += 1
 
@@ -138,14 +136,15 @@ class UpgradeWarning(CompileWarning):
 
 
 class UnexpectedTokenError(CompileError):
-    def __init__(self, start, end) -> None:
-        super().__init__("Unexpected tokens", start, end)
+    def __init__(self, range: Range) -> None:
+        super().__init__("Unexpected tokens", range)
 
 
 @dataclass
 class CodeAction:
     title: str
     replace_with: str
+    edit_range: T.Optional[Range] = None
 
 
 class MultipleErrors(PrintableError):
