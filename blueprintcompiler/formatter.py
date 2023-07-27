@@ -19,9 +19,9 @@
 
 from . import tokenizer
 
-newline_after = [";", "]"]
-opening_tokens = ["{"]
-closing_tokens = ["}"]
+NEWLINE_AFTER = [";", "]"]
+OPENING_TOKENS = ["{"]
+CLOSING_TOKENS = ["}"]
 
 
 class Format:
@@ -32,15 +32,15 @@ class Format:
 
         for index, item in enumerate(tokens):
             if item.type != tokenizer.TokenType.WHITESPACE:
-                if str(item) in opening_tokens:
+                if str(item) in OPENING_TOKENS:
                     indent_levels += 1
-                elif str(item) in closing_tokens:
+                elif str(item) in CLOSING_TOKENS:
                     tokenized_str = tokenized_str[:-2]
                     indent_levels -= 1
 
                 tokenized_str += str(item)
 
-                if str(item) in newline_after + closing_tokens + opening_tokens:
+                if str(item) in NEWLINE_AFTER + CLOSING_TOKENS + OPENING_TOKENS:
                     tokenized_str += "\n"
                     tokenized_str += indent_levels * "  "
 
@@ -48,6 +48,6 @@ class Format:
                 if tokenized_str == tokenized_str.strip():
                     tokenized_str += " "
 
-        print(tokenized_str)
+        print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
 
         return tokenized_str
