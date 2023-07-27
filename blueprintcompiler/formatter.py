@@ -44,7 +44,12 @@ class Format:
 
                 if item_as_string in OPENING_TOKENS:
                     split_string = tokenized_str.splitlines()
-                    split_string.insert(-1, "")
+
+                    index = -1
+                    if "[" in split_string[-2] and "]" in split_string[-2]:
+                        index = -2
+
+                    split_string.insert(index, "")
                     tokenized_str = "\n".join(split_string)
 
                     indent_levels += 1
