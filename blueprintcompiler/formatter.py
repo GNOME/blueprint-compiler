@@ -19,9 +19,9 @@
 
 from . import tokenizer
 
-NEWLINE_AFTER = [";", "]"]
 OPENING_TOKENS = ["{"]
 CLOSING_TOKENS = ["}"]
+NEWLINE_AFTER = [";", "]"] + OPENING_TOKENS + CLOSING_TOKENS
 
 
 class Format:
@@ -33,14 +33,19 @@ class Format:
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 if str(item) in OPENING_TOKENS:
+                    split_string = tokenized_str.splitlines()
+                    split_string.insert(-1, "")
+                    tokenized_str = "\n".join(split_string)
+
                     indent_levels += 1
+
                 elif str(item) in CLOSING_TOKENS:
                     tokenized_str = tokenized_str[:-2]
                     indent_levels -= 1
 
                 tokenized_str += str(item)
 
-                if str(item) in NEWLINE_AFTER + CLOSING_TOKENS + OPENING_TOKENS:
+                if str(item) in NEWLINE_AFTER:
                     tokenized_str += "\n"
                     tokenized_str += indent_levels * "  "
 
