@@ -21,7 +21,14 @@ from . import tokenizer
 
 OPENING_TOKENS = ["{"]
 CLOSING_TOKENS = ["}"]
-NEWLINE_AFTER = [";", "]"] + OPENING_TOKENS + CLOSING_TOKENS
+
+NEWLINE_AFTER = [";", "]", "{", "}"]
+
+NO_WHITESPACE_BEFORE = [",", ":", ";", ")"]
+NO_WHITESPACE_AFTER = ["C_", "_", "(", "["]
+
+WHITESPACE_AFTER = [":", ","]
+WHITESPACE_BEFORE = ["{"]
 
 
 class Format:
@@ -29,25 +36,39 @@ class Format:
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
+        last_not_whitespace = None
 
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
-                if str(item) in OPENING_TOKENS:
+                item_as_string = str(item)
+
+                if item_as_string in OPENING_TOKENS:
                     split_string = tokenized_str.splitlines()
                     split_string.insert(-1, "")
                     tokenized_str = "\n".join(split_string)
 
                     indent_levels += 1
-
-                elif str(item) in CLOSING_TOKENS:
+                elif item_as_string in CLOSING_TOKENS:
                     tokenized_str = tokenized_str[:-2]
                     indent_levels -= 1
 
-                tokenized_str += str(item)
+                if item_as_string in WHITESPACE_BEFORE:
+                    tokenized_str = tokenized_str.strip() + " "
+                elif (
+                    item_as_string in NO_WHITESPACE_BEFORE
+                    or str(last_not_whitespace) in NO_WHITESPACE_AFTER
+                ):
+                    tokenized_str = tokenized_str.strip()
 
-                if str(item) in NEWLINE_AFTER:
+                tokenized_str += item_as_string
+
+                if item_as_string in NEWLINE_AFTER:
                     tokenized_str += "\n"
                     tokenized_str += indent_levels * "  "
+                elif item_as_string in WHITESPACE_AFTER:
+                    tokenized_str += " "
+
+                last_not_whitespace = item
 
             else:
                 if tokenized_str == tokenized_str.strip():
