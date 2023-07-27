@@ -43,7 +43,11 @@ class Format:
                 if str(item) in newline_after + closing_tokens + opening_tokens:
                     tokenized_str += "\n"
                     tokenized_str += indent_levels * "  "
+
             else:
-                tokenized_str += " "
+                if tokenized_str == tokenized_str.strip():
+                    tokenized_str += " "
+
+        print(tokenized_str)
 
         return tokenized_str
