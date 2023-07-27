@@ -30,7 +30,7 @@ class Format:
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
 
-        for index, item in enumerate(tokens):
+        for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 if str(item) in OPENING_TOKENS:
                     indent_levels += 1
