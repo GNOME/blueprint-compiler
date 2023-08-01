@@ -39,7 +39,6 @@ class BlueprintApp:
     def main(self):
         self.parser = argparse.ArgumentParser()
         self.subparsers = self.parser.add_subparsers(metavar="command")
-        self.parser.set_defaults(func=self.cmd_help)
 
         compile = self.add_subcommand(
             "compile", "Compile blueprint files", self.cmd_compile
@@ -78,7 +77,10 @@ class BlueprintApp:
 
         try:
             opts = self.parser.parse_args()
-            opts.func(opts)
+            if "func" in opts:
+                opts.func(opts)
+            else:
+                self.cmd_help(opts)
         except SystemExit as e:
             raise e
         except KeyboardInterrupt:
