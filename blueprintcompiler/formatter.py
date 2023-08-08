@@ -74,9 +74,8 @@ class Format:
 
                 last_not_whitespace = item
 
-            else:
-                if tokenized_str == tokenized_str.strip():
-                    tokenized_str += " "
+            elif tokenized_str == tokenized_str.strip():
+                tokenized_str += " "
 
         print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
 
