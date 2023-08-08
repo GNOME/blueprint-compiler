@@ -68,8 +68,7 @@ class Format:
                 tokenized_str += item_as_string
 
                 if item_as_string in NEWLINE_AFTER:
-                    tokenized_str += "\n"
-                    tokenized_str += indent_levels * "  "
+                    tokenized_str += "\n" + (indent_levels * "  ")
                 elif item_as_string in WHITESPACE_AFTER:
                     tokenized_str += " "
 
