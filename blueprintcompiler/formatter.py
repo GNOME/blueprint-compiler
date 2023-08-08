@@ -54,8 +54,8 @@ class Format:
 
                     indent_levels += 1
                 elif item_as_string in CLOSING_TOKENS:
-                    tokenized_str = tokenized_str[:-2]
                     indent_levels -= 1
+                    tokenized_str = tokenized_str.strip() + "\n" + (indent_levels * "  ")
 
                 if item_as_string in WHITESPACE_BEFORE:
                     tokenized_str = tokenized_str.strip() + " "
