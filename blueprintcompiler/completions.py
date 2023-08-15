@@ -130,13 +130,14 @@ def property_completer(ast_node, match_variables):
     matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
 )
 def prop_value_completer(ast_node, match_variables):
-    if isinstance(ast_node.value_type, gir.Enumeration):
-        for name, member in ast_node.value_type.members.items():
-            yield Completion(name, CompletionItemKind.EnumMember, docs=member.doc)
+    if (vt := ast_node.value_type) is not None:
+        if isinstance(vt.value_type, gir.Enumeration):
+            for name, member in vt.value_type.members.items():
+                yield Completion(name, CompletionItemKind.EnumMember, docs=member.doc)
 
-    elif isinstance(ast_node.value_type, gir.BoolType):
-        yield Completion("true", CompletionItemKind.Constant)
-        yield Completion("false", CompletionItemKind.Constant)
+        elif isinstance(vt.value_type, gir.BoolType):
+            yield Completion("true", CompletionItemKind.Constant)
+            yield Completion("false", CompletionItemKind.Constant)
 
 
 @completer(
