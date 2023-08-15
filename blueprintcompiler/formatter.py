@@ -67,7 +67,10 @@ class Format:
 
                 tokenized_str += item_as_string
 
-                if item_as_string in NEWLINE_AFTER:
+                if (
+                    item_as_string in NEWLINE_AFTER
+                    or item.type == tokenizer.TokenType.COMMENT
+                ):
                     tokenized_str += "\n" + (indent_levels * "  ")
                 elif item_as_string in WHITESPACE_AFTER:
                     tokenized_str += " "
