@@ -17,18 +17,27 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from enum import Enum
+
 from . import tokenizer
 
-OPENING_TOKENS = ["{"]
-CLOSING_TOKENS = ["}"]
+OPENING_TOKENS = ["{", "["]
+CLOSING_TOKENS = ["}", "]"]
 
-NEWLINE_AFTER = [";", "]", "{", "}"]
+NEWLINE_AFTER = [";"] + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = [",", ":", ";", ")"]
-NO_WHITESPACE_AFTER = ["C_", "_", "(", "["]
+NO_WHITESPACE_BEFORE = [",", ":", ";", ")", "."]
+NO_WHITESPACE_AFTER = ["C_", "_", "("]
 
 WHITESPACE_AFTER = [":", ","]
 WHITESPACE_BEFORE = ["{"]
+
+
+class LineType(Enum):
+    STATEMENT = 0
+    BLOCK_OPEN = 1
+    BLOCK_CLOSE = 2
+    CHILD_TYPE = 3
 
 
 class Format:
@@ -36,49 +45,75 @@ class Format:
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
-        last_not_whitespace = None
+        last_not_whitespace = None  # To make line 56 not fail
+        current_line = ""
+        prev_line_type = None
 
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 item_as_string = str(item)
 
-                if item_as_string in OPENING_TOKENS:
-                    split_string = tokenized_str.splitlines()
-
-                    split_string.insert(
-                        -2 if split_string[-2].strip().startswith("[") else -1, ""
-                    )
-                    tokenized_str = "\n".join(split_string)
-
-                    indent_levels += 1
-                elif item_as_string in CLOSING_TOKENS:
-                    indent_levels -= 1
-                    tokenized_str = (
-                        tokenized_str.strip() + "\n" + (indent_levels * "  ")
-                    )
-
                 if item_as_string in WHITESPACE_BEFORE:
-                    tokenized_str = tokenized_str.strip() + " "
+                    current_line = current_line.strip() + " "
                 elif (
                     item_as_string in NO_WHITESPACE_BEFORE
                     or str(last_not_whitespace) in NO_WHITESPACE_AFTER
                 ):
-                    tokenized_str = tokenized_str.strip()
+                    current_line = current_line.strip()
 
-                tokenized_str += item_as_string
+                current_line += item_as_string
 
                 if (
                     item_as_string in NEWLINE_AFTER
                     or item.type == tokenizer.TokenType.COMMENT
                 ):
-                    tokenized_str += "\n" + (indent_levels * "  ")
-                elif item_as_string in WHITESPACE_AFTER:
-                    tokenized_str += " "
+                    if item_as_string in OPENING_TOKENS:
+                        # tokenized_str += (
+                        #     ("\n" * num_newlines) + (indent_levels * "  ") + current_line
+                        # )
+                        # current_line = ""
+                        num_newlines = 1 if prev_line_type == LineType.CHILD_TYPE else 2
+                        prev_line_type = LineType.BLOCK_OPEN
+                        tokenized_str = (
+                            tokenized_str.strip()
+                            + (num_newlines * "\n")
+                            + (indent_levels * "  ")
+                        )
+
+                        indent_levels += 1
+                    elif item_as_string in CLOSING_TOKENS:
+                        indent_levels -= 1
+                        tokenized_str = (
+                            tokenized_str.strip() + "\n" + (indent_levels * "  ")
+                        )
+
+                        # tokenized_str += current_line
+                        # current_line = ""
+
+                        # prev_line_type = (
+                        #     LineType.CHILD_TYPE
+                        #     if current_line.strip().startswith("[")
+                        #     else LineType.BLOCK_CLOSE
+                        # )
+
+                    current_line += "\n" + (indent_levels * "  ")
+                    tokenized_str += current_line
+                    current_line = ""
+
+                elif (
+                    item_as_string in WHITESPACE_AFTER
+                    or item.type == tokenizer.TokenType.IDENT
+                ):
+                    current_line += " "
 
                 last_not_whitespace = item
 
-            elif tokenized_str == tokenized_str.strip():
-                tokenized_str += " "
+            # else:
+            #     current_line = current_line.strip() + " "
+
+            tokenized_str = "\n".join(
+                [s.strip() if s.strip() == s else s for s in tokenized_str.splitlines()]
+            )
 
         print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
 
