@@ -45,7 +45,7 @@ class Format:
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
-        last_not_whitespace = None  # To make line 56 not fail
+        last_not_whitespace = tokens[0]  # To make line 56 not fail
         current_line = ""
         prev_line_type = None
 
@@ -53,13 +53,18 @@ class Format:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 item_as_string = str(item)
 
-                if item_as_string in WHITESPACE_BEFORE:
-                    current_line = current_line.strip() + " "
-                elif (
-                    item_as_string in NO_WHITESPACE_BEFORE
-                    or str(last_not_whitespace) in NO_WHITESPACE_AFTER
+                if (
+                    item_as_string in WHITESPACE_BEFORE
+                    and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
+                ) or (
+                    (
+                        str(last_not_whitespace) in WHITESPACE_AFTER
+                        or last_not_whitespace.type == tokenizer.TokenType.IDENT
+                    )
+                    and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
+                    and item_as_string not in NO_WHITESPACE_BEFORE
                 ):
-                    current_line = current_line.strip()
+                    current_line = current_line + " "
 
                 current_line += item_as_string
 
@@ -99,12 +104,6 @@ class Format:
                     current_line += "\n" + (indent_levels * "  ")
                     tokenized_str += current_line
                     current_line = ""
-
-                elif (
-                    item_as_string in WHITESPACE_AFTER
-                    or item.type == tokenizer.TokenType.IDENT
-                ):
-                    current_line += " "
 
                 last_not_whitespace = item
 
