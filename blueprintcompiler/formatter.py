@@ -111,10 +111,6 @@ class Format:
             # else:
             #     current_line = current_line.strip() + " "
 
-        tokenized_str = "\n".join(
-            ["" if s.strip() == "" else s for s in tokenized_str.splitlines()]
-        )
-
         print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
 
         return tokenized_str
