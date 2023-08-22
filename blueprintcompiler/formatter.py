@@ -45,17 +45,17 @@ class Format:
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
-        last_not_whitespace = tokens[0]  # To make line 56 not fail
+        last_not_whitespace = tokens[0]
         current_line = ""
         prev_line_type = None
 
-        def commit_current_line(newlines, line_type, new_indent_levels):
+        def commit_current_line(extra_newlines, line_type, new_indent_levels):
             nonlocal tokenized_str, current_line, prev_line_type
             current_line += "\n" + (new_indent_levels * "  ")
             tokenized_str += (
                 current_line
-                if newlines == 0
-                else ("\n" * newlines) + ("  " * indent_levels) + current_line
+                if extra_newlines == 0
+                else ("\n" * extra_newlines) + ("  " * indent_levels) + current_line
             )
             current_line = ""
             prev_line_type = line_type
@@ -95,7 +95,7 @@ class Format:
                         # tokenized_str += current_line
                         # current_line = ""
                         commit_current_line(
-                            1 if prev_line_type == LineType.CHILD_TYPE else 2,
+                            0 if prev_line_type == LineType.CHILD_TYPE else 1,
                             LineType.BLOCK_OPEN,
                             indent_levels + 1,
                         )
