@@ -49,14 +49,23 @@ class Format:
         current_line = ""
         prev_line_type = None
 
-        def commit_current_line(extra_newlines, line_type, new_indent_levels):
+        def commit_current_line(
+            extra_newlines=0, line_type=prev_line_type, indent_decrease=False
+        ):
             nonlocal tokenized_str, current_line, prev_line_type
-            current_line += "\n" + (new_indent_levels * "  ")
+
+            if indent_decrease:
+                tokenized_str = tokenized_str.strip() + "\n" + (indent_levels * "  ")
+
+            current_line += "\n" + (indent_levels * "  ")
             tokenized_str += (
                 current_line
                 if extra_newlines == 0
-                else ("\n" * extra_newlines) + ("  " * indent_levels) + current_line
+                else ("\n" * extra_newlines)
+                + ("  " * (indent_levels - 1))
+                + current_line
             )
+
             current_line = ""
             prev_line_type = line_type
 
@@ -84,42 +93,26 @@ class Format:
                     or item.type == tokenizer.TokenType.COMMENT
                 ):
                     if item_as_string in OPENING_TOKENS:
-                        # tokenized_str += (
-                        #     ("\n" * num_newlines) + (indent_levels * "  ") + current_line
-                        # )
-                        # current_line = ""
-                        num_newlines = 1 if prev_line_type == LineType.CHILD_TYPE else 2
-                        prev_line_type = LineType.BLOCK_OPEN
-                        tokenized_str = (
-                            tokenized_str.strip()
-                            + (num_newlines * "\n")
-                            + (indent_levels * "  ")
+                        indent_levels += 1
+                        commit_current_line(
+                            0 if prev_line_type == LineType.CHILD_TYPE else 1,
+                            LineType.BLOCK_OPEN,
                         )
 
-                        indent_levels += 1
                     elif item_as_string in CLOSING_TOKENS:
                         indent_levels -= 1
-                        tokenized_str = (
-                            tokenized_str.strip() + "\n" + (indent_levels * "  ")
+
+                        commit_current_line(
+                            0,
+                            LineType.CHILD_TYPE
+                            if current_line.strip().startswith("[")
+                            else LineType.BLOCK_CLOSE,
+                            True,
                         )
-
-                        # tokenized_str += current_line
-                        # current_line = ""
-
-                        # prev_line_type = (
-                        #     LineType.CHILD_TYPE
-                        #     if current_line.strip().startswith("[")
-                        #     else LineType.BLOCK_CLOSE
-                        # )
-
-                    current_line += "\n" + (indent_levels * "  ")
-                    tokenized_str += current_line
-                    current_line = ""
+                    else:
+                        commit_current_line()
 
                 last_not_whitespace = item
-
-            # else:
-            #     current_line = current_line.strip() + " "
 
         print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
 
