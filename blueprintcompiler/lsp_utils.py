@@ -80,6 +80,7 @@ class Completion:
     kind: CompletionItemKind
     signature: T.Optional[str] = None
     deprecated: bool = False
+    sort_text: T.Optional[str] = None
     docs: T.Optional[str] = None
     text: T.Optional[str] = None
     snippet: T.Optional[str] = None
@@ -103,6 +104,7 @@ class Completion:
             if self.docs
             else None,
             "deprecated": self.deprecated,
+            "sortText": self.sort_text,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
         }

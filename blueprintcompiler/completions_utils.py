@@ -44,7 +44,7 @@ def applies_to(*ast_types):
 
 def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
     def decorator(func):
-        def inner(prev_tokens: T.List[Token], ast_node):
+        def inner(prev_tokens: T.List[Token], ast_node, lsp):
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
@@ -77,7 +77,7 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
             if not any_match:
                 return
 
-            yield from func(ast_node, match_variables)
+            yield from func(lsp, ast_node, match_variables)
 
         for c in applies_in:
             c.completers.append(inner)

@@ -35,6 +35,7 @@ from blueprintcompiler.errors import (
     MultipleErrors,
     PrintableError,
 )
+from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
@@ -44,7 +45,7 @@ class TestSamples(unittest.TestCase):
         for i in range(len(text)):
             ast.get_docs(i)
         for i in range(len(text)):
-            list(complete(ast, tokens, i))
+            list(complete(LanguageServer(), ast, tokens, i))
         ast.get_document_symbols()
 
     def assert_sample(self, name, skip_run=False):

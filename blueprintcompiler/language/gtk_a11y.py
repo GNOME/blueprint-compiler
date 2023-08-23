@@ -204,7 +204,7 @@ class ExtAccessibility(AstNode):
     applies_in=[ObjectContent],
     matches=new_statement_patterns,
 )
-def a11y_completer(ast_node, match_variables):
+def a11y_completer(lsp, ast_node, match_variables):
     yield Completion(
         "accessibility", CompletionItemKind.Snippet, snippet="accessibility {\n  $0\n}"
     )
@@ -214,7 +214,7 @@ def a11y_completer(ast_node, match_variables):
     applies_in=[ExtAccessibility],
     matches=new_statement_patterns,
 )
-def a11y_name_completer(ast_node, match_variables):
+def a11y_name_completer(lsp, ast_node, match_variables):
     for name, type in get_types(ast_node.root.gir).items():
         yield Completion(
             name,

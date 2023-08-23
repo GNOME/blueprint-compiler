@@ -129,14 +129,14 @@ class ExtScaleMarks(AstNode):
     applies_in_subclass=("Gtk", "Scale"),
     matches=new_statement_patterns,
 )
-def complete_marks(ast_node, match_variables):
+def complete_marks(lsp, ast_node, match_variables):
     yield Completion("marks", CompletionItemKind.Keyword, snippet="marks [\n\t$0\n]")
 
 
 @completer(
     applies_in=[ExtScaleMarks],
 )
-def complete_mark(ast_node, match_variables):
+def complete_mark(lsp, ast_node, match_variables):
     yield Completion("mark", CompletionItemKind.Keyword, snippet="mark ($0),")
 
 

@@ -94,5 +94,5 @@ class ExtSizeGroupWidgets(AstNode):
     applies_in_subclass=("Gtk", "SizeGroup"),
     matches=new_statement_patterns,
 )
-def size_group_completer(ast_node, match_variables):
+def size_group_completer(lsp, ast_node, match_variables):
     yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0]")

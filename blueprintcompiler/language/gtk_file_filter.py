@@ -104,7 +104,7 @@ ext_file_filter_suffixes = create_node("suffixes", "suffix")
     applies_in_subclass=("Gtk", "FileFilter"),
     matches=new_statement_patterns,
 )
-def file_filter_completer(ast_node, match_variables):
+def file_filter_completer(lsp, ast_node, match_variables):
     yield Completion(
         "mime-types", CompletionItemKind.Snippet, snippet='mime-types ["$0"]'
     )
