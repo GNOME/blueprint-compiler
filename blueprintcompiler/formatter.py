@@ -57,14 +57,14 @@ class Format:
             if indent_decrease:
                 tokenized_str = tokenized_str.strip() + "\n" + (indent_levels * "  ")
 
-            current_line += "\n" + (indent_levels * "  ")
-            tokenized_str += (
-                current_line
-                if extra_newlines == 0
-                else ("\n" * extra_newlines)
-                + ("  " * (indent_levels - 1))
-                + current_line
-            )
+            if extra_newlines > 0:
+                tokenized_str = (
+                    tokenized_str.strip()
+                    + ("\n" * (extra_newlines + 1))
+                    + ("  " * (indent_levels - 1))
+                )
+
+            tokenized_str += current_line + "\n" + (indent_levels * "  ")
 
             current_line = ""
             prev_line_type = line_type
@@ -72,6 +72,8 @@ class Format:
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 str_item = str(item)
+                if item.type == tokenizer.TokenType.QUOTED and str_item.startswith('"'):
+                    str_item = ("'" + str_item[1:-1] + "'").replace('\\"', '"')
 
                 if (
                     str_item in WHITESPACE_BEFORE
