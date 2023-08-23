@@ -71,10 +71,10 @@ class Format:
 
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
-                item_as_string = str(item)
+                str_item = str(item)
 
                 if (
-                    item_as_string in WHITESPACE_BEFORE
+                    str_item in WHITESPACE_BEFORE
                     and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
                 ) or (
                     (
@@ -82,33 +82,52 @@ class Format:
                         or last_not_whitespace.type == tokenizer.TokenType.IDENT
                     )
                     and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
-                    and item_as_string not in NO_WHITESPACE_BEFORE
+                    and str_item not in NO_WHITESPACE_BEFORE
                 ):
-                    current_line = current_line + " "
+                    current_line += " "
 
-                current_line += item_as_string
+                current_line += str_item
 
                 if (
-                    item_as_string in NEWLINE_AFTER
+                    str_item in NEWLINE_AFTER
                     or item.type == tokenizer.TokenType.COMMENT
                 ):
-                    if item_as_string in OPENING_TOKENS:
+                    if str_item in OPENING_TOKENS:
+                        if str_item == "[":
+                            is_child_type = (current_line + "[").startswith("[")
+                            if is_child_type:
+                                NO_WHITESPACE_BEFORE.append("]")
+                                last_not_whitespace = item
+                                continue
+                            else:
+                                NEWLINE_AFTER.append(",")
+                                WHITESPACE_AFTER.remove(",")
+
                         indent_levels += 1
                         commit_current_line(
                             0 if prev_line_type == LineType.CHILD_TYPE else 1,
                             LineType.BLOCK_OPEN,
                         )
 
-                    elif item_as_string in CLOSING_TOKENS:
-                        indent_levels -= 1
+                    elif str_item in CLOSING_TOKENS:
+                        if str_item == "]":
+                            if is_child_type:
+                                NO_WHITESPACE_BEFORE.remove("]")
+                                is_child_type = False
+                                indent_levels += 1
+                            else:
+                                WHITESPACE_AFTER.append(",")
+                                NEWLINE_AFTER.remove(",")
 
+                        indent_levels -= 1
                         commit_current_line(
                             0,
                             LineType.CHILD_TYPE
-                            if current_line.strip().startswith("[")
+                            if current_line.startswith("[")
                             else LineType.BLOCK_CLOSE,
                             True,
                         )
+
                     else:
                         commit_current_line()
 
