@@ -135,6 +135,4 @@ class Format:
 
                 last_not_whitespace = item
 
-        print(tokenized_str)  # TODO: Remove this when the MR is ready to be merged
-
         return tokenized_str

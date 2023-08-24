@@ -19,6 +19,7 @@
 
 
 import argparse
+import difflib
 import os
 import sys
 import typing as T
@@ -70,8 +71,9 @@ class BlueprintApp:
             "format", "Format given blueprint files", self.cmd_format
         )
         format.add_argument(
-            "--check",
-            help="don't write to the files, just return whether they would be formatted",
+            "-f",
+            "--fix",
+            help="Format the files in place, don't output the diff",
             action="store_true",
         )
         format.add_argument(
@@ -196,33 +198,50 @@ class BlueprintApp:
                 if data != formatted_str:
                     happened = "Would reformat"
 
-                    if not opts.check:
+                    if opts.fix:
                         file.seek(0)
                         file.truncate()
                         file.write(formatted_str)
                         happened = "Reformatted"
 
-                    print(f"{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}")
+                    a_lines = data.splitlines(keepends=True)
+                    b_lines = formatted_str.splitlines(keepends=True)
+                    diff_lines = []
+                    for line in difflib.unified_diff(
+                        a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
+                    ):
+                        # Work around https://bugs.python.org/issue2142
+                        # See:
+                        # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
+                        if line[-1] == "\n":
+                            diff_lines.append(line)
+                        else:
+                            diff_lines.append(line + "\n")
+                            diff_lines.append("\\ No newline at end of file\n")
+
+                    print(
+                        f"\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}:\n\n"+ "".join(diff_lines)
+                    )
+
                     formatted_files += 1
 
             except PrintableError as e:
                 e.pretty_print(file.name, data, stream=sys.stderr)
                 sys.exit(1)
 
-        print("\n")  # This actually prints two newlines
         left_files = len(input_files) - formatted_files
 
         if formatted_files == 0:
             print(f"{Colors.GREEN}{Colors.BOLD}Nothing to do.{Colors.CLEAR}")
-        elif opts.check:
+        elif opts.fix:
+            print(
+                f"{Colors.RED}{Colors.BOLD}Reformatted {formatted_files} files, {left_files} were left unchanged.{Colors.CLEAR}"
+            )
+        else:
             print(
                 f"{Colors.RED}{Colors.BOLD}{formatted_files} files would be reformatted, {left_files} would be left unchanged.{Colors.CLEAR}"
             )
             sys.exit(1)
-        else:
-            print(
-                f"{Colors.RED}{Colors.BOLD}Reformatted {formatted_files} files, {left_files} were left unchanged.{Colors.CLEAR}"
-            )
 
     def cmd_lsp(self, opts):
         langserv = LanguageServer()
