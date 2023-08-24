@@ -207,6 +207,7 @@ class BlueprintApp:
                     a_lines = data.splitlines(keepends=True)
                     b_lines = formatted_str.splitlines(keepends=True)
                     diff_lines = []
+
                     for line in difflib.unified_diff(
                         a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
                     ):
@@ -220,7 +221,7 @@ class BlueprintApp:
                             diff_lines.append("\\ No newline at end of file\n")
 
                     print(
-                        f"\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}:\n\n"+ "".join(diff_lines)
+                        f"{''.join(diff_lines)}\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}\n"
                     )
 
                     formatted_files += 1

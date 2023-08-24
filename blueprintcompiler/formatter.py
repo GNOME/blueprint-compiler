@@ -48,19 +48,20 @@ class Format:
         last_not_whitespace = tokens[0]
         current_line = ""
         prev_line_type = None
+        is_child_type = False
 
         def commit_current_line(
-            extra_newlines=0, line_type=prev_line_type, indent_decrease=False
+            extra_newlines=1, line_type=prev_line_type, indent_decrease=False
         ):
             nonlocal tokenized_str, current_line, prev_line_type
 
             if indent_decrease:
                 tokenized_str = tokenized_str.strip() + "\n" + (indent_levels * "  ")
 
-            if extra_newlines > 0:
+            if extra_newlines > 1:
                 tokenized_str = (
                     tokenized_str.strip()
-                    + ("\n" * (extra_newlines + 1))
+                    + ("\n" * (extra_newlines))
                     + ("  " * (indent_levels - 1))
                 )
 
@@ -99,6 +100,12 @@ class Format:
                             is_child_type = (current_line + "[").startswith("[")
                             if is_child_type:
                                 NO_WHITESPACE_BEFORE.append("]")
+                                if str(last_not_whitespace) not in OPENING_TOKENS:
+                                    tokenized_str = (
+                                        tokenized_str.strip()
+                                        + "\n\n"
+                                        + (indent_levels * "  ")
+                                    )
                                 last_not_whitespace = item
                                 continue
                             else:
@@ -107,7 +114,7 @@ class Format:
 
                         indent_levels += 1
                         commit_current_line(
-                            0 if prev_line_type == LineType.CHILD_TYPE else 1,
+                            1 if prev_line_type == LineType.CHILD_TYPE else 2,
                             LineType.BLOCK_OPEN,
                         )
 
@@ -115,7 +122,6 @@ class Format:
                         if str_item == "]":
                             if is_child_type:
                                 NO_WHITESPACE_BEFORE.remove("]")
-                                is_child_type = False
                                 indent_levels += 1
                             else:
                                 WHITESPACE_AFTER.append(",")
@@ -123,12 +129,14 @@ class Format:
 
                         indent_levels -= 1
                         commit_current_line(
-                            0,
+                            1,
                             LineType.CHILD_TYPE
-                            if current_line.startswith("[")
+                            if is_child_type
                             else LineType.BLOCK_CLOSE,
-                            True,
+                            not is_child_type,
                         )
+
+                        is_child_type = False
 
                     else:
                         commit_current_line()
