@@ -41,7 +41,7 @@ class LineType(Enum):
 
 
 class Format:
-    def format(data):
+    def format(data, tab_size=2, insert_space=True):
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
         tokenized_str = ""
@@ -49,6 +49,7 @@ class Format:
         current_line = ""
         prev_line_type = None
         is_child_type = False
+        indent_item = " " * tab_size if insert_space else "\t"
 
         def commit_current_line(
             extra_newlines=1, line_type=prev_line_type, indent_decrease=False
@@ -56,16 +57,18 @@ class Format:
             nonlocal tokenized_str, current_line, prev_line_type
 
             if indent_decrease:
-                tokenized_str = tokenized_str.strip() + "\n" + (indent_levels * "  ")
+                tokenized_str = (
+                    tokenized_str.strip() + "\n" + (indent_levels * indent_item)
+                )
 
             if extra_newlines > 1:
                 tokenized_str = (
                     tokenized_str.strip()
                     + ("\n" * (extra_newlines))
-                    + ("  " * (indent_levels - 1))
+                    + (indent_item * (indent_levels - 1))
                 )
 
-            tokenized_str += current_line + "\n" + (indent_levels * "  ")
+            tokenized_str += current_line + "\n" + (indent_levels * indent_item)
 
             current_line = ""
             prev_line_type = line_type
@@ -104,7 +107,7 @@ class Format:
                                     tokenized_str = (
                                         tokenized_str.strip()
                                         + "\n\n"
-                                        + (indent_levels * "  ")
+                                        + (indent_levels * indent_item)
                                     )
                                 last_not_whitespace = item
                                 continue

@@ -74,7 +74,22 @@ class BlueprintApp:
             "-f",
             "--fix",
             help="Format the files in place, don't output the diff",
+            default=False,
             action="store_true",
+        )
+        format.add_argument(
+            "-t",
+            "--tabs",
+            help="Use tabs instead of spaces",
+            default=False,
+            action="store_true",
+        )
+        format.add_argument(
+            "-s",
+            "--spaces",
+            help="How many spaces should be used per indent",
+            default=2,
+            type=int,
         )
         format.add_argument(
             "inputs",
@@ -193,7 +208,7 @@ class BlueprintApp:
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
 
-                formatted_str = Format.format(data)
+                formatted_str = Format.format(data, opts.spaces, not opts.tabs)
 
                 if data != formatted_str:
                     happened = "Would reformat"
