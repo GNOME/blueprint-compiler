@@ -117,6 +117,7 @@ class LanguageServer:
 
     def __init__(self):
         self.client_capabilities = {}
+        self.client_supports_completion_choice = False
         self._open_files: T.Dict[str, OpenFile] = {}
 
     def run(self):
@@ -189,6 +190,9 @@ class LanguageServer:
         from . import main
 
         self.client_capabilities = params.get("capabilities", {})
+        self.client_supports_completion_choice = params.get("clientInfo", {}).get(
+            "name"
+        ) in ["Visual Studio Code", "VSCodium"]
         self._send_response(
             id,
             {
@@ -273,7 +277,7 @@ class LanguageServer:
         idx = utils.pos_to_idx(
             params["position"]["line"], params["position"]["character"], open_file.text
         )
-        completions = complete(open_file.ast, open_file.tokens, idx)
+        completions = complete(self, open_file.ast, open_file.tokens, idx)
         self._send_response(
             id, [completion.to_json(True) for completion in completions]
         )

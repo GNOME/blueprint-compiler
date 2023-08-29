@@ -31,13 +31,13 @@ Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 
 
 def _complete(
-    ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
+    lsp, ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
 ) -> T.Iterator[Completion]:
     for child in ast_node.children:
         if child.group.start <= idx and (
             idx < child.group.end or (idx == child.group.end and child.incomplete)
         ):
-            yield from _complete(child, tokens, idx, token_idx)
+            yield from _complete(lsp, child, tokens, idx, token_idx)
             return
 
     prev_tokens: T.List[Token] = []
@@ -50,11 +50,11 @@ def _complete(
         token_idx -= 1
 
     for completer in ast_node.completers:
-        yield from completer(prev_tokens, ast_node)
+        yield from completer(prev_tokens, ast_node, lsp)
 
 
 def complete(
-    ast_node: AstNode, tokens: T.List[Token], idx: int
+    lsp, ast_node: AstNode, tokens: T.List[Token], idx: int
 ) -> T.Iterator[Completion]:
     token_idx = 0
     # find the current token
@@ -67,11 +67,11 @@ def complete(
         idx = tokens[token_idx].start
         token_idx -= 1
 
-    yield from _complete(ast_node, tokens, idx, token_idx)
+    yield from _complete(lsp, ast_node, tokens, idx, token_idx)
 
 
 @completer([language.GtkDirective])
-def using_gtk(ast_node, match_variables):
+def using_gtk(lsp, ast_node, match_variables):
     yield Completion("using Gtk 4.0;", CompletionItemKind.Keyword)
 
 
@@ -79,7 +79,7 @@ def using_gtk(ast_node, match_variables):
     applies_in=[language.UI, language.ObjectContent, language.Template],
     matches=new_statement_patterns,
 )
-def namespace(ast_node, match_variables):
+def namespace(lsp, ast_node, match_variables):
     yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
     for ns in ast_node.root.children[language.Import]:
         if ns.gir_namespace is not None:
@@ -97,7 +97,7 @@ def namespace(ast_node, match_variables):
         [(TokenType.IDENT, None), (TokenType.OP, ".")],
     ],
 )
-def object_completer(ast_node, match_variables):
+def object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get(match_variables[0])
     if ns is not None:
         for c in ns.classes.values():
@@ -108,7 +108,7 @@ def object_completer(ast_node, match_variables):
     applies_in=[language.UI, language.ObjectContent, language.Template],
     matches=new_statement_patterns,
 )
-def gtk_object_completer(ast_node, match_variables):
+def gtk_object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get("Gtk")
     if ns is not None:
         for c in ns.classes.values():
@@ -119,17 +119,52 @@ def gtk_object_completer(ast_node, match_variables):
     applies_in=[language.ObjectContent],
     matches=new_statement_patterns,
 )
-def property_completer(ast_node, match_variables):
+def property_completer(lsp, ast_node, match_variables):
     if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.ExternType):
-        for prop in ast_node.gir_class.properties:
-            yield Completion(prop, CompletionItemKind.Property, snippet=f"{prop}: $0;")
+        for prop_name, prop in ast_node.gir_class.properties.items():
+            if (
+                isinstance(prop.type, gir.BoolType)
+                and lsp.client_supports_completion_choice
+            ):
+                yield Completion(
+                    prop_name,
+                    CompletionItemKind.Property,
+                    sort_text=f"0 {prop_name}",
+                    snippet=f"{prop_name}: ${{1|true,false|}};",
+                )
+            elif isinstance(prop.type, gir.StringType):
+                yield Completion(
+                    prop_name,
+                    CompletionItemKind.Property,
+                    sort_text=f"0 {prop_name}",
+                    snippet=f'{prop_name}: "$0";',
+                )
+            elif (
+                isinstance(prop.type, gir.Enumeration)
+                and len(prop.type.members) <= 10
+                and lsp.client_supports_completion_choice
+            ):
+                choices = ",".join(prop.type.members.keys())
+                yield Completion(
+                    prop_name,
+                    CompletionItemKind.Property,
+                    sort_text=f"0 {prop_name}",
+                    snippet=f"{prop_name}: ${{1|{choices}|}};",
+                )
+            else:
+                yield Completion(
+                    prop_name,
+                    CompletionItemKind.Property,
+                    sort_text=f"0 {prop_name}",
+                    snippet=f"{prop_name}: $0;",
+                )
 
 
 @completer(
     applies_in=[language.Property, language.BaseAttribute],
     matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
 )
-def prop_value_completer(ast_node, match_variables):
+def prop_value_completer(lsp, ast_node, match_variables):
     if (vt := ast_node.value_type) is not None:
         if isinstance(vt.value_type, gir.Enumeration):
             for name, member in vt.value_type.members.items():
@@ -144,7 +179,7 @@ def prop_value_completer(ast_node, match_variables):
     applies_in=[language.ObjectContent],
     matches=new_statement_patterns,
 )
-def signal_completer(ast_node, match_variables):
+def signal_completer(lsp, ast_node, match_variables):
     if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.ExternType):
         for signal in ast_node.gir_class.signals:
             if not isinstance(ast_node.parent, language.Object):
@@ -158,13 +193,14 @@ def signal_completer(ast_node, match_variables):
                 )
             yield Completion(
                 signal,
-                CompletionItemKind.Property,
+                CompletionItemKind.Event,
+                sort_text=f"1 {signal}",
                 snippet=f"{signal} => \$${{1:{name}_{signal.replace('-', '_')}}}()$0;",
             )
 
 
 @completer(applies_in=[language.UI], matches=new_statement_patterns)
-def template_completer(ast_node, match_variables):
+def template_completer(lsp, ast_node, match_variables):
     yield Completion(
         "template",
         CompletionItemKind.Snippet,

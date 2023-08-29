@@ -221,7 +221,7 @@ from .ui import UI
     applies_in=[UI],
     matches=new_statement_patterns,
 )
-def menu_completer(ast_node, match_variables):
+def menu_completer(lsp, ast_node, match_variables):
     yield Completion("menu", CompletionItemKind.Snippet, snippet="menu {\n  $0\n}")
 
 
@@ -229,7 +229,7 @@ def menu_completer(ast_node, match_variables):
     applies_in=[Menu],
     matches=new_statement_patterns,
 )
-def menu_content_completer(ast_node, match_variables):
+def menu_content_completer(lsp, ast_node, match_variables):
     yield Completion(
         "submenu", CompletionItemKind.Snippet, snippet="submenu {\n  $0\n}"
     )

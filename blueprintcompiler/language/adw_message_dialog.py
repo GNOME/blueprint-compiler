@@ -141,7 +141,7 @@ class ExtAdwMessageDialog(AstNode):
     applies_in_subclass=("Adw", "MessageDialog"),
     matches=new_statement_patterns,
 )
-def style_completer(ast_node, match_variables):
+def style_completer(lsp, ast_node, match_variables):
     yield Completion(
         "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
     )
