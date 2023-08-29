@@ -27,6 +27,8 @@ from . import decompiler, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
+from .formatter import Format
+from difflib import SequenceMatcher
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
 from .tokenizer import Token
@@ -275,6 +277,40 @@ class LanguageServer:
         self._send_response(
             id, [completion.to_json(True) for completion in completions]
         )
+
+    @command("textDocument/formatting")
+    def formatting(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        if open_file.text is None:
+            self._send_error(id, ErrorCode.RequestFailed, "Document is not open")
+            return
+
+        try:
+            XmlOutput().emit(open_file.ast)
+        except:
+            printerr(traceback.format_exc())
+            self._send_error(id, ErrorCode.RequestFailed, "Could not compile document")
+            return
+
+        formatted_blp = Format.format(
+            open_file.text,
+            params["options"]["tabSize"],
+            params["options"]["insertSpaces"],
+        )
+
+        lst = []
+        for tag, i1, i2, j1, j2 in SequenceMatcher(
+            None, open_file.text, formatted_blp
+        ).get_opcodes():
+            if tag in ("replace", "insert", "delete"):
+                lst.append(
+                    TextEdit(
+                        Range(i1, i2), "" if tag == "delete" else formatted_blp[j1:j2]
+                    )
+                )
+
+        self._send_response(id, lst)
 
     @command("textDocument/x-blueprint-compile")
     def compile(self, id, params):
