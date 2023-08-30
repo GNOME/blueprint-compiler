@@ -1,33 +1,20 @@
-from .adw_breakpoint import (
-    AdwBreakpointCondition,
-    AdwBreakpointSetter,
-    AdwBreakpointSetters,
-)
+from .adw_breakpoint import (AdwBreakpointCondition, AdwBreakpointSetter,
+                             AdwBreakpointSetters)
 from .adw_message_dialog import ExtAdwMessageDialog
 from .attributes import BaseAttribute
 from .binding import Binding
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
-from .expression import (
-    CastExpr,
-    ClosureArg,
-    ClosureExpr,
-    ExprBase,
-    Expression,
-    LiteralExpr,
-    LookupOp,
-)
+from .expression import (CastExpr, ClosureArg, ClosureExpr, ExprBase,
+                         Expression, LiteralExpr, LookupOp)
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property
 from .gobject_signal import Signal
 from .gtk_a11y import ExtAccessibility
 from .gtk_combo_box_text import ExtComboBoxItems
-from .gtk_file_filter import (
-    Filters,
-    ext_file_filter_mime_types,
-    ext_file_filter_patterns,
-    ext_file_filter_suffixes,
-)
+from .gtk_file_filter import (Filters, ext_file_filter_mime_types,
+                              ext_file_filter_patterns,
+                              ext_file_filter_suffixes)
 from .gtk_layout import ExtLayout
 from .gtk_list_item_factory import ExtListItemFactory
 from .gtk_menu import Menu, MenuAttribute, menu
@@ -40,19 +27,9 @@ from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .types import ClassName
 from .ui import UI
-from .values import (
-    Flag,
-    Flags,
-    IdentLiteral,
-    Literal,
-    NumberLiteral,
-    ObjectValue,
-    QuotedLiteral,
-    StringValue,
-    Translated,
-    TypeLiteral,
-    Value,
-)
+from .values import (Flag, Flags, IdentLiteral, Literal, NumberLiteral,
+                     ObjectValue, QuotedLiteral, StringValue, Translated,
+                     TypeLiteral, Value)
 
 OBJECT_CONTENT_HOOKS.children = [
     Signal,

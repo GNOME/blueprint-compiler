@@ -29,12 +29,8 @@ from gi.repository import Gtk
 
 from blueprintcompiler import decompiler, parser, tokenizer, utils
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import (
-    CompileError,
-    DeprecatedWarning,
-    MultipleErrors,
-    PrintableError,
-)
+from blueprintcompiler.errors import (CompileError, DeprecatedWarning,
+                                      MultipleErrors, PrintableError)
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize

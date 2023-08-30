@@ -22,13 +22,13 @@ import json
 import sys
 import traceback
 import typing as T
+from difflib import SequenceMatcher
 
 from . import decompiler, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
 from .formatter import Format
-from difflib import SequenceMatcher
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
 from .tokenizer import Token

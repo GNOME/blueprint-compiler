@@ -9,12 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from blueprintcompiler import decompiler, gir, parser, tokenizer, utils
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import (
-    CompileError,
-    CompilerBugError,
-    MultipleErrors,
-    PrintableError,
-)
+from blueprintcompiler.errors import (CompileError, CompilerBugError,
+                                      MultipleErrors, PrintableError)
 from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
 
