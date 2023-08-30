@@ -12,6 +12,7 @@ a module in your flatpak manifest:
    {
      "name": "blueprint-compiler",
      "buildsystem": "meson",
+     "cleanup": ["*"],
      "sources": [
        {
          "type": "git",
