@@ -78,7 +78,7 @@ Valid in `Adw.MessageDialog <https://gnome.pages.gitlab.gnome.org/libadwaita/doc
 
 The ``responses`` block defines the buttons that will be added to the dialog. The ``destructive`` or ``suggested`` flag sets the appearance of the button, and the ``disabled`` flag can be used to disable the button.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Adw 1;
 
@@ -106,7 +106,7 @@ Valid in `Gtk.ComboBoxText <https://docs.gtk.org/gtk4/class.ComboBoxText.html>`_
 
 The ``items`` block defines the items that will be added to the combo box. The optional ID can be used to refer to the item rather than its label.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    ComboBoxText {
      items [
@@ -133,7 +133,7 @@ Valid in `Gtk.FileFilter <https://docs.gtk.org/gtk4/class.FileFilter.html>`_.
 
 The ``mime-types``, ``patterns``, and ``suffixes`` blocks define the items that will be added to the file filter. The ``mime-types`` block accepts mime types (including wildcards for subtypes, such as ``image/*``). The ``patterns`` block accepts glob patterns, and the ``suffixes`` block accepts file extensions.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    FileFilter {
      mime-types [ "text/plain", "image/*" ]
@@ -156,7 +156,7 @@ Valid in `Gtk.Widget <https://docs.gtk.org/gtk4/class.Widget.html>`_.
 
 The ``layout`` block describes how the widget should be positioned within its parent. The available properties depend on the parent widget's layout manager.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Grid {
      Button {
@@ -196,7 +196,7 @@ The ``template`` block defines the template that will be used to create list ite
 
 The template type must be `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.html>`_. The template object can be referenced with the ``template`` keyword.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    ListView {
      factory: BuilderListItemFactory {
@@ -244,7 +244,7 @@ Valid in `Gtk.SizeGroup <https://docs.gtk.org/gtk4/class.SizeGroup.html>`_.
 
 The ``widgets`` block defines the widgets that will be added to the size group.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Box {
      Button button1 {}
@@ -270,7 +270,7 @@ Valid in `Gtk.StringList <https://docs.gtk.org/gtk4/class.StringList.html>`_.
 
 The ``strings`` block defines the strings in the string list.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    StringList {
      strings ["violin", "guitar", _("harp")]
@@ -291,7 +291,7 @@ Valid in any `Gtk.Widget <https://docs.gtk.org/gtk4/class.Widget.html>`_.
 
 The ``styles`` block defines CSS classes that will be added to the widget.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Button {
      styles ["suggested-action"]
@@ -327,7 +327,7 @@ The ``action response`` extension sets the ``action`` child type for the child a
 
 No more than one child of a dialog or infobar may have the ``default`` flag.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Dialog {
     [action response=ok default]

@@ -22,7 +22,7 @@ Blueprint is a markup language and compiler for GTK 4 user interfaces.
    packaging
 
 
-.. code-block::
+.. code-block:: blueprint
 
    using Gtk 4.0;
 

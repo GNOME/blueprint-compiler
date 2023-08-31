@@ -17,7 +17,7 @@ A blueprint document consists of a :ref:`GTK declaration<Syntax GtkDecl>`, one s
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    // Gtk Declaration
    using Gtk 4.0;
@@ -43,7 +43,7 @@ Every blueprint file begins with the line ``using Gtk 4.0;``, which declares the
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
 
@@ -68,7 +68,7 @@ The compiler requires typelib files for these libraries to be installed. They ar
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    // Import libadwaita
    using Adw 1;

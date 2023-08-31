@@ -24,7 +24,7 @@ Optionally, objects may have an ID to provide a handle for other parts of the bl
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Label label1 {
      label: "Hello, world!";
@@ -69,7 +69,7 @@ A property's value can be another object, either inline or referenced by ID.
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Label {
      label: "text";
@@ -102,7 +102,7 @@ Optionally, you can provide an object ID to use when connecting the signal.
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Button {
      clicked => $on_button_clicked();
@@ -141,7 +141,7 @@ Examples
 Add children to a container
 +++++++++++++++++++++++++++
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Button {
      Image {}
@@ -150,7 +150,7 @@ Add children to a container
 Child types
 +++++++++++
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    HeaderBar {
      [start]
@@ -165,7 +165,7 @@ Child types
 Child extensions
 ++++++++++++++++
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Dialog {
      // Here, a child extension annotation defines the button's response.
@@ -176,7 +176,7 @@ Child extensions
 Internal children
 +++++++++++++++++
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Dialog {
      [internal-child content_area]

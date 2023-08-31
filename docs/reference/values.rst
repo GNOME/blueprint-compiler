@@ -45,7 +45,7 @@ The type of a ``typeof<>`` literal is `GType <https://docs.gtk.org/gobject/alias
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Gio.ListStore {
      item-type: typeof<GObject.Object>;
@@ -66,7 +66,7 @@ Flags are used to specify a set of options. One or more of the available flag va
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Adw.TabView {
      shortcuts: control_tab | control_shift_tab;
@@ -85,7 +85,7 @@ Translated Strings
 
 Use ``_("...")`` to mark strings as translatable. You can put a comment for translators on the line above if needed.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Gtk.Label label {
      /* Translators: This is the main text of the welcome screen */
@@ -94,7 +94,7 @@ Use ``_("...")`` to mark strings as translatable. You can put a comment for tran
 
 Use ``C_("context", "...")`` to add a *message context* to a string to disambiguate it, in case the same string appears in different places. Remember, two strings might be the same in one language but different in another depending on context.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    Gtk.Label label {
      /* Translators: This is a section in the preferences window */
@@ -118,7 +118,7 @@ The simplest bindings connect to a property of another object in the blueprint. 
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    /* Use bindings to show a label when a switch
     * is active, without any application code */

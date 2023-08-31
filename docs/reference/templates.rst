@@ -15,7 +15,7 @@ Widget subclassing is one of the primary techniques for structuring an applicati
 
 You could implement this with the following blueprint:
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
 
@@ -39,7 +39,7 @@ We can solve these problems by giving each widget its own blueprint file, which 
 
 For this to work, we need to specify in the blueprint which object is the one being instantiated. We do this with a template block:
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
 
@@ -56,7 +56,7 @@ This blueprint can only be used by the ``MapsHeaderBar`` constructor. Instantiat
 
 This ``MapsHeaderBar`` class, along with its blueprint template, can then be referenced in another blueprint:
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
 
