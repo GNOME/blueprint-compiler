@@ -291,7 +291,7 @@ class LanguageServer:
         xml = None
         try:
             output = XmlOutput()
-            xml = output.emit(open_file.ast)
+            xml = output.emit(open_file.ast, generated_notice=False)
         except:
             printerr(traceback.format_exc())
             self._send_error(id, ErrorCode.RequestFailed, "Could not compile document")
