@@ -5,7 +5,7 @@ Translations
 Blueprint files can be translated with xgettext. To mark a string as translated,
 use the following syntax:
 
-.. code-block::
+.. code-block:: blueprint
 
    _("translated string")
 
@@ -34,7 +34,7 @@ conflicts. Two strings that are the same in English, but appear in different
 contexts, might be different in another language! To disambiguate, use ``C_``
 instead of ``_`` and add a context string as the first argument:
 
-.. code-block::
+.. code-block:: blueprint
 
    C_("shortcuts window", "Quit")
 

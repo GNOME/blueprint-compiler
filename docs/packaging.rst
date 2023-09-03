@@ -13,7 +13,7 @@ GObject Introspection
 
 Blueprint files can import GObject Introspection namespaces like this:
 
-.. code-block::
+.. code-block:: blueprint
 
    using Gtk 4.0;
    using Adw 1;

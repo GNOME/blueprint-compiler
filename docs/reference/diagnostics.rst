@@ -166,14 +166,14 @@ version_conflict
 ----------------
 This error occurs when two versions of a namespace are imported (possibly transitively) in the same file. For example, this will cause a version conflict:
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
    using Gtk 3.0;
 
 But so will this:
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    using Gtk 4.0;
    using Handy 1;

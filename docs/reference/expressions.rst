@@ -6,7 +6,7 @@ Expressions make your user interface code *reactive*. This means when your
 application's data changes, the user interface reacts to the change
 automatically.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    label: bind MyAppWindow.account.username;
    /*     ^               ^       ^
@@ -81,7 +81,7 @@ Cast Expressions
 
 Cast expressions allow Blueprint to know the type of an expression when it can't otherwise determine it.
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    // Cast the result of the closure so blueprint knows it's a string
    label: bind $my_closure() as <string>

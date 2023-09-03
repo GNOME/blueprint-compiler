@@ -21,7 +21,7 @@ Menus, such as the application menu, are defined using the ``menu`` keyword. Men
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    menu my_menu {
      submenu {
@@ -53,7 +53,7 @@ The most common menu attributes are ``label``, ``action``, and ``icon``. Because
 Example
 ~~~~~~~
 
-.. code-block:: blueprintui
+.. code-block:: blueprint
 
    menu {
      item ("label")
