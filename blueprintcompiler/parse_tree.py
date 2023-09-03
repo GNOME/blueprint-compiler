@@ -23,8 +23,13 @@ import typing as T
 from enum import Enum
 
 from .ast_utils import AstNode
-from .errors import (CompileError, CompilerBugError, CompileWarning,
-                     UnexpectedTokenError, assert_true)
+from .errors import (
+    CompileError,
+    CompilerBugError,
+    CompileWarning,
+    UnexpectedTokenError,
+    assert_true,
+)
 from .tokenizer import Range, Token, TokenType
 
 SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]

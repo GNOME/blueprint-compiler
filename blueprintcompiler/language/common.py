@@ -22,15 +22,39 @@ from .. import decompiler as decompile
 from .. import gir
 from ..ast_utils import AstNode, context, docs, validate
 from ..completions_utils import *
-from ..decompiler import (DecompileCtx, decompile_translatable, decompiler,
-                          escape_quote, truthy)
-from ..errors import (CodeAction, CompileError, CompileWarning,
-                      DeprecatedWarning, MultipleErrors, UpgradeWarning)
-from ..gir import (BoolType, Enumeration, ExternType, FloatType, GirType,
-                   IntType, StringType)
-from ..lsp_utils import (Completion, CompletionItemKind, DocumentSymbol,
-                         LocationLink, SemanticToken, SemanticTokenType,
-                         SymbolKind)
+from ..decompiler import (
+    DecompileCtx,
+    decompile_translatable,
+    decompiler,
+    escape_quote,
+    truthy,
+)
+from ..errors import (
+    CodeAction,
+    CompileError,
+    CompileWarning,
+    DeprecatedWarning,
+    MultipleErrors,
+    UpgradeWarning,
+)
+from ..gir import (
+    BoolType,
+    Enumeration,
+    ExternType,
+    FloatType,
+    GirType,
+    IntType,
+    StringType,
+)
+from ..lsp_utils import (
+    Completion,
+    CompletionItemKind,
+    DocumentSymbol,
+    LocationLink,
+    SemanticToken,
+    SemanticTokenType,
+    SymbolKind,
+)
 from ..parse_tree import *
 
 OBJECT_CONTENT_HOOKS = AnyOf()
