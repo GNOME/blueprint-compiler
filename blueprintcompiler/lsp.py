@@ -213,6 +213,7 @@ class LanguageServer:
                     "hoverProvider": True,
                     "documentSymbolProvider": True,
                     "definitionProvider": True,
+                    "documentFormattingProvider": True,
                 },
                 "serverInfo": {
                     "name": "Blueprint",
@@ -310,8 +311,9 @@ class LanguageServer:
             if tag in ("replace", "insert", "delete"):
                 lst.append(
                     TextEdit(
-                        Range(i1, i2), "" if tag == "delete" else formatted_blp[j1:j2]
-                    )
+                        Range(i1, i2, open_file.text),
+                        "" if tag == "delete" else formatted_blp[j1:j2],
+                    ).to_json()
                 )
 
         self._send_response(id, lst)

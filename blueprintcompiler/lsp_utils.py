@@ -192,3 +192,6 @@ class LocationLink:
 class TextEdit:
     range: Range
     newText: str
+
+    def to_json(self):
+        return {"range": self.range.to_json(), "newText": self.newText}
