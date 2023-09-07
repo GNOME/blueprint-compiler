@@ -88,7 +88,7 @@ class Child(AstNode):
                 hints = [
                     "only Gio.ListStore or Gtk.Buildable implementors can have children"
                 ]
-                if "child" in gir_class.properties:
+                if hasattr(gir_class, "properties") and "child" in gir_class.properties:
                     hints.append(
                         "did you mean to assign this object to the 'child' property?"
                     )
