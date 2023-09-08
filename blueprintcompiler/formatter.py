@@ -26,11 +26,17 @@ CLOSING_TOKENS = ["}", "]"]
 
 NEWLINE_AFTER = [";"] + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = [",", ":", ";", ")", "."]
+NO_WHITESPACE_BEFORE = [",", ":", "::", ";", ")", ".", ">"]
 NO_WHITESPACE_AFTER = ["C_", "_", "("]
 
-WHITESPACE_AFTER = [":", ","]
-WHITESPACE_BEFORE = ["{"]
+# NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
+WHITESPACE_AFTER = [
+    ":",
+    ",",
+    ">",
+    ")",
+]
+WHITESPACE_BEFORE = ["{", "$"]
 
 
 class LineType(Enum):
@@ -77,7 +83,11 @@ class Format:
             if item.type != tokenizer.TokenType.WHITESPACE:
                 str_item = str(item)
                 if item.type == tokenizer.TokenType.QUOTED and str_item.startswith('"'):
-                    str_item = ("'" + str_item[1:-1] + "'").replace('\\"', '"')
+                    str_item = (
+                        "'"
+                        + str_item[1:-1].replace('\\"', '"').replace("'", "\\'")
+                        + "'"
+                    )
 
                 if (
                     str_item in WHITESPACE_BEFORE
@@ -117,7 +127,10 @@ class Format:
 
                         indent_levels += 1
                         commit_current_line(
-                            1 if prev_line_type == LineType.CHILD_TYPE else 2,
+                            1
+                            if prev_line_type == LineType.CHILD_TYPE
+                            or tokenized_str.strip()[-1] == "{"
+                            else 2,
                             LineType.BLOCK_OPEN,
                         )
 

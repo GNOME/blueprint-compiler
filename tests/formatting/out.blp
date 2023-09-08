@@ -10,7 +10,9 @@ Overlay {
   Button {
     notify::icon-name => $on_icon_name_changed (label) swapped;
 
-    styles ['destructive']
+    styles [
+      'destructive'
+    ]
   }
 
   visible: bind $isVisible (label.visible, my-menu) as <bool>;
