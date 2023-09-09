@@ -143,6 +143,13 @@ class Format:
                                 WHITESPACE_AFTER.append(",")
                                 NEWLINE_AFTER.remove(",")
 
+                                if last_not_whitespace != ",":
+                                    current_line = current_line[:-1]
+                                    commit_current_line(
+                                        1,
+                                    )
+                                    current_line = "]"
+
                         indent_levels -= 1
                         commit_current_line(
                             1,
