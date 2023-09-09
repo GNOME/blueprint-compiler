@@ -22,7 +22,6 @@ import json
 import sys
 import traceback
 import typing as T
-from difflib import SequenceMatcher
 
 from . import decompiler, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
@@ -304,19 +303,17 @@ class LanguageServer:
             params["options"]["insertSpaces"],
         )
 
-        lst = []
-        for tag, i1, i2, j1, j2 in SequenceMatcher(
-            None, open_file.text, formatted_blp
-        ).get_opcodes():
-            if tag in ("replace", "insert", "delete"):
-                lst.append(
-                    TextEdit(
-                        Range(i1, i2, open_file.text),
-                        "" if tag == "delete" else formatted_blp[j1:j2],
-                    ).to_json()
-                )
+        text_edits = []
 
-        self._send_response(id, lst)
+        if formatted_blp != open_file.text:
+            text_edits.append(
+                TextEdit(
+                    Range(0, len(open_file.text), open_file.text),
+                    formatted_blp,
+                ).to_json()
+            )
+
+        self._send_response(id, text_edits)
 
     @command("textDocument/x-blueprint-compile")
     def compile(self, id, params):
