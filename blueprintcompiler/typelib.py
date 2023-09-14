@@ -64,11 +64,11 @@ class Field:
         if not mask or sys.byteorder == "little":
             self._shift = shift
         elif self._type == "u8" or self._type == "i8":
-            self._shift = 7 - shift
+            self._shift = 8 - (shift + mask)
         elif self._type == "u16" or self._type == "i16":
-            self._shift = 15 - shift
+            self._shift = 16 - (shift + mask)
         else:
-            self._shift = 31 - shift
+            self._shift = 32 - (shift + mask)
         self._mask = (1 << mask) - 1 if mask else None
         self._name = f"{offset}__{type}__{shift}__{mask}"
 
