@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import difflib
 import unittest
 from pathlib import Path
 
@@ -45,3 +44,4 @@ class TestFormatter(unittest.TestCase):
     def test_formatter(self):
         self.assert_format_test("in1.blp", "out.blp")
         self.assert_format_test("in2.blp", "out.blp")
+        self.assert_format_test("correct1.blp", "correct1.blp")

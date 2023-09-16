@@ -1,0 +1,18 @@
+using Gtk 4.0;
+
+template $MyTemplate: Label {
+  /**
+   * A list of strings.
+   */
+  StringList {
+    // comment
+    strings [
+      'Hello',
+      C_('Greeting', 'World'),
+    ]
+  }
+
+  object: Button {
+    label: 'Click me';
+  };
+}
