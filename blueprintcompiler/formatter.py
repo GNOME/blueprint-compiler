@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import re
 from enum import Enum
 
 from . import tokenizer
@@ -56,6 +57,8 @@ class Format:
         prev_line_type = None
         is_child_type = False
         indent_item = " " * tab_size if insert_space else "\t"
+        watch_parentheses = False
+        parentheses_balance = 0
 
         def another_newline(one_indent_less=False):
             nonlocal end_str
@@ -100,15 +103,19 @@ class Format:
                     )
 
                 if (
-                    str_item in WHITESPACE_BEFORE
-                    and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
-                ) or (
                     (
-                        str(last_not_whitespace) in WHITESPACE_AFTER
-                        or last_not_whitespace.type == tokenizer.TokenType.IDENT
+                        str_item in WHITESPACE_BEFORE
+                        and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
                     )
-                    and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
-                    and str_item not in NO_WHITESPACE_BEFORE
+                    or (
+                        (
+                            str(last_not_whitespace) in WHITESPACE_AFTER
+                            or last_not_whitespace.type == tokenizer.TokenType.IDENT
+                        )
+                        and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
+                        and str_item not in NO_WHITESPACE_BEFORE
+                    )
+                    and len(current_line) > 0
                 ):
                     current_line += " "
 
@@ -171,6 +178,21 @@ class Format:
 
                     else:
                         commit_current_line()
+
+                elif str_item == "(" and (
+                    re.match("^([A-Za-z_\-])+\s*\(", current_line) or watch_parentheses
+                ):
+                    watch_parentheses = True
+                    parentheses_balance += 1
+                    if ")" in WHITESPACE_AFTER:
+                        WHITESPACE_AFTER.remove(")")
+
+                elif str_item == ")" and watch_parentheses:
+                    parentheses_balance -= 1
+                    if parentheses_balance == 0:
+                        commit_current_line()
+                        if ")" not in WHITESPACE_AFTER:
+                            WHITESPACE_AFTER.append(")")
 
                 last_not_whitespace = item
 
