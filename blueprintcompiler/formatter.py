@@ -50,31 +50,41 @@ class Format:
     def format(data, tab_size=2, insert_space=True):
         indent_levels = 0
         tokens = tokenizer.tokenize(data)
-        tokenized_str = ""
+        end_str = ""
         last_not_whitespace = tokens[0]
         current_line = ""
         prev_line_type = None
         is_child_type = False
         indent_item = " " * tab_size if insert_space else "\t"
 
+        def another_newline(one_indent_less=False):
+            nonlocal end_str
+            end_str = (
+                end_str.strip()
+                + "\n\n"
+                + (
+                    indent_item
+                    * (indent_levels - 1 if one_indent_less else indent_levels)
+                )
+            )
+
         def commit_current_line(
-            extra_newlines=1, line_type=prev_line_type, indent_decrease=False
+            two_newlines=False, line_type=prev_line_type, indent_decrease=False
         ):
-            nonlocal tokenized_str, current_line, prev_line_type
+            nonlocal end_str, current_line, prev_line_type
 
             if indent_decrease:
-                tokenized_str = (
-                    tokenized_str.strip() + "\n" + (indent_levels * indent_item)
+                end_str = end_str.strip() + "\n" + (indent_levels * indent_item)
+
+            if two_newlines:
+                another_newline(
+                    not (
+                        current_line[-1] == ";"
+                        and end_str.strip()[-1] in CLOSING_TOKENS
+                    )
                 )
 
-            if extra_newlines > 1:
-                tokenized_str = (
-                    tokenized_str.strip()
-                    + ("\n" * (extra_newlines))
-                    + (indent_item * (indent_levels - 1))
-                )
-
-            tokenized_str += current_line + "\n" + (indent_levels * indent_item)
+            end_str += current_line + "\n" + (indent_levels * indent_item)
 
             current_line = ""
             prev_line_type = line_type
@@ -114,11 +124,7 @@ class Format:
                             if is_child_type:
                                 NO_WHITESPACE_BEFORE.append("]")
                                 if str(last_not_whitespace) not in OPENING_TOKENS:
-                                    tokenized_str = (
-                                        tokenized_str.strip()
-                                        + "\n\n"
-                                        + (indent_levels * indent_item)
-                                    )
+                                    another_newline()
                                 last_not_whitespace = item
                                 continue
                             else:
@@ -127,10 +133,10 @@ class Format:
 
                         indent_levels += 1
                         commit_current_line(
-                            1
-                            if prev_line_type == LineType.CHILD_TYPE
-                            or tokenized_str.strip()[-1] == "{"
-                            else 2,
+                            not (
+                                prev_line_type == LineType.CHILD_TYPE
+                                or end_str.strip()[-1] in OPENING_TOKENS
+                            ),
                             LineType.BLOCK_OPEN,
                         )
 
@@ -145,25 +151,27 @@ class Format:
 
                                 if last_not_whitespace != ",":
                                     current_line = current_line[:-1]
-                                    commit_current_line(
-                                        1,
-                                    )
+                                    commit_current_line()
                                     current_line = "]"
 
                         indent_levels -= 1
                         commit_current_line(
-                            1,
-                            LineType.CHILD_TYPE
+                            line_type=LineType.CHILD_TYPE
                             if is_child_type
                             else LineType.BLOCK_CLOSE,
-                            not is_child_type,
+                            indent_decrease=not is_child_type,
                         )
 
                         is_child_type = False
+
+                    elif str_item == ";" and len(end_str) > 0:
+                        commit_current_line(
+                            two_newlines=end_str.strip()[-1] in CLOSING_TOKENS
+                        )
 
                     else:
                         commit_current_line()
 
                 last_not_whitespace = item
 
-        return tokenized_str
+        return end_str
