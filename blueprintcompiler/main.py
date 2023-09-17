@@ -155,9 +155,11 @@ class BlueprintApp:
 
         for file in opts.inputs:
             data = file.read()
+            file_abs = os.path.abspath(file.name)
+            input_dir_abs = os.path.abspath(opts.input_dir)
 
             try:
-                if not os.path.commonpath([file.name, opts.input_dir]):
+                if not os.path.commonpath([file_abs, input_dir_abs]):
                     print(
                         f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}"
                     )
