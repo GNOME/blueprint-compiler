@@ -1,6 +1,6 @@
 # test_formatter.py
 #
-# Copyright 2021 James Westman <james@jwestman.net>
+# Copyright 2023 James Westman <james@jwestman.net>
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as

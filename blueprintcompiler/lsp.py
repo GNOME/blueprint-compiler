@@ -292,17 +292,14 @@ class LanguageServer:
             return
 
         try:
-            XmlOutput().emit(open_file.ast)
-        except:
-            printerr(traceback.format_exc())
-            self._send_error(id, ErrorCode.RequestFailed, "Could not compile document")
+            formatted_blp = Format.format(
+                open_file.text,
+                params["options"]["tabSize"],
+                params["options"]["insertSpaces"],
+            )
+        except PrintableError:
+            self._send_error(id, ErrorCode.RequestFailed, "Could not format document")
             return
-
-        formatted_blp = Format.format(
-            open_file.text,
-            params["options"]["tabSize"],
-            params["options"]["insertSpaces"],
-        )
 
         lst = []
         for tag, i1, i2, j1, j2 in SequenceMatcher(

@@ -186,12 +186,12 @@ class BlueprintApp:
 
         for path in opts.inputs:
             if os.path.isfile(path):
-                input_files.append(open(path, "r+"))
+                input_files.append(path)
             elif os.path.isdir(path):
                 for root, subfolders, files in os.walk(path):
                     for file in files:
                         if file.endswith(".blp"):
-                            input_files.append(open(os.path.join(root, file), "r+"))
+                            input_files.append(os.path.join(root, file))
             else:
                 print(
                     f"{Colors.RED}{Colors.BOLD}Could not find file: {path}{Colors.CLEAR}"
@@ -200,50 +200,52 @@ class BlueprintApp:
         formatted_files = 0
 
         for file in input_files:
-            data = file.read()
+            with open(file, "r+") as file:
+                data = file.read()
 
-            try:
-                xml, warnings = self._compile(data)
+                try:
+                    xml, warnings = self._compile(data)
 
-                for warning in warnings:
-                    warning.pretty_print(file.name, data, stream=sys.stderr)
+                    for warning in warnings:
+                        warning.pretty_print(file.name, data, stream=sys.stderr)
 
-                formatted_str = Format.format(data, opts.spaces, not opts.tabs)
+                    formatted_str = Format.format(data, opts.spaces, not opts.tabs)
 
-                if data != formatted_str:
-                    happened = "Would reformat"
+                    if data != formatted_str:
+                        happened = "Would reformat"
 
-                    if opts.fix:
-                        file.seek(0)
-                        file.truncate()
-                        file.write(formatted_str)
-                        happened = "Reformatted"
+                        if opts.fix:
+                            file.seek(0)
+                            file.truncate()
+                            file.write(formatted_str)
+                            happened = "Reformatted"
 
-                    a_lines = data.splitlines(keepends=True)
-                    b_lines = formatted_str.splitlines(keepends=True)
-                    diff_lines = []
+                        a_lines = data.splitlines(keepends=True)
+                        b_lines = formatted_str.splitlines(keepends=True)
+                        diff_lines = []
 
-                    for line in difflib.unified_diff(
-                        a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
-                    ):
-                        # Work around https://bugs.python.org/issue2142
-                        # See:
-                        # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
-                        if line[-1] == "\n":
-                            diff_lines.append(line)
-                        else:
-                            diff_lines.append(line + "\n")
-                            diff_lines.append("\\ No newline at end of file\n")
+                        for line in difflib.unified_diff(
+                            a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
+                        ):
+                            # Work around https://bugs.python.org/issue2142
+                            # See:
+                            # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
+                            if line[-1] == "\n":
+                                diff_lines.append(line)
+                            else:
+                                diff_lines.append(line + "\n")
+                                diff_lines.append("\\ No newline at end of file\n")
 
-                    print(
-                        f"{''.join(diff_lines)}\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}\n"
-                    )
+                        print(
+                            # f"{''.join(diff_lines)}\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}\n"
+                            formatted_str
+                        )
 
-                    formatted_files += 1
+                        formatted_files += 1
 
-            except PrintableError as e:
-                e.pretty_print(file.name, data, stream=sys.stderr)
-                sys.exit(1)
+                except PrintableError as e:
+                    e.pretty_print(file.name, data, stream=sys.stderr)
+                    sys.exit(1)
 
         left_files = len(input_files) - formatted_files
 

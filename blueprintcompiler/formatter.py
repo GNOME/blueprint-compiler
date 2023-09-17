@@ -1,6 +1,6 @@
-# decompiler.py
+# formatter.py
 #
-# Copyright 2021 James Westman <james@jwestman.net>
+# Copyright 2023 James Westman <james@jwestman.net>
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as
@@ -27,7 +27,7 @@ CLOSING_TOKENS = ["}", "]"]
 
 NEWLINE_AFTER = [";"] + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = [",", ":", "::", ";", ")", ".", ">"]
+NO_WHITESPACE_BEFORE = [",", ":", "::", ";", ")", ".", ">", "]"]
 NO_WHITESPACE_AFTER = ["C_", "_", "("]
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
@@ -127,9 +127,8 @@ class Format:
                 ):
                     if str_item in OPENING_TOKENS:
                         if str_item == "[":
-                            is_child_type = (current_line + "[").startswith("[")
+                            is_child_type = current_line.startswith("[")
                             if is_child_type:
-                                NO_WHITESPACE_BEFORE.append("]")
                                 if str(last_not_whitespace) not in OPENING_TOKENS:
                                     another_newline()
                                 last_not_whitespace = item
@@ -147,33 +146,32 @@ class Format:
                             LineType.BLOCK_OPEN,
                         )
 
+                    elif str_item == "]" and is_child_type:
+                        commit_current_line(
+                            line_type=LineType.CHILD_TYPE,
+                            indent_decrease=False,
+                        )
+                        is_child_type = False
+
                     elif str_item in CLOSING_TOKENS:
                         if str_item == "]":
-                            if is_child_type:
-                                NO_WHITESPACE_BEFORE.remove("]")
-                                indent_levels += 1
-                            else:
-                                WHITESPACE_AFTER.append(",")
-                                NEWLINE_AFTER.remove(",")
+                            NEWLINE_AFTER.remove(",")
+                            WHITESPACE_AFTER.append(",")
 
-                                if last_not_whitespace != ",":
-                                    current_line = current_line[:-1]
-                                    commit_current_line()
-                                    current_line = "]"
+                            if last_not_whitespace != ",":
+                                current_line = current_line[:-1]
+                                commit_current_line()
+                                current_line = "]"
 
                         indent_levels -= 1
                         commit_current_line(
-                            line_type=LineType.CHILD_TYPE
-                            if is_child_type
-                            else LineType.BLOCK_CLOSE,
-                            indent_decrease=not is_child_type,
+                            line_type=LineType.BLOCK_CLOSE,
+                            indent_decrease=True,
                         )
-
-                        is_child_type = False
 
                     elif str_item == ";" and len(end_str) > 0:
                         commit_current_line(
-                            two_newlines=end_str.strip()[-1] in CLOSING_TOKENS
+                            two_newlines=prev_line_type == LineType.BLOCK_CLOSE
                         )
 
                     else:
