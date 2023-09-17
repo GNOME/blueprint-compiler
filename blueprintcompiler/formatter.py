@@ -59,6 +59,7 @@ class Format:
         indent_item = " " * tab_size if insert_space else "\t"
         watch_parentheses = False
         parentheses_balance = 0
+        bracket_tracker = [None]
 
         def another_newline(one_indent_less=False):
             nonlocal end_str
@@ -133,9 +134,6 @@ class Format:
                                     another_newline()
                                 last_not_whitespace = item
                                 continue
-                            else:
-                                NEWLINE_AFTER.append(",")
-                                WHITESPACE_AFTER.remove(",")
 
                         indent_levels += 1
                         commit_current_line(
@@ -154,14 +152,10 @@ class Format:
                         is_child_type = False
 
                     elif str_item in CLOSING_TOKENS:
-                        if str_item == "]":
-                            NEWLINE_AFTER.remove(",")
-                            WHITESPACE_AFTER.append(",")
-
-                            if last_not_whitespace != ",":
-                                current_line = current_line[:-1]
-                                commit_current_line()
-                                current_line = "]"
+                        if str_item == "]" and last_not_whitespace != ",":
+                            current_line = current_line[:-1]
+                            commit_current_line()
+                            current_line = "]"
 
                         indent_levels -= 1
                         commit_current_line(
@@ -182,15 +176,23 @@ class Format:
                 ):
                     watch_parentheses = True
                     parentheses_balance += 1
-                    if ")" in WHITESPACE_AFTER:
-                        WHITESPACE_AFTER.remove(")")
 
                 elif str_item == ")" and watch_parentheses:
                     parentheses_balance -= 1
                     if parentheses_balance == 0:
                         commit_current_line()
-                        if ")" not in WHITESPACE_AFTER:
-                            WHITESPACE_AFTER.append(")")
+                        watch_parentheses = False
+
+                if str_item in ["[", "("]:
+                    bracket_tracker.append(str_item)
+                elif str_item in ["]", ")"]:
+                    bracket_tracker.pop()
+
+                if len(bracket_tracker) > 0:
+                    if bracket_tracker[-1] == "[" and str_item == ",":
+                        if end_str.strip()[-1] not in ["[", ","]:
+                            end_str = end_str.strip()
+                        commit_current_line()
 
                 last_not_whitespace = item
 
