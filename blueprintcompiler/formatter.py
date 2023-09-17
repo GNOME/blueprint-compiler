@@ -60,6 +60,7 @@ class Format:
         watch_parentheses = False
         parentheses_balance = 0
         bracket_tracker = [None]
+        last_added_char = ""
 
         def another_newline(one_indent_less=False):
             nonlocal end_str
@@ -75,23 +76,26 @@ class Format:
         def commit_current_line(
             two_newlines=False, line_type=prev_line_type, indent_decrease=False
         ):
-            nonlocal end_str, current_line, prev_line_type
+            nonlocal end_str, current_line, prev_line_type, last_added_char
+
+            whitespace_to_add = "\n" + (indent_levels * indent_item)
 
             if indent_decrease:
-                end_str = end_str.strip() + "\n" + (indent_levels * indent_item)
+                end_str = end_str.strip() + whitespace_to_add
 
             if two_newlines:
                 another_newline(
                     not (
                         current_line[-1] == ";"
-                        and end_str.strip()[-1] in CLOSING_TOKENS
+                        and last_added_char in CLOSING_TOKENS
                     )
                 )
 
-            end_str += current_line + "\n" + (indent_levels * indent_item)
+            end_str += current_line + whitespace_to_add
 
             current_line = ""
             prev_line_type = line_type
+            last_added_char = end_str.strip()[-1]
 
         for item in tokens:
             if item.type != tokenizer.TokenType.WHITESPACE:
@@ -139,7 +143,7 @@ class Format:
                         commit_current_line(
                             not (
                                 prev_line_type == LineType.CHILD_TYPE
-                                or end_str.strip()[-1] in OPENING_TOKENS
+                                or last_added_char in OPENING_TOKENS
                             ),
                             LineType.BLOCK_OPEN,
                         )
@@ -190,7 +194,7 @@ class Format:
 
                 if len(bracket_tracker) > 0:
                     if bracket_tracker[-1] == "[" and str_item == ",":
-                        if end_str.strip()[-1] not in ["[", ","]:
+                        if last_added_char not in ["[", ","]:
                             end_str = end_str.strip()
                         commit_current_line()
 
