@@ -21,6 +21,7 @@ import re
 from enum import Enum
 
 from . import tokenizer
+from .tokenizer import TokenType
 
 OPENING_TOKENS = ["{", "["]
 CLOSING_TOKENS = ["}", "]"]
@@ -86,10 +87,7 @@ class Format:
 
             if two_newlines:
                 another_newline(
-                    not (
-                        current_line[-1] == ";"
-                        and last_added_char in CLOSING_TOKENS
-                    )
+                    not (current_line[-1] == ";" and last_added_char in CLOSING_TOKENS)
                 )
 
             end_str += current_line + whitespace_to_add
@@ -99,9 +97,9 @@ class Format:
             last_added_char = end_str.strip()[-1]
 
         for item in tokens:
-            if item.type != tokenizer.TokenType.WHITESPACE:
+            if item.type != TokenType.WHITESPACE:
                 str_item = str(item)
-                if item.type == tokenizer.TokenType.QUOTED and str_item.startswith('"'):
+                if item.type == TokenType.QUOTED and str_item.startswith('"'):
                     str_item = (
                         "'"
                         + str_item[1:-1].replace('\\"', '"').replace("'", "\\'")
@@ -116,7 +114,7 @@ class Format:
                     or (
                         (
                             str(last_not_whitespace) in WHITESPACE_AFTER
-                            or last_not_whitespace.type == tokenizer.TokenType.IDENT
+                            or last_not_whitespace.type == TokenType.IDENT
                         )
                         and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
                         and str_item not in NO_WHITESPACE_BEFORE
@@ -127,10 +125,7 @@ class Format:
 
                 current_line += str_item
 
-                if (
-                    str_item in NEWLINE_AFTER
-                    or item.type == tokenizer.TokenType.COMMENT
-                ):
+                if str_item in NEWLINE_AFTER or item.type == TokenType.COMMENT:
                     if str_item in OPENING_TOKENS:
                         if str_item == "[":
                             is_child_type = current_line.startswith("[")
@@ -143,7 +138,8 @@ class Format:
                         indent_levels += 1
                         commit_current_line(
                             not (
-                                prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
+                                prev_line_type
+                                in [LineType.CHILD_TYPE, LineType.COMMENT]
                                 or last_added_char in OPENING_TOKENS
                             ),
                             LineType.BLOCK_OPEN,
@@ -173,7 +169,7 @@ class Format:
                             two_newlines=prev_line_type == LineType.BLOCK_CLOSE
                         )
 
-                    elif item.type == tokenizer.TokenType.COMMENT:
+                    elif item.type == TokenType.COMMENT:
                         commit_current_line(line_type=LineType.COMMENT)
 
                     else:
