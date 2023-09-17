@@ -45,6 +45,7 @@ class LineType(Enum):
     BLOCK_OPEN = 1
     BLOCK_CLOSE = 2
     CHILD_TYPE = 3
+    COMMENT = 3
 
 
 class Format:
@@ -142,7 +143,7 @@ class Format:
                         indent_levels += 1
                         commit_current_line(
                             not (
-                                prev_line_type == LineType.CHILD_TYPE
+                                prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
                                 or last_added_char in OPENING_TOKENS
                             ),
                             LineType.BLOCK_OPEN,
@@ -167,10 +168,13 @@ class Format:
                             indent_decrease=True,
                         )
 
-                    elif str_item == ";" and len(end_str) > 0:
+                    elif str_item == ";":
                         commit_current_line(
                             two_newlines=prev_line_type == LineType.BLOCK_CLOSE
                         )
+
+                    elif item.type == tokenizer.TokenType.COMMENT:
+                        commit_current_line(line_type=LineType.COMMENT)
 
                     else:
                         commit_current_line()
