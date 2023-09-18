@@ -87,7 +87,7 @@ class Format:
 
             if two_newlines:
                 another_newline(
-                    not (current_line[-1] == ";" and last_added_char in CLOSING_TOKENS)
+                    not (current_line[-1] == ";" and prev_line_type == LineType.BLOCK_CLOSE)
                 )
 
             end_str += current_line + whitespace_to_add
@@ -140,7 +140,7 @@ class Format:
                             not (
                                 prev_line_type
                                 in [LineType.CHILD_TYPE, LineType.COMMENT]
-                                or last_added_char in OPENING_TOKENS
+                                or prev_line_type == LineType.BLOCK_OPEN
                             ),
                             LineType.BLOCK_OPEN,
                         )
