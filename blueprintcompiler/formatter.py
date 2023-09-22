@@ -62,7 +62,6 @@ class Format:
         watch_parentheses = False
         parentheses_balance = 0
         bracket_tracker = [None]
-        last_added_char = ""
 
         def another_newline(one_indent_less=False):
             nonlocal end_str
@@ -78,7 +77,7 @@ class Format:
         def commit_current_line(
             two_newlines=False, line_type=prev_line_type, indent_decrease=False
         ):
-            nonlocal end_str, current_line, prev_line_type, last_added_char
+            nonlocal end_str, current_line, prev_line_type
 
             whitespace_to_add = "\n" + (indent_levels * indent_item)
 
@@ -94,7 +93,6 @@ class Format:
 
             current_line = ""
             prev_line_type = line_type
-            last_added_char = end_str.strip()[-1]
 
         for item in tokens:
             if item.type != TokenType.WHITESPACE:
@@ -194,7 +192,7 @@ class Format:
 
                 if len(bracket_tracker) > 0:
                     if bracket_tracker[-1] == "[" and str_item == ",":
-                        if last_added_char not in ["[", ","]:
+                        if end_str.strip()[-1] not in ["[", ","]:
                             end_str = end_str.strip()
                         commit_current_line()
 
