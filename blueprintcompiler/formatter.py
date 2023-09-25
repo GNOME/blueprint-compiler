@@ -74,20 +74,13 @@ class Format:
                 )
             )
 
-        def commit_current_line(
-            two_newlines=False, line_type=prev_line_type, indent_decrease=False
-        ):
+        def commit_current_line(line_type=prev_line_type, indent_decrease=False):
             nonlocal end_str, current_line, prev_line_type
 
             whitespace_to_add = "\n" + (indent_levels * indent_item)
 
             if indent_decrease:
                 end_str = end_str.strip() + whitespace_to_add
-
-            if two_newlines:
-                another_newline(
-                    not (current_line[-1] == ";" and prev_line_type == LineType.BLOCK_CLOSE)
-                )
 
             end_str += current_line + whitespace_to_add
 
@@ -134,19 +127,19 @@ class Format:
                                 continue
 
                         indent_levels += 1
+                        if not (
+                            prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
+                            or prev_line_type == LineType.BLOCK_OPEN
+                        ):
+                            another_newline(True)
                         commit_current_line(
-                            not (
-                                prev_line_type
-                                in [LineType.CHILD_TYPE, LineType.COMMENT]
-                                or prev_line_type == LineType.BLOCK_OPEN
-                            ),
                             LineType.BLOCK_OPEN,
                         )
 
                     elif str_item == "]" and is_child_type:
                         commit_current_line(
-                            line_type=LineType.CHILD_TYPE,
-                            indent_decrease=False,
+                            LineType.CHILD_TYPE,
+                            False,
                         )
                         is_child_type = False
 
@@ -158,17 +151,17 @@ class Format:
 
                         indent_levels -= 1
                         commit_current_line(
-                            line_type=LineType.BLOCK_CLOSE,
-                            indent_decrease=True,
+                            LineType.BLOCK_CLOSE,
+                            True,
                         )
 
                     elif str_item == ";":
-                        commit_current_line(
-                            two_newlines=prev_line_type == LineType.BLOCK_CLOSE
-                        )
+                        if prev_line_type == LineType.BLOCK_CLOSE:
+                            another_newline()
+                        commit_current_line()
 
                     elif item.type == TokenType.COMMENT:
-                        commit_current_line(line_type=LineType.COMMENT)
+                        commit_current_line(LineType.COMMENT)
 
                     else:
                         commit_current_line()
