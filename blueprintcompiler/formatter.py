@@ -41,7 +41,7 @@ class LineType(Enum):
     BLOCK_OPEN = 1
     BLOCK_CLOSE = 2
     CHILD_TYPE = 3
-    COMMENT = 3
+    COMMENT = 4
 
 
 class Format:
