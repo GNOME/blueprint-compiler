@@ -140,8 +140,6 @@ class Format:
                             another_newline(True)
                         commit_current_line(
                             LineType.BLOCK_OPEN,
-                            # newlines=2 if prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
-                            # or prev_line_type == LineType.BLOCK_OPEN else 1
                         )
 
                     elif str_item == "]" and is_child_type:
@@ -165,16 +163,13 @@ class Format:
 
                     elif str_item == ";":
                         if len(current_line) == 1:
-                            newlines=0
+                            newlines = 0
                         elif prev_line_type == LineType.BLOCK_CLOSE:
-                            newlines=2
+                            newlines = 2
                         else:
-                            newlines=1
+                            newlines = 1
 
-                        commit_current_line(
-                            indent_decrease=True,
-                            newlines=newlines
-                        )
+                        commit_current_line(indent_decrease=True, newlines=newlines)
 
                     elif item.type == TokenType.COMMENT:
                         commit_current_line(LineType.COMMENT)
