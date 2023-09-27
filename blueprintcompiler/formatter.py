@@ -58,7 +58,7 @@ class Format:
         parentheses_balance = 0
         bracket_tracker = [None]
 
-        def another_newline(one_indent_less=False):
+        def another_newline(one_indent_less=False):  # TODO: Try to remove this function
             nonlocal end_str
             end_str = (
                 end_str.strip()
@@ -75,6 +75,7 @@ class Format:
             nonlocal end_str, current_line, prev_line_type
 
             whitespace_to_add = (
+                # TODO: Separate adding newlines before & after current_line
                 ("\n" * newlines) + (indent_levels * indent_item)
                 if newlines > 0
                 else ""
@@ -132,7 +133,9 @@ class Format:
                             prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
                             or prev_line_type == LineType.BLOCK_OPEN
                         ):
-                            another_newline(True)
+                            another_newline(
+                                True
+                            )  # TODO: Do this in the commit_current_line() below
                         commit_current_line(
                             LineType.BLOCK_OPEN,
                         )
