@@ -23,22 +23,17 @@ from enum import Enum
 from . import tokenizer
 from .tokenizer import TokenType
 
-OPENING_TOKENS = ["{", "["]
-CLOSING_TOKENS = ["}", "]"]
+OPENING_TOKENS = ("{", "[")
+CLOSING_TOKENS = ("}", "]")
 
-NEWLINE_AFTER = [";"] + OPENING_TOKENS + CLOSING_TOKENS
+NEWLINE_AFTER = tuple(";") + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = [",", ":", "::", ";", ")", ".", ">", "]"]
-NO_WHITESPACE_AFTER = ["C_", "_", "("]
+NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", ">", "]")
+NO_WHITESPACE_AFTER = ("C_", "_", "(")
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
-WHITESPACE_AFTER = [
-    ":",
-    ",",
-    ">",
-    ")",
-]
-WHITESPACE_BEFORE = ["{", "$"]
+WHITESPACE_AFTER = (":", ",", ">", ")")
+WHITESPACE_BEFORE = ("{", "$")
 
 
 class LineType(Enum):
