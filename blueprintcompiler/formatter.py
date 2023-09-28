@@ -58,9 +58,6 @@ class Format:
         parentheses_balance = 0
         bracket_tracker = [None]
 
-        def another_newline(one_indent_less=False):  # TODO: Try to remove this function
-            nonlocal end_str
-
         def commit_current_line(
             line_type=prev_line_type, redo_whitespace=False, newlines_before=1
         ):
