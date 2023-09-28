@@ -104,16 +104,31 @@ Use ``C_("context", "...")`` to add a *message context* to a string to disambigu
 
 .. _Syntax Binding:
 
-Expression Bindings
--------------------
+Bindings
+--------
 
 .. rst-class:: grammar-block
 
-   Binding = 'bind' :ref:`Expression<Syntax Expression>`
+   Binding = 'bind' :ref:`Expression<Syntax Expression>` (BindingFlag)*
+   BindingFlag = 'inverted' | 'bidirectional' | 'sync-create'
 
 Bindings keep a property updated as other properties change. They can be used to keep the UI in sync with application data, or to connect two parts of the UI.
 
 The simplest bindings connect to a property of another object in the blueprint. When that other property changes, the bound property updates as well. More advanced bindings can do multi-step property lookups and can even call application code to compute values. See :ref:`the expressions page<Syntax Expression>`.
+
+Simple Bindings
+~~~~~~~~~~~~~~~
+
+A binding that consists of a source object and a single lookup is called a "simple binding". These are implemented using `GObject property bindings <https://docs.gtk.org/gobject/method.Object.bind_property.html>`_ and support a few flags:
+
+- ``bidirectional``: The binding is two-way, so changes to the target property will also update the source property.
+- ``inverted``: For boolean properties, the target is set to the inverse of the source property.
+- ``no-sync-create``: Normally, when a binding is created, the target property is immediately updated with the current value of the source property. This flag disables that behavior, and the bound property will be updated the next time the source property changes.
+
+Complex Bindings
+~~~~~~~~~~~~~~~~
+
+Bindings with more complex expressions are implemented with `Gtk.Expression <https://docs.gtk.org/gtk4/class.Expression.html>`_. These bindings do not support flags.
 
 Example
 ~~~~~~~
@@ -126,12 +141,9 @@ Example
    Switch advanced_feature {}
 
    Label warning {
-     visible: bind-property advanced_feature.active;
+     visible: bind advanced_feature.active;
      label: _("This is an advanced feature. Use with caution!");
    }
-
-.. code-block: blueprintui
-
 
 
 .. _Syntax ObjectValue:
