@@ -8,14 +8,14 @@ Overlay {
 
   [overlay]
   Button {
-    notify::icon-name => $on_icon_name_changed (label) swapped;
+    notify::icon-name => $on_icon_name_changed(label) swapped;
 
     styles [
       'destructive'
     ]
   }
 
-  visible: bind $isVisible (label.visible, my-menu) as <bool>;
+  visible: bind $isVisible(label.visible, my-menu) as <bool>;
   width-request: bind label.width-request no-sync-create;
 }
 
