@@ -127,14 +127,16 @@ class Format:
                             prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
                             or prev_line_type == LineType.BLOCK_OPEN
                         ):
-                            end_str = (
-                                end_str.strip()
-                                + "\n\n"
-                                + (indent_item * (indent_levels - 1))
+                            # end_str = (
+                            #     end_str.strip()
+                            #     + "\n\n"
+                            #     + (indent_item * (indent_levels - 1))
+                            # )
+                            commit_current_line(LineType.BLOCK_OPEN, True, 2)
+                        else:
+                            commit_current_line(
+                                LineType.BLOCK_OPEN,
                             )
-                        commit_current_line(
-                            LineType.BLOCK_OPEN,
-                        )
 
                     elif str_item == "]" and is_child_type:
                         commit_current_line(
