@@ -239,8 +239,7 @@ class BlueprintApp:
                                 diff_lines.append("\\ No newline at end of file\n")
 
                         print(
-                            # f"{''.join(diff_lines)}\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}\n"
-                            formatted_str
+                            f"{''.join(diff_lines)}\n{Colors.BOLD}{happened} {file.name}{Colors.CLEAR}\n"
                         )
 
                         formatted_files += 1
