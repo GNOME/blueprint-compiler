@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .gir import *
-from .utils import Colors
+from .utils import Colors, escape_quote
 from .xml_reader import Element, parse, parse_string
 
 __all__ = ["decompile"]
@@ -251,15 +251,6 @@ def decompiler(tag, cdata=False):
         return func
 
     return decorator
-
-
-def escape_quote(string: str) -> str:
-    return (
-        string.replace("\\", "\\\\")
-        .replace("'", "\\'")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-    )
 
 
 @decompiler("interface")

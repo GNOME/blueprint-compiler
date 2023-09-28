@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import typing as T
+from dataclasses import dataclass
 
 
 class Colors:
@@ -98,3 +99,54 @@ def idxs_to_range(start: int, end: int, text: str):
             "character": end_c,
         },
     }
+
+
+@dataclass
+class UnescapeError(Exception):
+    start: int
+    end: int
+
+
+def escape_quote(string: str) -> str:
+    return (
+        string.replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\t", "\\t")
+    )
+
+
+def unescape_quote(string: str) -> str:
+    string = string[1:-1]
+
+    REPLACEMENTS = {
+        "\\": "\\",
+        "n": "\n",
+        "t": "\t",
+        '"': '"',
+        "'": "'",
+    }
+
+    result = ""
+    i = 0
+    while i < len(string):
+        c = string[i]
+        if c == "\\":
+            i += 1
+
+            if i >= len(string):
+                from .errors import CompilerBugError
+
+                raise CompilerBugError()
+
+            if r := REPLACEMENTS.get(string[i]):
+                result += r
+            else:
+                raise UnescapeError(i, i + 2)
+        else:
+            result += c
+
+        i += 1
+
+    return result
