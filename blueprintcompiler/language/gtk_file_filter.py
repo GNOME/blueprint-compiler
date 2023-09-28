@@ -119,7 +119,7 @@ def decompile_mime_types(ctx, gir):
 
 @decompiler("mime-type", cdata=True)
 def decompile_mime_type(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
+    ctx.print(f"{escape_quote(cdata)},")
 
 
 @decompiler("patterns")
@@ -129,7 +129,7 @@ def decompile_patterns(ctx, gir):
 
 @decompiler("pattern", cdata=True)
 def decompile_pattern(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
+    ctx.print(f"{escape_quote(cdata)},")
 
 
 @decompiler("suffixes")
@@ -139,4 +139,4 @@ def decompile_suffixes(ctx, gir):
 
 @decompiler("suffix", cdata=True)
 def decompile_suffix(ctx, gir, cdata):
-    ctx.print(f'"{cdata}",')
+    ctx.print(f"{escape_quote(cdata)},")

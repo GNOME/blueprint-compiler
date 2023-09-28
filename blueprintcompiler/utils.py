@@ -109,11 +109,14 @@ class UnescapeError(Exception):
 
 def escape_quote(string: str) -> str:
     return (
-        string.replace("\\", "\\\\")
-        .replace("'", "\\'")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\t", "\\t")
+        "'"
+        + (
+            string.replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\t", "\\t")
+        )
+        + "'"
     )
 
 

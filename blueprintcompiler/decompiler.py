@@ -138,7 +138,7 @@ class DecompileCtx:
             return value.replace("-", "_")
 
         if type is None:
-            self.print(f'{name}: "{escape_quote(value)}";')
+            self.print(f"{name}: {escape_quote(value)};")
         elif type.assignable_to(FloatType()):
             self.print(f"{name}: {value};")
         elif type.assignable_to(BoolType()):
@@ -157,7 +157,7 @@ class DecompileCtx:
                 self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger")
             )
         ):
-            self.print(f'{name}: "{escape_quote(value)}";')
+            self.print(f"{name}: {escape_quote(value)};")
         elif value == self.template_class:
             self.print(f"{name}: template;")
         elif type.assignable_to(
@@ -170,7 +170,7 @@ class DecompileCtx:
         elif isinstance(type, Enumeration):
             self.print(f"{name}: {get_enum_name(value)};")
         else:
-            self.print(f'{name}: "{escape_quote(value)}";')
+            self.print(f"{name}: {escape_quote(value)};")
 
 
 def _decompile_element(
@@ -280,11 +280,11 @@ def decompile_translatable(
             comments = f"/* Translators: {comments} */"
 
         if context is not None:
-            return comments, f'C_("{escape_quote(context)}", "{escape_quote(string)}")'
+            return comments, f"C_({escape_quote(context)}, {escape_quote(string)})"
         else:
-            return comments, f'_("{escape_quote(string)}")'
+            return comments, f"_({escape_quote(string)})"
     else:
-        return comments, f'"{escape_quote(string)}"'
+        return comments, f"{escape_quote(string)}"
 
 
 @decompiler("property", cdata=True)
@@ -325,7 +325,7 @@ def decompile_property(
             ctx.print(comments)
         ctx.print(f"{name}: {translatable};")
     elif gir is None or gir.properties.get(name) is None:
-        ctx.print(f'{name}: "{escape_quote(cdata)}";')
+        ctx.print(f"{name}: {escape_quote(cdata)};")
     else:
         ctx.print_attribute(name, cdata, gir.properties.get(name).type)
     return gir
