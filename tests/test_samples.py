@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import difflib  # I love Python
 import unittest
 from pathlib import Path
 
@@ -41,6 +40,10 @@ from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
 
 class TestSamples(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.maxDiff = None
+
     def assert_ast_doesnt_crash(self, text, tokens, ast):
         for i in range(len(text)):
             ast.get_docs(i)
@@ -74,10 +77,7 @@ class TestSamples(unittest.TestCase):
 
             xml = XmlOutput()
             actual = xml.emit(ast)
-            if actual.strip() != expected.strip():  # pragma: no cover
-                diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
-                print("\n".join(diff))
-                raise AssertionError()
+            self.assertEqual(actual.strip(), expected.strip())
 
             self.assert_ast_doesnt_crash(blueprint, tokens, ast)
         except PrintableError as e:  # pragma: no cover
@@ -126,10 +126,7 @@ class TestSamples(unittest.TestCase):
             else:  # pragma: no cover
                 raise AssertionError()
 
-            if actual.strip() != expected.strip():  # pragma: no cover
-                diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
-                print("\n".join(diff))
-                raise AssertionError()
+            self.assertEqual(actual.strip(), expected.strip())
         else:  # pragma: no cover
             raise AssertionError("Expected a compiler error, but none was emitted")
 
@@ -144,10 +141,7 @@ class TestSamples(unittest.TestCase):
 
             actual = decompiler.decompile(ui_path)
 
-            if actual.strip() != expected.strip():  # pragma: no cover
-                diff = difflib.unified_diff(expected.splitlines(), actual.splitlines())
-                print("\n".join(diff))
-                raise AssertionError()
+            self.assertEqual(actual.strip(), expected.strip())
         except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
