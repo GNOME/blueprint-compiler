@@ -39,8 +39,8 @@ class TokenType(Enum):
 
 _tokens = [
     (TokenType.IDENT, r"[A-Za-z_][\d\w\-_]*"),
-    (TokenType.QUOTED, r'"(\\"|[^"\n])*"'),
-    (TokenType.QUOTED, r"'(\\'|[^'\n])*'"),
+    (TokenType.QUOTED, r'"(\\.|[^\\"\n])*"'),
+    (TokenType.QUOTED, r"'(\\.|[^\\'\n])*'"),
     (TokenType.NUMBER, r"0x[A-Za-z0-9_]+"),
     (TokenType.NUMBER, r"[\d_]+(\.[\d_]+)?"),
     (TokenType.NUMBER, r"\.[\d_]+"),
