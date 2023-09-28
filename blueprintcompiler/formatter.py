@@ -20,7 +20,7 @@
 import re
 from enum import Enum
 
-from . import tokenizer
+from . import tokenizer, utils
 from .tokenizer import TokenType
 
 OPENING_TOKENS = ("{", "[")
@@ -28,12 +28,12 @@ CLOSING_TOKENS = ("}", "]")
 
 NEWLINE_AFTER = tuple(";") + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", ">", "]")
-NO_WHITESPACE_AFTER = ("C_", "_", "(")
+NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", ">", "]", "=")
+NO_WHITESPACE_AFTER = ("C_", "_", "(", ".", "$", "<", "::", "[", "=")
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
-WHITESPACE_AFTER = (":", ",", ">", ")")
-WHITESPACE_BEFORE = ("{", "$")
+WHITESPACE_AFTER = (":", ",", ">", ")", "|", "=>")
+WHITESPACE_BEFORE = ("{", "|")
 
 
 class LineType(Enum):
@@ -80,30 +80,32 @@ class Format:
             if item.type != TokenType.WHITESPACE:
                 str_item = str(item)
                 if item.type == TokenType.QUOTED and str_item.startswith('"'):
-                    str_item = (
-                        "'"
-                        + str_item[1:-1].replace('\\"', '"').replace("'", "\\'")
-                        + "'"
-                    )
+                    str_item = utils.escape_quote(utils.unescape_quote(str_item))
 
                 if (
-                    (
+                    len(current_line) > 0
+                    and (
                         str_item in WHITESPACE_BEFORE
-                        and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
+                        or item.type == TokenType.IDENT
+                        or str(last_not_whitespace) in WHITESPACE_AFTER
+                        or last_not_whitespace.type == TokenType.IDENT
                     )
-                    or (
-                        (
-                            str(last_not_whitespace) in WHITESPACE_AFTER
-                            or last_not_whitespace.type == TokenType.IDENT
-                        )
-                        and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
-                        and str_item not in NO_WHITESPACE_BEFORE
+                    and str_item not in NO_WHITESPACE_BEFORE
+                    and str(last_not_whitespace) not in NO_WHITESPACE_AFTER
+                    and not (str_item == ":" and current_line.startswith("template "))
+                    and not (
+                        str_item == "("
+                        and not re.match(r"^([A-Za-z_\-])+$", current_line)
                     )
-                    and len(current_line) > 0
                 ):
                     current_line += " "
 
                 current_line += str_item
+
+                if str_item in ["[", "("]:
+                    bracket_tracker.append(str_item)
+                elif str_item in ["]", ")"]:
+                    bracket_tracker.pop()
 
                 if str_item in NEWLINE_AFTER or item.type == TokenType.COMMENT:
                     if str_item in OPENING_TOKENS:
@@ -153,17 +155,38 @@ class Format:
                         )
 
                     elif str_item == ";":
+                        line_type = LineType.STATEMENT
                         if len(current_line) == 1:
                             newlines = 0
+                            line_type = LineType.BLOCK_CLOSE
                         elif prev_line_type == LineType.BLOCK_CLOSE:
                             newlines = 2
                         else:
                             newlines = 1
 
-                        commit_current_line(newlines_before=newlines)
+                        commit_current_line(line_type, newlines_before=newlines)
 
                     elif item.type == TokenType.COMMENT:
-                        commit_current_line(LineType.COMMENT)
+                        if str_item.startswith("//"):
+                            newlines = (
+                                2 if prev_line_type == LineType.BLOCK_CLOSE else 1
+                            )
+                        else:
+                            newlines = (
+                                2
+                                if prev_line_type
+                                in [
+                                    LineType.BLOCK_CLOSE,
+                                    LineType.STATEMENT,
+                                    LineType.COMMENT,
+                                ]
+                                else 1
+                            )
+
+                        commit_current_line(
+                            LineType.COMMENT,
+                            newlines_before=newlines,
+                        )
 
                     else:
                         commit_current_line()
@@ -177,13 +200,12 @@ class Format:
                 elif str_item == ")" and watch_parentheses:
                     parentheses_balance -= 1
                     if parentheses_balance == 0:
-                        commit_current_line()
+                        commit_current_line(
+                            newlines_before=2
+                            if prev_line_type == LineType.BLOCK_CLOSE
+                            else 1
+                        )
                         watch_parentheses = False
-
-                if str_item in ["[", "("]:
-                    bracket_tracker.append(str_item)
-                elif str_item in ["]", ")"]:
-                    bracket_tracker.pop()
 
                 if len(bracket_tracker) > 0:
                     if bracket_tracker[-1] == "[" and str_item == ",":
