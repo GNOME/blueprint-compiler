@@ -70,19 +70,17 @@ class Format:
             )
 
         def commit_current_line(
-            line_type=prev_line_type, indent_decrease=False, newlines=1
+            line_type=prev_line_type, redo_whitespace=False, newlines_before=1
         ):
             nonlocal end_str, current_line, prev_line_type
 
-            whitespace_to_add = (
-                # TODO: Separate adding newlines before & after current_line
-                ("\n" * newlines) + (indent_levels * indent_item)
-                if newlines > 0
-                else ""
-            )
+            indent_whitespace = indent_levels * indent_item
+            whitespace_to_add = "\n" + indent_whitespace
 
-            if indent_decrease:
-                end_str = end_str.strip() + whitespace_to_add
+            if redo_whitespace or newlines_before != 1:
+                end_str = end_str.strip() + ("\n" * newlines_before)
+                if newlines_before > 0:
+                    end_str += indent_whitespace
 
             end_str += current_line + whitespace_to_add
 
@@ -167,7 +165,7 @@ class Format:
                         else:
                             newlines = 1
 
-                        commit_current_line(indent_decrease=True, newlines=newlines)
+                        commit_current_line(newlines_before=newlines)
 
                     elif item.type == TokenType.COMMENT:
                         commit_current_line(LineType.COMMENT)
