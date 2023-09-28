@@ -60,14 +60,6 @@ class Format:
 
         def another_newline(one_indent_less=False):  # TODO: Try to remove this function
             nonlocal end_str
-            end_str = (
-                end_str.strip()
-                + "\n\n"
-                + (
-                    indent_item
-                    * (indent_levels - 1 if one_indent_less else indent_levels)
-                )
-            )
 
         def commit_current_line(
             line_type=prev_line_type, redo_whitespace=False, newlines_before=1
@@ -122,7 +114,11 @@ class Format:
                             is_child_type = current_line.startswith("[")
                             if is_child_type:
                                 if str(last_not_whitespace) not in OPENING_TOKENS:
-                                    another_newline()
+                                    end_str = (
+                                        end_str.strip()
+                                        + "\n\n"
+                                        + (indent_item * indent_levels)
+                                    )
                                 last_not_whitespace = item
                                 continue
 
@@ -131,9 +127,11 @@ class Format:
                             prev_line_type in [LineType.CHILD_TYPE, LineType.COMMENT]
                             or prev_line_type == LineType.BLOCK_OPEN
                         ):
-                            another_newline(
-                                True
-                            )  # TODO: Do this in the commit_current_line() below
+                            end_str = (
+                                end_str.strip()
+                                + "\n\n"
+                                + (indent_item * (indent_levels - 1))
+                            )
                         commit_current_line(
                             LineType.BLOCK_OPEN,
                         )
