@@ -231,7 +231,7 @@ def decompile_relation(ctx, gir, name, cdata):
 @decompiler("state", cdata=True)
 def decompile_state(ctx, gir, name, cdata, translatable="false"):
     if decompile.truthy(translatable):
-        ctx.print(f'{name}: _("{escape_quote(cdata)}");')
+        ctx.print(f"{name}: _({escape_quote(cdata)});")
     else:
         ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
 

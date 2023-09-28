@@ -22,6 +22,7 @@
 import typing as T
 from enum import Enum
 
+from . import utils
 from .ast_utils import AstNode
 from .errors import (
     CompileError,
@@ -573,14 +574,19 @@ class UseQuoted(ParseNode):
         if token.type != TokenType.QUOTED:
             return False
 
-        string = (
-            str(token)[1:-1]
-            .replace("\\n", "\n")
-            .replace('\\"', '"')
-            .replace("\\\\", "\\")
-            .replace("\\'", "'")
-        )
-        ctx.set_group_val(self.key, string, token)
+        unescaped = None
+
+        try:
+            unescaped = utils.unescape_quote(str(token))
+        except utils.UnescapeError as e:
+            start = ctx.tokens[ctx.index - 1].start
+            range = Range(start + e.start, start + e.end, ctx.text)
+            ctx.errors.append(
+                CompileError(f"Invalid escape sequence '{range.text}'", range)
+            )
+
+        ctx.set_group_val(self.key, unescaped, token)
+
         return True
 
 

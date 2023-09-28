@@ -229,7 +229,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("responses")
         self.assert_decompile("scale_marks")
         self.assert_decompile("signal")
-        self.assert_decompile("strings")
+        self.assert_decompile("strings_dec")
         self.assert_decompile("style_dec")
         self.assert_decompile("template")
         self.assert_decompile("translated")
