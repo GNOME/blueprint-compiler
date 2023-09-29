@@ -114,7 +114,9 @@ class Signal(AstNode):
             SymbolKind.Event,
             self.range,
             self.group.tokens["name"].range,
-            self.ranges["detail_start", "detail_end"].text,
+            self.ranges["detail_start", "detail_end"].text
+            if self.ranges["detail_end"]
+            else None,
         )
 
     @validate("handler")
