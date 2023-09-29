@@ -7,15 +7,18 @@ from blueprintcompiler.outputs.xml import XmlOutput
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from blueprintcompiler import decompiler, gir, parser, tokenizer, utils
+from blueprintcompiler import gir, parser, tokenizer
 from blueprintcompiler.completions import complete
-from blueprintcompiler.errors import (
-    CompileError,
-    CompilerBugError,
-    MultipleErrors,
-    PrintableError,
-)
-from blueprintcompiler.tokenizer import Token, TokenType, tokenize
+from blueprintcompiler.errors import CompilerBugError, PrintableError
+from blueprintcompiler.lsp import LanguageServer
+
+
+def assert_ast_doesnt_crash(text, tokens, ast):
+    for i in range(len(text)):
+        ast.get_docs(i)
+    for i in range(len(text)):
+        list(complete(LanguageServer(), ast, tokens, i))
+    ast.get_document_symbols()
 
 
 @PythonFuzz
@@ -29,6 +32,7 @@ def fuzz(buf):
         xml = XmlOutput()
         if errors is None and ast is not None:
             xml.emit(ast)
+            assert_ast_doesnt_crash(blueprint, tokens, ast)
     except CompilerBugError as e:
         raise e
     except PrintableError:
