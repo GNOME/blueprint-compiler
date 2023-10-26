@@ -124,6 +124,7 @@ def unescape_quote(string: str) -> str:
     string = string[1:-1]
 
     REPLACEMENTS = {
+        "\n": "\n",
         "\\": "\\",
         "n": "\n",
         "t": "\t",
