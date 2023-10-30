@@ -8,8 +8,8 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <requires lib="gtk" version="4.0"/>
   <object class="AdwMessageDialog">
     <responses>
-      <response id="cancel" translatable="true">Cancel</response>
-      <response id="discard" translatable="true" appearance="destructive">Discard</response>
+      <response id="cancel" translatable="yes">Cancel</response>
+      <response id="discard" translatable="yes" appearance="destructive">Discard</response>
       <response id="save" enabled="false" appearance="suggested">Save</response>
     </responses>
   </object>

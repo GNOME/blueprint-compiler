@@ -9,17 +9,17 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <object class="GtkDialog">
     <child type="action">
       <object class="GtkButton" id="cancel_button">
-        <property name="label" translatable="true">Cancel</property>
+        <property name="label" translatable="yes">Cancel</property>
       </object>
     </child>
     <child type="action">
       <object class="GtkButton" id="custom_response_button">
-        <property name="label" translatable="true">Reinstall Windows</property>
+        <property name="label" translatable="yes">Reinstall Windows</property>
       </object>
     </child>
     <child type="action">
       <object class="GtkButton" id="ok_button">
-        <property name="label" translatable="true">Ok</property>
+        <property name="label" translatable="yes">Ok</property>
       </object>
     </child>
     <action-widgets>
@@ -31,7 +31,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <object class="GtkInfoBar">
     <child type="action">
       <object class="GtkButton" id="ok_info_button">
-        <property name="label" translatable="true">Ok</property>
+        <property name="label" translatable="yes">Ok</property>
       </object>
     </child>
     <action-widgets>

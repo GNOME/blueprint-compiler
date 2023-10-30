@@ -9,7 +9,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <object class="GtkStringList" id="greetings">
     <items>
       <item>Hello, world!</item>
-      <item translatable="true">Hello!</item>
+      <item translatable="yes">Hello!</item>
     </items>
   </object>
   <object class="GtkDropDown">
