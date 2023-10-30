@@ -150,7 +150,7 @@ class XmlOutput(OutputFormat):
         elif isinstance(translated, QuotedLiteral):
             return {}
         else:
-            return {"translatable": "true", "context": translated.translate_context}
+            return {"translatable": "yes", "context": translated.translate_context}
 
     def _emit_signal(self, signal: Signal, xml: XmlEmitter):
         name = signal.name
