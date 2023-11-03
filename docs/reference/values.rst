@@ -145,7 +145,6 @@ Example
      label: _("This is an advanced feature. Use with caution!");
    }
 
-
 .. _Syntax ObjectValue:
 
 Object Values
@@ -170,3 +169,14 @@ String Values
    StringValue = :ref:`Translated<Syntax Translated>` | :ref:`QuotedLiteral<Syntax Literal>`
 
 Menus, as well as some :ref:`extensions<Syntax Extension>`, have properties that can only be string literals or translated strings.
+
+.. _Syntax ArrayValue:
+
+Array Values
+-------------
+
+.. rst-class:: grammar-block
+
+    ArrayValue = '[' (:ref:`StringValue<Syntax StringValue>`),* ']'
+
+For now, it only supports :ref:`Strings<Syntax StringValue>`. This is because Gtk.Builder only supports string arrays.

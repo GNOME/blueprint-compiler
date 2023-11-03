@@ -139,6 +139,15 @@ class XmlOutput(OutputFormat):
             self._emit_object(value.object, xml)
             xml.end_tag()
 
+        elif isinstance(value, ArrayValue):
+            xml.start_tag("property", **props)
+            values = list(value.values)
+            for value in values[:-1]:
+                self._emit_value(value, xml)
+                xml.put_text("\n")
+            self._emit_value(values[-1], xml)
+            xml.end_tag()
+
         else:
             raise CompilerBugError()
 

@@ -19,6 +19,8 @@
 
 import typing as T
 
+from blueprintcompiler.gir import ArrayType
+
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .gobject_object import Object
@@ -393,6 +395,54 @@ class Value(AstNode):
         self,
     ) -> T.Union[Translated, Flags, Literal]:
         return self.children[0]
+
+
+class ArrayValue(AstNode):
+    grammar = ["[", Delimited(Value, ","), "]"]
+
+    @validate()
+    def validate_for_type(self) -> None:
+        expected_type = self.gir_type
+        if expected_type is not None and not isinstance(expected_type, gir.ArrayType):
+            raise CompileError(f"Cannot assign array to {expected_type.full_name}")
+
+        if expected_type is not None and not isinstance(
+            expected_type.inner, StringType
+        ):
+            raise CompileError("Only string arrays are supported")
+
+    @validate()
+    def validate_invalid_newline(self) -> None:
+        expected_type = self.gir_type
+        if expected_type is not None and isinstance(expected_type.inner, StringType):
+            errors = []
+            for value in self.values:
+                if isinstance(value.child, Literal) and isinstance(
+                    value.child.value, QuotedLiteral
+                ):
+                    quoted_literal = value.child.value
+                    literal_value = quoted_literal.value
+                    if "\n" in literal_value:
+                        errors.append(
+                            CompileError(
+                                "String literals inside arrays can't contain newlines",
+                                range=quoted_literal.range,
+                            )
+                        )
+            if len(errors) > 0:
+                raise MultipleErrors(errors)
+
+    @property
+    def values(self) -> T.List[Value]:
+        return self.children
+
+    @property
+    def gir_type(self):
+        return self.parent.context[ValueTypeCtx].value_type
+
+    @context(ValueTypeCtx)
+    def child_value(self):
+        return ValueTypeCtx(self.gir_type.inner)
 
 
 class StringValue(AstNode):

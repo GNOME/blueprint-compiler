@@ -41,6 +41,7 @@ from .imports import GtkDirective, Import
 from .types import ClassName
 from .ui import UI
 from .values import (
+    ArrayValue,
     Flag,
     Flags,
     IdentLiteral,
