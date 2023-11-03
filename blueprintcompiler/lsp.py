@@ -292,7 +292,7 @@ class LanguageServer:
             return
 
         try:
-            formatted_blp = Format.format(
+            formatted_blp = Formatter.format(
                 open_file.text,
                 params["options"]["tabSize"],
                 params["options"]["insertSpaces"],
