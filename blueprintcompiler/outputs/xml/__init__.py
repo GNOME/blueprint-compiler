@@ -6,8 +6,8 @@ from .xml_emitter import XmlEmitter
 
 
 class XmlOutput(OutputFormat):
-    def emit(self, ui: UI) -> str:
-        xml = XmlEmitter()
+    def emit(self, ui: UI, indent=2, generated_notice=True) -> str:
+        xml = XmlEmitter(indent, generated_notice)
         self._emit_ui(ui, xml)
         return xml.result
 
