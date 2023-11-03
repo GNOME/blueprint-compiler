@@ -19,13 +19,14 @@
 
 
 import argparse
-import json
+import difflib
 import os
 import sys
 import typing as T
 
 from . import interactive_port, parser, tokenizer
 from .errors import CompileError, CompilerBugError, PrintableError, report_bug
+from .formatter import Formatter
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -64,6 +65,36 @@ class BlueprintApp:
             metavar="filenames",
             default=sys.stdin,
             type=argparse.FileType("r"),
+        )
+
+        format = self.add_subcommand(
+            "format", "Format given blueprint files", self.cmd_format
+        )
+        format.add_argument(
+            "-f",
+            "--fix",
+            help="Apply the edits to the files",
+            default=False,
+            action="store_true",
+        )
+        format.add_argument(
+            "-t",
+            "--tabs",
+            help="Use tabs instead of spaces",
+            default=False,
+            action="store_true",
+        )
+        format.add_argument(
+            "-s",
+            "--spaces-num",
+            help="How many spaces should be used per indent",
+            default=2,
+            type=int,
+        )
+        format.add_argument(
+            "inputs",
+            nargs="+",
+            metavar="filenames",
         )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
@@ -151,6 +182,111 @@ class BlueprintApp:
             except PrintableError as e:
                 e.pretty_print(file.name, data)
                 sys.exit(1)
+
+    def cmd_format(self, opts):
+        input_files = []
+        missing_files = []
+        panic = False
+        formatted_files = 0
+        skipped_files = 0
+
+        for path in opts.inputs:
+            if os.path.isfile(path):
+                input_files.append(path)
+            elif os.path.isdir(path):
+                for root, subfolders, files in os.walk(path):
+                    for file in files:
+                        if file.endswith(".blp"):
+                            input_files.append(os.path.join(root, file))
+            else:
+                missing_files.append(path)
+
+        for file in input_files:
+            with open(file, "r+") as file:
+                data = file.read()
+                errored = False
+
+                try:
+                    self._compile(data)
+                except:
+                    errored = True
+
+                formatted_str = Formatter.format(data, opts.spaces_num, not opts.tabs)
+
+                if data != formatted_str:
+                    happened = "Would format"
+
+                    if opts.fix and not errored:
+                        file.seek(0)
+                        file.truncate()
+                        file.write(formatted_str)
+                        happened = "Formatted"
+
+                    diff_lines = []
+                    a_lines = data.splitlines(keepends=True)
+                    b_lines = formatted_str.splitlines(keepends=True)
+
+                    for line in difflib.unified_diff(
+                        a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
+                    ):
+                        # Work around https://bugs.python.org/issue2142
+                        # See:
+                        # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
+                        if line[-1] == "\n":
+                            diff_lines.append(line)
+                        else:
+                            diff_lines.append(line + "\n")
+                            diff_lines.append("\\ No newline at end of file\n")
+
+                    print("".join(diff_lines))
+                    to_print = Colors.BOLD
+                    if errored:
+                        to_print += f"{Colors.RED}Skipped {file.name}: Will not overwrite file with compile errors"
+                        panic = True
+                        skipped_files += 1
+                    else:
+                        to_print += f"{happened} {file.name}"
+                        formatted_files += 1
+
+                    print(to_print)
+                    print(Colors.CLEAR)
+
+        missing_num = len(missing_files)
+        summary = ""
+
+        if missing_num > 0:
+            print(
+                f"{Colors.BOLD}{Colors.RED}Could not find files:{Colors.CLEAR}{Colors.BOLD}"
+            )
+            for path in missing_files:
+                print(f"  {path}")
+            print(Colors.CLEAR)
+            panic = True
+
+        def would_be(verb):
+            return verb if opts.fix else f"would be {verb}"
+
+        def how_many(count, bold=True):
+            string = f"{Colors.BLUE}{count} {'files' if count != 1 else 'file'}{Colors.CLEAR}"
+            return Colors.BOLD + string + Colors.BOLD if bold else Colors.CLEAR + string
+
+        if formatted_files > 0:
+            summary += f"{how_many(formatted_files)} {would_be('formatted')}, "
+            panic = panic or not opts.fix
+
+        left_files = len(input_files) - formatted_files - skipped_files
+        summary += f"{how_many(left_files, False)} {would_be('left unchanged')}"
+
+        if skipped_files > 0:
+            summary += f", {how_many(skipped_files)} {would_be('skipped')}"
+
+        if missing_num > 0:
+            summary += f", {how_many(missing_num)} not found"
+
+        print(summary + Colors.CLEAR)
+
+        if panic:
+            sys.exit(1)
 
     def cmd_lsp(self, opts):
         langserv = LanguageServer()

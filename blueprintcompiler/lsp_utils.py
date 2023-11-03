@@ -186,3 +186,12 @@ class LocationLink:
             "targetRange": self.target_range.to_json(),
             "targetSelectionRange": self.target_selection_range.to_json(),
         }
+
+
+@dataclass
+class TextEdit:
+    range: Range
+    newText: str
+
+    def to_json(self):
+        return {"range": self.range.to_json(), "newText": self.newText}
