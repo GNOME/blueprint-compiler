@@ -153,6 +153,9 @@ class Formatter:
                             current_line = current_line[:-1]
                             commit_current_line()
                             current_line = "]"
+                        elif str(last_not_whitespace) in OPENING_TOKENS:
+                            end_str = end_str.strip()
+                            commit_current_line(LineType.BLOCK_CLOSE, True, 0)
 
                         indent_levels -= 1
                         commit_current_line(LineType.BLOCK_CLOSE, True)
