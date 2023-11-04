@@ -1,0 +1,17 @@
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python', 'cython']
+
+[project]
+name = 'blueprint-compiler'
+version = '0.10.1'
+description = 'A markup language for GTK user interface files.'
+readme = 'README.md'
+requires-python = '>=3.8'
+license = {file = 'COPYING'}
+authors = [
+  {name = 'James Westman', email = 'james@jwestman.net'},
+]
+[project.urls]
+"Homepage" = "https://jwestman.pages.gitlab.gnome.org/blueprint-compiler/"
+"Bug Tracker" = "https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues"
