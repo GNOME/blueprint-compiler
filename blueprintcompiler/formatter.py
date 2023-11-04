@@ -83,10 +83,12 @@ class Formatter:
                 whitespace_required = (
                     str_item in WHITESPACE_BEFORE
                     or str(last_not_whitespace) in WHITESPACE_AFTER
+                    or (str_item == "(" and end_str.endswith(": bind"))
                 )
                 whitespace_blockers = (
                     str_item in NO_WHITESPACE_BEFORE
-                    or str(last_not_whitespace) in NO_WHITESPACE_AFTER
+                    or (str(last_not_whitespace) in NO_WHITESPACE_AFTER)
+                    or (str_item == "<" and str(last_not_whitespace) == "typeof")
                 )
 
                 this_or_last_is_ident = (
@@ -94,11 +96,12 @@ class Formatter:
                     or last_not_whitespace.type == TokenType.IDENT
                 )
                 current_line_is_empty = len(current_line) == 0
-                just_one_word_on_line = re.match(r"^([A-Za-z_\-])+$", current_line)
-                is_short_object_def = str_item == "(" and not just_one_word_on_line
+                is_function = str_item == "(" and not re.match(
+                    r"^([A-Za-z_\-])+(: bind)?$", current_line
+                )
 
                 any_blockers = (
-                    whitespace_blockers or current_line_is_empty or is_short_object_def
+                    whitespace_blockers or current_line_is_empty or is_function
                 )
 
                 if (whitespace_required or this_or_last_is_ident) and not any_blockers:

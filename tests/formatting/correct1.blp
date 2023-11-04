@@ -31,9 +31,10 @@ template $MyTemplate: Label {
    * Multiline comment.
    */
   // Single line comment.
-  value: bind 1.0 as <double>;
+  value: bind (1.0) as <double>;
   as: 1;
   signal => $on_signal() after;
+  type_value: typeof<$MyTemplate>;
 }
 
 Dialog {
