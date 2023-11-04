@@ -225,4 +225,4 @@ class Formatter:
 
                 last_not_whitespace = item
 
-        return end_str
+        return end_str.strip() + "\n"
