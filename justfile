@@ -2,11 +2,11 @@ default: black isort
 
 # Format with black formatter
 black:
-    black blueprintcompiler/
+    black ./
 
 # Sort imports using isort
 isort:
-    isort blueprintcompiler/ --profile black
+    isort ./ --profile black
 
 
 # Run all tests
