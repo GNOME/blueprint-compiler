@@ -57,6 +57,7 @@ class Formatter:
         watch_parentheses = False
         parentheses_balance = 0
         bracket_tracker = [None]
+        last_whitespace_contains_newline = False
 
         def commit_current_line(
             line_type=prev_line_type, redo_whitespace=False, newlines_before=1
@@ -67,7 +68,7 @@ class Formatter:
             whitespace_to_add = "\n" + indent_whitespace
 
             if redo_whitespace or newlines_before != 1:
-                end_str = end_str.strip() + ("\n" * newlines_before)
+                end_str = end_str.strip() + "\n" * newlines_before
                 if newlines_before > 0:
                     end_str += indent_whitespace
 
@@ -77,155 +78,158 @@ class Formatter:
             prev_line_type = line_type
 
         for item in tokens:
-            if item.type != TokenType.WHITESPACE:
-                str_item = str(item)
+            str_item = str(item)
 
-                whitespace_required = (
-                    str_item in WHITESPACE_BEFORE
-                    or str(last_not_whitespace) in WHITESPACE_AFTER
-                    or (str_item == "(" and end_str.endswith(": bind"))
-                )
-                whitespace_blockers = (
-                    str_item in NO_WHITESPACE_BEFORE
-                    or (str(last_not_whitespace) in NO_WHITESPACE_AFTER)
-                    or (str_item == "<" and str(last_not_whitespace) == "typeof")
-                )
+            if item.type == TokenType.WHITESPACE:
+                last_whitespace_contains_newline = "\n" in str_item
+                continue
 
-                this_or_last_is_ident = (
-                    item.type == TokenType.IDENT
-                    or last_not_whitespace.type == TokenType.IDENT
-                )
-                current_line_is_empty = len(current_line) == 0
-                is_function = str_item == "(" and not re.match(
-                    r"^([A-Za-z_\-])+(: bind)?$", current_line
-                )
+            whitespace_required = (
+                str_item in WHITESPACE_BEFORE
+                or str(last_not_whitespace) in WHITESPACE_AFTER
+                or (str_item == "(" and end_str.endswith(": bind"))
+            )
+            whitespace_blockers = (
+                str_item in NO_WHITESPACE_BEFORE
+                or str(last_not_whitespace) in NO_WHITESPACE_AFTER
+                or (str_item == "<" and str(last_not_whitespace) == "typeof")
+            )
 
-                any_blockers = (
-                    whitespace_blockers or current_line_is_empty or is_function
-                )
+            this_or_last_is_ident = (
+                item.type == TokenType.IDENT
+                or last_not_whitespace.type == TokenType.IDENT
+            )
+            current_line_is_empty = len(current_line) == 0
+            is_function = str_item == "(" and not re.match(
+                r"^([A-Za-z_\-])+(: bind)?$", current_line
+            )
 
-                if (whitespace_required or this_or_last_is_ident) and not any_blockers:
-                    current_line += " "
+            any_blockers = whitespace_blockers or current_line_is_empty or is_function
 
-                current_line += str_item
+            if (whitespace_required or this_or_last_is_ident) and not any_blockers:
+                current_line += " "
 
-                if str_item in ["[", "("]:
-                    bracket_tracker.append(str_item)
-                elif str_item in ["]", ")"]:
-                    bracket_tracker.pop()
+            current_line += str_item
 
-                needs_newline_treatment = (
-                    str_item in NEWLINE_AFTER or item.type == TokenType.COMMENT
-                )
-                if needs_newline_treatment:
-                    if str_item in OPENING_TOKENS:
-                        list_or_child_type = str_item == "["
-                        if list_or_child_type:
-                            is_child_type = current_line.startswith("[")
+            if str_item in ["[", "("]:
+                bracket_tracker.append(str_item)
+            elif str_item in ["]", ")"]:
+                bracket_tracker.pop()
 
-                            if is_child_type:
-                                if str(last_not_whitespace) not in OPENING_TOKENS:
-                                    end_str = (
-                                        end_str.strip()
-                                        + "\n\n"
-                                        + (indent_item * indent_levels)
-                                    )
-                                last_not_whitespace = item
-                                continue
+            needs_newline_treatment = (
+                str_item in NEWLINE_AFTER or item.type == TokenType.COMMENT
+            )
+            if needs_newline_treatment:
+                if str_item in OPENING_TOKENS:
+                    list_or_child_type = str_item == "["
+                    if list_or_child_type:
+                        is_child_type = current_line.startswith("[")
 
-                        indent_levels += 1
-                        keep_same_indent = not prev_line_type in [
-                            LineType.CHILD_TYPE,
-                            LineType.COMMENT,
-                            LineType.BLOCK_OPEN,
-                        ]
-                        if keep_same_indent:
-                            end_str = (
-                                end_str.strip()
-                                + "\n\n"
-                                + (indent_item * (indent_levels - 1))
-                            )
-                        commit_current_line(LineType.BLOCK_OPEN)
+                        if is_child_type:
+                            if str(last_not_whitespace) not in OPENING_TOKENS:
+                                end_str = (
+                                    end_str.strip()
+                                    + "\n\n"
+                                    + (indent_item * indent_levels)
+                                )
+                            last_not_whitespace = item
+                            continue
 
-                    elif str_item == "]" and is_child_type:
-                        commit_current_line(LineType.CHILD_TYPE, False)
-                        is_child_type = False
+                    indent_levels += 1
+                    keep_same_indent = not prev_line_type in [
+                        LineType.CHILD_TYPE,
+                        LineType.COMMENT,
+                        LineType.BLOCK_OPEN,
+                    ]
+                    if keep_same_indent:
+                        end_str = (
+                            end_str.strip() + "\n\n" + indent_item * (indent_levels - 1)
+                        )
+                    commit_current_line(LineType.BLOCK_OPEN)
 
-                    elif str_item in CLOSING_TOKENS:
-                        if str_item == "]" and last_not_whitespace != ",":
-                            current_line = current_line[:-1]
-                            commit_current_line()
-                            current_line = "]"
-                        elif str(last_not_whitespace) in OPENING_TOKENS:
-                            end_str = end_str.strip()
-                            commit_current_line(LineType.BLOCK_CLOSE, True, 0)
+                elif str_item == "]" and is_child_type:
+                    commit_current_line(LineType.CHILD_TYPE, False)
+                    is_child_type = False
 
-                        indent_levels -= 1
-                        commit_current_line(LineType.BLOCK_CLOSE, True)
+                elif str_item in CLOSING_TOKENS:
+                    if str_item == "]" and last_not_whitespace != ",":
+                        current_line = current_line[:-1]
+                        commit_current_line()
+                        current_line = "]"
+                    elif str(last_not_whitespace) in OPENING_TOKENS:
+                        end_str = end_str.strip()
+                        commit_current_line(LineType.BLOCK_CLOSE, True, 0)
 
-                    elif str_item == ";":
-                        line_type = LineType.STATEMENT
-                        if len(current_line) == 1:
+                    indent_levels -= 1
+                    commit_current_line(LineType.BLOCK_CLOSE, True)
+
+                elif str_item == ";":
+                    line_type = LineType.STATEMENT
+                    if len(current_line) == 1:
+                        newlines = 0
+                        line_type = LineType.BLOCK_CLOSE
+                    elif prev_line_type == LineType.BLOCK_CLOSE:
+                        newlines = 2
+                    else:
+                        newlines = 1
+
+                    commit_current_line(line_type, newlines_before=newlines)
+
+                elif item.type == TokenType.COMMENT:
+                    require_extra_newline = [
+                        LineType.BLOCK_CLOSE,
+                        LineType.STATEMENT,
+                        LineType.COMMENT,
+                    ]
+
+                    single_line_comment = str_item.startswith("//")
+                    newlines = 1
+                    if single_line_comment:
+                        if not str_item.startswith("// "):
+                            current_line = f"// {current_line[2:]}"
+
+                        if not last_whitespace_contains_newline:
+                            current_line = " " + current_line
                             newlines = 0
-                            line_type = LineType.BLOCK_CLOSE
                         elif prev_line_type == LineType.BLOCK_CLOSE:
                             newlines = 2
-                        else:
-                            newlines = 1
 
-                        commit_current_line(line_type, newlines_before=newlines)
+                    elif prev_line_type in require_extra_newline:
+                        newlines = 2
 
-                    elif item.type == TokenType.COMMENT:
-                        require_extra_newline = [
-                            LineType.BLOCK_CLOSE,
-                            LineType.STATEMENT,
-                            LineType.COMMENT,
-                        ]
+                    commit_current_line(LineType.COMMENT, newlines_before=newlines)
 
-                        single_line_comment = str_item.startswith("//")
-                        if (
-                            single_line_comment
-                            and prev_line_type == LineType.BLOCK_CLOSE
-                        ) or (
-                            not single_line_comment
-                            and prev_line_type in require_extra_newline
-                        ):
-                            newlines = 2
-                        else:
-                            newlines = 1
+                else:
+                    commit_current_line()
 
-                        commit_current_line(LineType.COMMENT, newlines_before=newlines)
+            elif str_item == "(" and (
+                re.match("^([A-Za-z_\-])+\s*\(", current_line) or watch_parentheses
+            ):
+                watch_parentheses = True
+                parentheses_balance += 1
 
-                    else:
-                        commit_current_line()
+            elif str_item == ")" and watch_parentheses:
+                parentheses_balance -= 1
+                all_parentheses_closed = parentheses_balance == 0
+                if all_parentheses_closed:
+                    commit_current_line(
+                        newlines_before=2
+                        if prev_line_type == LineType.BLOCK_CLOSE
+                        else 1
+                    )
+                    watch_parentheses = False
 
-                elif str_item == "(" and (
-                    re.match("^([A-Za-z_\-])+\s*\(", current_line) or watch_parentheses
-                ):
-                    watch_parentheses = True
-                    parentheses_balance += 1
+            tracker_is_empty = len(bracket_tracker) > 0
+            if tracker_is_empty:
+                last_in_tracker = bracket_tracker[-1]
+                is_list_comma = last_in_tracker == "[" and str_item == ","
+                if is_list_comma:
+                    last_was_list_item = end_str.strip()[-1] not in ["[", ","]
+                    if last_was_list_item:
+                        end_str = end_str.strip()
+                    commit_current_line()
 
-                elif str_item == ")" and watch_parentheses:
-                    parentheses_balance -= 1
-                    all_parentheses_closed = parentheses_balance == 0
-                    if all_parentheses_closed:
-                        commit_current_line(
-                            newlines_before=2
-                            if prev_line_type == LineType.BLOCK_CLOSE
-                            else 1
-                        )
-                        watch_parentheses = False
-
-                tracker_is_empty = len(bracket_tracker) > 0
-                if tracker_is_empty:
-                    last_in_tracker = bracket_tracker[-1]
-                    is_list_comma = last_in_tracker == "[" and str_item == ","
-                    if is_list_comma:
-                        last_was_list_item = end_str.strip()[-1] not in ["[", ","]
-                        if last_was_list_item:
-                            end_str = end_str.strip()
-                        commit_current_line()
-
-                last_not_whitespace = item
+            last_not_whitespace = item
+            last_whitespace_contains_newline = False
 
         return end_str.strip() + "\n"
