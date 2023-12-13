@@ -26,6 +26,7 @@ from .gobject_object import Object
 from .gtk_menu import Menu, menu
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
+from .translation_domain import TranslationDomain
 
 
 class UI(AstNode):
@@ -34,6 +35,7 @@ class UI(AstNode):
     grammar = [
         GtkDirective,
         ZeroOrMore(Import),
+        Optional(TranslationDomain),
         Until(
             AnyOf(
                 Template,
@@ -74,6 +76,14 @@ class UI(AstNode):
     @property
     def gtk_decl(self) -> GtkDirective:
         return self.children[GtkDirective][0]
+
+    @property
+    def translation_domain(self) -> T.Optional[TranslationDomain]:
+        domains = self.children[TranslationDomain]
+        if len(domains):
+            return domains[0]
+        else:
+            return None
 
     @property
     def contents(self) -> T.List[T.Union[Object, Template, Menu]]:

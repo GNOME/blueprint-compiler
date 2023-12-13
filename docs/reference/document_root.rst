@@ -10,7 +10,7 @@ Document Root
 
 .. rst-class:: grammar-block
 
-   Root = :ref:`GtkDecl<Syntax GtkDecl>` (:ref:`Using<Syntax Using>`)* ( :ref:`Template<Syntax Template>` | :ref:`Menu<Syntax Menu>` | :ref:`Object<Syntax Object>` )* EOF
+   Root = :ref:`GtkDecl<Syntax GtkDecl>` (:ref:`Using<Syntax Using>`)* (:ref:`TranslationDomain<Syntax TranslationDomain>`)? ( :ref:`Template<Syntax Template>` | :ref:`Menu<Syntax Menu>` | :ref:`Object<Syntax Object>` )* EOF
 
 A blueprint document consists of a :ref:`GTK declaration<Syntax GtkDecl>`, one sor more :ref:`imports<Syntax Using>`, and a list of :ref:`objects<Syntax Object>` and/or a :ref:`template<Syntax Template>`.
 
@@ -72,3 +72,17 @@ Example
 
    // Import libadwaita
    using Adw 1;
+
+
+.. _Syntax TranslationDomain:
+
+Translation Domain
+------------------
+
+.. rst-class:: grammar-block
+
+   TranslationDomain = 'translation-domain' <domain::ref:`QUOTED<Syntax QUOTED>`> ';'
+
+The translation domain is used to look up translations for translatable strings in the blueprint file. If no translation domain is specified, strings will be looked up in the program's global domain.
+
+See `Gtk.Builder:translation-domain <https://docs.gtk.org/gtk4/property.Builder.translation-domain.html>`_ for more information.

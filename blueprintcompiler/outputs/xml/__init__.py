@@ -12,7 +12,10 @@ class XmlOutput(OutputFormat):
         return xml.result
 
     def _emit_ui(self, ui: UI, xml: XmlEmitter):
-        xml.start_tag("interface")
+        if domain := ui.translation_domain:
+            xml.start_tag("interface", domain=domain.domain)
+        else:
+            xml.start_tag("interface")
 
         self._emit_gtk_directive(ui.gtk_decl, xml)
 
