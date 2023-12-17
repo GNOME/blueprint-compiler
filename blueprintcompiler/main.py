@@ -262,6 +262,10 @@ class BlueprintApp:
             print(Colors.CLEAR)
             panic = True
 
+        if len(input_files) == 0:
+            print(f"{Colors.RED}No Blueprint files found")
+            sys.exit(1)
+
         def would_be(verb):
             return verb if opts.fix else f"would be {verb}"
 
