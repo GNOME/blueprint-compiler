@@ -24,11 +24,10 @@ import traceback
 import typing as T
 from difflib import SequenceMatcher
 
-from . import decompiler, parser, tokenizer, utils, xml_reader
+from . import decompiler, formatter, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
-from .formatter import Formatter
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
 from .tokenizer import Token
@@ -292,7 +291,7 @@ class LanguageServer:
             return
 
         try:
-            formatted_blp = Formatter.format(
+            formatted_blp = formatter.format(
                 open_file.text,
                 params["options"]["tabSize"],
                 params["options"]["insertSpaces"],

@@ -24,9 +24,8 @@ import os
 import sys
 import typing as T
 
-from . import interactive_port, parser, tokenizer
+from . import formatter, interactive_port, parser, tokenizer
 from .errors import CompileError, CompilerBugError, PrintableError, report_bug
-from .formatter import Formatter
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -211,7 +210,7 @@ class BlueprintApp:
                 except:
                     errored = True
 
-                formatted_str = Formatter.format(data, opts.spaces_num, not opts.tabs)
+                formatted_str = formatter.format(data, opts.spaces_num, not opts.tabs)
 
                 if data != formatted_str:
                     happened = "Would format"

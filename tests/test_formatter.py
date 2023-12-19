@@ -21,7 +21,7 @@
 import unittest
 from pathlib import Path
 
-from blueprintcompiler.formatter import Formatter
+from blueprintcompiler import formatter
 
 
 class TestFormatter(unittest.TestCase):
@@ -38,7 +38,7 @@ class TestFormatter(unittest.TestCase):
         ) as f:
             expected = f.read()
 
-        actual = Formatter.format(input_data)
+        actual = formatter.format(input_data)
         self.assertEqual(actual, expected)
 
     def test_formatter(self):
