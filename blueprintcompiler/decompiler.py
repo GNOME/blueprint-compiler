@@ -22,6 +22,7 @@ import typing as T
 from dataclasses import dataclass
 from enum import Enum
 
+from . import formatter
 from .gir import *
 from .utils import Colors, escape_quote
 from .xml_reader import Element, parse, parse_string
@@ -68,7 +69,9 @@ class DecompileCtx:
                 for ns, namespace in self.gir.namespaces.items()
             ]
         )
-        return imports + "\n" + self._result
+        full_string = imports + "\n" + self._result
+        formatted_string = formatter.format(full_string)
+        return formatted_string
 
     def type_by_cname(self, cname: str) -> T.Optional[GirType]:
         if type := self.gir.get_type_by_cname(cname):
@@ -96,35 +99,11 @@ class DecompileCtx:
         self._blocks_need_end[-1] = text
 
     def print(self, line: str, newline: bool = True) -> None:
-        if line == "}" or line == "]":
-            self._indent -= 1
-
-        # Add blank lines between different types of lines, for neatness
-        if newline:
-            if line == "}" or line == "]":
-                line_type = LineType.BLOCK_END
-            elif line.endswith("{") or line.endswith("]"):
-                line_type = LineType.BLOCK_START
-            elif line.endswith(";"):
-                line_type = LineType.STMT
-            else:
-                line_type = LineType.NONE
-            if (
-                line_type != self._last_line_type
-                and self._last_line_type != LineType.BLOCK_START
-                and line_type != LineType.BLOCK_END
-            ):
-                self._result += "\n"
-            self._last_line_type = line_type
-
-        self._result += ("  " * self._indent) + line
-        if newline:
-            self._result += "\n"
+        self._result += line
 
         if line.endswith("{") or line.endswith("["):
             if len(self._blocks_need_end):
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
-            self._indent += 1
 
     def print_attribute(self, name: str, value: str, type: GirType) -> None:
         def get_enum_name(value):
