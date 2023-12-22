@@ -285,7 +285,7 @@ CSS Styles
 .. rst-class:: grammar-block
 
    ExtStyles = 'styles' '[' ExtStylesProp* ']'
-   ExtStylesClass = <name::ref:`QUOTED<Syntax QUOTED>`>
+   ExtStylesProp = <name::ref:`QUOTED<Syntax QUOTED>`>
 
 Valid in any `Gtk.Widget <https://docs.gtk.org/gtk4/class.Widget.html>`_.
 
