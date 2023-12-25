@@ -93,7 +93,7 @@ class CompileError(PrintableError):
         assert self.range is not None
 
         line_num, col_num = utils.idx_to_pos(self.range.start + 1, code)
-        line = code.splitlines(True)[line_num]
+        line = code.splitlines(True)[line_num] if code != "" else ""
 
         # Display 1-based line numbers
         line_num += 1
