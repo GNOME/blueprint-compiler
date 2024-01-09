@@ -12,7 +12,7 @@ Document Root
 
    Root = :ref:`GtkDecl<Syntax GtkDecl>` (:ref:`Using<Syntax Using>`)* (:ref:`TranslationDomain<Syntax TranslationDomain>`)? ( :ref:`Template<Syntax Template>` | :ref:`Menu<Syntax Menu>` | :ref:`Object<Syntax Object>` )* EOF
 
-A blueprint document consists of a :ref:`GTK declaration<Syntax GtkDecl>`, one sor more :ref:`imports<Syntax Using>`, and a list of :ref:`objects<Syntax Object>` and/or a :ref:`template<Syntax Template>`.
+A blueprint document consists of a :ref:`GTK declaration<Syntax GtkDecl>`, one or more :ref:`imports<Syntax Using>`, and a list of :ref:`objects<Syntax Object>` and/or a :ref:`template<Syntax Template>`.
 
 Example
 ~~~~~~~
