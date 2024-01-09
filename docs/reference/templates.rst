@@ -66,12 +66,25 @@ This ``MapsHeaderBar`` class, along with its blueprint template, can then be ref
      }
    }
 
-ID & Parent Parameters
-~~~~~~~~~~~~~~~~~~~~~~
+Type & Parent Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The type name that directly follows the ``template`` keyword is the type of the template class. In most cases, this will be an extern type starting with ``$`` and matching the class name in the application code. Templates for use in a `Gtk.BuilderListItemFactory <https://docs.gtk.org/gtk4/class.BuilderListItemFactory.html>`_ use ``ListItem`` as the type name instead.
 
 The parent type is optional, and may only be present if the template type is extern. It enables limited type checking for the properties and signals of the template object.
+
+
+Referencing a Template
+----------------------
+
+To reference the template object in a binding or expression, use the ``template`` keyword:
+
+.. code-block:: blueprint
+
+   template $MyTemplate {
+     prop1: "Hello, world!";
+     prop2: bind template.prop1;
+   }
 
 
 Language Implementations
