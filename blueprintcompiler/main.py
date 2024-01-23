@@ -24,9 +24,9 @@ import os
 import sys
 import typing as T
 
-from . import formatter, interactive_port, parser, tokenizer
+from . import formatter, interactive_port, parser, tokenizer, linter
 from .decompiler import decompile_string
-from .errors import CompileError, CompilerBugError, PrintableError, report_bug
+from .errors import CompileError, CompileWarning, CompilerBugError, PrintableError, report_bug
 from .gir import add_gir_search_path, add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -123,6 +123,15 @@ class BlueprintApp:
         decompile.add_argument("--gir-path", nargs="?", action="append")
         decompile.add_argument(
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
+        )
+
+        lint = self.add_subcommand(
+            "lint", "Lint given blueprint files", self.cmd_lint
+        )
+        lint.add_argument(
+            "inputs",
+            nargs="+",
+            metavar="filenames",
         )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
@@ -356,6 +365,45 @@ class BlueprintApp:
                     file.write(decompiled)
         except PrintableError as e:
             e.pretty_print(opts.input.name, data, stream=sys.stderr)
+
+    def cmd_lint(self, opts):
+        input_files = []
+        missing_files = []
+        panic = False
+
+        for path in opts.inputs:
+            if os.path.isfile(path):
+                input_files.append(path)
+            elif os.path.isdir(path):
+                for root, subfolders, files in os.walk(path):
+                    for file in files:
+                        if file.endswith(".blp"):
+                            input_files.append(os.path.join(root, file))
+            else:
+                missing_files.append(path)
+
+        for file in input_files:
+            with open(file, "r+") as file:
+                data = file.read()
+                errored = False
+
+                tokens = tokenizer.tokenize(data)
+                ast, errors, warnings = parser.parse(tokens)
+
+                if errors:
+                    raise errors
+                if ast is None:
+                    raise CompilerBugError()
+
+                problems = linter.lint(ast)
+                for problem in problems:
+                    if isinstance(problem, CompileError):
+                        problem.pretty_print(file.name, problem.range.original_text, stream=sys.stderr)
+                        panic = True
+                    elif isinstance(problem, CompileWarning):
+                        problem.pretty_print(file.name, problem.range.original_text, stream=sys.stderr)
+
+        if panic:
             sys.exit(1)
 
     def cmd_lsp(self, opts):
