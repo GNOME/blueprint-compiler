@@ -107,6 +107,16 @@ at {filename} line {line_num} column {col_num}:
         for hint in self.hints:
             stream.write(f"{Colors.FAINT}hint: {hint}{Colors.CLEAR}\n")
 
+        for i, action in enumerate(self.actions):
+            old = (
+                action.edit_range.text
+                if action.edit_range is not None
+                else self.range.text
+            )
+            stream.write(
+                f"suggestion: replace {Colors.RED}{old}{Colors.CLEAR} with {Colors.GREEN}{action.replace_with}{Colors.CLEAR}\n"
+            )
+
         for ref in self.references:
             line_num, col_num = utils.idx_to_pos(ref.range.start + 1, code)
             line = code.splitlines(True)[line_num]
