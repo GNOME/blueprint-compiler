@@ -35,7 +35,7 @@ Blueprint is a markup language and compiler for GTK 4 user interfaces.
      HeaderBar {}
 
      Label {
-       label: bind MyAppWindow.main_text;
+       label: bind template.main_text;
      }
    }
 
