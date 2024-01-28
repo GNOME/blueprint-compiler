@@ -79,7 +79,12 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
     ]
 
     for search_path in search_paths:
-        for filename in os.listdir(search_path):
+        try:
+            filenames = os.listdir(search_path)
+        except FileNotFoundError:
+            continue
+
+        for filename in filenames:
             if filename.endswith(".typelib"):
                 namespace, version = filename.removesuffix(".typelib").rsplit("-", 1)
                 _available_namespaces.append((namespace, version))

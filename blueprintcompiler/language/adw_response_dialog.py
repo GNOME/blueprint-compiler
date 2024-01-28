@@ -1,4 +1,4 @@
-# adw_message_dialog.py
+# adw_response_dialog.py
 #
 # Copyright 2023 James Westman <james@jwestman.net>
 #
@@ -25,7 +25,7 @@ from .gobject_object import ObjectContent, validate_parent_type
 from .values import StringValue
 
 
-class ExtAdwMessageDialogFlag(AstNode):
+class ExtAdwResponseDialogFlag(AstNode):
     grammar = AnyOf(
         UseExact("flag", "destructive"),
         UseExact("flag", "suggested"),
@@ -51,12 +51,12 @@ class ExtAdwMessageDialogFlag(AstNode):
             )
 
 
-class ExtAdwMessageDialogResponse(AstNode):
+class ExtAdwResponseDialogResponse(AstNode):
     grammar = [
         UseIdent("id"),
         Match(":").expected(),
         to_parse_node(StringValue).expected("a string or translatable string"),
-        ZeroOrMore(ExtAdwMessageDialogFlag),
+        ZeroOrMore(ExtAdwResponseDialogFlag),
     ]
 
     @property
@@ -64,8 +64,8 @@ class ExtAdwMessageDialogResponse(AstNode):
         return self.tokens["id"]
 
     @property
-    def flags(self) -> T.List[ExtAdwMessageDialogFlag]:
-        return self.children[ExtAdwMessageDialogFlag]
+    def flags(self) -> T.List[ExtAdwResponseDialogFlag]:
+        return self.children[ExtAdwResponseDialogFlag]
 
     @property
     def appearance(self) -> T.Optional[str]:
@@ -106,16 +106,16 @@ class ExtAdwMessageDialogResponse(AstNode):
         )
 
 
-class ExtAdwMessageDialog(AstNode):
+class ExtAdwResponseDialog(AstNode):
     grammar = [
         Keyword("responses"),
         Match("[").expected(),
-        Delimited(ExtAdwMessageDialogResponse, ","),
+        Delimited(ExtAdwResponseDialogResponse, ","),
         "]",
     ]
 
     @property
-    def responses(self) -> T.List[ExtAdwMessageDialogResponse]:
+    def responses(self) -> T.List[ExtAdwResponseDialogResponse]:
         return self.children
 
     @property
@@ -128,8 +128,11 @@ class ExtAdwMessageDialog(AstNode):
         )
 
     @validate("responses")
-    def container_is_message_dialog(self):
-        validate_parent_type(self, "Adw", "MessageDialog", "responses")
+    def container_is_message_dialog_or_alert_dialog(self):
+        try:
+            validate_parent_type(self, "Adw", "MessageDialog", "responses")
+        except:
+            validate_parent_type(self, "Adw", "AlertDialog", "responses")
 
     @validate("responses")
     def unique_in_parent(self):
@@ -141,7 +144,18 @@ class ExtAdwMessageDialog(AstNode):
     applies_in_subclass=("Adw", "MessageDialog"),
     matches=new_statement_patterns,
 )
-def style_completer(lsp, ast_node, match_variables):
+def complete_adw_message_dialog(lsp, ast_node, match_variables):
+    yield Completion(
+        "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
+    )
+
+
+@completer(
+    applies_in=[ObjectContent],
+    applies_in_subclass=("Adw", "AlertDialog"),
+    matches=new_statement_patterns,
+)
+def complete_adw_alert_dialog(lsp, ast_node, match_variables):
     yield Completion(
         "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
     )

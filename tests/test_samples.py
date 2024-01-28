@@ -44,6 +44,23 @@ class TestSamples(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.maxDiff = None
 
+        self.have_adw_1_4 = False
+        self.have_adw_1_5 = False
+
+        try:
+            import gi
+
+            gi.require_version("Adw", "1")
+            from gi.repository import Adw
+
+            Adw.init()
+            if Adw.MINOR_VERSION >= 4:
+                self.have_adw_1_4 = True
+            if Adw.MINOR_VERSION >= 5:
+                self.have_adw_1_5 = True
+        except:
+            pass
+
     def assert_ast_doesnt_crash(self, text, tokens, ast):
         for i in range(len(text)):
             ast.get_docs(i)
@@ -147,22 +164,6 @@ class TestSamples(unittest.TestCase):
             raise AssertionError()
 
     def test_samples(self):
-        have_adw = False
-        have_adw_1_4 = False
-
-        try:
-            import gi
-
-            gi.require_version("Adw", "1")
-            from gi.repository import Adw
-
-            have_adw = True
-            Adw.init()
-            if Adw.MINOR_VERSION >= 4:
-                have_adw_1_4 = True
-        except:
-            pass
-
         # list the samples directory
         samples = [
             f.stem
@@ -172,6 +173,7 @@ class TestSamples(unittest.TestCase):
         samples.sort()
         for sample in samples:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
+            REQUIRE_ADW_1_5 = ["adw_alertdialog_responses"]
 
             SKIP_RUN = [
                 "expr_closure",
@@ -189,7 +191,9 @@ class TestSamples(unittest.TestCase):
                 "unchecked_class",
             ]
 
-            if sample in REQUIRE_ADW_1_4 and not have_adw_1_4:
+            if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
+                continue
+            if sample in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
                 continue
 
             with self.subTest(sample):
@@ -202,8 +206,11 @@ class TestSamples(unittest.TestCase):
         sample_errors.sort()
         for sample_error in sample_errors:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
+            REQUIRE_ADW_1_5 = ["adw_alert_dialog_duplicate_flags"]
 
-            if sample_error in REQUIRE_ADW_1_4 and not have_adw_1_4:
+            if sample_error in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
+                continue
+            if sample_error in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
                 continue
 
             with self.subTest(sample_error):
@@ -211,6 +218,9 @@ class TestSamples(unittest.TestCase):
 
     def test_decompiler(self):
         self.assert_decompile("accessibility_dec")
+        if self.have_adw_1_5:
+            self.assert_decompile("adw_alertdialog_responses")
+        self.assert_decompile("adw_messagedialog_responses")
         self.assert_decompile("child_type")
         self.assert_decompile("file_filter")
         self.assert_decompile("flags")
@@ -220,7 +230,6 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("property")
         self.assert_decompile("property_binding_dec")
         self.assert_decompile("placeholder_dec")
-        self.assert_decompile("responses")
         self.assert_decompile("scale_marks")
         self.assert_decompile("signal")
         self.assert_decompile("strings_dec")

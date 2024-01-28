@@ -15,7 +15,7 @@ Properties are the main way to set values on objects, but they are limited by th
 .. rst-class:: grammar-block
 
    Extension = :ref:`ExtAccessibility<Syntax ExtAccessibility>`
-   | :ref:`ExtAdwMessageDialog<Syntax ExtAdwMessageDialog>`
+   | :ref:`ExtAdwResponseDialog<Syntax ExtAdwResponseDialog>`
    | :ref:`ExtAdwBreakpoint<Syntax ExtAdwBreakpoint>`
    | :ref:`ExtComboBoxItems<Syntax ExtComboBoxItems>`
    | :ref:`ExtFileFilterMimeTypes<Syntax ExtFileFilter>`
@@ -63,16 +63,16 @@ Defines the condition for a breakpoint and the properties that will be set at th
    The `Adw.Breakpoint:condition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/property.Breakpoint.condition.html>`_ property has type `Adw.BreakpointCondition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/struct.BreakpointCondition.html>`_, which GtkBuilder doesn't know how to parse from a string. Therefore, the ``condition`` syntax is used instead.
 
 
-.. _Syntax ExtAdwMessageDialog:
+.. _Syntax ExtAdwResponseDialog:
 
 Adw.MessageDialog Responses
 ----------------------------
 
 .. rst-class:: grammar-block
 
-   ExtAdwMessageDialog = 'responses' '[' (ExtAdwMessageDialogResponse),* ']'
-   ExtAdwMessageDialogResponse = <id::ref:`IDENT<Syntax IDENT>`> ':' :ref:`StringValue<Syntax StringValue>` ExtAdwMessageDialogFlag*
-   ExtAdwMessageDialogFlag = 'destructive' | 'suggested' | 'disabled'
+   ExtAdwResponseDialog = 'responses' '[' (ExtAdwResponseDialogResponse),* ']'
+   ExtAdwResponseDialogResponse = <id::ref:`IDENT<Syntax IDENT>`> ':' :ref:`StringValue<Syntax StringValue>` ExtAdwResponseDialogFlag*
+   ExtAdwResponseDialogFlag = 'destructive' | 'suggested' | 'disabled'
 
 Valid in `Adw.MessageDialog <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.MessageDialog.html>`_.
 
@@ -83,6 +83,33 @@ The ``responses`` block defines the buttons that will be added to the dialog. Th
    using Adw 1;
 
    Adw.MessageDialog {
+     responses [
+       cancel: _("Cancel"),
+       delete: _("Delete") destructive,
+       save: "Save" suggested,
+       wipeHardDrive: "Wipe Hard Drive" destructive disabled,
+     ]
+   }
+
+
+Adw.AlertDialog Responses
+----------------------------
+
+.. rst-class:: grammar-block
+
+   ExtAdwAlertDialog = 'responses' '[' (ExtAdwAlertDialogResponse),* ']'
+   ExtAdwAlertDialogResponse = <id::ref:`IDENT<Syntax IDENT>`> ':' :ref:`StringValue<Syntax StringValue>` ExtAdwAlertDialogFlag*
+   ExtAdwAlertDialogFlag = 'destructive' | 'suggested' | 'disabled'
+
+Valid in `Adw.AlertDialog <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.AlertDialog.html>`_.
+
+The ``responses`` block defines the buttons that will be added to the dialog. The ``destructive`` or ``suggested`` flag sets the appearance of the button, and the ``disabled`` flag can be used to disable the button.
+
+.. code-block:: blueprint
+
+   using Adw 1;
+
+   Adw.AlertDialog {
      responses [
        cancel: _("Cancel"),
        delete: _("Delete") destructive,

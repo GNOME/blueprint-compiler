@@ -1,3 +1,7 @@
+# v0.11.0
+
+- Added support for [Adw.AlertDialog](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.AlertDialog.html#adwalertdialog-as-gtkbuildable) custom syntax.
+
 # v0.10.0
 
 ## Added

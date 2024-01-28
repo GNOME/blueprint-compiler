@@ -3,7 +3,7 @@ from .adw_breakpoint import (
     AdwBreakpointSetter,
     AdwBreakpointSetters,
 )
-from .adw_message_dialog import ExtAdwMessageDialog
+from .adw_response_dialog import ExtAdwResponseDialog
 from .attributes import BaseAttribute
 from .binding import Binding
 from .common import *
@@ -60,7 +60,7 @@ OBJECT_CONTENT_HOOKS.children = [
     AdwBreakpointCondition,
     AdwBreakpointSetters,
     ExtAccessibility,
-    ExtAdwMessageDialog,
+    ExtAdwResponseDialog,
     ExtComboBoxItems,
     ext_file_filter_mime_types,
     ext_file_filter_patterns,

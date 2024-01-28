@@ -337,7 +337,7 @@ class XmlOutput(OutputFormat):
                 self._emit_attribute("property", "name", prop.name, prop.value, xml)
             xml.end_tag()
 
-        elif isinstance(extension, ExtAdwMessageDialog):
+        elif isinstance(extension, ExtAdwResponseDialog):
             xml.start_tag("responses")
             for response in extension.responses:
                 xml.start_tag(
