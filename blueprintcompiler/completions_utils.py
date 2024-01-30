@@ -51,7 +51,7 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
                 type = ast_node.root.gir.get_type(
                     applies_in_subclass[1], applies_in_subclass[0]
                 )
-                if ast_node.gir_class and not ast_node.gir_class.assignable_to(type):
+                if not ast_node.gir_class or not ast_node.gir_class.assignable_to(type):
                     return
 
             any_match = len(matches) == 0
