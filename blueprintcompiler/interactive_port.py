@@ -301,9 +301,7 @@ def step5(in_files):
                 (
                     Colors.GREEN
                     if line.startswith("+")
-                    else Colors.RED + Colors.FAINT
-                    if line.startswith("-")
-                    else ""
+                    else Colors.RED + Colors.FAINT if line.startswith("-") else ""
                 )
                 + line
                 + Colors.CLEAR

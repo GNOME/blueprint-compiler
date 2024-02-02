@@ -390,9 +390,11 @@ class LanguageServer:
                     "changes": {
                         open_file.uri: [
                             {
-                                "range": action.edit_range.to_json()
-                                if action.edit_range
-                                else diagnostic.range.to_json(),
+                                "range": (
+                                    action.edit_range.to_json()
+                                    if action.edit_range
+                                    else diagnostic.range.to_json()
+                                ),
                                 "newText": action.replace_with,
                             }
                         ]
@@ -463,9 +465,11 @@ class LanguageServer:
         result = {
             "range": err.range.to_json(),
             "message": message,
-            "severity": DiagnosticSeverity.Warning
-            if isinstance(err, CompileWarning)
-            else DiagnosticSeverity.Error,
+            "severity": (
+                DiagnosticSeverity.Warning
+                if isinstance(err, CompileWarning)
+                else DiagnosticSeverity.Error
+            ),
         }
 
         if isinstance(err, DeprecationWarning):

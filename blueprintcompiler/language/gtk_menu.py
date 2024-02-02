@@ -88,9 +88,11 @@ class MenuAttribute(AstNode):
             self.name,
             SymbolKind.Field,
             self.range,
-            self.group.tokens["name"].range
-            if self.group.tokens["name"]
-            else self.range,
+            (
+                self.group.tokens["name"].range
+                if self.group.tokens["name"]
+                else self.range
+            ),
             self.value.range.text,
         )
 

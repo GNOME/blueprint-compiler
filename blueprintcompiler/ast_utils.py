@@ -38,12 +38,10 @@ class Children:
         return iter(self._children)
 
     @T.overload
-    def __getitem__(self, key: T.Type[TType]) -> T.List[TType]:
-        ...
+    def __getitem__(self, key: T.Type[TType]) -> T.List[TType]: ...
 
     @T.overload
-    def __getitem__(self, key: int) -> "AstNode":
-        ...
+    def __getitem__(self, key: int) -> "AstNode": ...
 
     def __getitem__(self, key):
         if isinstance(key, int):
