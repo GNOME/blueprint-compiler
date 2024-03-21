@@ -81,33 +81,67 @@ Built with Blueprint
 - `AdwSteamGtk <https://github.com/Foldex/AdwSteamGtk>`_
 - `Blurble <https://gitlab.gnome.org/World/Blurble>`_
 - `Bottles <https://github.com/bottlesdevs/Bottles>`_
+- `Cartridges <https://github.com/kra-mo/cartridges>`_
+- `Cavalier <https://github.com/NickvisionApps/Cavalier>`_
+- `Chance <https://zelikos.dev/apps/rollit>`_
 - `Commit <https://github.com/sonnyp/Commit/>`_
+- `Confy <https://confy.kirgroup.net/>`_
+- `Daikhan <https://github.com/flathub/io.gitlab.daikhan.stable>`_
+- `Damask <https://gitlab.gnome.org/subpop/damask>`_
+- `Denaro <https://github.com/NickvisionApps/Denaro>`_
+- `Design <https://github.com/dubstar-04/Design>`_
+- `Dev Toolbox <https://github.com/aleiepure/devtoolbox>`_
 - `Dialect <https://github.com/dialect-app/dialect>`_
+- `Diccionario de la Lengua <https://codeberg.org/rafaelmardojai/diccionario-lengua>`_
+- `Dogg <https://gitlab.gnome.org/sungsphinx/Doggo>`_
+- `Dosage <https://github.com/diegopvlk/Dosage>`_
+- `Dynamic Wallpaper <https://github.com/dusansimic/dynamic-wallpaper>`_
 - `Extension Manager <https://github.com/mjakeman/extension-manager>`_
+- `Eyedropper <https://github.com/FineFindus/eyedropper>`_
 - `favagtk <https://gitlab.gnome.org/johannesjh/favagtk>`_
 - `Feeds <https://gitlab.gnome.org/World/gfeeds>`_
 - `File Shredder <https://github.com/ADBeveridge/raider>`_
+- `Flare <https://gitlab.com/schmiddi-on-mobile/flare>`_
+- `Flowtime <https://github.com/Diego-Ivan/Flowtime>`_
+- `Fretboard <https://github.com/bragefuglseth/fretboard>`_
+- `Frog <https://github.com/TenderOwl/Frog>`_
 - `Geopard <https://github.com/ranfdev/Geopard>`_
 - `Giara <https://gitlab.gnome.org/World/giara>`_
 - `Girens <https://gitlab.gnome.org/tijder/girens>`_
 - `Gradience <https://github.com/GradienceTeam/Gradience>`_
+- `Graphs <https://gitlab.gnome.org/World/Graphs>`_
 - `Health <https://gitlab.gnome.org/World/Health>`_
 - `HydraPaper <https://gitlab.com/gabmus/HydraPaper>`_
 - `Identity <https://gitlab.gnome.org/YaLTeR/identity>`_
+- `Jogger <https://codeberg.org/baarkerlounger/jogger>`_
 - `Junction <https://github.com/sonnyp/Junction/>`_
+- `Komiku <https://github.com/flathub/info.febvre.Komikku>`_
+- `Letterpress <https://gitlab.gnome.org/World/Letterpress>`_
 - `Login Manager Settings <https://github.com/realmazharhussain/gdm-settings>`_
 - `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
+- `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
+- `Master Key <https://gitlab.com/guillermop/master-key/>`_
+- `Misson Center <https://github.com/flathub/io.missioncenter.MissionCenter>`_
 - `NewCaw <https://github.com/CodedOre/NewCaw>`_
 - `Paper <https://gitlab.com/posidon_software/paper>`_
+- `Paper Plane <https://github.com/paper-plane-developers/paper-plane>`_
+- `Parabolic <https://github.com/NickvisionApps/Parabolic>`_
 - `Passes <https://github.com/pablo-s/passes>`_
+- `Pipeline <https://gitlab.com/schmiddi-on-mobile/pipeline>`_
 - `Playhouse <https://github.com/sonnyp/Playhouse>`_
 - `Plitki <https://github.com/YaLTeR/plitki>`_
 - `Raider <https://github.com/ADBeveridge/raider>`_
 - `Retro <https://github.com/sonnyp/Retro>`_
 - `Solanum <https://gitlab.gnome.org/World/Solanum>`_
+- `Sudoku Solver <https://gitlab.com/cyberphantom52/sudoku-solver>`_
 - `Swatch <https://gitlab.gnome.org/GabMus/swatch>`_
+- `Switcheroo <https://gitlab.com/adhami3310/Switcheroo>`_
+- `Tagger <https://github.com/NickvisionApps/Tagger>`_
 - `Tangram <https://github.com/sonnyp/Tangram/>`_
 - `Text Pieces <https://github.com/liferooter/textpieces>`_
+- `Upscaler <https://gitlab.gnome.org/World/Upscaler>`_
 - `Video Trimmer <https://gitlab.gnome.org/YaLTeR/video-trimmer>`_
+- `Webfont Kit Generator <https://github.com/rafaelmardojai/webfont-kit-generator>`_
 - `WhatIP <https://gitlab.gnome.org/GabMus/whatip>`_
+- `Who Wants To Be a Millionaire <https://github.com/martinszeltins/who-wants-to-be-a-millionaire/>`_
 - `Workbench <https://github.com/sonnyp/Workbench>`_
