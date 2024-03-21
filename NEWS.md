@@ -1,3 +1,35 @@
+# v0.12.0
+
+## Added
+
+- Add support for Adw.AlertDialog (Sonny Piers)
+- Emit warnings for deprecated APIs - lsp and compiler
+- lsp: Document symbols
+- lsp: "Go to definition" (ctrl+click)
+- lsp: Code action for "namespace not imported" diagnostics, that adds the missing import
+- Add a formatter - cli and lsp (Gregor Niehl)
+- Support for translation domain - see documentation
+- cli: Print code actions in error messages
+
+## Changed
+
+- compiler: Add a header notice mentionning the file is generated (Urtsi Santsi)
+- decompiler: Use single quotes for output
+
+## Fixed
+
+- Fixed multine strings support with the escape newline character
+- lsp: Fixed the signal completion, which was missing the "$"
+- lsp: Fixed property value completion  (Ivan Kalinin)
+- lsp: Added a missing semantic highlight (for the enum in Gtk.Scale marks)
+- Handle big endian bitfields correctly (Jerry James)
+- batch-compile: Fix mixing relative and absolute paths (Marco Köpcke )
+
+## Documentation
+
+- Fix grammar for bindings
+- Add section on referencing templates
+
 # v0.10.0
 
 ## Added
