@@ -93,7 +93,7 @@ Built with Blueprint
 - `Dev Toolbox <https://github.com/aleiepure/devtoolbox>`_
 - `Dialect <https://github.com/dialect-app/dialect>`_
 - `Diccionario de la Lengua <https://codeberg.org/rafaelmardojai/diccionario-lengua>`_
-- `Dogg <https://gitlab.gnome.org/sungsphinx/Doggo>`_
+- `Doggo <https://gitlab.gnome.org/sungsphinx/Doggo>`_
 - `Dosage <https://github.com/diegopvlk/Dosage>`_
 - `Dynamic Wallpaper <https://github.com/dusansimic/dynamic-wallpaper>`_
 - `Extension Manager <https://github.com/mjakeman/extension-manager>`_
@@ -118,7 +118,6 @@ Built with Blueprint
 - `Komiku <https://github.com/flathub/info.febvre.Komikku>`_
 - `Letterpress <https://gitlab.gnome.org/World/Letterpress>`_
 - `Login Manager Settings <https://github.com/realmazharhussain/gdm-settings>`_
-- `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
 - `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
 - `Master Key <https://gitlab.com/guillermop/master-key/>`_
 - `Misson Center <https://github.com/flathub/io.missioncenter.MissionCenter>`_
