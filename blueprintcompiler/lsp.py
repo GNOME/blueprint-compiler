@@ -472,7 +472,7 @@ class LanguageServer:
             ),
         }
 
-        if isinstance(err, DeprecationWarning):
+        if isinstance(err, DeprecatedWarning):
             result["tags"] = [DiagnosticTag.Deprecated]
 
         if isinstance(err, UnusedWarning):
