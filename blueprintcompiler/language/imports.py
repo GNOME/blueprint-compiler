@@ -88,6 +88,17 @@ class Import(AstNode):
     def namespace_exists(self):
         gir.get_namespace(self.tokens["namespace"], self.tokens["version"])
 
+    @validate()
+    def unused(self):
+        if self.namespace not in self.root.used_imports:
+            raise UnusedWarning(
+                f"Unused import: {self.namespace}",
+                self.range,
+                actions=[
+                    CodeAction("Remove import", "", self.range.with_trailing_newline)
+                ],
+            )
+
     @property
     def gir_namespace(self):
         try:

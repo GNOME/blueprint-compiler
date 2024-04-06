@@ -127,6 +127,13 @@ class Range:
     def text(self) -> str:
         return self.original_text[self.start : self.end]
 
+    @property
+    def with_trailing_newline(self) -> "Range":
+        if len(self.original_text) > self.end and self.original_text[self.end] == "\n":
+            return Range(self.start, self.end + 1, self.original_text)
+        else:
+            return self
+
     @staticmethod
     def join(a: T.Optional["Range"], b: T.Optional["Range"]) -> T.Optional["Range"]:
         if a is None:

@@ -140,6 +140,10 @@ class DeprecatedWarning(CompileWarning):
     pass
 
 
+class UnusedWarning(CompileWarning):
+    pass
+
+
 class UpgradeWarning(CompileWarning):
     category = "upgrade"
     color = Colors.PURPLE

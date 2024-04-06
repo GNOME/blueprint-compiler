@@ -78,9 +78,10 @@ class TypeName(AstNode):
             )
 
     @property
-    def gir_ns(self):
+    def gir_ns(self) -> T.Optional[gir.Namespace]:
         if not self.tokens["extern"]:
             return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
+        return None
 
     @property
     def gir_type(self) -> gir.GirType:

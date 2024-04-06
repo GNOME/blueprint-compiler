@@ -475,6 +475,9 @@ class LanguageServer:
         if isinstance(err, DeprecationWarning):
             result["tags"] = [DiagnosticTag.Deprecated]
 
+        if isinstance(err, UnusedWarning):
+            result["tags"] = [DiagnosticTag.Unnecessary]
+
         if len(err.references) > 0:
             result["relatedInformation"] = [
                 {

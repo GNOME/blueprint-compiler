@@ -125,7 +125,7 @@ class AstNode:
             return self.parent.root
 
     @property
-    def range(self):
+    def range(self) -> Range:
         return Range(self.group.start, self.group.end, self.group.text)
 
     def parent_by_type(self, type: T.Type[TType]) -> TType:

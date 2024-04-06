@@ -35,6 +35,7 @@ from ..errors import (
     CompileWarning,
     DeprecatedWarning,
     MultipleErrors,
+    UnusedWarning,
     UpgradeWarning,
 )
 from ..gir import (

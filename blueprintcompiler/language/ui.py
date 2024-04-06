@@ -27,6 +27,7 @@ from .gtk_menu import Menu, menu
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .translation_domain import TranslationDomain
+from .types import TypeName
 
 
 class UI(AstNode):
@@ -120,6 +121,22 @@ class UI(AstNode):
             f"\nusing {ns} {version};",
             Range(pos, pos, self.group.text),
         )
+
+    @cached_property
+    def used_imports(self) -> T.Optional[T.Set[str]]:
+        def _iter_recursive(node: AstNode):
+            yield node
+            for child in node.children:
+                if isinstance(child, AstNode):
+                    yield from _iter_recursive(child)
+
+        result = set()
+        for node in _iter_recursive(self):
+            if isinstance(node, TypeName):
+                ns = node.gir_ns
+                if ns is not None:
+                    result.add(ns.name)
+        return result
 
     @context(ScopeCtx)
     def scope_ctx(self) -> ScopeCtx:
