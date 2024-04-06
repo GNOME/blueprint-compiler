@@ -107,3 +107,9 @@ class SimpleBinding:
     no_sync_create: bool = False
     bidirectional: bool = False
     inverted: bool = False
+
+
+@decompiler("binding")
+def decompile_binding(ctx: DecompileCtx, gir: gir.GirContext, name: str):
+    ctx.end_block_with(";")
+    ctx.print(f"{name}: bind ")

@@ -18,9 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from ..decompiler import decompile_element
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
-from .gtkbuilder_template import Template
 from .types import TypeName
 
 expr = Sequence()
@@ -274,3 +274,69 @@ expr.children = [
     AnyOf(ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]
+
+
+@decompiler("lookup", skip_children=True, cdata=True)
+def decompile_lookup(
+    ctx: DecompileCtx, gir: gir.GirContext, cdata: str, name: str, type: str
+):
+    if t := ctx.type_by_cname(type):
+        type = decompile.full_name(t)
+    else:
+        type = "$" + type
+
+    assert ctx.current_node is not None
+
+    constant = None
+    if len(ctx.current_node.children) == 0:
+        constant = cdata
+    elif (
+        len(ctx.current_node.children) == 1
+        and ctx.current_node.children[0].tag == "constant"
+    ):
+        constant = ctx.current_node.children[0].cdata
+
+    if constant is not None:
+        if constant == ctx.template_class:
+            ctx.print("template." + name)
+        else:
+            ctx.print(constant + "." + name)
+        return
+    else:
+        for child in ctx.current_node.children:
+            decompile.decompile_element(ctx, gir, child)
+
+    ctx.print(f" as <{type}>.{name}")
+
+
+@decompiler("constant", cdata=True)
+def decompile_constant(
+    ctx: DecompileCtx, gir: gir.GirContext, cdata: str, type: T.Optional[str] = None
+):
+    if type is None:
+        if cdata == ctx.template_class:
+            ctx.print("template")
+        else:
+            ctx.print(cdata)
+    else:
+        ctx.print_value(cdata, ctx.type_by_cname(type))
+
+
+@decompiler("closure", skip_children=True)
+def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, type: str):
+    if t := ctx.type_by_cname(type):
+        type = decompile.full_name(t)
+    else:
+        type = "$" + type
+
+    ctx.print(f"${function}(")
+
+    assert ctx.current_node is not None
+    for i, node in enumerate(ctx.current_node.children):
+        decompile_element(ctx, gir, node)
+
+        assert ctx.current_node is not None
+        if i < len(ctx.current_node.children) - 1:
+            ctx.print(", ")
+
+    ctx.end_block_with(f") as <{type}>")

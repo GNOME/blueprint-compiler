@@ -89,3 +89,29 @@ class ExtComboBoxItems(AstNode):
 )
 def items_completer(lsp, ast_node, match_variables):
     yield Completion("items", CompletionItemKind.Snippet, snippet="items [$0]")
+
+
+@decompiler("items", parent_type="Gtk.ComboBoxText")
+def decompile_items(ctx: DecompileCtx, gir: gir.GirContext):
+    ctx.print("items [")
+
+
+@decompiler("item", parent_type="Gtk.ComboBoxText", cdata=True)
+def decompile_item(
+    ctx: DecompileCtx,
+    gir: gir.GirContext,
+    cdata: str,
+    id: T.Optional[str] = None,
+    translatable="false",
+    comments=None,
+    context=None,
+):
+    comments, translatable = decompile_translatable(
+        cdata, translatable, context, comments
+    )
+    if comments:
+        ctx.print(comments)
+    if id:
+        ctx.print(f"{id}: ")
+    ctx.print(translatable)
+    ctx.print(",")

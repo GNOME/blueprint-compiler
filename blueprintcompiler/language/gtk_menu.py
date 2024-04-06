@@ -266,7 +266,7 @@ def decompile_submenu(ctx, gir, id=None):
         ctx.print("submenu {")
 
 
-@decompiler("item")
+@decompiler("item", parent_tag="menu")
 def decompile_item(ctx, gir, id=None):
     if id:
         ctx.print(f"item {id} {{")

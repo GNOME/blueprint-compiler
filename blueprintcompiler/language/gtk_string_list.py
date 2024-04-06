@@ -73,3 +73,25 @@ class ExtStringListStrings(AstNode):
 )
 def strings_completer(lsp, ast_node, match_variables):
     yield Completion("strings", CompletionItemKind.Snippet, snippet="strings [$0]")
+
+
+@decompiler("items", parent_type="Gtk.StringList")
+def decompile_strings(ctx: DecompileCtx, gir: gir.GirContext):
+    ctx.print("strings [")
+
+
+@decompiler("item", cdata=True, parent_type="Gtk.StringList")
+def decompile_item(
+    ctx: DecompileCtx,
+    gir: gir.GirContext,
+    translatable="false",
+    comments=None,
+    context=None,
+    cdata=None,
+):
+    comments, translatable = decompile_translatable(
+        cdata, translatable, context, comments
+    )
+    if comments is not None:
+        ctx.print(comments)
+    ctx.print(translatable + ",")

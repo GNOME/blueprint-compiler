@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+import os
 import unittest
 from pathlib import Path
 
@@ -36,7 +37,6 @@ from blueprintcompiler.errors import (
 )
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
-from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
 
 class TestSamples(unittest.TestCase):
@@ -150,17 +150,27 @@ class TestSamples(unittest.TestCase):
     def assert_decompile(self, name):
         print(f'assert_decompile("{name}")')
         try:
-            with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
-                expected = f.read()
+            if os.path.exists(
+                (Path(__file__).parent / f"samples/{name}_dec.blp").resolve()
+            ):
+                with open(
+                    (Path(__file__).parent / f"samples/{name}_dec.blp").resolve()
+                ) as f:
+                    expected = f.read().strip()
+            else:
+                with open(
+                    (Path(__file__).parent / f"samples/{name}.blp").resolve()
+                ) as f:
+                    expected = f.read().strip()
 
             name = name.removesuffix("_dec")
             ui_path = (Path(__file__).parent / f"samples/{name}.ui").resolve()
 
-            actual = decompiler.decompile(ui_path)
+            actual = decompiler.decompile(ui_path).strip()
 
-            self.assertEqual(actual.strip(), expected.strip())
+            self.assertEqual(actual, expected)
         except PrintableError as e:  # pragma: no cover
-            e.pretty_print(name + ".blp", blueprint)
+            e.pretty_print(name + ".blp", expected)
             raise AssertionError()
 
     def test_samples(self):
@@ -173,7 +183,10 @@ class TestSamples(unittest.TestCase):
         samples.sort()
         for sample in samples:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
-            REQUIRE_ADW_1_5 = ["adw_alertdialog_responses"]
+            REQUIRE_ADW_1_5 = [
+                "adw_alertdialog_responses",
+                "adw_alert_dialog_duplicate_flags",
+            ]
 
             SKIP_RUN = [
                 "adw_breakpoint_template",
@@ -193,6 +206,23 @@ class TestSamples(unittest.TestCase):
                 "unchecked_class",
             ]
 
+            SKIP_DECOMPILE = [
+                # Not implemented yet
+                "action_widgets",
+                # Not implemented yet
+                "adw_breakpoint",
+                # Not implemented yet
+                "adw_breakpoint_template",
+                # Not implemented yet
+                "gtkcolumnview",
+                # Comments are not preserved in either direction
+                "comments",
+                # Not implemented yet
+                "list_factory",
+                # Not implemented yet
+                "subscope",
+            ]
+
             if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
                 continue
             if sample in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
@@ -201,15 +231,16 @@ class TestSamples(unittest.TestCase):
             with self.subTest(sample):
                 self.assert_sample(sample, skip_run=sample in SKIP_RUN)
 
+            with self.subTest("decompile/" + sample):
+                if sample not in SKIP_DECOMPILE:
+                    self.assert_decompile(sample)
+
         # list the sample_errors directory
         sample_errors = [
             f.stem for f in Path(__file__).parent.glob("sample_errors/*.blp")
         ]
         sample_errors.sort()
         for sample_error in sample_errors:
-            REQUIRE_ADW_1_4 = ["adw_breakpoint"]
-            REQUIRE_ADW_1_5 = ["adw_alert_dialog_duplicate_flags"]
-
             if sample_error in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
                 continue
             if sample_error in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
@@ -217,27 +248,3 @@ class TestSamples(unittest.TestCase):
 
             with self.subTest(sample_error):
                 self.assert_sample_error(sample_error)
-
-    def test_decompiler(self):
-        self.assert_decompile("accessibility_dec")
-        if self.have_adw_1_5:
-            self.assert_decompile("adw_alertdialog_responses")
-        self.assert_decompile("adw_messagedialog_responses")
-        self.assert_decompile("child_type")
-        self.assert_decompile("file_filter")
-        self.assert_decompile("flags")
-        self.assert_decompile("id_prop")
-        self.assert_decompile("layout_dec")
-        self.assert_decompile("menu_dec")
-        self.assert_decompile("property")
-        self.assert_decompile("property_binding_dec")
-        self.assert_decompile("placeholder_dec")
-        self.assert_decompile("scale_marks")
-        self.assert_decompile("signal")
-        self.assert_decompile("strings_dec")
-        self.assert_decompile("style_dec")
-        self.assert_decompile("template")
-        self.assert_decompile("template_orphan")
-        self.assert_decompile("translated")
-        self.assert_decompile("using")
-        self.assert_decompile("unchecked_class_dec")

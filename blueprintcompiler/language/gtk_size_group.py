@@ -96,3 +96,13 @@ class ExtSizeGroupWidgets(AstNode):
 )
 def size_group_completer(lsp, ast_node, match_variables):
     yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0]")
+
+
+@decompiler("widgets")
+def size_group_decompiler(ctx, gir: gir.GirContext):
+    ctx.print("widgets [")
+
+
+@decompiler("widget")
+def widget_decompiler(ctx, gir: gir.GirContext, name: str):
+    ctx.print(name + ",")

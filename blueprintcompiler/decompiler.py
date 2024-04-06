@@ -17,8 +17,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import re
 import typing as T
+from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 
@@ -30,7 +30,7 @@ from .xml_reader import Element, parse, parse_string
 __all__ = ["decompile"]
 
 
-_DECOMPILERS: T.Dict = {}
+_DECOMPILERS: dict[str, list] = defaultdict(list)
 _CLOSING = {
     "{": "}",
     "[": "]",
@@ -54,24 +54,25 @@ class DecompileCtx:
     def __init__(self) -> None:
         self._result: str = ""
         self.gir = GirContext()
-        self._indent: int = 0
         self._blocks_need_end: T.List[str] = []
         self._last_line_type: LineType = LineType.NONE
         self.template_class: T.Optional[str] = None
+        self._obj_type_stack: list[T.Optional[GirType]] = []
+        self._node_stack: list[Element] = []
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
 
     @property
     def result(self) -> str:
-        imports = "\n".join(
+        import_lines = sorted(
             [
                 f"using {ns} {namespace.version};"
                 for ns, namespace in self.gir.namespaces.items()
+                if ns != "Gtk"
             ]
         )
-        full_string = imports + "\n" + self._result
-        formatted_string = formatter.format(full_string)
-        return formatted_string
+        full_string = "\n".join(["using Gtk 4.0;", *import_lines]) + self._result
+        return formatter.format(full_string)
 
     def type_by_cname(self, cname: str) -> T.Optional[GirType]:
         if type := self.gir.get_type_by_cname(cname):
@@ -90,10 +91,26 @@ class DecompileCtx:
 
     def start_block(self) -> None:
         self._blocks_need_end.append("")
+        self._obj_type_stack.append(None)
 
     def end_block(self) -> None:
         if close := self._blocks_need_end.pop():
             self.print(close)
+        self._obj_type_stack.pop()
+
+    @property
+    def current_obj_type(self) -> T.Optional[GirType]:
+        return next((x for x in reversed(self._obj_type_stack) if x is not None), None)
+
+    def push_obj_type(self, type: T.Optional[GirType]) -> None:
+        self._obj_type_stack[-1] = type
+
+    @property
+    def current_node(self) -> T.Optional[Element]:
+        if len(self._node_stack) == 0:
+            return None
+        else:
+            return self._node_stack[-1]
 
     def end_block_with(self, text: str) -> None:
         self._blocks_need_end[-1] = text
@@ -105,7 +122,7 @@ class DecompileCtx:
             if len(self._blocks_need_end):
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
 
-    def print_attribute(self, name: str, value: str, type: GirType) -> None:
+    def print_value(self, value: str, type: T.Optional[GirType]) -> None:
         def get_enum_name(value):
             for member in type.members.values():
                 if (
@@ -117,12 +134,14 @@ class DecompileCtx:
             return value.replace("-", "_")
 
         if type is None:
-            self.print(f"{name}: {escape_quote(value)};")
+            self.print(f"{escape_quote(value)}")
         elif type.assignable_to(FloatType()):
-            self.print(f"{name}: {value};")
+            self.print(str(value))
         elif type.assignable_to(BoolType()):
             val = truthy(value)
-            self.print(f"{name}: {'true' if val else 'false'};")
+            self.print("true" if val else "false")
+        elif type.assignable_to(ArrayType(StringType())):
+            self.print(f"[{', '.join([escape_quote(x) for x in value.split('\n')])}]")
         elif (
             type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Pixbuf"))
             or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Texture"))
@@ -136,29 +155,41 @@ class DecompileCtx:
                 self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger")
             )
         ):
-            self.print(f"{name}: {escape_quote(value)};")
+            self.print(f"{escape_quote(value)}")
         elif value == self.template_class:
-            self.print(f"{name}: template;")
+            self.print("template")
         elif type.assignable_to(
             self.gir.namespaces["Gtk"].lookup_type("GObject.Object")
-        ):
-            self.print(f"{name}: {value};")
+        ) or isinstance(type, Interface):
+            self.print(value)
         elif isinstance(type, Bitfield):
             flags = [get_enum_name(flag) for flag in value.split("|")]
-            self.print(f"{name}: {' | '.join(flags)};")
+            self.print(" | ".join(flags))
         elif isinstance(type, Enumeration):
-            self.print(f"{name}: {get_enum_name(value)};")
+            self.print(get_enum_name(value))
+        elif isinstance(type, TypeType):
+            if t := self.type_by_cname(value):
+                self.print(f"typeof<{full_name(t)}>")
+            else:
+                self.print(f"typeof<${value}>")
         else:
-            self.print(f"{name}: {escape_quote(value)};")
+            self.print(f"{escape_quote(value)}")
+
+    def print_attribute(self, name: str, value: str, type: GirType) -> None:
+        self.print(f"{name}: ")
+        self.print_value(value, type)
+        self.print(";")
 
 
-def _decompile_element(
+def decompile_element(
     ctx: DecompileCtx, gir: T.Optional[GirContext], xml: Element
 ) -> None:
     try:
-        decompiler = _DECOMPILERS.get(xml.tag)
-        if decompiler is None:
+        decompilers = [d for d in _DECOMPILERS[xml.tag] if d._filter(ctx)]
+        if len(decompilers) == 0:
             raise UnsupportedError(f"unsupported XML tag: <{xml.tag}>")
+
+        decompiler = decompilers[0]
 
         args: T.Dict[str, T.Optional[str]] = {
             canon(name): value for name, value in xml.attrs.items()
@@ -169,13 +200,16 @@ def _decompile_element(
             else:
                 args["cdata"] = xml.cdata
 
+        ctx._node_stack.append(xml)
         ctx.start_block()
         gir = decompiler(ctx, gir, **args)
 
-        for child in xml.children:
-            _decompile_element(ctx, gir, child)
+        if not decompiler._skip_children:
+            for child in xml.children:
+                decompile_element(ctx, gir, child)
 
         ctx.end_block()
+        ctx._node_stack.pop()
 
     except UnsupportedError as e:
         raise e
@@ -187,7 +221,7 @@ def decompile(data: str) -> str:
     ctx = DecompileCtx()
 
     xml = parse(data)
-    _decompile_element(ctx, None, xml)
+    decompile_element(ctx, None, xml)
 
     return ctx.result
 
@@ -196,7 +230,7 @@ def decompile_string(data):
     ctx = DecompileCtx()
 
     xml = parse_string(data)
-    _decompile_element(ctx, None, xml)
+    decompile_element(ctx, None, xml)
 
     return ctx.result
 
@@ -212,7 +246,7 @@ def truthy(string: str) -> bool:
     return string.lower() in ["yes", "true", "t", "y", "1"]
 
 
-def full_name(gir) -> str:
+def full_name(gir: GirType) -> str:
     return gir.name if gir.full_name.startswith("Gtk.") else gir.full_name
 
 
@@ -223,17 +257,43 @@ def lookup_by_cname(gir, cname: str) -> T.Optional[GirType]:
         return gir.get_containing(Repository).get_type_by_cname(cname)
 
 
-def decompiler(tag, cdata=False):
+def decompiler(
+    tag,
+    cdata=False,
+    parent_type: T.Optional[str] = None,
+    parent_tag: T.Optional[str] = None,
+    skip_children=False,
+):
     def decorator(func):
         func._cdata = cdata
-        _DECOMPILERS[tag] = func
+        func._skip_children = skip_children
+
+        def filter(ctx):
+            if parent_type is not None:
+                if (
+                    ctx.current_obj_type is None
+                    or ctx.current_obj_type.full_name != parent_type
+                ):
+                    return False
+
+            if parent_tag is not None:
+                if not any(x.tag == parent_tag for x in ctx._node_stack):
+                    return False
+
+            return True
+
+        func._filter = filter
+
+        _DECOMPILERS[tag].append(func)
         return func
 
     return decorator
 
 
 @decompiler("interface")
-def decompile_interface(ctx, gir):
+def decompile_interface(ctx, gir, domain=None):
+    if domain is not None:
+        ctx.print(f"translation-domain {escape_quote(domain)};")
     return gir
 
 
@@ -284,7 +344,7 @@ def decompile_property(
         ctx.print(f"/* Translators: {comments} */")
 
     if cdata is None:
-        ctx.print(f"{name}: ", False)
+        ctx.print(f"{name}: ")
         ctx.end_block_with(";")
     elif bind_source:
         flags = ""
@@ -295,6 +355,10 @@ def decompile_property(
             flags += " inverted"
         if "bidirectional" in bind_flags:
             flags += " bidirectional"
+
+        if bind_source == ctx.template_class:
+            bind_source = "template"
+
         ctx.print(f"{name}: bind {bind_source}.{bind_property}{flags};")
     elif truthy(translatable):
         comments, translatable = decompile_translatable(

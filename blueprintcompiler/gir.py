@@ -904,6 +904,10 @@ class Namespace(GirNode):
 
     def get_type_by_cname(self, cname: str) -> T.Optional[GirType]:
         """Gets a type from this namespace by its C name."""
+        for basic in _BASIC_TYPES.values():
+            if basic.glib_type_name == cname:
+                return basic()
+
         for item in self.entries.values():
             if (
                 hasattr(item, "cname")
