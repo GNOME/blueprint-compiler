@@ -115,7 +115,7 @@ Built with Blueprint
 - `Identity <https://gitlab.gnome.org/YaLTeR/identity>`_
 - `Jogger <https://codeberg.org/baarkerlounger/jogger>`_
 - `Junction <https://github.com/sonnyp/Junction/>`_
-- `Komiku <https://github.com/flathub/info.febvre.Komikku>`_
+- `Komikku <https://codeberg.org/valos/Komikku>`_
 - `Letterpress <https://gitlab.gnome.org/World/Letterpress>`_
 - `Login Manager Settings <https://github.com/realmazharhussain/gdm-settings>`_
 - `Maniatic Launcher <https://github.com/santiagocezar/maniatic-launcher/>`_
