@@ -91,6 +91,13 @@ class BlueprintApp:
             type=int,
         )
         format.add_argument(
+            "-n",
+            "--no-diff",
+            help="Do not print a full diff of the changes",
+            default=False,
+            action="store_true",
+        )
+        format.add_argument(
             "inputs",
             nargs="+",
             metavar="filenames",
@@ -221,23 +228,25 @@ class BlueprintApp:
                         file.write(formatted_str)
                         happened = "Formatted"
 
-                    diff_lines = []
-                    a_lines = data.splitlines(keepends=True)
-                    b_lines = formatted_str.splitlines(keepends=True)
+                    if not opts.no_diff:
+                        diff_lines = []
+                        a_lines = data.splitlines(keepends=True)
+                        b_lines = formatted_str.splitlines(keepends=True)
 
-                    for line in difflib.unified_diff(
-                        a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
-                    ):
-                        # Work around https://bugs.python.org/issue2142
-                        # See:
-                        # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
-                        if line[-1] == "\n":
-                            diff_lines.append(line)
-                        else:
-                            diff_lines.append(line + "\n")
-                            diff_lines.append("\\ No newline at end of file\n")
+                        for line in difflib.unified_diff(
+                            a_lines, b_lines, fromfile=file.name, tofile=file.name, n=5
+                        ):
+                            # Work around https://bugs.python.org/issue2142
+                            # See:
+                            # https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
+                            if line[-1] == "\n":
+                                diff_lines.append(line)
+                            else:
+                                diff_lines.append(line + "\n")
+                                diff_lines.append("\\ No newline at end of file\n")
 
-                    print("".join(diff_lines))
+                        print("".join(diff_lines))
+
                     to_print = Colors.BOLD
                     if errored:
                         to_print += f"{Colors.RED}Skipped {file.name}: Will not overwrite file with compile errors"
