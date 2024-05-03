@@ -39,7 +39,10 @@ class ExtListItemFactory(AstNode):
 
     @property
     def gir_class(self):
-        return self.root.gir.get_type("ListItem", "Gtk")
+        if self.type_name is not None:
+            return self.type_name.gir_type
+        else:
+            return self.root.gir.get_type("ListItem", "Gtk")
 
     @validate("template")
     def container_is_builder_list(self):
@@ -57,8 +60,14 @@ class ExtListItemFactory(AstNode):
     @validate()
     def type_is_list_item(self):
         if self.type_name is not None:
-            if self.type_name.glib_type_name != "GtkListItem":
-                raise CompileError(f"Only Gtk.ListItem is allowed as a type here")
+            if self.type_name.glib_type_name not in (
+                "GtkListItem",
+                "GtkColumnViewRow",
+                "GtkColumnViewCell",
+            ):
+                raise CompileError(
+                    f"Only Gtk.ListItem, Gtk.ColumnViewRow, or Gtk.ColumnViewCell is allowed as a type here"
+                )
 
     @validate("template")
     def type_name_upgrade(self):

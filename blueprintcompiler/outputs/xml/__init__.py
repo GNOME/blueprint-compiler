@@ -377,7 +377,7 @@ class XmlOutput(OutputFormat):
         elif isinstance(extension, ExtListItemFactory):
             child_xml = XmlEmitter()
             child_xml.start_tag("interface")
-            child_xml.start_tag("template", **{"class": "GtkListItem"})
+            child_xml.start_tag("template", **{"class": extension.gir_class})
             self._emit_object_or_template(extension, child_xml)
             child_xml.end_tag()
             child_xml.end_tag()

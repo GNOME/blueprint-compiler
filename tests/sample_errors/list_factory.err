@@ -1,1 +1,1 @@
-4,3,17,Only Gtk.ListItem is allowed as a type here
+4,3,17,Only Gtk.ListItem, Gtk.ColumnViewRow, or Gtk.ColumnViewCell is allowed as a type here

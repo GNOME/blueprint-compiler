@@ -1,0 +1,17 @@
+using Gtk 4.0;
+
+ColumnView {
+  row-factory: BuilderListItemFactory {
+    template ColumnViewRow {}
+  };
+
+  ColumnViewColumn {
+    factory: BuilderListItemFactory {
+      template ColumnViewCell {
+        child: Label {
+          label: bind template.item as <$MyObject>.name;
+        };
+      }
+    };
+  }
+}
