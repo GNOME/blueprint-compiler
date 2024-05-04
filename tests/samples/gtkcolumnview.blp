@@ -1,6 +1,10 @@
 using Gtk 4.0;
 
 ColumnView {
+  header-factory: BuilderListItemFactory {
+    template ListHeader {}
+  };
+
   row-factory: BuilderListItemFactory {
     template ColumnViewRow {}
   };

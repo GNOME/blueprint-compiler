@@ -11,7 +11,13 @@ from .types import TypeName
 
 
 class ExtListItemFactory(AstNode):
-    grammar = [UseExact("id", "template"), Optional(TypeName), ObjectContent]
+    grammar = [
+        UseExact("id", "template"),
+        Mark("typename_start"),
+        Optional(TypeName),
+        Mark("typename_end"),
+        ObjectContent,
+    ]
 
     @property
     def id(self) -> str:
@@ -57,16 +63,17 @@ class ExtListItemFactory(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate template block")
 
-    @validate()
+    @validate("typename_start", "typename_end")
     def type_is_list_item(self):
         if self.type_name is not None:
             if self.type_name.glib_type_name not in (
                 "GtkListItem",
+                "GtkListHeader",
                 "GtkColumnViewRow",
                 "GtkColumnViewCell",
             ):
                 raise CompileError(
-                    f"Only Gtk.ListItem, Gtk.ColumnViewRow, or Gtk.ColumnViewCell is allowed as a type here"
+                    f"Only Gtk.ListItem, Gtk.ListHeader, Gtk.ColumnViewRow, or Gtk.ColumnViewCell is allowed as a type here"
                 )
 
     @validate("template")
