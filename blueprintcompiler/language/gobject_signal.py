@@ -166,11 +166,18 @@ class Signal(AstNode):
 
 
 @decompiler("signal")
-def decompile_signal(ctx, gir, name, handler, swapped="false", object=None):
+def decompile_signal(
+    ctx, gir, name, handler, swapped="false", after="false", object=None
+):
     object_name = object or ""
     name = name.replace("_", "-")
+    line = f"{name} => ${handler}({object_name})"
+
     if decompile.truthy(swapped):
-        ctx.print(f"{name} => ${handler}({object_name}) swapped;")
-    else:
-        ctx.print(f"{name} => ${handler}({object_name});")
+        line += " swapped"
+    if decompile.truthy(after):
+        line += " after"
+
+    line += ";"
+    ctx.print(line)
     return gir

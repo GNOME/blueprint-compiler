@@ -5,6 +5,6 @@ Entry {
 }
 
 Button button {
-  clicked => $on_button_clicked() swapped;
+  clicked => $on_button_clicked() swapped after;
   notify::visible => $on_button_notify_visible();
 }

@@ -161,6 +161,7 @@ class XmlOutput(OutputFormat):
             name=name,
             handler=signal.handler,
             swapped=signal.is_swapped or None,
+            after=signal.is_after or None,
             object=(
                 self._object_id(signal, signal.object_id) if signal.object_id else None
             ),
