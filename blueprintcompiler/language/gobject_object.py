@@ -110,7 +110,7 @@ def validate_parent_type(node, ns: str, name: str, err_msg: str):
     container_type = node.parent_by_type(Object).gir_class
     if container_type and not container_type.assignable_to(parent):
         raise CompileError(
-            f"{container_type.full_name} is not a {parent.full_name}, so it doesn't have {err_msg}"
+            f"{container_type.full_name} is not a {ns}.{name}, so it doesn't have {err_msg}"
         )
 
 
