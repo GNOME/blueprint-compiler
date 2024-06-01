@@ -107,7 +107,13 @@ def object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get(match_variables[0])
     if ns is not None:
         for c in ns.classes.values():
-            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc, detail=c.detail)
+            yield Completion(
+                c.name,
+                CompletionItemKind.Class,
+                snippet=f"{c.name} {{\n  $0\n}}",
+                docs=c.doc,
+                detail=c.detail,
+            )
 
 
 @completer(
@@ -118,7 +124,13 @@ def gtk_object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get("Gtk")
     if ns is not None:
         for c in ns.classes.values():
-            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc, detail=c.detail)
+            yield Completion(
+                c.name,
+                CompletionItemKind.Class,
+                snippet=f"{c.name} {{\n  $0\n}}",
+                docs=c.doc,
+                detail=c.detail,
+            )
 
 
 @completer(
