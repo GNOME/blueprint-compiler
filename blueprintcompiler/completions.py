@@ -214,7 +214,7 @@ def signal_completer(lsp, ast_node, match_variables):
                 signal_name,
                 CompletionItemKind.Event,
                 sort_text=f"1 {signal_name}",
-                snippet=f"{signal_name} => \$${{1:{name}_{signal_name.replace('-', '_')}}}()$0;",
+                snippet=f"{signal_name} => \$${{1:${name}_{signal_name.replace('-', '_')}}}()$0;",
                 docs=signal.doc,
                 detail=signal.detail,
             )
