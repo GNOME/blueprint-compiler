@@ -186,6 +186,7 @@ class TestSamples(unittest.TestCase):
                 "template_bind_property",
                 "template_id",
                 "template_no_parent",
+                "template_orphan",
                 "template_simple_binding",
                 "typeof",
                 "unchecked_class",
@@ -235,6 +236,7 @@ class TestSamples(unittest.TestCase):
         self.assert_decompile("strings_dec")
         self.assert_decompile("style_dec")
         self.assert_decompile("template")
+        self.assert_decompile("template_orphan")
         self.assert_decompile("translated")
         self.assert_decompile("using")
         self.assert_decompile("unchecked_class_dec")
