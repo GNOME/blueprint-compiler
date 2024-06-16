@@ -84,6 +84,7 @@ class Completion:
     docs: T.Optional[str] = None
     text: T.Optional[str] = None
     snippet: T.Optional[str] = None
+    detail: T.Optional[str] = None
 
     def to_json(self, snippets: bool):
         insert_text = self.text or self.label
@@ -96,7 +97,8 @@ class Completion:
             "label": self.label,
             "kind": self.kind,
             "tags": [CompletionItemTag.Deprecated] if self.deprecated else None,
-            "detail": self.signature,
+            # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemLabelDetails
+            "labelDetails": ({"detail": self.signature} if self.signature else None),
             "documentation": (
                 {
                     "kind": "markdown",
@@ -109,6 +111,7 @@ class Completion:
             "sortText": self.sort_text,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
+            "detail": self.detail if self.detail else None,
         }
         return {k: v for k, v in result.items() if v is not None}
 

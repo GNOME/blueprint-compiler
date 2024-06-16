@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import sys
 import typing as T
 
 from . import gir, language
@@ -29,6 +30,9 @@ from .tokenizer import Token, TokenType
 
 Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 
+
+def debug(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def _complete(
     lsp, ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
@@ -72,7 +76,9 @@ def complete(
 
 @completer([language.GtkDirective])
 def using_gtk(lsp, ast_node, match_variables):
-    yield Completion("using Gtk 4.0;", CompletionItemKind.Keyword)
+    yield Completion(
+        "using Gtk 4.0", CompletionItemKind.Keyword, snippet="using Gtk 4.0;\n"
+    )
 
 
 @completer(
@@ -101,7 +107,7 @@ def object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get(match_variables[0])
     if ns is not None:
         for c in ns.classes.values():
-            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc)
+            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc, detail=c.detail)
 
 
 @completer(
@@ -112,7 +118,7 @@ def gtk_object_completer(lsp, ast_node, match_variables):
     ns = ast_node.root.gir.namespaces.get("Gtk")
     if ns is not None:
         for c in ns.classes.values():
-            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc)
+            yield Completion(c.name, CompletionItemKind.Class, docs=c.doc, detail=c.detail)
 
 
 @completer(
@@ -131,6 +137,8 @@ def property_completer(lsp, ast_node, match_variables):
                     CompletionItemKind.Property,
                     sort_text=f"0 {prop_name}",
                     snippet=f"{prop_name}: ${{1|true,false|}};",
+                    docs=prop.doc,
+                    detail=prop.detail,
                 )
             elif isinstance(prop.type, gir.StringType):
                 yield Completion(
@@ -138,6 +146,8 @@ def property_completer(lsp, ast_node, match_variables):
                     CompletionItemKind.Property,
                     sort_text=f"0 {prop_name}",
                     snippet=f'{prop_name}: "$0";',
+                    docs=prop.doc,
+                    detail=prop.detail,
                 )
             elif (
                 isinstance(prop.type, gir.Enumeration)
@@ -150,6 +160,8 @@ def property_completer(lsp, ast_node, match_variables):
                     CompletionItemKind.Property,
                     sort_text=f"0 {prop_name}",
                     snippet=f"{prop_name}: ${{1|{choices}|}};",
+                    docs=prop.doc,
+                    detail=prop.detail,
                 )
             else:
                 yield Completion(
@@ -157,6 +169,8 @@ def property_completer(lsp, ast_node, match_variables):
                     CompletionItemKind.Property,
                     sort_text=f"0 {prop_name}",
                     snippet=f"{prop_name}: $0;",
+                    docs=prop.doc,
+                    detail=prop.detail,
                 )
 
 
@@ -168,7 +182,12 @@ def prop_value_completer(lsp, ast_node, match_variables):
     if (vt := ast_node.value_type) is not None:
         if isinstance(vt.value_type, gir.Enumeration):
             for name, member in vt.value_type.members.items():
-                yield Completion(name, CompletionItemKind.EnumMember, docs=member.doc)
+                yield Completion(
+                    name,
+                    CompletionItemKind.EnumMember,
+                    docs=member.doc,
+                    detail=member.detail,
+                )
 
         elif isinstance(vt.value_type, gir.BoolType):
             yield Completion("true", CompletionItemKind.Constant)
@@ -181,7 +200,7 @@ def prop_value_completer(lsp, ast_node, match_variables):
 )
 def signal_completer(lsp, ast_node, match_variables):
     if ast_node.gir_class and not isinstance(ast_node.gir_class, gir.ExternType):
-        for signal in ast_node.gir_class.signals:
+        for signal_name, signal in ast_node.gir_class.signals.items():
             if not isinstance(ast_node.parent, language.Object):
                 name = "on"
             else:
@@ -192,10 +211,12 @@ def signal_completer(lsp, ast_node, match_variables):
                     .lower()
                 )
             yield Completion(
-                signal,
+                signal_name,
                 CompletionItemKind.Event,
-                sort_text=f"1 {signal}",
-                snippet=f"{signal} => \$${{1:{name}_{signal.replace('-', '_')}}}()$0;",
+                sort_text=f"1 {signal_name}",
+                snippet=f"{signal_name} => \$${{1:{name}_{signal_name.replace('-', '_')}}}()$0;",
+                docs=signal.doc,
+                detail=signal.detail,
             )
 
 

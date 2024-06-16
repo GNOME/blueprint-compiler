@@ -337,6 +337,15 @@ class GirNode:
         return self.xml.get("version")
 
     @cached_property
+    def detail(self) -> T.Optional[str]:
+        try:
+            el = self.xml.get_elements("doc")
+            if len(el) == 1:
+                return el[0].cdata.strip().partition("\n")[0]
+        except:
+            return None
+
+    @cached_property
     def doc(self) -> T.Optional[str]:
         sections = []
 
