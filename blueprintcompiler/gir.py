@@ -342,6 +342,8 @@ class GirNode:
             el = self.xml.get_elements("doc")
             if len(el) == 1:
                 return el[0].cdata.strip().partition("\n")[0]
+            else:
+                return None
         except:
             return None
 

@@ -34,6 +34,7 @@ Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
 def debug(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+
 def _complete(
     lsp, ast_node: AstNode, tokens: T.List[Token], idx: int, token_idx: int
 ) -> T.Iterator[Completion]:
