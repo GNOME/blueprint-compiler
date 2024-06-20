@@ -102,10 +102,10 @@ class OpenFile:
         ]
 
         # convert line, column numbers to deltas
-        for i, token_list in enumerate(token_lists[1:]):
-            token_list[0] -= token_lists[i][0]
-            if token_list[0] == 0:
-                token_list[1] -= token_lists[i][1]
+        for a, b in zip(token_lists[-2::-1], token_lists[:0:-1]):
+            b[0] -= a[0]
+            if b[0] == 0:
+                b[1] -= a[1]
 
         # flatten the list
         return [x for y in token_lists for x in y]
