@@ -201,6 +201,10 @@ class ArrayType(GirType):
         return isinstance(other, ArrayType) and self._inner.assignable_to(other._inner)
 
     @property
+    def inner(self) -> GirType:
+        return self._inner
+
+    @property
     def name(self) -> str:
         return self._inner.name + "[]"
 

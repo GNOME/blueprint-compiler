@@ -22,18 +22,20 @@ from .binding import Binding
 from .common import *
 from .contexts import ValueTypeCtx
 from .gtkbuilder_template import Template
-from .values import ObjectValue, Value
+from .values import ArrayValue, ObjectValue, Value
 
 
 class Property(AstNode):
-    grammar = Statement(UseIdent("name"), ":", AnyOf(Binding, ObjectValue, Value))
+    grammar = Statement(
+        UseIdent("name"), ":", AnyOf(Binding, ObjectValue, Value, ArrayValue)
+    )
 
     @property
     def name(self) -> str:
         return self.tokens["name"]
 
     @property
-    def value(self) -> T.Union[Binding, ObjectValue, Value]:
+    def value(self) -> T.Union[Binding, ObjectValue, Value, ArrayValue]:
         return self.children[0]
 
     @property
