@@ -98,7 +98,9 @@ class AdwBreakpointSetter(AstNode):
             and not isinstance(self.gir_class, ExternType)
             and self.property_name is not None
         ):
-            assert isinstance(self.gir_class, gir.Class)
+            assert isinstance(self.gir_class, gir.Class) or isinstance(
+                self.gir_class, gir.TemplateType
+            )
             return self.gir_class.properties.get(self.property_name)
         else:
             return None
