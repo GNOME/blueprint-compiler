@@ -424,7 +424,8 @@ class ArrayValue(AstNode):
                 ):
                     quoted_literal = value.child.value
                     literal_value = quoted_literal.value
-                    if "\n" in literal_value:
+                    # literal_value can be None if there's an invalid escape sequence
+                    if literal_value is not None and "\n" in literal_value:
                         errors.append(
                             CompileError(
                                 "String literals inside arrays can't contain newlines",
