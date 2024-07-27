@@ -93,18 +93,28 @@ class CompileError(PrintableError):
         assert self.range is not None
 
         line_num, col_num = utils.idx_to_pos(self.range.start + 1, code)
+        end_line_num, end_col_num = utils.idx_to_pos(self.range.end + 1, code)
         line = code.splitlines(True)[line_num] if code != "" else ""
 
         # Display 1-based line numbers
         line_num += 1
+        end_line_num += 1
 
-        removed_tabs = line.count("\t", 0, col_num - 1)
+        n_spaces = col_num - 1
+        n_carets = (
+            (end_col_num - col_num)
+            if line_num == end_line_num
+            else (len(line) - n_spaces - 1)
+        )
+
+        n_spaces += line.count("\t", 0, col_num)
+        n_carets += line.count("\t", col_num, col_num + n_carets)
         line = line.replace("\t", "  ")
 
         stream.write(
             f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1+removed_tabs)}^{Colors.CLEAR}\n"""
+{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*n_spaces}{"^"*n_carets}{Colors.CLEAR}\n"""
         )
 
         for hint in self.hints:
