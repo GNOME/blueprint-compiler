@@ -130,6 +130,17 @@ class LookupOp(InfixExpr):
 
         return None
 
+    @docs("property")
+    def property_docs(self):
+        if not (
+            isinstance(self.lhs.type, gir.Class)
+            or isinstance(self.lhs.type, gir.Interface)
+        ):
+            return None
+
+        if property := self.lhs.type.properties.get(self.property_name):
+            return property.doc
+
     @validate("property")
     def property_exists(self):
         if self.lhs.type is None:
