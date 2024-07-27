@@ -113,9 +113,17 @@ at {filename} line {line_num} column {col_num}:
                 if action.edit_range is not None
                 else self.range.text
             )
-            stream.write(
-                f"suggestion: replace {Colors.RED}{old}{Colors.CLEAR} with {Colors.GREEN}{action.replace_with}{Colors.CLEAR}\n"
-            )
+
+            if old == "":
+                stream.write(
+                    f"suggestion: insert {Colors.GREEN}{action.replace_with}{Colors.CLEAR}\n"
+                )
+            elif action.replace_with == "":
+                stream.write(f"suggestion: remove {Colors.RED}{old}{Colors.CLEAR}\n")
+            else:
+                stream.write(
+                    f"suggestion: replace {Colors.RED}{old}{Colors.CLEAR} with {Colors.GREEN}{action.replace_with}{Colors.CLEAR}\n"
+                )
 
         for ref in self.references:
             line_num, col_num = utils.idx_to_pos(ref.range.start + 1, code)
