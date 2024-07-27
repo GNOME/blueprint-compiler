@@ -98,10 +98,13 @@ class CompileError(PrintableError):
         # Display 1-based line numbers
         line_num += 1
 
+        removed_tabs = line.count("\t", 0, col_num - 1)
+        line = line.replace("\t", "  ")
+
         stream.write(
             f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
-{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1)}^{Colors.CLEAR}\n"""
+{Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*(col_num-1+removed_tabs)}^{Colors.CLEAR}\n"""
         )
 
         for hint in self.hints:
