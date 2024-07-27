@@ -549,7 +549,7 @@ class Interface(GirNode, GirType):
     @property
     def online_docs(self) -> T.Optional[str]:
         if ns := self.get_containing(Namespace).online_docs:
-            return f"{ns}interface.{self.name}.html"
+            return f"{ns}iface.{self.name}.html"
         else:
             return None
 
