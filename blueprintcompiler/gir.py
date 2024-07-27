@@ -721,7 +721,7 @@ class TemplateType(GirType):
             # we don't know the template type's interfaces, assume yes
             return True
         elif self.parent is None or isinstance(self.parent, ExternType):
-            return isinstance(other, Class)
+            return isinstance(other, Class) or isinstance(other, ExternType)
         else:
             return self.parent.assignable_to(other)
 
