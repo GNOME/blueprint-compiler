@@ -292,8 +292,11 @@ class XmlOutput(OutputFormat):
     def _emit_extensions(self, extension, xml: XmlEmitter):
         if isinstance(extension, ExtAccessibility):
             xml.start_tag("accessibility")
-            for prop in extension.properties:
-                self._emit_attribute(prop.tag_name, "name", prop.name, prop.value, xml)
+            for property in extension.properties:
+                for val in property.values:
+                    self._emit_attribute(
+                        property.tag_name, "name", property.name, val, xml
+                    )
             xml.end_tag()
 
         elif isinstance(extension, AdwBreakpointCondition):

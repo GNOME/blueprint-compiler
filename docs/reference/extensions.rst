@@ -37,12 +37,15 @@ Accessibility Properties
 .. rst-class:: grammar-block
 
    ExtAccessibility = 'accessibility' '{' ExtAccessibilityProp* '}'
-   ExtAccessibilityProp = <name::ref:`IDENT<Syntax IDENT>`> ':' :ref:`Value <Syntax Value>` ';'
+   ExtAccessibilityProp = <name::ref:`IDENT<Syntax IDENT>`> ':' (:ref:`Value <Syntax Value>` | ('[' (:ref: Value <Syntax Value>),* ']') ) ';'
 
 Valid in any `Gtk.Widget <https://docs.gtk.org/gtk4/class.Widget.html>`_.
 
 The ``accessibility`` block defines values relevant to accessibility software. The property names and acceptable values are described in the `Gtk.AccessibleRelation <https://docs.gtk.org/gtk4/enum.AccessibleRelation.html>`_, `Gtk.AccessibleState <https://docs.gtk.org/gtk4/enum.AccessibleState.html>`_, and `Gtk.AccessibleProperty <https://docs.gtk.org/gtk4/enum.AccessibleProperty.html>`_ enums.
 
+.. note::
+
+   Relations which allow for a list of values, for example `labelled-by`, must be given as a single relation with a list of values instead of duplicating the relation like done in Gtk.Builder.
 
 .. _Syntax ExtAdwBreakpoint:
 

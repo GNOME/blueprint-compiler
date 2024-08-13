@@ -17,6 +17,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import typing as T
+
 from ..decompiler import escape_quote
 from .attributes import BaseAttribute
 from .common import *
@@ -97,6 +99,16 @@ def get_types(gir):
     }
 
 
+allow_duplicates = [
+    "controls",
+    "described-by",
+    "details",
+    "flow-to",
+    "labelled-by",
+    "owns",
+]
+
+
 def _get_docs(gir, name):
     name = name.replace("-", "_")
     if gir_type := (
@@ -111,7 +123,7 @@ class A11yProperty(BaseAttribute):
     grammar = Statement(
         UseIdent("name"),
         ":",
-        Value,
+        AnyOf(Value, ["[", UseLiteral("list_form", True), Delimited(Value, ","), "]"]),
     )
 
     @property
@@ -132,8 +144,8 @@ class A11yProperty(BaseAttribute):
         return self.tokens["name"].replace("_", "-")
 
     @property
-    def value(self) -> Value:
-        return self.children[0]
+    def values(self) -> T.List[Value]:
+        return list(self.children)
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
@@ -146,7 +158,7 @@ class A11yProperty(BaseAttribute):
             SymbolKind.Field,
             self.range,
             self.group.tokens["name"].range,
-            self.value.range.text,
+            ", ".join(v.range.text for v in self.values),
         )
 
     @validate("name")
@@ -164,6 +176,20 @@ class A11yProperty(BaseAttribute):
             f"Duplicate accessibility attribute '{self.tokens['name']}'",
             check=lambda child: child.tokens["name"] == self.tokens["name"],
         )
+
+    @validate("name")
+    def list_only_allowed_for_subset(self):
+        if self.tokens["list_form"] and self.tokens["name"] not in allow_duplicates:
+            raise CompileError(
+                f"'{self.tokens['name']}' does not allow a list of values",
+            )
+
+    @validate("name")
+    def list_non_empty(self):
+        if len(self.values) == 0:
+            raise CompileError(
+                f"'{self.tokens['name']}' may not be empty",
+            )
 
     @docs("name")
     def prop_docs(self):
