@@ -249,19 +249,35 @@ def a11y_name_completer(lsp, ast_node, match_variables):
         )
 
 
-@decompiler("relation", cdata=True)
-def decompile_relation(ctx, gir, name, cdata):
-    ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
-
-
-@decompiler("state", cdata=True)
-def decompile_state(ctx, gir, name, cdata, translatable="false"):
-    if decompile.truthy(translatable):
-        ctx.print(f"{name}: _({escape_quote(cdata)});")
+def decompile_attr(ctx: DecompileCtx, attr):
+    if attr["translatable"] is not None and decompile.truthy(attr["translatable"]):
+        ctx.print(f"_({escape_quote(attr.cdata)})")
     else:
-        ctx.print_attribute(name, cdata, get_types(ctx.gir).get(name))
+        ctx.print_value(attr.cdata, get_types(ctx.gir).get(attr["name"]))
 
 
-@decompiler("accessibility")
-def decompile_accessibility(ctx, gir):
+@decompiler("accessibility", skip_children=True, element=True)
+def decompile_accessibility(ctx: DecompileCtx, _gir, element):
     ctx.print("accessibility {")
+    already_printed = set()
+    for child in element.children:
+        name = child["name"]
+
+        if name in allow_duplicates:
+            if name in already_printed:
+                continue
+
+            ctx.print(f"{name}: [")
+            for value in element.children:
+                if value["name"] == name:
+                    decompile_attr(ctx, value)
+                    ctx.print(", ")
+            ctx.print("];")
+        else:
+            ctx.print(f"{name}:")
+            decompile_attr(ctx, child)
+            ctx.print(";")
+
+        already_printed.add(name)
+    ctx.print("}")
+    ctx.end_block_with("")

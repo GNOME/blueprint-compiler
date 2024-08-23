@@ -192,18 +192,21 @@ def decompile_element(
 
         decompiler = decompilers[0]
 
-        args: T.Dict[str, T.Optional[str]] = {
-            canon(name): value for name, value in xml.attrs.items()
-        }
-        if decompiler._cdata:
-            if len(xml.children):
-                args["cdata"] = None
-            else:
-                args["cdata"] = xml.cdata
+        if decompiler._element:
+            args = [ctx, gir, xml]
+            kwargs: T.Dict[str, T.Optional[str]] = {}
+        else:
+            args = [ctx, gir]
+            kwargs = {canon(name): value for name, value in xml.attrs.items()}
+            if decompiler._cdata:
+                if len(xml.children):
+                    kwargs["cdata"] = None
+                else:
+                    kwargs["cdata"] = xml.cdata
 
         ctx._node_stack.append(xml)
         ctx.start_block()
-        gir = decompiler(ctx, gir, **args)
+        gir = decompiler(*args, **kwargs)
 
         if not decompiler._skip_children:
             for child in xml.children:
@@ -264,10 +267,12 @@ def decompiler(
     parent_type: T.Optional[str] = None,
     parent_tag: T.Optional[str] = None,
     skip_children=False,
+    element=False,
 ):
     def decorator(func):
         func._cdata = cdata
         func._skip_children = skip_children
+        func._element = element
 
         def filter(ctx):
             if parent_type is not None:

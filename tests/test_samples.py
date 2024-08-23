@@ -221,8 +221,6 @@ class TestSamples(unittest.TestCase):
                 "list_factory",
                 # Not implemented yet
                 "subscope",
-                # Not implemented yet
-                "accessibility_multiple_labelled_by",
             ]
 
             if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
