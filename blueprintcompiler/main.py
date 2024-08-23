@@ -25,6 +25,7 @@ import sys
 import typing as T
 
 from . import formatter, interactive_port, parser, tokenizer
+from .decompiler import decompile_string
 from .errors import CompileError, CompilerBugError, PrintableError, report_bug
 from .gir import add_typelib_search_path
 from .lsp import LanguageServer
@@ -101,6 +102,15 @@ class BlueprintApp:
             "inputs",
             nargs="+",
             metavar="filenames",
+        )
+
+        decompile = self.add_subcommand(
+            "decompile", "Convert .ui XML files to blueprint", self.cmd_decompile
+        )
+        decompile.add_argument("--output", dest="output", default="-")
+        decompile.add_argument("--typelib-path", nargs="?", action="append")
+        decompile.add_argument(
+            "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
 
         port = self.add_subcommand("port", "Interactive porting tool", self.cmd_port)
@@ -298,6 +308,24 @@ class BlueprintApp:
         print(summary + Colors.CLEAR)
 
         if panic:
+            sys.exit(1)
+
+    def cmd_decompile(self, opts):
+        if opts.typelib_path != None:
+            for typelib_path in opts.typelib_path:
+                add_typelib_search_path(typelib_path)
+
+        data = opts.input.read()
+        try:
+            decompiled = decompile_string(data)
+
+            if opts.output == "-":
+                print(decompiled)
+            else:
+                with open(opts.output, "w") as file:
+                    file.write(decompiled)
+        except PrintableError as e:
+            e.pretty_print(opts.input.name, data, stream=sys.stderr)
             sys.exit(1)
 
     def cmd_lsp(self, opts):
