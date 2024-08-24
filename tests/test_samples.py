@@ -206,6 +206,9 @@ class TestSamples(unittest.TestCase):
                 "unchecked_class",
             ]
 
+            # Decompiler-only tests
+            SKIP_COMPILE = ["translator_comments"]
+
             SKIP_DECOMPILE = [
                 # Not implemented yet
                 "action_widgets",
@@ -225,7 +228,8 @@ class TestSamples(unittest.TestCase):
                 continue
 
             with self.subTest(sample):
-                self.assert_sample(sample, skip_run=sample in SKIP_RUN)
+                if sample not in SKIP_COMPILE:
+                    self.assert_sample(sample, skip_run=sample in SKIP_RUN)
 
             with self.subTest("decompile/" + sample):
                 if sample not in SKIP_DECOMPILE:

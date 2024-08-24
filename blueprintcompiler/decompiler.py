@@ -391,9 +391,6 @@ def decompile_property(
     context=None,
 ):
     name = name.replace("_", "-")
-    if comments is not None:
-        ctx.print(f"/* Translators: {comments} */")
-
     if cdata is None:
         ctx.print(f"{name}: ")
         ctx.end_block_with(";")
