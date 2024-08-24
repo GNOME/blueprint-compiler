@@ -1,3 +1,44 @@
+# v0.14.0
+
+## Added
+- Added a warning for unused imports.
+- Added an option to not print the diff when formatting with the CLI. (Gregor Niehl)
+- Added support for building Gtk.ColumnViewRow, Gtk.ColumnViewCell, and Gtk.ListHeader widgets with Gtk.BuilderListItemFactory.
+- Added support for the `after` keyword for signals. This was previously documented but not implemented. (Gregor Niehl)
+- Added support for string arrays. (Diego Augusto)
+- Added hover documentation for properties in lookup expressions.
+- The decompiler supports action widgets, translation domains, `typeof<>` syntax, and expressions. It also supports extension syntax for Adw.Breakpoint, Gtk.BuilderListItemFactory, Gtk.ComboBoxText, Gtk.SizeGroup, and Gtk.StringList.
+- Added a `decompile` subcommand to the CLI, which decompiles an XML .ui file to blueprint.
+- Accessibility relations that allow multiple values are supported using list syntax. (Julian Schmidhuber)
+
+## Changed
+- The decompiler sorts imports alphabetically.
+- Translatable strings use `translatable="yes"` instead of `translatable="true"` for compatibility with xgettext. (Marco Köpcke)
+- The first line of the documentation is shown in the completion list when using the language server. (Sonny Piers)
+- Object autocomplete uses a snippet to add the braces and position the cursor inside them. (Sonny Piers)
+- The carets in the CLI diagnostic output now span the whole error message up to the end of the first line, rather than just the first character.
+- The decompiler emits double quotes, which are compatible with gettext.
+
+## Fixed
+- Fixed deprecation warnings in the language server.
+- The decompiler no longer duplicates translator comments on properties.
+- Subtemplates no longer output a redundant `@generated` comment.
+- When extension syntax from a library that is not available is used, the compiler emits an error instead of crashing.
+- The language server reports semantic token positions correctly. (Szepesi Tibor)
+- The decompiler no longer emits the deprecated `bind-property` syntax. (Sonny Piers)
+- Fixed the tests when used as a Meson subproject. (Benoit Pierre)
+- Signal autocomplete generates correct syntax. (Sonny Piers)
+- The decompiler supports templates that do not specify a parent class. (Sonny Piers)
+- Adw.Breakpoint setters that set a property on the template no longer cause a crash.
+- Fixed type checking with templates that do not have a parent class.
+- Fixed online documentation links for interfaces.
+- The wording of edit suggestions is fixed for insertions and deletions.
+- When an input file uses tabs instead of spaces, the diagnostic output on the CLI aligns the caret correctly.
+- The decompiler emits correct syntax when a property binding refers to the template object.
+
+## Documentation
+- Fixed typos in "Built with Blueprint" section. (Valéry Febvre, Dexter Reed)
+
 # v0.12.0
 
 ## Added
