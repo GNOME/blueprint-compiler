@@ -212,14 +212,8 @@ class TestSamples(unittest.TestCase):
             SKIP_DECOMPILE = [
                 # Not implemented yet
                 "action_widgets",
-                # Not implemented yet
-                "gtkcolumnview",
                 # Comments are not preserved in either direction
                 "comments",
-                # Not implemented yet
-                "list_factory",
-                # Not implemented yet
-                "subscope",
             ]
 
             if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:

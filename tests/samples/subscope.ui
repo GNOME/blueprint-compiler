@@ -11,7 +11,11 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <template class="GtkListItem">
     <property name="child">
-      <object class="GtkLabel" id="label"></object>
+      <object class="AdwBin">
+        <child>
+          <object class="GtkLabel" id="label"></object>
+        </child>
+      </object>
     </property>
   </template>
 </interface>]]></property>

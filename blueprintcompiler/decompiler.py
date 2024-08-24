@@ -51,9 +51,10 @@ class LineType(Enum):
 
 
 class DecompileCtx:
-    def __init__(self) -> None:
+    def __init__(self, parent_gir: T.Optional[GirContext] = None) -> None:
+        self.sub_decompiler = parent_gir is not None
         self._result: str = ""
-        self.gir = GirContext()
+        self.gir = parent_gir or GirContext()
         self._blocks_need_end: T.List[str] = []
         self._last_line_type: LineType = LineType.NONE
         self._obj_type_stack: list[T.Optional[GirType]] = []
@@ -63,15 +64,19 @@ class DecompileCtx:
 
     @property
     def result(self) -> str:
-        import_lines = sorted(
-            [
-                f"using {ns} {namespace.version};"
-                for ns, namespace in self.gir.namespaces.items()
-                if ns != "Gtk"
-            ]
-        )
-        full_string = "\n".join(["using Gtk 4.0;", *import_lines]) + self._result
-        return formatter.format(full_string)
+        imports = ""
+
+        if not self.sub_decompiler:
+            import_lines = sorted(
+                [
+                    f"using {ns} {namespace.version};"
+                    for ns, namespace in self.gir.namespaces.items()
+                    if ns != "Gtk"
+                ]
+            )
+            imports += "\n".join(["using Gtk 4.0;", *import_lines])
+
+        return formatter.format(imports + self._result)
 
     def type_by_cname(self, cname: str) -> T.Optional[GirType]:
         if type := self.gir.get_type_by_cname(cname):
@@ -131,6 +136,7 @@ class DecompileCtx:
         for child in self.root_node.children:
             if child.tag == "template":
                 return child["class"]
+
         return None
 
     def find_object(self, id: str) -> T.Optional[Element]:
@@ -273,7 +279,7 @@ def decompile(data: str) -> str:
     return ctx.result
 
 
-def decompile_string(data):
+def decompile_string(data: str) -> str:
     ctx = DecompileCtx()
 
     xml = parse_string(data)
@@ -417,6 +423,16 @@ def decompile_property(
         ctx.print(f"{name}: {translatable};")
     elif gir is None or gir.properties.get(name) is None:
         ctx.print(f"{name}: {escape_quote(cdata)};")
+    elif (
+        gir.assignable_to(ctx.gir.get_class("BuilderListItemFactory", "Gtk"))
+        and name == "bytes"
+    ):
+        sub_ctx = DecompileCtx(ctx.gir)
+
+        xml = parse_string(cdata)
+        decompile_element(sub_ctx, None, xml)
+
+        ctx.print(sub_ctx.result)
     else:
         _, string = ctx.decompile_value(cdata, gir.properties.get(name).type)
         ctx.print(f"{name}: {string};")
