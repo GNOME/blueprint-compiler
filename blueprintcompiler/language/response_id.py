@@ -123,3 +123,32 @@ class ExtResponse(AstNode):
 
         object = self.parent_by_type(Child).object
         return object.id
+
+
+def decompile_response_type(parent_element, child_element):
+    obj_id = None
+    for obj in child_element.children:
+        if obj.tag == "object":
+            obj_id = obj["id"]
+            break
+
+    if obj_id is None:
+        return None
+
+    for child in parent_element.children:
+        if child.tag == "action-widgets":
+            for action_widget in child.children:
+                if action_widget.cdata == obj_id:
+                    response_id = action_widget["response"]
+                    is_default = (
+                        " default" if decompile.truthy(action_widget["default"]) else ""
+                    )
+                    return f"[action response={response_id}{is_default}]"
+
+    return None
+
+
+@decompiler("action-widgets", skip_children=True)
+def decompile_action_widgets(ctx, gir):
+    # This is handled in the <child> decompiler and decompile_response_type above
+    pass

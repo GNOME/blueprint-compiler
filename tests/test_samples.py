@@ -210,8 +210,6 @@ class TestSamples(unittest.TestCase):
             SKIP_COMPILE = ["translator_comments"]
 
             SKIP_DECOMPILE = [
-                # Not implemented yet
-                "action_widgets",
                 # Comments are not preserved in either direction
                 "comments",
             ]

@@ -22,7 +22,7 @@ from functools import cached_property
 
 from .common import *
 from .gobject_object import Object
-from .response_id import ExtResponse
+from .response_id import ExtResponse, decompile_response_type
 
 ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
     ("Gtk", "Buildable"),
@@ -127,10 +127,15 @@ class Child(AstNode):
                 )
 
 
-@decompiler("child")
-def decompile_child(ctx, gir, type=None, internal_child=None):
-    if type is not None:
+@decompiler("child", element=True)
+def decompile_child(ctx, gir, element):
+    if type := element["type"]:
+        if type == "action":
+            if decompiled := decompile_response_type(ctx.parent_node, element):
+                ctx.print(decompiled)
+                return
+
         ctx.print(f"[{type}]")
-    elif internal_child is not None:
+    elif internal_child := element["internal-child"]:
         ctx.print(f"[internal-child {internal_child}]")
     return gir
