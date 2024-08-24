@@ -102,6 +102,4 @@ def decompile_template(ctx: DecompileCtx, gir, klass, parent=None):
     else:
         ctx.print(f"template {class_name(klass)} : {class_name(parent)} {{")
 
-    ctx.template_class = klass
-
     return ctx.type_by_cname(klass) or ctx.type_by_cname(parent)

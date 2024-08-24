@@ -195,3 +195,42 @@ class AdwBreakpointSetters(AstNode):
     @validate()
     def unique(self):
         self.validate_unique_in_parent("Duplicate setters block")
+
+
+@decompiler("condition", cdata=True)
+def decompile_condition(ctx: DecompileCtx, gir, cdata):
+    ctx.print(f"condition({escape_quote(cdata)})")
+
+
+@decompiler("setter", element=True)
+def decompile_setter(ctx: DecompileCtx, gir, element):
+    assert ctx.parent_node is not None
+    # only run for the first setter
+    for child in ctx.parent_node.children:
+        if child.tag == "setter":
+            if child != element:
+                # already decompiled
+                return
+            else:
+                break
+
+    ctx.print("setters {")
+    for child in ctx.parent_node.children:
+        if child.tag == "setter":
+            object_id = child["object"]
+            property_name = child["property"]
+            obj = ctx.find_object(object_id)
+            if obj is not None:
+                gir_class = ctx.type_by_cname(obj["class"])
+            else:
+                gir_class = None
+
+            if object_id == ctx.template_class:
+                object_id = "template"
+
+            comments, string = ctx.decompile_value(
+                child.cdata,
+                gir_class,
+                (child["translatable"], child["context"], child["comments"]),
+            )
+            ctx.print(f"{comments} {object_id}.{property_name}: {string};")

@@ -210,10 +210,6 @@ class TestSamples(unittest.TestCase):
                 # Not implemented yet
                 "action_widgets",
                 # Not implemented yet
-                "adw_breakpoint",
-                # Not implemented yet
-                "adw_breakpoint_template",
-                # Not implemented yet
                 "gtkcolumnview",
                 # Comments are not preserved in either direction
                 "comments",

@@ -1,12 +1,13 @@
 using Gtk 4.0;
 using Adw 1;
 
-Gtk.Label label {}
+Label label {}
 
 Adw.Breakpoint {
   condition ("max-width: 600px")
+
   setters {
-    label.label: _("Hello, world!");
+    label.label: C_("test", "Hello, world!");
     label.visible: false;
     label.extra-menu: null;
   }

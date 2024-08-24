@@ -249,17 +249,12 @@ def a11y_name_completer(lsp, ast_node, match_variables):
         )
 
 
-def decompile_attr(ctx: DecompileCtx, attr):
-    if attr["translatable"] is not None and decompile.truthy(attr["translatable"]):
-        ctx.print(f"_({escape_quote(attr.cdata)})")
-    else:
-        ctx.print_value(attr.cdata, get_types(ctx.gir).get(attr["name"]))
-
-
 @decompiler("accessibility", skip_children=True, element=True)
 def decompile_accessibility(ctx: DecompileCtx, _gir, element):
     ctx.print("accessibility {")
     already_printed = set()
+    types = get_types(ctx.gir)
+
     for child in element.children:
         name = child["name"]
 
@@ -270,13 +265,20 @@ def decompile_accessibility(ctx: DecompileCtx, _gir, element):
             ctx.print(f"{name}: [")
             for value in element.children:
                 if value["name"] == name:
-                    decompile_attr(ctx, value)
-                    ctx.print(", ")
+                    comments, string = ctx.decompile_value(
+                        value.cdata,
+                        types.get(value["name"]),
+                        (value["translatable"], value["context"], value["comments"]),
+                    )
+                    ctx.print(f"{comments} {string},")
             ctx.print("];")
         else:
-            ctx.print(f"{name}:")
-            decompile_attr(ctx, child)
-            ctx.print(";")
+            comments, string = ctx.decompile_value(
+                child.cdata,
+                types.get(child["name"]),
+                (child["translatable"], child["context"], child["comments"]),
+            )
+            ctx.print(f"{comments} {name}: {string};")
 
         already_printed.add(name)
     ctx.print("}")

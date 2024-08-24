@@ -319,7 +319,8 @@ def decompile_constant(
         else:
             ctx.print(cdata)
     else:
-        ctx.print_value(cdata, ctx.type_by_cname(type))
+        _, string = ctx.decompile_value(cdata, ctx.type_by_cname(type))
+        ctx.print(string)
 
 
 @decompiler("closure", skip_children=True)

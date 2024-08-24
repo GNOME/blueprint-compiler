@@ -56,7 +56,6 @@ class DecompileCtx:
         self.gir = GirContext()
         self._blocks_need_end: T.List[str] = []
         self._last_line_type: LineType = LineType.NONE
-        self.template_class: T.Optional[str] = None
         self._obj_type_stack: list[T.Optional[GirType]] = []
         self._node_stack: list[Element] = []
 
@@ -112,6 +111,45 @@ class DecompileCtx:
         else:
             return self._node_stack[-1]
 
+    @property
+    def parent_node(self) -> T.Optional[Element]:
+        if len(self._node_stack) < 2:
+            return None
+        else:
+            return self._node_stack[-2]
+
+    @property
+    def root_node(self) -> T.Optional[Element]:
+        if len(self._node_stack) == 0:
+            return None
+        else:
+            return self._node_stack[0]
+
+    @property
+    def template_class(self) -> T.Optional[str]:
+        assert self.root_node is not None
+        for child in self.root_node.children:
+            if child.tag == "template":
+                return child["class"]
+        return None
+
+    def find_object(self, id: str) -> T.Optional[Element]:
+        assert self.root_node is not None
+        for child in self.root_node.children:
+            if child.tag == "template" and child["class"] == id:
+                return child
+
+        def find_in_children(node: Element) -> T.Optional[Element]:
+            if node.tag in ["object", "menu"] and node["id"] == id:
+                return node
+            else:
+                for child in node.children:
+                    if result := find_in_children(child):
+                        return result
+            return None
+
+        return find_in_children(self.root_node)
+
     def end_block_with(self, text: str) -> None:
         self._blocks_need_end[-1] = text
 
@@ -122,7 +160,15 @@ class DecompileCtx:
             if len(self._blocks_need_end):
                 self._blocks_need_end[-1] = _CLOSING[line[-1]]
 
-    def print_value(self, value: str, type: T.Optional[GirType]) -> None:
+    # Converts a value from an XML element to a blueprint string
+    # based on the given type. Returns a tuple of translator comments
+    # (if any) and the decompiled syntax.
+    def decompile_value(
+        self,
+        value: str,
+        type: T.Optional[GirType],
+        translatable: T.Optional[T.Tuple[str, str, str]] = None,
+    ) -> T.Tuple[str, str]:
         def get_enum_name(value):
             for member in type.members.values():
                 if (
@@ -133,16 +179,18 @@ class DecompileCtx:
                     return member.name
             return value.replace("-", "_")
 
-        if type is None:
-            self.print(f"{escape_quote(value)}")
+        if translatable is not None and truthy(translatable[0]):
+            return decompile_translatable(value, *translatable)
+        elif type is None:
+            return "", f"{escape_quote(value)}"
         elif type.assignable_to(FloatType()):
-            self.print(str(value))
+            return "", str(value)
         elif type.assignable_to(BoolType()):
             val = truthy(value)
-            self.print("true" if val else "false")
+            return "", ("true" if val else "false")
         elif type.assignable_to(ArrayType(StringType())):
             items = ", ".join([escape_quote(x) for x in value.split("\n")])
-            self.print(f"[{items}]")
+            return "", f"[{items}]"
         elif (
             type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Pixbuf"))
             or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Texture"))
@@ -156,30 +204,25 @@ class DecompileCtx:
                 self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger")
             )
         ):
-            self.print(f"{escape_quote(value)}")
+            return "", escape_quote(value)
         elif value == self.template_class:
-            self.print("template")
+            return "", "template"
         elif type.assignable_to(
             self.gir.namespaces["Gtk"].lookup_type("GObject.Object")
         ) or isinstance(type, Interface):
-            self.print(value)
+            return "", ("null" if value == "" else value)
         elif isinstance(type, Bitfield):
             flags = [get_enum_name(flag) for flag in value.split("|")]
-            self.print(" | ".join(flags))
+            return "", " | ".join(flags)
         elif isinstance(type, Enumeration):
-            self.print(get_enum_name(value))
+            return "", get_enum_name(value)
         elif isinstance(type, TypeType):
             if t := self.type_by_cname(value):
-                self.print(f"typeof<{full_name(t)}>")
+                return "", f"typeof<{full_name(t)}>"
             else:
-                self.print(f"typeof<${value}>")
+                return "", f"typeof<${value}>"
         else:
-            self.print(f"{escape_quote(value)}")
-
-    def print_attribute(self, name: str, value: str, type: GirType) -> None:
-        self.print(f"{name}: ")
-        self.print_value(value, type)
-        self.print(";")
+            return "", escape_quote(value)
 
 
 def decompile_element(
@@ -247,7 +290,7 @@ def canon(string: str) -> str:
 
 
 def truthy(string: str) -> bool:
-    return string.lower() in ["yes", "true", "t", "y", "1"]
+    return string is not None and string.lower() in ["yes", "true", "t", "y", "1"]
 
 
 def full_name(gir: GirType) -> str:
@@ -318,9 +361,11 @@ def decompile_translatable(
     translatable: T.Optional[str],
     context: T.Optional[str],
     comments: T.Optional[str],
-) -> T.Tuple[T.Optional[str], str]:
+) -> T.Tuple[str, str]:
     if translatable is not None and truthy(translatable):
-        if comments is not None:
+        if comments is None:
+            comments = ""
+        else:
             comments = comments.replace("/*", " ").replace("*/", " ")
             comments = f"/* Translators: {comments} */"
 
@@ -329,7 +374,7 @@ def decompile_translatable(
         else:
             return comments, f"_({escape_quote(string)})"
     else:
-        return comments, f"{escape_quote(string)}"
+        return "", f"{escape_quote(string)}"
 
 
 @decompiler("property", cdata=True)
@@ -376,7 +421,8 @@ def decompile_property(
     elif gir is None or gir.properties.get(name) is None:
         ctx.print(f"{name}: {escape_quote(cdata)};")
     else:
-        ctx.print_attribute(name, cdata, gir.properties.get(name).type)
+        _, string = ctx.decompile_value(cdata, gir.properties.get(name).type)
+        ctx.print(f"{name}: {string};")
     return gir
 
 

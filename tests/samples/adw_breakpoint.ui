@@ -9,7 +9,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <object class="GtkLabel" id="label"></object>
   <object class="AdwBreakpoint">
     <condition>max-width: 600px</condition>
-    <setter object="label" property="label" translatable="yes">Hello, world!</setter>
+    <setter object="label" property="label" translatable="yes" context="test">Hello, world!</setter>
     <setter object="label" property="visible">false</setter>
     <setter object="label" property="extra-menu"></setter>
   </object>
