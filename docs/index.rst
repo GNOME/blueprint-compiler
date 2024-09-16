@@ -81,6 +81,7 @@ Built with Blueprint
 - `AdwSteamGtk <https://github.com/Foldex/AdwSteamGtk>`_
 - `Blurble <https://gitlab.gnome.org/World/Blurble>`_
 - `Bottles <https://github.com/bottlesdevs/Bottles>`_
+- `Cassette <https://gitlab.gnome.org/Rirusha/Cassette>`_
 - `Cartridges <https://github.com/kra-mo/cartridges>`_
 - `Cavalier <https://github.com/NickvisionApps/Cavalier>`_
 - `Chance <https://zelikos.dev/apps/rollit>`_
