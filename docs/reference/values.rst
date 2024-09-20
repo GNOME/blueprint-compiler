@@ -25,8 +25,7 @@ Literals
    NumberLiteral = ( '-' | '+' )? <value::ref:`NUMBER<Syntax NUMBER>`>
    IdentLiteral = <ident::ref:`IDENT<Syntax IDENT>`>
 
-Literals are used to specify values for properties. They can be strings, numbers, references to objects, types, boolean values, or enum members.
-
+Literals are used to specify values for properties. They can be strings, numbers, references to objects, ``null``, types, boolean values, or enum members.
 
 .. _Syntax TypeLiteral:
 
