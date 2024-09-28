@@ -86,6 +86,7 @@ Built with Blueprint
 - `Chance <https://zelikos.dev/apps/rollit>`_
 - `Commit <https://github.com/sonnyp/Commit/>`_
 - `Confy <https://confy.kirgroup.net/>`_
+- `Cozy <https://github.com/geigi/cozy>`_
 - `Daikhan <https://github.com/flathub/io.gitlab.daikhan.stable>`_
 - `Damask <https://gitlab.gnome.org/subpop/damask>`_
 - `Denaro <https://github.com/NickvisionApps/Denaro>`_
