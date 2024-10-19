@@ -20,6 +20,7 @@
 import typing as T
 
 from blueprintcompiler.gir import ArrayType
+from blueprintcompiler.lsp_utils import SemanticToken
 
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
@@ -55,6 +56,10 @@ class Translated(AstNode):
             raise CompileError(
                 f"Cannot convert translated string to {expected_type.full_name}"
             )
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax Translated")
 
 
 class TypeLiteral(AstNode):
@@ -100,6 +105,10 @@ class TypeLiteral(AstNode):
                     )
                 ],
             )
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax TypeLiteral")
 
 
 class QuotedLiteral(AstNode):
@@ -257,6 +266,10 @@ class Flags(AstNode):
         expected_type = self.context[ValueTypeCtx].value_type
         if expected_type is not None and not isinstance(expected_type, gir.Bitfield):
             raise CompileError(f"{expected_type.full_name} is not a bitfield type")
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax Flags")
 
 
 class IdentLiteral(AstNode):

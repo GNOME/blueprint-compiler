@@ -29,25 +29,23 @@ class Filters(AstNode):
             self.tokens["tag_name"],
             SymbolKind.Array,
             self.range,
-            self.group.tokens[self.tokens["tag_name"]].range,
+            self.group.tokens["tag_name"].range,
         )
 
     @validate()
     def container_is_file_filter(self):
         validate_parent_type(self, "Gtk", "FileFilter", "file filter properties")
 
-    @validate()
+    @validate("tag_name")
     def unique_in_parent(self):
-        # The token argument to validate() needs to be calculated based on
-        # the instance, hence wrapping it like this.
-        @validate(self.tokens["tag_name"])
-        def wrapped_validator(self):
-            self.validate_unique_in_parent(
-                f"Duplicate {self.tokens['tag_name']} block",
-                check=lambda child: child.tokens["tag_name"] == self.tokens["tag_name"],
-            )
+        self.validate_unique_in_parent(
+            f"Duplicate {self.tokens['tag_name']} block",
+            check=lambda child: child.tokens["tag_name"] == self.tokens["tag_name"],
+        )
 
-        wrapped_validator(self)
+    @docs("tag_name")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtFileFilter")
 
 
 class FilterString(AstNode):
@@ -76,8 +74,7 @@ def create_node(tag_name: str, singular: str):
     return Group(
         Filters,
         [
-            Keyword(tag_name),
-            UseLiteral("tag_name", tag_name),
+            UseExact("tag_name", tag_name),
             "[",
             Delimited(
                 Group(

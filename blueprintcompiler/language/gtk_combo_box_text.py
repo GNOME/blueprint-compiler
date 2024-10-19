@@ -55,6 +55,10 @@ class Item(AstNode):
                 f"Duplicate item '{self.name}'", lambda x: x.name == self.name
             )
 
+    @docs("name")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtComboBoxItems")
+
 
 class ExtComboBoxItems(AstNode):
     grammar = [
@@ -80,6 +84,10 @@ class ExtComboBoxItems(AstNode):
     @validate("items")
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate items block")
+
+    @docs("items")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtComboBoxItems")
 
 
 @completer(

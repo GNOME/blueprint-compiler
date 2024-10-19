@@ -70,6 +70,10 @@ class ExtStyles(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate styles block")
 
+    @docs("styles")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtStyles")
+
 
 @completer(
     applies_in=[ObjectContent],

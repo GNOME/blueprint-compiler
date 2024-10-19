@@ -55,6 +55,7 @@ from ..lsp_utils import (
     SemanticToken,
     SemanticTokenType,
     SymbolKind,
+    get_docs_section,
 )
 from ..parse_tree import *
 

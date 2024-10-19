@@ -124,6 +124,16 @@ class ExtResponse(AstNode):
         object = self.parent_by_type(Child).object
         return object.id
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtResponse")
+
+    @docs("response_id")
+    def response_id_docs(self):
+        if enum := self.root.gir.get_type("ResponseType", "Gtk"):
+            if member := enum.members.get(self.response_id, None):
+                return member.doc
+
 
 def decompile_response_type(parent_element, child_element):
     obj_id = None

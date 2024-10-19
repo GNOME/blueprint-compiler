@@ -227,7 +227,7 @@ Valid in `Gtk.BuilderListItemFactory <https://docs.gtk.org/gtk4/class.BuilderLis
 
 The ``template`` block defines the template that will be used to create list items. This block is unique within Blueprint because it defines a completely separate sub-blueprint which is used to create each list item. The sub-blueprint may not reference objects in the main blueprint or vice versa.
 
-The template type must be `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.html>`_, `Gtk.ColumnViewRow <https://docs.gtk.org/gtk4/class.ColumnViewRow.html>`_, or `Gtk.ColumnViewCell <https://docs.gtk.org/gtk4/class.ColumnViewCell.html>`_ The template object can be referenced with the ``template`` keyword.
+The template type must be `Gtk.ListItem <https://docs.gtk.org/gtk4/class.ListItem.html>`_, `Gtk.ColumnViewRow <https://docs.gtk.org/gtk4/class.ColumnViewRow.html>`_, or `Gtk.ColumnViewCell <https://docs.gtk.org/gtk4/class.ColumnViewCell.html>`_. The template object can be referenced with the ``template`` keyword.
 
 .. code-block:: blueprint
 

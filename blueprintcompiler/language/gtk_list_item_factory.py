@@ -108,3 +108,7 @@ class ExtListItemFactory(AstNode):
         just hear to satisfy XmlOutput._emit_object_or_template
         """
         return None
+
+    @docs("id")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtListItemFactory")

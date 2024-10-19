@@ -40,6 +40,10 @@ class SignalFlag(AstNode):
             f"Duplicate flag '{self.flag}'", lambda x: x.flag == self.flag
         )
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax Signal")
+
 
 class Signal(AstNode):
     grammar = Statement(
@@ -50,7 +54,7 @@ class Signal(AstNode):
                 UseIdent("detail_name").expected("a signal detail name"),
             ]
         ),
-        "=>",
+        Keyword("=>"),
         Mark("detail_start"),
         Optional(["$", UseLiteral("extern", True)]),
         UseIdent("handler").expected("the name of a function to handle the signal"),
@@ -183,6 +187,10 @@ class Signal(AstNode):
                 prop = self.gir_class.properties.get(self.tokens["detail_name"])
                 if prop is not None:
                     return prop.doc
+
+    @docs("=>")
+    def ref_docs(self):
+        return get_docs_section("Syntax Signal")
 
 
 @decompiler("signal")

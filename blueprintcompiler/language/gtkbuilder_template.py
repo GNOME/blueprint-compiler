@@ -88,6 +88,10 @@ class Template(Object):
             f"Only one template may be defined per file, but this file contains {len(self.parent.children[Template])}",
         )
 
+    @docs("id")
+    def ref_docs(self):
+        return get_docs_section("Syntax Template")
+
 
 @decompiler("template")
 def decompile_template(ctx: DecompileCtx, gir, klass, parent=None):

@@ -174,7 +174,7 @@ class LookupOp(InfixExpr):
 
 class CastExpr(InfixExpr):
     grammar = [
-        "as",
+        Keyword("as"),
         AnyOf(
             ["<", TypeName, Match(">").expected()],
             [
@@ -219,6 +219,10 @@ class CastExpr(InfixExpr):
                     )
                 ],
             )
+
+    @docs("as")
+    def ref_docs(self):
+        return get_docs_section("Syntax CastExpression")
 
 
 class ClosureArg(AstNode):
@@ -268,6 +272,10 @@ class ClosureExpr(ExprBase):
     def builtin_exists(self):
         if not self.tokens["extern"]:
             raise CompileError(f"{self.closure_name} is not a builtin function")
+
+    @docs("name")
+    def ref_docs(self):
+        return get_docs_section("Syntax ClosureExpression")
 
 
 expr.children = [

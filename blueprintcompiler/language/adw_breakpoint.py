@@ -207,6 +207,10 @@ class AdwBreakpointSetters(AstNode):
     def unique(self):
         self.validate_unique_in_parent("Duplicate setters block")
 
+    @docs("setters")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtAdwBreakpoint")
+
 
 @decompiler("condition", cdata=True)
 def decompile_condition(ctx: DecompileCtx, gir, cdata):

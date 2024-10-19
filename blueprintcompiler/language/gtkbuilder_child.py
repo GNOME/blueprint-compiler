@@ -53,6 +53,10 @@ class ChildExtension(AstNode):
     def child(self) -> ExtResponse:
         return self.children[0]
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax ChildExtension")
+
 
 class ChildAnnotation(AstNode):
     grammar = ["[", AnyOf(ChildInternal, ChildExtension, ChildType), "]"]

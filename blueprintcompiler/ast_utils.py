@@ -179,13 +179,15 @@ class AstNode:
                 token = self.group.tokens.get(attr.token_name)
                 if token and token.start <= idx < token.end:
                     return getattr(self, name)
-            else:
-                return getattr(self, name)
 
         for child in self.children:
             if idx in child.range:
                 if docs := child.get_docs(idx):
                     return docs
+
+        for name, attr in self._attrs_by_type(Docs):
+            if not attr.token_name:
+                return getattr(self, name)
 
         return None
 

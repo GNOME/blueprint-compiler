@@ -70,6 +70,25 @@ class Menu(AstNode):
         if self.id in RESERVED_IDS:
             raise CompileWarning(f"{self.id} may be a confusing object ID")
 
+    @docs("menu")
+    def ref_docs_menu(self):
+        return get_docs_section("Syntax Menu")
+
+    @docs("section")
+    def ref_docs_section(self):
+        return get_docs_section("Syntax Menu")
+
+    @docs("submenu")
+    def ref_docs_submenu(self):
+        return get_docs_section("Syntax Menu")
+
+    @docs("item")
+    def ref_docs_item(self):
+        if self.tokens["shorthand"]:
+            return get_docs_section("Syntax MenuItemShorthand")
+        else:
+            return get_docs_section("Syntax Menu")
+
 
 class MenuAttribute(AstNode):
     tag_name = "attribute"
@@ -156,6 +175,7 @@ menu_item_shorthand = Group(
     [
         Keyword("item"),
         UseLiteral("tag", "item"),
+        UseLiteral("shorthand", True),
         "(",
         Group(
             MenuAttribute,

@@ -68,6 +68,10 @@ class GtkDirective(AstNode):
             # For better error handling, just assume it's 4.0
             return gir.get_namespace("Gtk", "4.0")
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax GtkDecl")
+
 
 class Import(AstNode):
     grammar = Statement(
@@ -105,3 +109,7 @@ class Import(AstNode):
             return gir.get_namespace(self.tokens["namespace"], self.tokens["version"])
         except CompileError:
             return None
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax Using")

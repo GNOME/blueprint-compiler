@@ -58,6 +58,10 @@ class BindingFlag(AstNode):
                 "Only bindings with a single lookup can have flags",
             )
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax Binding")
+
 
 class Binding(AstNode):
     grammar = [
@@ -98,6 +102,10 @@ class Binding(AstNode):
                 "'bind-property' is no longer needed. Use 'bind' instead. (blueprint 0.8.2)",
                 actions=[CodeAction("use 'bind'", "bind")],
             )
+
+    @docs("bind")
+    def ref_docs(self):
+        return get_docs_section("Syntax Binding")
 
 
 @dataclass

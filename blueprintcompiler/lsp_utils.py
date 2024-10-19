@@ -19,6 +19,8 @@
 
 
 import enum
+import json
+import os
 import typing as T
 from dataclasses import dataclass, field
 
@@ -200,3 +202,27 @@ class TextEdit:
 
     def to_json(self):
         return {"range": self.range.to_json(), "newText": self.newText}
+
+
+_docs_sections: T.Optional[dict[str, T.Any]] = None
+
+
+def get_docs_section(section_name: str) -> T.Optional[str]:
+    global _docs_sections
+
+    if _docs_sections is None:
+        try:
+            with open(
+                os.path.join(os.path.dirname(__file__), "reference_docs.json")
+            ) as f:
+                _docs_sections = json.load(f)
+        except FileNotFoundError:
+            _docs_sections = {}
+
+    if section := _docs_sections.get(section_name):
+        content = section["content"]
+        link = section["link"]
+        content += f"\n\n---\n\n[Online documentation]({link})"
+        return content
+    else:
+        return None

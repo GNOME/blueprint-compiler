@@ -2,12 +2,12 @@ project('blueprint-compiler',
   version: '0.14.0',
 )
 
-subdir('docs')
-
 prefix = get_option('prefix')
 datadir = join_paths(prefix, get_option('datadir'))
 
 py = import('python').find_installation('python3')
+
+subdir('docs')
 
 configure_file(
   input: 'blueprint-compiler.pc.in',

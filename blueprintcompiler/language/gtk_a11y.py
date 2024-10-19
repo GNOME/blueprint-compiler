@@ -225,6 +225,10 @@ class ExtAccessibility(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate accessibility block")
 
+    @docs("accessibility")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtAccessibility")
+
 
 @completer(
     applies_in=[ObjectContent],

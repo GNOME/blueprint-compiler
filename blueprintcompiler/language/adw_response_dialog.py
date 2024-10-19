@@ -138,6 +138,10 @@ class ExtAdwResponseDialog(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate responses block")
 
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtAdwMessageDialog")
+
 
 @completer(
     applies_in=[ObjectContent],

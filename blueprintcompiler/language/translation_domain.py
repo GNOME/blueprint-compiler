@@ -29,3 +29,7 @@ class TranslationDomain(AstNode):
     @property
     def domain(self):
         return self.tokens["domain"]
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax TranslationDomain")

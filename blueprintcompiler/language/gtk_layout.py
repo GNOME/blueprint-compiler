@@ -83,6 +83,10 @@ class ExtLayout(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate layout block")
 
+    @docs("layout")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtLayout")
+
 
 @completer(
     applies_in=[ObjectContent],

@@ -94,6 +94,10 @@ class ExtScaleMark(AstNode):
                 did_you_mean=(self.position, positions.keys()),
             )
 
+    @docs("mark")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtScaleMarks")
+
 
 class ExtScaleMarks(AstNode):
     grammar = [
@@ -122,6 +126,10 @@ class ExtScaleMarks(AstNode):
     @validate("marks")
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate 'marks' block")
+
+    @docs("marks")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtScaleMarks")
 
 
 @completer(

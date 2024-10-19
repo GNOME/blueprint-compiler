@@ -94,6 +94,10 @@ class ExtSizeGroupWidgets(AstNode):
     def unique_in_parent(self):
         self.validate_unique_in_parent("Duplicate widgets block")
 
+    @docs("widgets")
+    def ref_docs(self):
+        return get_docs_section("Syntax ExtSizeGroupWidgets")
+
 
 @completer(
     applies_in=[ObjectContent],
