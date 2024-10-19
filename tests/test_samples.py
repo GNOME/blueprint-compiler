@@ -207,7 +207,7 @@ class TestSamples(unittest.TestCase):
             ]
 
             # Decompiler-only tests
-            SKIP_COMPILE = ["translator_comments"]
+            SKIP_COMPILE = ["issue_177", "translator_comments"]
 
             SKIP_DECOMPILE = [
                 # Comments are not preserved in either direction

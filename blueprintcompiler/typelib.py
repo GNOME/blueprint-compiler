@@ -148,8 +148,8 @@ class Typelib:
     SIGNATURE_ARGUMENTS = Field(0x8, "offset")
 
     ATTR_OFFSET = Field(0x0, "u32")
-    ATTR_NAME = Field(0x0, "string")
-    ATTR_VALUE = Field(0x0, "string")
+    ATTR_NAME = Field(0x4, "string")
+    ATTR_VALUE = Field(0x8, "string")
 
     TYPE_BLOB_TAG = Field(0x0, "u8", 3, 5)
     TYPE_BLOB_INTERFACE = Field(0x2, "dir_entry")
