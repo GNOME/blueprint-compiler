@@ -174,6 +174,16 @@ class Signal(AstNode):
         if self.gir_signal is not None:
             return self.gir_signal.doc
 
+    @docs("detail_name")
+    def detail_docs(self):
+        if self.name == "notify":
+            if self.gir_class is not None and not isinstance(
+                self.gir_class, ExternType
+            ):
+                prop = self.gir_class.properties.get(self.tokens["detail_name"])
+                if prop is not None:
+                    return prop.doc
+
 
 @decompiler("signal")
 def decompile_signal(
