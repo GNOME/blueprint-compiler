@@ -33,7 +33,9 @@ def parse(
         original_text = tokens[0].string if len(tokens) else ""
         ctx = ParseContext(tokens, original_text)
         AnyOf(UI).parse(ctx)
-        ast_node = ctx.last_group.to_ast() if ctx.last_group else None
+
+        assert ctx.last_group is not None
+        ast_node = ctx.last_group.to_ast()
 
         errors = [*ctx.errors, *ast_node.errors]
         warnings = [*ctx.warnings, *ast_node.warnings]

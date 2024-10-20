@@ -7,8 +7,8 @@ git clone --depth=1 https://gitlab.gnome.org/GNOME/gtk.git
 cd gtk
 meson setup builddir \
   --prefix=/usr \
-  -Dgtk_doc=true \
-  -Ddemos=false \
+  -Ddocumentation=true \
+  -Dbuild-demos=false \
   -Dbuild-examples=false \
   -Dbuild-tests=false \
   -Dbuild-testsuite=false
