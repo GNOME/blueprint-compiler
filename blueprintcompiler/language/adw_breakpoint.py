@@ -115,6 +115,17 @@ class AdwBreakpointSetter(AstNode):
             self.value.range.text,
         )
 
+    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+        if idx in self.group.tokens["object"].range:
+            if self.object is not None:
+                return LocationLink(
+                    self.group.tokens["object"].range,
+                    self.object.range,
+                    self.object.ranges["id"],
+                )
+
+        return None
+
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         if self.gir_property is not None:

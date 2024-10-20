@@ -39,6 +39,12 @@ class Widget(AstNode):
             self.group.tokens["name"].range,
         )
 
+    def get_reference(self, _idx: int) -> T.Optional[LocationLink]:
+        if obj := self.context[ScopeCtx].objects.get(self.name):
+            return LocationLink(self.range, obj.range, obj.ranges["id"])
+        else:
+            return None
+
     @validate("name")
     def obj_widget(self):
         object = self.context[ScopeCtx].objects.get(self.tokens["name"])

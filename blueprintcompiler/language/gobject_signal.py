@@ -117,6 +117,16 @@ class Signal(AstNode):
             self.ranges["detail_start", "detail_end"].text,
         )
 
+    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+        if idx in self.group.tokens["object"].range:
+            obj = self.context[ScopeCtx].objects.get(self.object_id)
+            if obj is not None:
+                return LocationLink(
+                    self.group.tokens["object"].range, obj.range, obj.ranges["id"]
+                )
+
+        return None
+
     @validate("handler")
     def old_extern(self):
         if not self.tokens["extern"]:
