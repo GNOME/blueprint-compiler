@@ -211,6 +211,13 @@ class Flag(AstNode):
         else:
             return None
 
+    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+        yield SemanticToken(
+            self.group.tokens["value"].start,
+            self.group.tokens["value"].end,
+            SemanticTokenType.EnumMember,
+        )
+
     @docs()
     def docs(self):
         type = self.context[ValueTypeCtx].value_type
