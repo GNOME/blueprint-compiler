@@ -21,7 +21,7 @@ The tokenizer encountered an unexpected sequence of characters that aren't part 
 
 child_not_accepted
 ------------------
-The parent class does not have child widgets (it does not implement `Gtk.Buildable <https://docs.gtk.org/gtk4/iface.Buildable.html>`_ and is not a subclass of `Gio.ListStore <https://docs.gtk.org/gio/class.ListStore.html>`_). Some classes use properties instead of children to add widgets. Check the parent class's documentation.
+The parent class does not have child objects (it does not implement `Gtk.Buildable <https://docs.gtk.org/gtk4/iface.Buildable.html>`_ and is not a subclass of `Gio.ListStore <https://docs.gtk.org/gio/class.ListStore.html>`_). Some classes use properties instead of children to add widgets. Check the parent class's documentation.
 
 
 .. _Diagnostic conversion_error:

@@ -8,10 +8,10 @@ automatically.
 
 .. code-block:: blueprint
 
-   label: bind MyAppWindow.account.username;
-   /*     ^               ^       ^
-          |               creates lookup expressions that are re-evaluated when
-          |               the account's username *or* the account itself changes
+   label: bind template.account.username;
+   /*     ^             ^       ^
+          |             creates lookup expressions that are re-evaluated when
+          |             the account's username *or* the account itself changes
           |
           binds the `label` property to the expression's output
     */
@@ -49,7 +49,7 @@ Lookup Expressions
 
    LookupExpression = '.' <property::ref:`IDENT<Syntax IDENT>`>
 
-Lookup expressions perform a GObject property lookup on the preceding expression. They are recalculated whenever the property changes, using the `notify signal <https://docs.gtk.org/gobject/signal.Object.notify.html>`_
+Lookup expressions perform a GObject property lookup on the preceding expression. They are recalculated whenever the property changes, using the `notify signal <https://docs.gtk.org/gobject/signal.Object.notify.html>`_.
 
 The type of a property expression is the type of the property it refers to.
 
@@ -65,7 +65,7 @@ Closure Expressions
 
 Closure expressions allow you to perform additional calculations that aren't supported in blueprint by writing those calculations as application code. These application-defined functions are created in the same way as :ref:`signal handlers<Syntax Signal>`.
 
-Expressions are only reevaluated when their inputs change. Because blueprint doesn't manage a closure's application code, it can't tell what changes might affect the result. Therefore, closures must be *pure*, or deterministic. They may only calculate the result based on their immediate inputs, properties of their inputs or outside variables.
+Expressions are only reevaluated when their inputs change. Because blueprint doesn't manage a closure's application code, it can't tell what changes might affect the result. Therefore, closures must be *pure*, or deterministic. They may only calculate the result based on their immediate inputs, not properties of their inputs or outside variables.
 
 Blueprint doesn't know the closure's return type, so closure expressions must be cast to the correct return type using a :ref:`cast expression<Syntax CastExpression>`.
 
@@ -79,7 +79,7 @@ Cast Expressions
 
    CastExpression = 'as' '<' :ref:`TypeName<Syntax TypeName>` '>'
 
-Cast expressions allow Blueprint to know the type of an expression when it can't otherwise determine it.
+Cast expressions allow Blueprint to know the type of an expression when it can't otherwise determine it. This is necessary for closures and for properties of application-defined types.
 
 .. code-block:: blueprint
 

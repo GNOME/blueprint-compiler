@@ -31,7 +31,7 @@ Tokens
 IDENT
 ~~~~~
 
-An identifier starts with an ASCII underscore ``_`` or letter ``[A-Za-z]`` and consists of ASCII underscores, letters, digits ``[0-9]``, and dashes ``-``. Dashes are included for historical reasons, since GObject properties are traditionally kebab-case.
+An identifier starts with an ASCII underscore ``_`` or letter ``[A-Za-z]`` and consists of ASCII underscores, letters, digits ``[0-9]``, and dashes ``-``. Dashes are included for historical reasons, since GObject properties and signals are traditionally kebab-case.
 
 .. _Syntax NUMBER:
 

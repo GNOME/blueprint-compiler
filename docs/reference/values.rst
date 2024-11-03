@@ -109,7 +109,7 @@ Bindings
 .. rst-class:: grammar-block
 
    Binding = 'bind' :ref:`Expression<Syntax Expression>` (BindingFlag)*
-   BindingFlag = 'inverted' | 'bidirectional' | 'sync-create'
+   BindingFlag = 'inverted' | 'bidirectional' | 'no-sync-create'
 
 Bindings keep a property updated as other properties change. They can be used to keep the UI in sync with application data, or to connect two parts of the UI.
 
@@ -120,8 +120,8 @@ Simple Bindings
 
 A binding that consists of a source object and a single lookup is called a "simple binding". These are implemented using `GObject property bindings <https://docs.gtk.org/gobject/method.Object.bind_property.html>`_ and support a few flags:
 
-- ``bidirectional``: The binding is two-way, so changes to the target property will also update the source property.
 - ``inverted``: For boolean properties, the target is set to the inverse of the source property.
+- ``bidirectional``: The binding is two-way, so changes to the target property will also update the source property.
 - ``no-sync-create``: Normally, when a binding is created, the target property is immediately updated with the current value of the source property. This flag disables that behavior, and the bound property will be updated the next time the source property changes.
 
 Complex Bindings
@@ -137,11 +137,11 @@ Example
    /* Use bindings to show a label when a switch
     * is active, without any application code */
 
-   Switch advanced_feature {}
+   Switch show_label {}
 
-   Label warning {
-     visible: bind advanced_feature.active;
-     label: _("This is an advanced feature. Use with caution!");
+   Label {
+     visible: bind show_label.active;
+     label: _("I'm a label that's only visible when the switch is enabled!");
    }
 
 .. _Syntax ObjectValue:

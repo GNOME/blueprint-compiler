@@ -98,7 +98,7 @@ def rst_to_md(lines: list[str]) -> str:
         line = lines[i].rstrip()
         i += 1
         if line == ".. rst-class:: grammar-block":
-            print_block(strip_links=True)
+            print_block("text", strip_links=True)
         elif line == ".. code-block:: blueprint":
             print_block("blueprint")
         elif line == ".. note::":

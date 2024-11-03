@@ -90,6 +90,7 @@ To reference the template object in a binding or expression, use the ``template`
 Language Implementations
 ------------------------
 
-- ``gtk_widget_class_set_template ()`` in C: https://docs.gtk.org/gtk4/class.Widget.html#building-composite-widgets-from-template-xml
-- ``#[template]`` in gtk-rs: https://gtk-rs.org/gtk4-rs/stable/latest/book/composite_templates.html
-- ``GObject.registerClass()`` in GJS: https://gjs.guide/guides/gtk/3/14-templates.html
+- **C** ``gtk_widget_class_set_template ()``: https://docs.gtk.org/gtk4/class.Widget.html#building-composite-widgets-from-template-xml
+- **gtk-rs** ``#[template]``: https://gtk-rs.org/gtk4-rs/stable/latest/book/composite_templates.html
+- **GJS** ``GObject.registerClass()``: https://gjs.guide/guides/gtk/3/14-templates.html
+- **PyGObject** ``@Gtk.Template``: https://pygobject.gnome.org/guide/gtk_template.html
