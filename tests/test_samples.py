@@ -130,18 +130,20 @@ class TestSamples(unittest.TestCase):
             if len(warnings):
                 raise MultipleErrors(warnings)
         except PrintableError as e:
+            # Ignore deprecation warnings because new versions of libraries can introduce
+            # new deprecations, which would cause the tests to fail
+            errors = [
+                error
+                for error in (e.errors if isinstance(e, MultipleErrors) else [e])
+                if (name == "deprecations" or not isinstance(error, DeprecatedWarning))
+            ]
 
             def error_str(error: CompileError):
                 line, col = utils.idx_to_pos(error.range.start + 1, blueprint)
                 len = error.range.length
                 return ",".join([str(line + 1), str(col), str(len), error.message])
 
-            if isinstance(e, CompileError):
-                actual = error_str(e)
-            elif isinstance(e, MultipleErrors):
-                actual = "\n".join([error_str(error) for error in e.errors])
-            else:  # pragma: no cover
-                raise AssertionError()
+            actual = "\n".join([error_str(error) for error in errors])
 
             self.assertEqual(actual.strip(), expected.strip())
         else:  # pragma: no cover
