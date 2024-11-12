@@ -24,8 +24,20 @@ from functools import cached_property
 
 import gi  # type: ignore
 
-gi.require_version("GIRepository", "2.0")
-from gi.repository import GIRepository  # type: ignore
+try:
+    gi.require_version("GIRepository", "3.0")
+    from gi.repository import GIRepository  # type: ignore
+
+    _repo = GIRepository.Repository()
+except ValueError:
+    # We can remove this once we can bump the minimum dependencies
+    # to glib 2.80 and pygobject 3.52
+    # dependency('glib-2.0', version: '>= 2.80.0')
+    # dependency('girepository-2.0', version: '>= 2.80.0')
+    gi.require_version("GIRepository", "2.0")
+    from gi.repository import GIRepository  # type: ignore
+
+    _repo = GIRepository.Repository
 
 from . import typelib, xml_reader
 from .errors import CompileError, CompilerBugError
@@ -42,7 +54,7 @@ def add_typelib_search_path(path: str):
 
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    search_paths = [*GIRepository.Repository.get_search_path(), *_user_search_paths]
+    search_paths = [*_repo.get_search_path(), *_user_search_paths]
 
     filename = f"{namespace}-{version}.typelib"
 
@@ -74,7 +86,7 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
         return _available_namespaces
 
     search_paths: list[str] = [
-        *GIRepository.Repository.get_search_path(),
+        *_repo.get_search_path(),
         *_user_search_paths,
     ]
 
