@@ -1,1 +1,2 @@
 3,1,6,Gtk.Dialog is deprecated
+8,3,12,signal Gtk.Window::keys-changed () is deprecated
