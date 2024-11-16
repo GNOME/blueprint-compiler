@@ -4,8 +4,10 @@ sphinx = find_program(['sphinx-build-3', 'sphinx-build'], required: true)
 
 custom_target('docs',
   command: [sphinx, '-b', 'html', '-c', meson.current_source_dir(), meson.current_source_dir(), '@OUTPUT@'],
-  output: 'en',
+  output: meson.project_name(),
   build_always_stale: true,
+  install: true,
+  install_dir: datadir / 'doc',
 )
 
 endif

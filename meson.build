@@ -5,6 +5,8 @@ project('blueprint-compiler',
 prefix = get_option('prefix')
 datadir = join_paths(prefix, get_option('datadir'))
 
+subdir('docs')
+
 py = import('python').find_installation('python3')
 
 subdir('docs')
