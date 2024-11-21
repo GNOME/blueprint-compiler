@@ -211,7 +211,7 @@ class Flag(AstNode):
         return self.tokens["value"]
 
     @property
-    def value(self) -> T.Optional[int]:
+    def value(self) -> T.Optional[str]:
         type = self.context[ValueTypeCtx].value_type
         if not isinstance(type, Enumeration):
             return None
