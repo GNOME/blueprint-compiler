@@ -7,7 +7,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <requires lib="gtk" version="4.0"/>
   <object class="GApplication">
-    <property name="flags">is_service|handles_open</property>
+    <property name="flags">is-service|handles-open</property>
   </object>
   <object class="GtkEventControllerScroll">
     <property name="flags">1</property>

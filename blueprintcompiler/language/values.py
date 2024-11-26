@@ -216,7 +216,7 @@ class Flag(AstNode):
         if not isinstance(type, Enumeration):
             return None
         elif member := type.members.get(self.name):
-            return member.name
+            return member.nick
         else:
             return None
 
