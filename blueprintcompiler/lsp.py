@@ -149,7 +149,7 @@ class LanguageServer:
 
     def _send(self, data):
         data["jsonrpc"] = "2.0"
-        line = json.dumps(data, separators=(",", ":")) + "\r\n"
+        line = json.dumps(data, separators=(",", ":"))
         printerr("output: " + line)
         sys.stdout.write(
             f"Content-Length: {len(line.encode())}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n{line}"
