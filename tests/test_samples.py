@@ -200,6 +200,7 @@ class TestSamples(unittest.TestCase):
                 "expr_closure_args",
                 "parseable",
                 "signal",
+                "signal_not_swapped",
                 "template",
                 "template_binding",
                 "template_binding_extern",
