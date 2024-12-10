@@ -171,6 +171,24 @@ class LookupOp(InfixExpr):
                 did_you_mean=(self.property_name, self.lhs.type.properties.keys()),
             )
 
+    @validate("property")
+    def property_deprecated(self):
+        if self.lhs.type is None or not (
+            isinstance(self.lhs.type, gir.Class)
+            or isinstance(self.lhs.type, gir.Interface)
+        ):
+            return
+
+        if property := self.lhs.type.properties.get(self.property_name):
+            if property.deprecated:
+                hints = []
+                if property.deprecated_doc:
+                    hints.append(property.deprecated_doc)
+                raise DeprecatedWarning(
+                    f"{property.signature} is deprecated",
+                    hints=hints,
+                )
+
 
 class CastExpr(InfixExpr):
     grammar = [
