@@ -20,7 +20,7 @@
 import sys
 import typing as T
 
-from . import gir, language
+from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
 from .language.types import ClassName
@@ -154,11 +154,17 @@ def property_completer(lsp, ast_node, match_variables):
                     detail=prop.detail,
                 )
             elif isinstance(prop.type, gir.StringType):
+                snippet = (
+                    f'{prop_name}: _("$0");'
+                    if annotations.is_property_translated(prop)
+                    else f'{prop_name}: "$0";'
+                )
+
                 yield Completion(
                     prop_name,
                     CompletionItemKind.Property,
                     sort_text=f"0 {prop_name}",
-                    snippet=f'{prop_name}: "$0";',
+                    snippet=snippet,
                     docs=prop.doc,
                     detail=prop.detail,
                 )
