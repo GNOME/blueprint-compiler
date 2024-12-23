@@ -122,7 +122,7 @@ class Signal(AstNode):
         )
 
     def get_reference(self, idx: int) -> T.Optional[LocationLink]:
-        if idx in self.group.tokens["object"].range:
+        if self.object_id is not None and idx in self.group.tokens["object"].range:
             obj = self.context[ScopeCtx].objects.get(self.object_id)
             if obj is not None:
                 return LocationLink(

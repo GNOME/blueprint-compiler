@@ -46,3 +46,4 @@ class TestFormatter(unittest.TestCase):
         self.assert_format_test("in2.blp", "out.blp")
         self.assert_format_test("correct1.blp", "correct1.blp")
         self.assert_format_test("string_in.blp", "string_out.blp")
+        self.assert_format_test("comment_in.blp", "comment_out.blp")

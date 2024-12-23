@@ -366,12 +366,13 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(extension, ExtScaleMarks):
             xml.start_tag("marks")
-            for mark in extension.children:
+            for mark in extension.marks:
+                label = mark.label.child if mark.label is not None else None
                 xml.start_tag(
                     "mark",
                     value=mark.value,
                     position=mark.position,
-                    **self._translated_string_attrs(mark.label and mark.label.child),
+                    **self._translated_string_attrs(label),
                 )
                 if mark.label is not None:
                     xml.put_text(mark.label.string)

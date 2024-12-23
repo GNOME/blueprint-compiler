@@ -51,7 +51,7 @@ class Property(AstNode):
 
     @property
     def document_symbol(self) -> DocumentSymbol:
-        if isinstance(self.value, ObjectValue):
+        if isinstance(self.value, ObjectValue) or self.value is None:
             detail = None
         else:
             detail = self.value.range.text

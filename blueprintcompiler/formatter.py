@@ -20,7 +20,8 @@
 import re
 from enum import Enum
 
-from . import tokenizer, utils
+from . import tokenizer
+from .errors import CompilerBugError
 from .tokenizer import TokenType
 
 OPENING_TOKENS = ("{", "[")
@@ -192,8 +193,8 @@ def format(data, tab_size=2, insert_space=True):
 
                 commit_current_line(LineType.COMMENT, newlines_before=newlines)
 
-            else:
-                commit_current_line()
+            else:  # pragma: no cover
+                raise CompilerBugError()
 
         elif str_item == "(" and (
             re.match(r"^([A-Za-z_\-])+\s*\(", current_line) or watch_parentheses

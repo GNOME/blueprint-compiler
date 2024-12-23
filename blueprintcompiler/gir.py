@@ -467,10 +467,13 @@ class Signature(GirNode):
         return result
 
     @cached_property
-    def return_type(self) -> GirType:
-        return self.get_containing(Repository)._resolve_type_id(
-            self.tl.SIGNATURE_RETURN_TYPE
-        )
+    def return_type(self) -> T.Optional[GirType]:
+        if self.tl.SIGNATURE_RETURN_TYPE == 0:
+            return None
+        else:
+            return self.get_containing(Repository)._resolve_type_id(
+                self.tl.SIGNATURE_RETURN_TYPE
+            )
 
 
 class Signal(GirNode):
@@ -490,7 +493,10 @@ class Signal(GirNode):
         args = ", ".join(
             [f"{a.type.full_name} {a.name}" for a in self.gir_signature.args]
         )
-        return f"signal {self.container.full_name}::{self.name} ({args})"
+        result = f"signal {self.container.full_name}::{self.name} ({args})"
+        if self.gir_signature.return_type is not None:
+            result += f" -> {self.gir_signature.return_type.full_name}"
+        return result
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -902,14 +908,6 @@ class Namespace(GirNode):
             if isinstance(entry, Class)
         }
 
-    @cached_property
-    def interfaces(self) -> T.Mapping[str, Interface]:
-        return {
-            name: entry
-            for name, entry in self.entries.items()
-            if isinstance(entry, Interface)
-        }
-
     def get_type(self, name) -> T.Optional[GirType]:
         """Gets a type (class, interface, enum, etc.) from this namespace."""
         return self.entries.get(name)
@@ -933,13 +931,8 @@ class Namespace(GirNode):
         """Looks up a type in the scope of this namespace (including in the
         namespace's dependencies)."""
 
-        if type_name in _BASIC_TYPES:
-            return _BASIC_TYPES[type_name]()
-        elif "." in type_name:
-            ns, name = type_name.split(".", 1)
-            return self.get_containing(Repository).get_type(name, ns)
-        else:
-            return self.get_type(type_name)
+        ns, name = type_name.split(".", 1)
+        return self.get_containing(Repository).get_type(name, ns)
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -958,19 +951,13 @@ class Repository(GirNode):
                 self.includes = {
                     name: get_namespace(name, version) for name, version in deps
                 }
-            except:
+            except:  # pragma: no cover
                 raise CompilerBugError(f"Failed to load dependencies.")
         else:
             self.includes = {}
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
         return self.lookup_namespace(ns).get_type(name)
-
-    def get_type_by_cname(self, name: str) -> T.Optional[GirType]:
-        for ns in [self.namespace, *self.includes.values()]:
-            if type := ns.get_type_by_cname(name):
-                return type
-        return None
 
     def lookup_namespace(self, ns: str):
         """Finds a namespace among this namespace's dependencies."""

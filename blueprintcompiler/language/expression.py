@@ -39,10 +39,6 @@ class ExprBase(AstNode):
         raise NotImplementedError()
 
     @property
-    def type_complete(self) -> bool:
-        return True
-
-    @property
     def rhs(self) -> T.Optional["ExprBase"]:
         if isinstance(self.parent, Expression):
             children = list(self.parent.children)
@@ -64,10 +60,6 @@ class Expression(ExprBase):
     @property
     def type(self) -> T.Optional[GirType]:
         return self.last.type
-
-    @property
-    def type_complete(self) -> bool:
-        return self.last.type_complete
 
 
 class InfixExpr(ExprBase):
@@ -98,15 +90,6 @@ class LiteralExpr(ExprBase):
     @property
     def type(self) -> T.Optional[GirType]:
         return self.literal.value.type
-
-    @property
-    def type_complete(self) -> bool:
-        from .values import IdentLiteral
-
-        if isinstance(self.literal.value, IdentLiteral):
-            if object := self.context[ScopeCtx].objects.get(self.literal.value.ident):
-                return not object.gir_class.incomplete
-        return True
 
 
 class LookupOp(InfixExpr):
@@ -210,10 +193,6 @@ class CastExpr(InfixExpr):
     @property
     def type(self) -> T.Optional[GirType]:
         return self.children[TypeName][0].gir_type
-
-    @property
-    def type_complete(self) -> bool:
-        return True
 
     @validate()
     def cast_makes_sense(self):

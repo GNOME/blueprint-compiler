@@ -28,6 +28,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
 from blueprintcompiler import decompiler, parser, tokenizer, utils
+from blueprintcompiler.ast_utils import AstNode
 from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import (
     CompileError,
@@ -61,11 +62,14 @@ class TestSamples(unittest.TestCase):
         except:
             pass
 
-    def assert_ast_doesnt_crash(self, text, tokens, ast):
+    def assert_ast_doesnt_crash(self, text, tokens, ast: AstNode):
+        lsp = LanguageServer()
         for i in range(len(text)):
             ast.get_docs(i)
         for i in range(len(text)):
-            list(complete(LanguageServer(), ast, tokens, i))
+            list(complete(lsp, ast, tokens, i))
+        for i in range(len(text)):
+            ast.get_reference(i)
         ast.get_document_symbols()
 
     def assert_sample(self, name, skip_run=False):
