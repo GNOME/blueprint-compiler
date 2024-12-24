@@ -177,6 +177,15 @@ def property_completer(lsp, ast_node, match_variables):
                     docs=prop.doc,
                     detail=prop.detail,
                 )
+            elif prop.type.full_name == "Gtk.Expression":
+                yield Completion(
+                    prop_name,
+                    CompletionItemKind.Property,
+                    sort_text=f"0 {prop_name}",
+                    snippet=f"{prop_name}: expr $0;",
+                    docs=prop.doc,
+                    detail=prop.detail,
+                )
             else:
                 yield Completion(
                     prop_name,

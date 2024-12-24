@@ -198,6 +198,7 @@ class TestSamples(unittest.TestCase):
                 "adw_breakpoint_template",
                 "expr_closure",
                 "expr_closure_args",
+                "expr_value_closure",
                 "parseable",
                 "signal",
                 "signal_not_swapped",
