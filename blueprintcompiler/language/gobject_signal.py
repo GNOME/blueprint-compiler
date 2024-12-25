@@ -143,12 +143,13 @@ class Signal(AstNode):
 
     @property
     def document_symbol(self) -> DocumentSymbol:
+        detail = self.ranges["detail_start", "detail_end"]
         return DocumentSymbol(
             self.full_name,
             SymbolKind.Event,
             self.range,
             self.group.tokens["name"].range,
-            self.ranges["detail_start", "detail_end"].text,
+            detail.text if detail is not None else None,
         )
 
     def get_reference(self, idx: int) -> T.Optional[LocationLink]:
