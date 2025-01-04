@@ -91,6 +91,29 @@ def using_gtk(_ctx: CompletionContext):
 
 
 @completer([language.UI])
+def using(ctx: CompletionContext):
+    imported_namespaces = set(
+        [import_.namespace for import_ in ctx.ast_node.root.using]
+    )
+
+    # Import statements must be before any content
+    for i in ctx.ast_node.root.children:
+        if not isinstance(i, language.GtkDirective) and not isinstance(
+            i, language.Import
+        ):
+            if ctx.index >= i.range.end:
+                return
+
+    for ns, version in gir.get_available_namespaces():
+        if ns not in imported_namespaces and ns != "Gtk":
+            yield Completion(
+                f"using {ns} {version}",
+                CompletionItemKind.Module,
+                text=f"using {ns} {version};",
+            )
+
+
+@completer([language.UI])
 def translation_domain(ctx: CompletionContext):
     if ctx.ast_node.root.translation_domain is not None:
         return
