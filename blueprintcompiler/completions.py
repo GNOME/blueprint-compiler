@@ -23,7 +23,7 @@ from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
 from .language.types import ClassName
-from .lsp_utils import Completion, CompletionItemKind, TextEdit
+from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
 from .parser import SKIP_TOKENS
 from .tokenizer import Token, TokenType
 
@@ -55,7 +55,7 @@ def _complete(
         token_idx -= 1
 
     for completer in ast_node.completers:
-        yield from completer(prev_tokens, next_token, ast_node, lsp)
+        yield from completer(prev_tokens, next_token, ast_node, lsp, idx)
 
 
 def complete(
@@ -87,6 +87,28 @@ def complete(
 def using_gtk(_ctx: CompletionContext):
     yield Completion(
         "using Gtk 4.0", CompletionItemKind.Keyword, snippet="using Gtk 4.0;\n"
+    )
+
+
+@completer([language.UI])
+def translation_domain(ctx: CompletionContext):
+    if ctx.ast_node.root.translation_domain is not None:
+        return
+
+    # Translation domain must be after the import statements but before any content
+    for i in ctx.ast_node.root.children:
+        if isinstance(i, language.Import):
+            if ctx.index <= i.range.start:
+                return
+        elif not isinstance(i, language.GtkDirective):
+            if ctx.index >= i.range.end:
+                return
+
+    yield Completion(
+        "translation-domain",
+        CompletionItemKind.Keyword,
+        snippet='translation-domain "$0";',
+        docs=get_docs_section("Syntax TranslationDomain"),
     )
 
 

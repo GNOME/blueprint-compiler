@@ -32,6 +32,7 @@ class CompletionContext:
     ast_node: AstNode
     match_variables: T.List[str]
     next_token: Token
+    index: int
 
 
 new_statement_patterns = [
@@ -44,7 +45,9 @@ new_statement_patterns = [
 
 def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
     def decorator(func: T.Callable[[CompletionContext], T.Generator[Completion]]):
-        def inner(prev_tokens: T.List[Token], next_token: Token, ast_node, lsp):
+        def inner(
+            prev_tokens: T.List[Token], next_token: Token, ast_node, lsp, idx: int
+        ):
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
@@ -82,6 +85,7 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
                 ast_node=ast_node,
                 match_variables=match_variables,
                 next_token=next_token,
+                index=idx,
             )
             yield from func(context)
 
