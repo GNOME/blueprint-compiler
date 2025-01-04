@@ -94,7 +94,7 @@ class ExtComboBoxItems(AstNode):
     applies_in_subclass=("Gtk", "ComboBoxText"),
     matches=new_statement_patterns,
 )
-def items_completer(lsp, ast_node, match_variables):
+def items_completer(_ctx: CompletionContext):
     yield Completion("items", CompletionItemKind.Snippet, snippet="items [$0]")
 
 
