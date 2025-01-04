@@ -193,6 +193,9 @@ def format(data, tab_size=2, insert_space=True):
                 elif prev_line_type in require_extra_newline:
                     newlines = 2
 
+                current_line = "\n".join(
+                    [line.rstrip() for line in current_line.split("\n")]
+                )
                 commit_current_line(LineType.COMMENT, newlines_before=newlines)
 
             else:  # pragma: no cover
