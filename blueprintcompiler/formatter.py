@@ -146,8 +146,10 @@ def format(data, tab_size=2, insert_space=True):
                 is_child_type = False
 
             elif str_item in CLOSING_TOKENS:
-                if str_item == "]" and last_not_whitespace != ",":
+                if str_item == "]" and str(last_not_whitespace) != "[":
                     current_line = current_line[:-1]
+                    if str(last_not_whitespace) != ",":
+                        current_line += ","
                     commit_current_line()
                     current_line = "]"
                 elif str(last_not_whitespace) in OPENING_TOKENS:
