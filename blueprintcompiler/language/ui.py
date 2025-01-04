@@ -110,16 +110,22 @@ class UI(AstNode):
             and self.template.class_name.glib_type_name == id
         )
 
-    def import_code_action(self, ns: str, version: str) -> CodeAction:
-        if len(self.children[Import]):
-            pos = self.children[Import][-1].range.end
-        else:
-            pos = self.children[GtkDirective][0].range.end
+    def import_range(self, ns: str):
+        """Returns a range to insert a new import statement"""
+        pos = self.children[GtkDirective][0].range.end
 
+        # try to insert alphabetically
+        for import_ in self.children[Import]:
+            if ns.lower() > import_.namespace.lower():
+                pos = import_.range.end
+
+        return Range(pos, pos, self.group.text)
+
+    def import_code_action(self, ns: str, version: str) -> CodeAction:
         return CodeAction(
             f"Import {ns} {version}",
             f"\nusing {ns} {version};",
-            Range(pos, pos, self.group.text),
+            self.import_range(ns),
         )
 
     @cached_property
