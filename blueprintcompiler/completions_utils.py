@@ -19,9 +19,20 @@
 
 
 import typing as T
+from dataclasses import dataclass
 
+from .ast_utils import AstNode
 from .lsp_utils import Completion
 from .tokenizer import Token, TokenType
+
+
+@dataclass
+class CompletionContext:
+    client_supports_completion_choice: bool
+    ast_node: AstNode
+    match_variables: T.List[str]
+    next_token: Token
+
 
 new_statement_patterns = [
     [(TokenType.PUNCTUATION, "{")],
@@ -32,8 +43,8 @@ new_statement_patterns = [
 
 
 def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
-    def decorator(func):
-        def inner(prev_tokens: T.List[Token], ast_node, lsp):
+    def decorator(func: T.Callable[[CompletionContext], T.Generator[Completion]]):
+        def inner(prev_tokens: T.List[Token], next_token: Token, ast_node, lsp):
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
@@ -66,7 +77,13 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
             if not any_match:
                 return
 
-            yield from func(lsp, ast_node, match_variables)
+            context = CompletionContext(
+                client_supports_completion_choice=lsp.client_supports_completion_choice,
+                ast_node=ast_node,
+                match_variables=match_variables,
+                next_token=next_token,
+            )
+            yield from func(context)
 
         for c in applies_in:
             c.completers.append(inner)

@@ -75,7 +75,7 @@ class ExtStringListStrings(AstNode):
     applies_in_subclass=("Gtk", "StringList"),
     matches=new_statement_patterns,
 )
-def strings_completer(lsp, ast_node, match_variables):
+def strings_completer(_ctx: CompletionContext):
     yield Completion("strings", CompletionItemKind.Snippet, snippet="strings [$0]")
 
 
