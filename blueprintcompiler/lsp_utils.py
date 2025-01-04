@@ -87,6 +87,7 @@ class Completion:
     text: T.Optional[str] = None
     snippet: T.Optional[str] = None
     detail: T.Optional[str] = None
+    additional_text_edits: T.Optional[T.List["TextEdit"]] = None
 
     def to_json(self, snippets: bool):
         insert_text = self.text or self.label
@@ -114,6 +115,11 @@ class Completion:
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
             "detail": self.detail if self.detail else None,
+            "additionalTextEdits": (
+                [edit.to_json() for edit in self.additional_text_edits]
+                if self.additional_text_edits
+                else None
+            ),
         }
         return {k: v for k, v in result.items() if v is not None}
 

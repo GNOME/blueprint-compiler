@@ -23,7 +23,7 @@ from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
 from .language.types import ClassName
-from .lsp_utils import Completion, CompletionItemKind
+from .lsp_utils import Completion, CompletionItemKind, TextEdit
 from .parser import SKIP_TOKENS
 from .tokenizer import Token, TokenType
 
@@ -96,12 +96,30 @@ def using_gtk(_ctx: CompletionContext):
 )
 def namespace(ctx: CompletionContext):
     yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
+
+    imported_namespaces = set(["Gtk"])
+
     for ns in ctx.ast_node.root.children[language.Import]:
         if ns.gir_namespace is not None:
+            imported_namespaces.add(ns.gir_namespace.name)
             yield Completion(
                 ns.gir_namespace.name,
                 CompletionItemKind.Module,
                 text=ns.gir_namespace.name + ".",
+            )
+
+    for ns, version in gir.get_available_namespaces():
+        if ns not in imported_namespaces:
+            yield Completion(
+                ns,
+                CompletionItemKind.Module,
+                text=ns + ".",
+                signature=f" using {ns} {version}",
+                additional_text_edits=[
+                    TextEdit(
+                        ctx.ast_node.root.import_range(ns), f"\nusing {ns} {version};"
+                    )
+                ],
             )
 
 
