@@ -64,11 +64,11 @@ class TestSamples(unittest.TestCase):
 
     def assert_ast_doesnt_crash(self, text, tokens, ast: AstNode):
         lsp = LanguageServer()
-        for i in range(len(text)):
+        for i in range(len(text) + 1):
             ast.get_docs(i)
-        for i in range(len(text)):
+        for i in range(len(text) + 1):
             list(complete(lsp, ast, tokens, i))
-        for i in range(len(text)):
+        for i in range(len(text) + 1):
             ast.get_reference(i)
         ast.get_document_symbols()
 

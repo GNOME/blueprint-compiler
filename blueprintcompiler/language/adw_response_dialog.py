@@ -143,7 +143,7 @@ class ExtAdwResponseDialog(AstNode):
     applies_in_subclass=("Adw", "MessageDialog"),
     matches=new_statement_patterns,
 )
-def complete_adw_message_dialog(lsp, ast_node, match_variables):
+def complete_adw_message_dialog(_ctx: CompletionContext):
     yield Completion(
         "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
     )
@@ -154,7 +154,7 @@ def complete_adw_message_dialog(lsp, ast_node, match_variables):
     applies_in_subclass=("Adw", "AlertDialog"),
     matches=new_statement_patterns,
 )
-def complete_adw_alert_dialog(lsp, ast_node, match_variables):
+def complete_adw_alert_dialog(_ctx: CompletionContext):
     yield Completion(
         "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
     )

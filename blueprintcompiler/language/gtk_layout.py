@@ -93,7 +93,7 @@ class ExtLayout(AstNode):
     applies_in_subclass=("Gtk", "Widget"),
     matches=new_statement_patterns,
 )
-def layout_completer(lsp, ast_node, match_variables):
+def layout_completer(_ctx: CompletionContext):
     yield Completion("layout", CompletionItemKind.Snippet, snippet="layout {\n  $0\n}")
 
 
