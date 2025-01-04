@@ -452,6 +452,14 @@ class ArrayValue(AstNode):
                                 range=quoted_literal.range,
                             )
                         )
+                elif isinstance(value.child, Translated):
+                    errors.append(
+                        CompileError(
+                            "Arrays can't contain translated strings",
+                            range=value.child.range,
+                        )
+                    )
+
             if len(errors) > 0:
                 raise MultipleErrors(errors)
 
