@@ -248,21 +248,48 @@ def menu_completer(_ctx: CompletionContext):
 )
 def menu_content_completer(_ctx: CompletionContext):
     yield Completion(
-        "submenu", CompletionItemKind.Snippet, snippet="submenu {\n  $0\n}"
+        "submenu",
+        CompletionItemKind.Snippet,
+        snippet="submenu {\n  $0\n}",
+        sort_text=get_sort_key(CompletionPriority.CLASS, "1 submenu"),
     )
     yield Completion(
-        "section", CompletionItemKind.Snippet, snippet="section {\n  $0\n}"
+        "section",
+        CompletionItemKind.Snippet,
+        snippet="section {\n  $0\n}",
+        sort_text=get_sort_key(CompletionPriority.CLASS, "1 section"),
     )
-    yield Completion("item", CompletionItemKind.Snippet, snippet="item {\n  $0\n}")
+    yield Completion(
+        "item",
+        CompletionItemKind.Snippet,
+        snippet="item {\n  $0\n}",
+        sort_text=get_sort_key(CompletionPriority.CLASS, "1 item"),
+    )
     yield Completion(
         "item (shorthand)",
         CompletionItemKind.Snippet,
         snippet='item (_("${1:Label}"), "${2:action-name}", "${3:icon-name}")',
+        sort_text=get_sort_key(CompletionPriority.CLASS, "0 item (shorthand)"),
     )
 
-    yield Completion("label", CompletionItemKind.Snippet, snippet="label: $0;")
-    yield Completion("action", CompletionItemKind.Snippet, snippet='action: "$0";')
-    yield Completion("icon", CompletionItemKind.Snippet, snippet='icon: "$0";')
+    yield Completion(
+        "label",
+        CompletionItemKind.Snippet,
+        snippet="label: $0;",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "label"),
+    )
+    yield Completion(
+        "action",
+        CompletionItemKind.Snippet,
+        snippet='action: "$0";',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "action"),
+    )
+    yield Completion(
+        "icon",
+        CompletionItemKind.Snippet,
+        snippet='icon: "$0";',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "icon"),
+    )
 
 
 @decompiler("menu")

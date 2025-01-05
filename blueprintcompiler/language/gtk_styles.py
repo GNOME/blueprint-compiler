@@ -81,7 +81,12 @@ class ExtStyles(AstNode):
     matches=new_statement_patterns,
 )
 def style_completer(_ctx: CompletionContext):
-    yield Completion("styles", CompletionItemKind.Keyword, snippet='styles ["$0"]')
+    yield Completion(
+        "styles",
+        CompletionItemKind.Keyword,
+        snippet='styles ["$0"]',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "styles"),
+    )
 
 
 @decompiler("style")
