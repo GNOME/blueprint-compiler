@@ -31,6 +31,7 @@ def get_property_types(gir):
         "autocomplete": gir.get_type("AccessibleAutocomplete", "Gtk"),
         "description": StringType(),
         "has-popup": BoolType(),
+        "help-text": StringType(),
         "key-shortcuts": StringType(),
         "label": StringType(),
         "level": IntType(),
@@ -86,6 +87,7 @@ def get_state_types(gir):
         "invalid": gir.get_type("AccessibleInvalidState", "Gtk"),
         "pressed": gir.get_type("AccessibleTristate", "Gtk"),
         "selected": BoolType(),
+        "visited": BoolType(),
     }
 
 
