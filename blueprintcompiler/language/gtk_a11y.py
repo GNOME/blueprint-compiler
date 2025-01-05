@@ -238,7 +238,10 @@ class ExtAccessibility(AstNode):
 )
 def a11y_completer(_ctx: CompletionContext):
     yield Completion(
-        "accessibility", CompletionItemKind.Snippet, snippet="accessibility {\n  $0\n}"
+        "accessibility",
+        CompletionItemKind.Snippet,
+        snippet="accessibility {\n  $0\n}",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "accessibility"),
     )
 
 

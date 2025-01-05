@@ -138,7 +138,12 @@ class ExtScaleMarks(AstNode):
     matches=new_statement_patterns,
 )
 def complete_marks(_ctx: CompletionContext):
-    yield Completion("marks", CompletionItemKind.Keyword, snippet="marks [\n\t$0\n]")
+    yield Completion(
+        "marks",
+        CompletionItemKind.Keyword,
+        snippet="marks [\n\t$0\n]",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "marks"),
+    )
 
 
 @completer(

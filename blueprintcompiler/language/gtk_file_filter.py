@@ -103,10 +103,23 @@ ext_file_filter_suffixes = create_node("suffixes", "suffix")
 )
 def file_filter_completer(_ctx: CompletionContext):
     yield Completion(
-        "mime-types", CompletionItemKind.Snippet, snippet='mime-types ["$0"]'
+        "mime-types",
+        CompletionItemKind.Snippet,
+        snippet='mime-types ["$0"]',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "mime-types"),
     )
-    yield Completion("patterns", CompletionItemKind.Snippet, snippet='patterns ["$0"]')
-    yield Completion("suffixes", CompletionItemKind.Snippet, snippet='suffixes ["$0"]')
+    yield Completion(
+        "patterns",
+        CompletionItemKind.Snippet,
+        snippet='patterns ["$0"]',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "patterns"),
+    )
+    yield Completion(
+        "suffixes",
+        CompletionItemKind.Snippet,
+        snippet='suffixes ["$0"]',
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "suffixes"),
+    )
 
 
 @decompiler("mime-types")

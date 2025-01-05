@@ -76,7 +76,12 @@ class ExtStringListStrings(AstNode):
     matches=new_statement_patterns,
 )
 def strings_completer(_ctx: CompletionContext):
-    yield Completion("strings", CompletionItemKind.Snippet, snippet="strings [$0]")
+    yield Completion(
+        "strings",
+        CompletionItemKind.Snippet,
+        snippet="strings [$0]",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "strings"),
+    )
 
 
 @decompiler("items", parent_type="Gtk.StringList")

@@ -94,7 +94,12 @@ class ExtLayout(AstNode):
     matches=new_statement_patterns,
 )
 def layout_completer(_ctx: CompletionContext):
-    yield Completion("layout", CompletionItemKind.Snippet, snippet="layout {\n  $0\n}")
+    yield Completion(
+        "layout",
+        CompletionItemKind.Snippet,
+        snippet="layout {\n  $0\n}",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "layout"),
+    )
 
 
 @decompiler("layout")

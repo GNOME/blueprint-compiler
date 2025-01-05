@@ -105,7 +105,12 @@ class ExtSizeGroupWidgets(AstNode):
     matches=new_statement_patterns,
 )
 def size_group_completer(_ctx: CompletionContext):
-    yield Completion("widgets", CompletionItemKind.Snippet, snippet="widgets [$0]")
+    yield Completion(
+        "widgets",
+        CompletionItemKind.Snippet,
+        snippet="widgets [$0]",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "widgets"),
+    )
 
 
 @decompiler("widgets")
