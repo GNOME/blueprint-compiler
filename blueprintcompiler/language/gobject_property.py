@@ -26,7 +26,11 @@ from .values import ArrayValue, ExprValue, ObjectValue, Value
 
 class Property(AstNode):
     grammar = Statement(
-        UseIdent("name"), ":", AnyOf(Binding, ExprValue, ObjectValue, Value, ArrayValue)
+        UseIdent("name"),
+        ":",
+        AnyOf(Binding, ExprValue, ObjectValue, Value, ArrayValue).expected(
+            "property value"
+        ),
     )
 
     @property

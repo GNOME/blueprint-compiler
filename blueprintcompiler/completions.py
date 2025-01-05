@@ -135,26 +135,13 @@ def translation_domain(ctx: CompletionContext):
     )
 
 
-@completer(
-    applies_in=[language.UI, language.ObjectContent, language.Template],
-    matches=new_statement_patterns,
-)
-def namespace(ctx: CompletionContext):
-    yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
-
-    imported_namespaces = set(["Gtk"])
-
-    for ns in ctx.ast_node.root.children[language.Import]:
-        if ns.gir_namespace is not None:
-            imported_namespaces.add(ns.gir_namespace.name)
-            yield Completion(
-                ns.gir_namespace.name,
-                CompletionItemKind.Module,
-                text=ns.gir_namespace.name + ".",
-            )
+def _ns_prefix_completions(ctx: CompletionContext):
+    imported_namespaces = set(
+        [import_.namespace for import_ in ctx.ast_node.root.using]
+    )
 
     for ns, version in gir.get_available_namespaces():
-        if ns not in imported_namespaces:
+        if ns not in imported_namespaces and ns != "Gtk":
             yield Completion(
                 ns,
                 CompletionItemKind.Module,
@@ -166,6 +153,24 @@ def namespace(ctx: CompletionContext):
                     )
                 ],
             )
+
+
+@completer(
+    applies_in=[language.UI, language.ObjectContent, language.Template],
+    matches=new_statement_patterns,
+)
+def namespace(ctx: CompletionContext):
+    yield Completion("Gtk", CompletionItemKind.Module, text="Gtk.")
+
+    for ns in ctx.ast_node.root.children[language.Import]:
+        if ns.gir_namespace is not None:
+            yield Completion(
+                ns.gir_namespace.name,
+                CompletionItemKind.Module,
+                text=ns.gir_namespace.name + ".",
+            )
+
+    yield from _ns_prefix_completions(ctx)
 
 
 @completer(
@@ -261,6 +266,14 @@ def property_completer(ctx: CompletionContext):
     matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
 )
 def prop_value_completer(ctx: CompletionContext):
+    if isinstance(ctx.ast_node, language.Property):
+        yield Completion(
+            "bind",
+            CompletionItemKind.Keyword,
+            snippet="bind $0",
+            docs=get_docs_section("Syntax Binding"),
+        )
+
     assert isinstance(ctx.ast_node, language.Property) or isinstance(
         ctx.ast_node, language.A11yProperty
     )
@@ -278,6 +291,41 @@ def prop_value_completer(ctx: CompletionContext):
         elif isinstance(vt.value_type, gir.BoolType):
             yield Completion("true", CompletionItemKind.Constant)
             yield Completion("false", CompletionItemKind.Constant)
+
+        elif isinstance(vt.value_type, gir.Class) or isinstance(
+            vt.value_type, gir.Interface
+        ):
+            yield Completion(
+                "null",
+                CompletionItemKind.Constant,
+            )
+
+            yield from _ns_prefix_completions(ctx)
+
+            for id, obj in ctx.ast_node.root.context[language.ScopeCtx].objects.items():
+                if obj.gir_class is not None and obj.gir_class.assignable_to(
+                    vt.value_type
+                ):
+                    yield Completion(
+                        id,
+                        CompletionItemKind.Variable,
+                        detail=obj.signature,
+                    )
+
+            for ns in ctx.ast_node.root.gir.namespaces.values():
+                for c in ns.classes.values():
+                    if not c.abstract and c.assignable_to(vt.value_type):
+                        name = c.name if ns.name == "Gtk" else ns.name + "." + c.name
+                        snippet = name
+                        if str(ctx.next_token) != "{":
+                            snippet += " {\n  $0\n}"
+                        yield Completion(
+                            name,
+                            CompletionItemKind.Class,
+                            snippet=snippet,
+                            detail=c.detail,
+                            docs=c.doc,
+                        )
 
 
 @completer(
