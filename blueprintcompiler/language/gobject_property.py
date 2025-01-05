@@ -29,7 +29,9 @@ class Property(AstNode):
     grammar = Statement(
         UseIdent("name"),
         ":",
-        AnyOf(Binding, ExprValue, menu, ObjectValue, Value, ArrayValue),
+        AnyOf(Binding, ExprValue, menu, ObjectValue, Value, ArrayValue).expected(
+            "property value"
+        ),
     )
 
     @property

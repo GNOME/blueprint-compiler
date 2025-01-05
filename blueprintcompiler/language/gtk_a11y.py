@@ -123,7 +123,9 @@ class A11yProperty(AstNode):
     grammar = Statement(
         UseIdent("name"),
         ":",
-        AnyOf(Value, ["[", UseLiteral("list_form", True), Delimited(Value, ","), "]"]),
+        AnyOf(
+            Value, ["[", UseLiteral("list_form", True), Delimited(Value, ","), "]"]
+        ).expected("value"),
     )
 
     @property
