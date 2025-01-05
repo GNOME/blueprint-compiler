@@ -25,7 +25,7 @@ from .gobject_object import ObjectContent, validate_parent_type
 from .values import Value
 
 
-def get_property_types(gir):
+def get_property_types(gir: gir.GirContext) -> T.Dict[str, T.Optional[GirType]]:
     # from <https://docs.gtk.org/gtk4/enum.AccessibleProperty.html>
     return {
         "autocomplete": gir.get_type("AccessibleAutocomplete", "Gtk"),
@@ -51,7 +51,7 @@ def get_property_types(gir):
     }
 
 
-def get_relation_types(gir):
+def get_relation_types(gir: gir.GirContext) -> T.Dict[str, T.Optional[GirType]]:
     # from <https://docs.gtk.org/gtk4/enum.AccessibleRelation.html>
     widget = gir.get_type("Widget", "Gtk")
     return {
@@ -76,7 +76,7 @@ def get_relation_types(gir):
     }
 
 
-def get_state_types(gir):
+def get_state_types(gir: gir.GirContext) -> T.Dict[str, T.Optional[GirType]]:
     # from <https://docs.gtk.org/gtk4/enum.AccessibleState.html>
     return {
         "busy": BoolType(),
@@ -89,6 +89,20 @@ def get_state_types(gir):
         "selected": BoolType(),
         "visited": BoolType(),
     }
+
+
+TRANSLATED = set(
+    [
+        "description",
+        "help-text",
+        "label",
+        "placeholder",
+        "role-description",
+        "value-text",
+        "col-index-text",
+        "row-index-text",
+    ]
+)
 
 
 def get_types(gir):
@@ -249,12 +263,14 @@ def a11y_completer(_ctx: CompletionContext):
     applies_in=[ExtAccessibility],
     matches=new_statement_patterns,
 )
-def a11y_name_completer(ctx: CompletionContext):
+def a11y_property_completer(ctx: CompletionContext):
     for name, type in get_types(ctx.ast_node.root.gir).items():
-        yield Completion(
+        yield get_property_completion(
             name,
-            CompletionItemKind.Property,
-            docs=_get_docs(ctx.ast_node.root.gir, type.name),
+            type,
+            ctx,
+            name in TRANSLATED,
+            _get_docs(ctx.ast_node.root.gir, name),
         )
 
 

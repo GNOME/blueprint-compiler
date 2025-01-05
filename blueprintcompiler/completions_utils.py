@@ -22,8 +22,9 @@ import typing as T
 from dataclasses import dataclass
 from enum import Enum
 
+from . import gir
 from .ast_utils import AstNode
-from .lsp_utils import Completion
+from .lsp_utils import Completion, CompletionItemKind
 from .tokenizer import Token, TokenType
 
 
@@ -110,3 +111,37 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
         return inner
 
     return decorator
+
+
+def get_property_completion(
+    name: str,
+    type: gir.GirType,
+    ctx: CompletionContext,
+    translated: bool,
+    doc: str,
+) -> Completion:
+    if str(ctx.next_token) == ":":
+        snippet = name
+    elif isinstance(type, gir.BoolType) and ctx.client_supports_completion_choice:
+        snippet = f"{name}: ${{1|true,false|}};"
+    elif isinstance(type, gir.StringType):
+        snippet = f'{name}: _("$0");' if translated else f'{name}: "$0";'
+    elif (
+        isinstance(type, gir.Enumeration)
+        and len(type.members) <= 10
+        and ctx.client_supports_completion_choice
+    ):
+        choices = ",".join(type.members.keys())
+        snippet = f"{name}: ${{1|{choices}|}};"
+    elif type.full_name == "Gtk.Expression":
+        snippet = f"{name}: expr $0;"
+    else:
+        snippet = f"{name}: $0;"
+
+    return Completion(
+        name,
+        CompletionItemKind.Property,
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, name),
+        snippet=snippet,
+        docs=doc,
+    )

@@ -137,7 +137,7 @@ def translation_domain(ctx: CompletionContext):
     )
 
 
-def _ns_prefix_completions(ctx: CompletionContext):
+def _available_namespace_completions(ctx: CompletionContext):
     imported_namespaces = set(
         [import_.namespace for import_ in ctx.ast_node.root.using]
     )
@@ -176,7 +176,7 @@ def namespace(ctx: CompletionContext):
                 ),
             )
 
-    yield from _ns_prefix_completions(ctx)
+    yield from _available_namespace_completions(ctx)
 
 
 @completer(
@@ -234,38 +234,12 @@ def property_completer(ctx: CompletionContext):
     assert isinstance(ctx.ast_node, language.ObjectContent)
     if ctx.ast_node.gir_class and hasattr(ctx.ast_node.gir_class, "properties"):
         for prop_name, prop in ctx.ast_node.gir_class.properties.items():
-            if str(ctx.next_token) == ":":
-                snippet = prop_name
-            elif (
-                isinstance(prop.type, gir.BoolType)
-                and ctx.client_supports_completion_choice
-            ):
-                snippet = f"{prop_name}: ${{1|true,false|}};"
-            elif isinstance(prop.type, gir.StringType):
-                snippet = (
-                    f'{prop_name}: _("$0");'
-                    if annotations.is_property_translated(prop)
-                    else f'{prop_name}: "$0";'
-                )
-            elif (
-                isinstance(prop.type, gir.Enumeration)
-                and len(prop.type.members) <= 10
-                and ctx.client_supports_completion_choice
-            ):
-                choices = ",".join(prop.type.members.keys())
-                snippet = f"{prop_name}: ${{1|{choices}|}};"
-            elif prop.type.full_name == "Gtk.Expression":
-                snippet = f"{prop_name}: expr $0;"
-            else:
-                snippet = f"{prop_name}: $0;"
-
-            yield Completion(
+            yield get_property_completion(
                 prop_name,
-                CompletionItemKind.Property,
-                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, prop_name),
-                snippet=snippet,
-                docs=prop.doc,
-                detail=prop.detail,
+                prop,
+                ctx,
+                annotations.is_property_translated(prop),
+                prop.doc,
             )
 
 
@@ -319,8 +293,6 @@ def prop_value_completer(ctx: CompletionContext):
                 sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
             )
 
-            yield from _ns_prefix_completions(ctx)
-
             for id, obj in ctx.ast_node.root.context[language.ScopeCtx].objects.items():
                 if obj.gir_class is not None and obj.gir_class.assignable_to(
                     vt.value_type
@@ -332,21 +304,26 @@ def prop_value_completer(ctx: CompletionContext):
                         sort_text=get_sort_key(CompletionPriority.NAMED_OBJECT, id),
                     )
 
-            for ns in ctx.ast_node.root.gir.namespaces.values():
-                for c in ns.classes.values():
-                    if not c.abstract and c.assignable_to(vt.value_type):
-                        name = c.name if ns.name == "Gtk" else ns.name + "." + c.name
-                        snippet = name
-                        if str(ctx.next_token) != "{":
-                            snippet += " {\n  $0\n}"
-                        yield Completion(
-                            name,
-                            CompletionItemKind.Class,
-                            sort_text=get_sort_key(CompletionPriority.CLASS, name),
-                            snippet=snippet,
-                            detail=c.detail,
-                            docs=c.doc,
-                        )
+            if isinstance(ctx.ast_node, language.Property):
+                yield from _available_namespace_completions(ctx)
+
+                for ns in ctx.ast_node.root.gir.namespaces.values():
+                    for c in ns.classes.values():
+                        if not c.abstract and c.assignable_to(vt.value_type):
+                            name = (
+                                c.name if ns.name == "Gtk" else ns.name + "." + c.name
+                            )
+                            snippet = name
+                            if str(ctx.next_token) != "{":
+                                snippet += " {\n  $0\n}"
+                            yield Completion(
+                                name,
+                                CompletionItemKind.Class,
+                                sort_text=get_sort_key(CompletionPriority.CLASS, name),
+                                snippet=snippet,
+                                detail=c.detail,
+                                docs=c.doc,
+                            )
 
 
 @completer(
