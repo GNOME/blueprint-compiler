@@ -110,6 +110,7 @@ def using(ctx: CompletionContext):
                 f"using {ns} {version}",
                 CompletionItemKind.Module,
                 text=f"using {ns} {version};",
+                sort_text=get_sort_key(CompletionPriority.NAMESPACE, ns),
             )
 
 
@@ -130,6 +131,7 @@ def translation_domain(ctx: CompletionContext):
     yield Completion(
         "translation-domain",
         CompletionItemKind.Keyword,
+        sort_text=get_sort_key(CompletionPriority.KEYWORD, "translation-domain"),
         snippet='translation-domain "$0";',
         docs=get_docs_section("Syntax TranslationDomain"),
     )
@@ -146,6 +148,7 @@ def _ns_prefix_completions(ctx: CompletionContext):
                 ns,
                 CompletionItemKind.Module,
                 text=ns + ".",
+                sort_text=get_sort_key(CompletionPriority.IMPORT_NAMESPACE, ns),
                 signature=f" using {ns} {version}",
                 additional_text_edits=[
                     TextEdit(
@@ -168,6 +171,9 @@ def namespace(ctx: CompletionContext):
                 ns.gir_namespace.name,
                 CompletionItemKind.Module,
                 text=ns.gir_namespace.name + ".",
+                sort_text=get_sort_key(
+                    CompletionPriority.NAMESPACE, ns.gir_namespace.name
+                ),
             )
 
     yield from _ns_prefix_completions(ctx)
@@ -191,6 +197,7 @@ def object_completer(ctx: CompletionContext):
             yield Completion(
                 c.name,
                 CompletionItemKind.Class,
+                sort_text=get_sort_key(CompletionPriority.CLASS, c.name),
                 snippet=snippet,
                 docs=c.doc,
                 detail=c.detail,
@@ -212,6 +219,7 @@ def gtk_object_completer(ctx: CompletionContext):
             yield Completion(
                 c.name,
                 CompletionItemKind.Class,
+                sort_text=get_sort_key(CompletionPriority.CLASS, c.name),
                 snippet=snippet,
                 docs=c.doc,
                 detail=c.detail,
@@ -254,7 +262,7 @@ def property_completer(ctx: CompletionContext):
             yield Completion(
                 prop_name,
                 CompletionItemKind.Property,
-                sort_text=f"0 {prop_name}",
+                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, prop_name),
                 snippet=snippet,
                 docs=prop.doc,
                 detail=prop.detail,
@@ -272,6 +280,7 @@ def prop_value_completer(ctx: CompletionContext):
             CompletionItemKind.Keyword,
             snippet="bind $0",
             docs=get_docs_section("Syntax Binding"),
+            sort_text=get_sort_key(CompletionPriority.KEYWORD, "bind"),
         )
 
     assert isinstance(ctx.ast_node, language.Property) or isinstance(
@@ -286,11 +295,20 @@ def prop_value_completer(ctx: CompletionContext):
                     CompletionItemKind.EnumMember,
                     docs=member.doc,
                     detail=member.detail,
+                    sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, name),
                 )
 
         elif isinstance(vt.value_type, gir.BoolType):
-            yield Completion("true", CompletionItemKind.Constant)
-            yield Completion("false", CompletionItemKind.Constant)
+            yield Completion(
+                "true",
+                CompletionItemKind.Constant,
+                sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "true"),
+            )
+            yield Completion(
+                "false",
+                CompletionItemKind.Constant,
+                sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "false"),
+            )
 
         elif isinstance(vt.value_type, gir.Class) or isinstance(
             vt.value_type, gir.Interface
@@ -298,6 +316,7 @@ def prop_value_completer(ctx: CompletionContext):
             yield Completion(
                 "null",
                 CompletionItemKind.Constant,
+                sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
             )
 
             yield from _ns_prefix_completions(ctx)
@@ -309,7 +328,8 @@ def prop_value_completer(ctx: CompletionContext):
                     yield Completion(
                         id,
                         CompletionItemKind.Variable,
-                        detail=obj.signature,
+                        signature=" " + obj.signature,
+                        sort_text=get_sort_key(CompletionPriority.NAMED_OBJECT, id),
                     )
 
             for ns in ctx.ast_node.root.gir.namespaces.values():
@@ -322,6 +342,7 @@ def prop_value_completer(ctx: CompletionContext):
                         yield Completion(
                             name,
                             CompletionItemKind.Class,
+                            sort_text=get_sort_key(CompletionPriority.CLASS, name),
                             snippet=snippet,
                             detail=c.detail,
                             docs=c.doc,
@@ -355,7 +376,7 @@ def signal_completer(ctx: CompletionContext):
             yield Completion(
                 signal_name,
                 CompletionItemKind.Event,
-                sort_text=f"1 {signal_name}",
+                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, signal_name),
                 snippet=snippet,
                 docs=signal.doc,
                 detail=signal.detail,

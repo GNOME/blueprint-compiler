@@ -20,10 +20,26 @@
 
 import typing as T
 from dataclasses import dataclass
+from enum import Enum
 
 from .ast_utils import AstNode
 from .lsp_utils import Completion
 from .tokenizer import Token, TokenType
+
+
+class CompletionPriority(Enum):
+    ENUM_MEMBER = "00"
+    NAMED_OBJECT = "01"
+    OBJECT_MEMBER = "02"
+    CLASS = "03"
+    NAMESPACE = "04"
+    KEYWORD = "05"
+    # An available namespace that hasn't been imported yet
+    IMPORT_NAMESPACE = "99"
+
+
+def get_sort_key(priority: CompletionPriority, name: str):
+    return f"{priority.value} {name}"
 
 
 @dataclass

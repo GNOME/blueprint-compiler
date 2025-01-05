@@ -95,7 +95,12 @@ class ExtComboBoxItems(AstNode):
     matches=new_statement_patterns,
 )
 def items_completer(_ctx: CompletionContext):
-    yield Completion("items", CompletionItemKind.Snippet, snippet="items [$0]")
+    yield Completion(
+        "items",
+        CompletionItemKind.Snippet,
+        snippet="items [$0]",
+        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "items"),
+    )
 
 
 @decompiler("items", parent_type="Gtk.ComboBoxText")
