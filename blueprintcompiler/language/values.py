@@ -338,7 +338,14 @@ class IdentLiteral(AstNode):
                         raise CompileError(
                             '"item" can only be used in an expression literal'
                         )
-                elif self.ident not in ["true", "false"]:
+                elif self.ident in ["true", "false"]:
+                    if expected_type is not None and not isinstance(
+                        expected_type, gir.BoolType
+                    ):
+                        raise CompileError(
+                            f"Cannot assign boolean to {expected_type.full_name}"
+                        )
+                else:
                     raise CompileError(
                         f"Could not find object with ID {self.ident}",
                         did_you_mean=(
