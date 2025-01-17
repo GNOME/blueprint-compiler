@@ -72,7 +72,7 @@ class ExtStringListStrings(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "StringList"),
+    applies_in_subclass=[("Gtk", "StringList")],
     matches=new_statement_patterns,
 )
 def strings_completer(_ctx: CompletionContext):

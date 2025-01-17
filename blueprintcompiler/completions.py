@@ -76,9 +76,13 @@ def complete(
         next_token = tokens[next_token_idx]
 
     # if the current token is an identifier or whitespace, move to the token before it
-    while tokens[token_idx].type in [TokenType.IDENT, TokenType.WHITESPACE]:
+    if tokens[token_idx].type == TokenType.IDENT:
         idx = tokens[token_idx].start
         token_idx -= 1
+    else:
+        while tokens[token_idx].type == TokenType.WHITESPACE:
+            idx = tokens[token_idx].start
+            token_idx -= 1
 
     yield from _complete(lsp, ast_node, tokens, idx, token_idx, next_token)
 
@@ -236,7 +240,7 @@ def property_completer(ctx: CompletionContext):
         for prop_name, prop in ctx.ast_node.gir_class.properties.items():
             yield get_property_completion(
                 prop_name,
-                prop,
+                prop.type,
                 ctx,
                 annotations.is_property_translated(prop),
                 prop.doc,
@@ -245,7 +249,11 @@ def property_completer(ctx: CompletionContext):
 
 @completer(
     applies_in=[language.Property, language.A11yProperty],
-    matches=[[(TokenType.IDENT, None), (TokenType.OP, ":")]],
+    matches=[
+        [(TokenType.IDENT, None), (TokenType.OP, ":")],
+        [(TokenType.PUNCTUATION, ",")],
+        [(TokenType.PUNCTUATION, "[")],
+    ],
 )
 def prop_value_completer(ctx: CompletionContext):
     if isinstance(ctx.ast_node, language.Property):
@@ -366,4 +374,59 @@ def template_completer(_ctx: CompletionContext):
         "template",
         CompletionItemKind.Snippet,
         snippet="template ${1:ClassName} : ${2:ParentClass} {\n  $0\n}",
+    )
+
+
+@completer(
+    applies_in=[language.ObjectContent, language.ChildType],
+    matches=[[(TokenType.PUNCTUATION, "[")]],
+    applies_in_subclass=[("Gtk", "Dialog"), ("Gtk", "InfoBar")],
+)
+def response_id_completer(ctx: CompletionContext):
+    yield Completion(
+        "action",
+        CompletionItemKind.Snippet,
+        sort_text=get_sort_key(CompletionPriority.KEYWORD, "action"),
+        snippet="action response=$0",
+    )
+
+
+@completer(
+    [language.ChildAnnotation, language.ExtResponse],
+    [[(TokenType.IDENT, "action"), (TokenType.IDENT, "response"), (TokenType.OP, "=")]],
+)
+def complete_response_id(ctx: CompletionContext):
+    gir = ctx.ast_node.root.gir
+    response_type = gir.get_type("ResponseType", "Gtk")
+    yield from [
+        Completion(
+            name,
+            kind=CompletionItemKind.EnumMember,
+            docs=member.doc,
+        )
+        for name, member in response_type.members.items()
+    ]
+
+
+@completer(
+    [language.ChildAnnotation, language.ExtResponse],
+    [
+        [
+            (TokenType.IDENT, "action"),
+            (TokenType.IDENT, "response"),
+            (TokenType.OP, "="),
+            (TokenType.IDENT, None),
+        ],
+        [
+            (TokenType.IDENT, "action"),
+            (TokenType.IDENT, "response"),
+            (TokenType.OP, "="),
+            (TokenType.NUMBER, None),
+        ],
+    ],
+)
+def complete_response_default(ctx: CompletionContext):
+    yield Completion(
+        "default",
+        kind=CompletionItemKind.Keyword,
     )

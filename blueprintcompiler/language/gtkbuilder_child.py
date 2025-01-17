@@ -31,7 +31,12 @@ ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
 
 
 class ChildInternal(AstNode):
-    grammar = ["internal-child", UseIdent("internal_child")]
+    grammar = [
+        "[",
+        "internal-child",
+        UseIdent("internal_child").expected("internal child name"),
+        Match("]").expected(),
+    ]
 
     @property
     def internal_child(self) -> str:
@@ -39,7 +44,7 @@ class ChildInternal(AstNode):
 
 
 class ChildType(AstNode):
-    grammar = UseIdent("child_type").expected("a child type")
+    grammar = ["[", UseIdent("child_type").expected("a child type"), "]"]
 
     @property
     def child_type(self) -> str:
@@ -59,7 +64,7 @@ class ChildExtension(AstNode):
 
 
 class ChildAnnotation(AstNode):
-    grammar = ["[", AnyOf(ChildInternal, ChildExtension, ChildType), "]"]
+    grammar = AnyOf(ChildInternal, ChildExtension, ChildType)
 
     @property
     def child(self) -> T.Union[ChildInternal, ChildExtension, ChildType]:

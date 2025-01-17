@@ -143,26 +143,12 @@ class ExtAdwResponseDialog(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Adw", "MessageDialog"),
+    applies_in_subclass=[("Adw", "AlertDialog"), ("Adw", "MessageDialog")],
     matches=new_statement_patterns,
 )
 def complete_adw_message_dialog(_ctx: CompletionContext):
     yield Completion(
         "responses", CompletionItemKind.Keyword, snippet="responses [\n\t$0\n]"
-    )
-
-
-@completer(
-    applies_in=[ObjectContent],
-    applies_in_subclass=("Adw", "AlertDialog"),
-    matches=new_statement_patterns,
-)
-def complete_adw_alert_dialog(_ctx: CompletionContext):
-    yield Completion(
-        "responses",
-        CompletionItemKind.Keyword,
-        snippet="responses [\n\t$0\n]",
-        sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, "responses"),
     )
 
 

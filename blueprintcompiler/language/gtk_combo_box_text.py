@@ -91,7 +91,7 @@ class ExtComboBoxItems(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "ComboBoxText"),
+    applies_in_subclass=[("Gtk", "ComboBoxText")],
     matches=new_statement_patterns,
 )
 def items_completer(_ctx: CompletionContext):

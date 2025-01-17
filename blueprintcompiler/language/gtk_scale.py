@@ -134,7 +134,7 @@ class ExtScaleMarks(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "Scale"),
+    applies_in_subclass=[("Gtk", "Scale")],
     matches=new_statement_patterns,
 )
 def complete_marks(_ctx: CompletionContext):

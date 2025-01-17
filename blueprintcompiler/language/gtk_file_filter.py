@@ -98,7 +98,7 @@ ext_file_filter_suffixes = create_node("suffixes", "suffix")
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "FileFilter"),
+    applies_in_subclass=[("Gtk", "FileFilter")],
     matches=new_statement_patterns,
 )
 def file_filter_completer(_ctx: CompletionContext):
