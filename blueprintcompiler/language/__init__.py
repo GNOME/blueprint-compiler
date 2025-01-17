@@ -34,9 +34,16 @@ from .gtk_scale import ExtScaleMarks
 from .gtk_size_group import ExtSizeGroupWidgets
 from .gtk_string_list import ExtStringListStrings
 from .gtk_styles import ExtStyles
-from .gtkbuilder_child import Child, ChildExtension, ChildInternal, ChildType
+from .gtkbuilder_child import (
+    Child,
+    ChildAnnotation,
+    ChildExtension,
+    ChildInternal,
+    ChildType,
+)
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
+from .response_id import ExtResponse
 from .types import ClassName
 from .ui import UI
 from .values import (

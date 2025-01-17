@@ -90,7 +90,7 @@ class ExtLayout(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "Widget"),
+    applies_in_subclass=[("Gtk", "Widget")],
     matches=new_statement_patterns,
 )
 def layout_completer(_ctx: CompletionContext):

@@ -329,8 +329,9 @@ class Statement(ParseNode):
     """ParseNode that attempts to match all of its children in sequence. If any
     child raises an error, the error will be logged but parsing will continue."""
 
-    def __init__(self, *children):
+    def __init__(self, *children, end: str = ";"):
         self.children = [to_parse_node(child) for child in children]
+        self.end = end
 
     def _parse(self, ctx) -> bool:
         for child in self.children:
@@ -340,11 +341,16 @@ class Statement(ParseNode):
             except CompileError as e:
                 ctx.errors.append(e)
                 ctx.set_group_incomplete()
+
+                token = ctx.peek_token()
+                if str(token) == self.end:
+                    ctx.next_token()
+
                 return True
 
         token = ctx.peek_token()
-        if str(token) != ";":
-            ctx.errors.append(CompileError("Expected `;`", token.range))
+        if str(token) != self.end:
+            ctx.errors.append(CompileError(f"Expected `{self.end}`", token.range))
         else:
             ctx.next_token()
         return True
