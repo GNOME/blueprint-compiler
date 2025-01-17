@@ -68,10 +68,22 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
-                type = ast_node.root.gir.get_type(
-                    applies_in_subclass[1], applies_in_subclass[0]
-                )
-                if not ast_node.gir_class or not ast_node.gir_class.assignable_to(type):
+                parent_obj = ast_node
+                while parent_obj is not None and not hasattr(parent_obj, "gir_class"):
+                    parent_obj = parent_obj.parent
+
+                if (
+                    parent_obj is None
+                    or not parent_obj.gir_class
+                    or not any(
+                        [
+                            parent_obj.gir_class.assignable_to(
+                                parent_obj.root.gir.get_type(c[1], c[0])
+                            )
+                            for c in applies_in_subclass
+                        ]
+                    )
+                ):
                     return
 
             any_match = len(matches) == 0

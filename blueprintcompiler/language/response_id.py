@@ -28,19 +28,21 @@ class ExtResponse(AstNode):
 
     ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [("Gtk", "Dialog"), ("Gtk", "InfoBar")]
 
-    grammar = [
+    grammar = Statement(
+        "[",
         Keyword("action"),
         Keyword("response"),
-        "=",
+        Match("=").expected(),
         AnyOf(
             UseIdent("response_id"),
             [
                 Optional(UseExact("sign", "-")),
                 UseNumber("response_id"),
             ],
-        ),
+        ).expected("response ID"),
         Optional([Keyword("default"), UseLiteral("is_default", True)]),
-    ]
+        end="]",
+    )
 
     @validate()
     def parent_has_action_widgets(self) -> None:

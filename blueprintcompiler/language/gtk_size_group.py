@@ -101,7 +101,7 @@ class ExtSizeGroupWidgets(AstNode):
 
 @completer(
     applies_in=[ObjectContent],
-    applies_in_subclass=("Gtk", "SizeGroup"),
+    applies_in_subclass=[("Gtk", "SizeGroup")],
     matches=new_statement_patterns,
 )
 def size_group_completer(_ctx: CompletionContext):
