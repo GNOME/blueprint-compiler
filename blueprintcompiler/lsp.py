@@ -118,6 +118,7 @@ class LanguageServer:
         self.client_capabilities = {}
         self.client_supports_completion_choice = False
         self._open_files: T.Dict[str, OpenFile] = {}
+        self._exited = False
 
     def run(self):
         # Read <doc> tags from gir files. During normal compilation these are
@@ -125,7 +126,7 @@ class LanguageServer:
         xml_reader.PARSE_GIR.add("doc")
 
         try:
-            while True:
+            while not self._exited:
                 line = ""
                 content_len = -1
                 while content_len == -1 or (line != "\n" and line != "\r\n"):
@@ -220,6 +221,14 @@ class LanguageServer:
                 },
             },
         )
+
+    @command("shutdown")
+    def shutdown(self, id, params):
+        self._send_response(id, None)
+
+    @command("exit")
+    def exit(self, id, params):
+        self._exited = True
 
     @command("textDocument/didOpen")
     def didOpen(self, id, params):
