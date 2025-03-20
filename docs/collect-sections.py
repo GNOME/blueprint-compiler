@@ -132,5 +132,8 @@ if __name__ == "__main__":
     # print the sections to a json file
     with open(outfile, "w") as f:
         json.dump(
-            {name: section.to_json() for name, section in sections.items()}, f, indent=2
+            {name: section.to_json() for name, section in sections.items()},
+            f,
+            indent=2,
+            sort_keys=True,
         )
