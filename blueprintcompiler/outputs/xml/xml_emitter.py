@@ -73,6 +73,7 @@ class XmlEmitter:
         self._needs_newline = False
 
     def put_cdata(self, text: str):
+        text = text.replace("]]>", "]]]]><![CDATA[>")
         self.result += f"<![CDATA[{text}]]>"
         self._needs_newline = False
 
