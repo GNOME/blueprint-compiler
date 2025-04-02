@@ -308,6 +308,9 @@ class XmlOutput(OutputFormat):
 
         elif isinstance(extension, AdwBreakpointSetters):
             for setter in extension.setters:
+                if setter.value is None:
+                    continue
+
                 attrs = {}
 
                 if isinstance(setter.value.child, Translated):

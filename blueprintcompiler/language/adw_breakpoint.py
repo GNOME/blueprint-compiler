@@ -81,8 +81,8 @@ class AdwBreakpointSetter(AstNode):
         return self.tokens["property"]
 
     @property
-    def value(self) -> Value:
-        return self.children[Value][0]
+    def value(self) -> T.Optional[Value]:
+        return self.children[Value][0] if len(self.children[Value]) > 0 else None
 
     @property
     def gir_class(self) -> T.Optional[GirType]:
@@ -106,7 +106,10 @@ class AdwBreakpointSetter(AstNode):
             return None
 
     @property
-    def document_symbol(self) -> DocumentSymbol:
+    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+        if self.value is None:
+            return None
+
         return DocumentSymbol(
             f"{self.object_id}.{self.property_name}",
             SymbolKind.Property,
