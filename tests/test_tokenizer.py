@@ -25,7 +25,7 @@ from blueprintcompiler.tokenizer import Token, TokenType, tokenize
 
 
 class TestTokenizer(unittest.TestCase):
-    def assert_tokenize(self, string: str, expect: [Token]):
+    def assert_tokenize(self, string: str, expect: list[Token]):
         try:
             tokens = tokenize(string)
             self.assertEqual(len(tokens), len(expect))
