@@ -10,7 +10,7 @@ Properties are the main way to set values on objects, but they are limited by th
 
    Extensions are a feature of ``Gtk.Buildable``--see `Gtk.Buildable.custom_tag_start() <https://docs.gtk.org/gtk4/vfunc.Buildable.custom_tag_start.html>`_ for internal details.
 
-   Because they aren't part of the type system, they aren't present in typelib files like properties and signals are. Therefore, if a library adds a new extension, syntax for it must be added to Blueprint manually. If there's a commonly used extension that isn't supported by Blueprint, please `file an issue <https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues>`_.
+   Because they aren't part of the type system, they aren't present in typelib files like properties and signals are. Therefore, if a library adds a new extension, syntax for it must be added to Blueprint manually. If there's a commonly used extension that isn't supported by Blueprint, please `file an issue <https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues>`_.
 
 .. rst-class:: grammar-block
 

@@ -59,7 +59,7 @@ Features
 Links
 -----
 
-- `Source code <https://gitlab.gnome.org/jwestman/blueprint-compiler>`_
+- `Source code <https://gitlab.gnome.org/GNOME/blueprint-compiler>`_
 - `Workbench <https://github.com/sonnyp/Workbench>`_ lets you try, preview and export Blueprint
 - `GNOME Builder <https://developer.gnome.org/documentation/introduction/builder.html>`_ provides builtin support
 - `Vim syntax highlighting plugin by thetek42 <https://github.com/thetek42/vim-blueprint-syntax>`_

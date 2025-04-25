@@ -9,7 +9,7 @@ from pathlib import Path
 
 __all__ = ["get_docs_section"]
 
-DOCS_ROOT = "https://jwestman.pages.gitlab.gnome.org/blueprint-compiler"
+DOCS_ROOT = "https://gnome.pages.gitlab.gnome.org/blueprint-compiler"
 
 
 sections: dict[str, "Section"] = {}

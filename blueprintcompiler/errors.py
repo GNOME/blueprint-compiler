@@ -219,7 +219,7 @@ def report_bug():  # pragma: no cover
         f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
 The blueprint-compiler program has crashed. Please report the above stacktrace,
 along with the input file(s) if possible, on GitLab:
-{Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue
+{Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues/new?issue
 {Colors.CLEAR}"""
     )
 

@@ -3,7 +3,7 @@ stages:
 - pages
 
 build:
-  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
+  image: registry.gitlab.gnome.org/gnome/blueprint-compiler
   stage: build
   script:
     - black --check --diff ./ tests
@@ -33,7 +33,7 @@ build:
         path: coverage.xml
 
 fuzz:
-  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
+  image: registry.gitlab.gnome.org/gnome/blueprint-compiler
   stage: build
   script:
     - meson _build

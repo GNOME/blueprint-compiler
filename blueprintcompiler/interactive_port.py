@@ -71,7 +71,7 @@ def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
             print(
                 f"""{Colors.FAINT}Either the original XML file had an error, or there is a bug in the
 porting tool. If you think it's a bug (which is likely), please file an issue on GitLab:
-{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/jwestman/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n"""
+{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n"""
             )
 
             return CouldNotPort("does not compile")
@@ -136,7 +136,7 @@ def step1():
             wrap.write(
                 f"""[wrap-git]
 directory = blueprint-compiler
-url = https://gitlab.gnome.org/jwestman/blueprint-compiler.git
+url = https://gitlab.gnome.org/GNOME/blueprint-compiler.git
 revision = {VERSION}
 depth = 1
 
