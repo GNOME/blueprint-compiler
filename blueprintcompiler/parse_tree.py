@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-""" Utilities for parsing an AST from a token stream. """
+"""Utilities for parsing an AST from a token stream."""
 
 import typing as T
 from enum import Enum
