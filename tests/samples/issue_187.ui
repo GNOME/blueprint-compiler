@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup type="RecentObject" name="filename">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>

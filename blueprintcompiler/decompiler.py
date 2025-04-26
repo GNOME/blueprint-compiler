@@ -255,7 +255,11 @@ def decompile_element(
 
         ctx._node_stack.append(xml)
         ctx.start_block()
-        gir = decompiler(*args, **kwargs)
+
+        try:
+            gir = decompiler(*args, **kwargs)
+        except TypeError as e:
+            raise UnsupportedError(tag=xml.tag)
 
         if not decompiler._skip_children:
             for child in xml.children:
@@ -266,8 +270,6 @@ def decompile_element(
 
     except UnsupportedError as e:
         raise e
-    except TypeError as e:
-        raise UnsupportedError(tag=xml.tag)
 
 
 def decompile(data: str) -> str:

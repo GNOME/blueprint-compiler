@@ -302,12 +302,18 @@ expr.children = [
 
 @decompiler("lookup", skip_children=True, cdata=True)
 def decompile_lookup(
-    ctx: DecompileCtx, gir: gir.GirContext, cdata: str, name: str, type: str
+    ctx: DecompileCtx,
+    gir: gir.GirContext,
+    cdata: str,
+    name: str,
+    type: T.Optional[str] = None,
 ):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    if t := ctx.type_by_cname(type):
+    if type is None:
+        type = ""
+    elif t := ctx.type_by_cname(type):
         type = decompile.full_name(t)
     else:
         type = "$" + type
@@ -327,7 +333,7 @@ def decompile_lookup(
         if constant == ctx.template_class:
             ctx.print("template." + name)
         elif constant == "":
-            ctx.print("item as <" + type + ">." + name)
+            ctx.print(f"item as <{type}>.{name}")
         else:
             ctx.print(constant + "." + name)
         return

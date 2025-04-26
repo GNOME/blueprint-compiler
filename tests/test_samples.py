@@ -181,11 +181,7 @@ class TestSamples(unittest.TestCase):
 
     def test_samples(self):
         # list the samples directory
-        samples = [
-            f.stem
-            for f in Path(__file__).parent.glob("samples/*.blp")
-            if not f.stem.endswith("_dec")
-        ]
+        samples = [f.stem for f in Path(__file__).parent.glob("samples/*.blp")]
         samples.sort()
         for sample in samples:
             REQUIRE_ADW_1_4 = ["adw_breakpoint"]
@@ -215,7 +211,7 @@ class TestSamples(unittest.TestCase):
             ]
 
             # Decompiler-only tests
-            SKIP_COMPILE = ["issue_177", "translator_comments"]
+            SKIP_COMPILE = ["issue_177", "issue_187", "translator_comments"]
 
             SKIP_DECOMPILE = [
                 # Comments are not preserved in either direction
@@ -228,7 +224,7 @@ class TestSamples(unittest.TestCase):
                 continue
 
             with self.subTest(sample):
-                if sample not in SKIP_COMPILE:
+                if sample not in SKIP_COMPILE and not sample.endswith("_dec"):
                     self.assert_sample(sample, skip_run=sample in SKIP_RUN)
 
             with self.subTest("decompile/" + sample):
