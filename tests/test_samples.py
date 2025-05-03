@@ -143,9 +143,9 @@ class TestSamples(unittest.TestCase):
             ]
 
             def error_str(error: CompileError):
-                line, col = utils.idx_to_pos(error.range.start + 1, blueprint)
+                line, col = utils.idx_to_pos(error.range.start, blueprint)
                 len = error.range.length
-                return ",".join([str(line + 1), str(col), str(len), error.message])
+                return ",".join([str(line + 1), str(col + 1), str(len), error.message])
 
             actual = "\n".join([error_str(error) for error in errors])
 

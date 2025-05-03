@@ -34,6 +34,7 @@ from ..errors import (
     CompileError,
     CompileWarning,
     DeprecatedWarning,
+    ErrorReference,
     MultipleErrors,
     UnusedWarning,
     UpgradeWarning,
