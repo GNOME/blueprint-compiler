@@ -23,22 +23,20 @@ from .values import StringValue
 
 
 class ExtScaleMark(AstNode):
-    grammar = [
+    grammar = Statement(
         Keyword("mark"),
         Match("(").expected(),
-        [
-            Optional(AnyOf(UseExact("sign", "-"), UseExact("sign", "+"))),
-            UseNumber("value"),
-            Optional(
-                [
-                    ",",
-                    UseIdent("position"),
-                    Optional([",", StringValue]),
-                ]
-            ),
-        ],
-        Match(")").expected(),
-    ]
+        Optional(AnyOf(UseExact("sign", "-"), UseExact("sign", "+"))),
+        UseNumber("value").expected("value"),
+        Optional(
+            [
+                ",",
+                UseIdent("position").expected("position"),
+                Optional([",", to_parse_node(StringValue).expected("label")]),
+            ]
+        ),
+        end=")",
+    )
 
     @property
     def value(self) -> float:
@@ -151,6 +149,23 @@ def complete_marks(_ctx: CompletionContext):
 )
 def complete_mark(_ctx: CompletionContext):
     yield Completion("mark", CompletionItemKind.Keyword, snippet="mark ($0),")
+
+
+@completer(
+    applies_in=[ExtScaleMark],
+    matches=[[(TokenType.NUMBER, None), (TokenType.PUNCTUATION, ",")]],
+)
+def complete_mark_position(ctx: CompletionContext):
+    gir = ctx.ast_node.root.gir
+    response_type = gir.get_type("PositionType", "Gtk")
+    yield from [
+        Completion(
+            name,
+            kind=CompletionItemKind.EnumMember,
+            docs=member.doc,
+        )
+        for name, member in response_type.members.items()
+    ]
 
 
 @decompiler("marks")
