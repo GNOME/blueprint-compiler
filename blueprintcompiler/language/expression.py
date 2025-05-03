@@ -21,7 +21,7 @@
 from ..decompiler import decompile_element
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
-from .types import TypeName
+from .types import BracketedTypeName, TypeName
 
 expr = Sequence()
 
@@ -196,7 +196,7 @@ class CastExpr(InfixExpr):
     grammar = [
         Keyword("as"),
         AnyOf(
-            ["<", TypeName, Match(">").expected()],
+            BracketedTypeName,
             [
                 UseExact("lparen", "("),
                 TypeName,
@@ -211,7 +211,13 @@ class CastExpr(InfixExpr):
 
     @property
     def type(self) -> T.Optional[GirType]:
-        return self.children[TypeName][0].gir_type
+        if len(self.children[BracketedTypeName]) == 1:
+            type_name = self.children[BracketedTypeName][0].type_name
+            return None if type_name is None else type_name.gir_type
+        elif len(self.children[TypeName]) == 1:
+            return self.children[TypeName][0].gir_type
+        else:
+            return None
 
     @validate()
     def cast_makes_sense(self):

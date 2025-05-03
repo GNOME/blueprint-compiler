@@ -214,6 +214,7 @@ class XmlOutput(OutputFormat):
             else:
                 xml.put_text(self._object_id(value, value.ident))
         elif isinstance(value, TypeLiteral):
+            assert value.type_name is not None
             xml.put_text(value.type_name.glib_type_name)
         else:
             if isinstance(value.value, float) and value.value == int(value.value):

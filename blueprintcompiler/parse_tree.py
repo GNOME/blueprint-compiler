@@ -280,9 +280,9 @@ class Err(ParseNode):
                 start_idx -= 1
             start_token = ctx.tokens[start_idx]
 
-            raise CompileError(
-                self.message, Range(start_token.end, start_token.end, ctx.text)
-            )
+            position = start_token.start if ctx.start == start_idx else start_token.end
+
+            raise CompileError(self.message, Range(position, position, ctx.text))
         return True
 
 

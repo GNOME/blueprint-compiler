@@ -196,6 +196,13 @@ class AstNode:
 
         return None
 
+    def get_child_at(self, idx: int) -> "AstNode":
+        for child in self.children:
+            if idx in child.range:
+                return child.get_child_at(idx)
+
+        return self
+
     def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
         for child in self.children:
             yield from child.get_semantic_tokens()

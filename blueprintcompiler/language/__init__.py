@@ -44,7 +44,7 @@ from .gtkbuilder_child import (
 from .gtkbuilder_template import Template
 from .imports import GtkDirective, Import
 from .response_id import ExtResponse
-from .types import ClassName
+from .types import BracketedTypeName, ClassName, TypeName
 from .ui import UI
 from .values import (
     ArrayValue,
