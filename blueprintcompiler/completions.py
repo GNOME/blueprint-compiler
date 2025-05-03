@@ -32,6 +32,7 @@ from .completions_utils import (
     get_sort_key,
     new_statement_patterns,
 )
+from .language.contexts import ValueTypeCtx
 from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
 from .parser import SKIP_TOKENS
@@ -320,6 +321,8 @@ def prop_value_completer(ctx: CompletionContext):
     )
 
     if (vt := ctx.ast_node.value_type) is not None:
+        assert isinstance(vt, ValueTypeCtx)
+
         if isinstance(vt.value_type, gir.Enumeration):
             for name, member in vt.value_type.members.items():
                 yield Completion(
@@ -345,11 +348,12 @@ def prop_value_completer(ctx: CompletionContext):
         elif isinstance(vt.value_type, gir.Class) or isinstance(
             vt.value_type, gir.Interface
         ):
-            yield Completion(
-                "null",
-                CompletionItemKind.Constant,
-                sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
-            )
+            if vt.allow_null:
+                yield Completion(
+                    "null",
+                    CompletionItemKind.Constant,
+                    sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
+                )
 
             yield from get_object_id_completions(ctx, vt.value_type)
 
