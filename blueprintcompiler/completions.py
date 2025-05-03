@@ -371,7 +371,7 @@ def signal_completer(ctx: CompletionContext):
                         .lower()
                     )
 
-                snippet = f"{signal_name} => \\$${{1:${name}_{signal_name.replace('-', '_')}}}()$0;"
+                snippet = f"{signal_name} => \\$${{1:{name}_{signal_name.replace('-', '_')}}}()$0;"
 
             yield Completion(
                 signal_name,
