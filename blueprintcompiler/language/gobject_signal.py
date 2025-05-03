@@ -258,3 +258,11 @@ def decompile_signal(
     line += ";"
     ctx.print(line)
     return gir
+
+
+@completer(
+    [Signal],
+    [[(TokenType.PUNCTUATION, "(")]],
+)
+def signal_object_completer(ctx: CompletionContext):
+    yield from get_object_id_completions(ctx)
