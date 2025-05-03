@@ -48,7 +48,7 @@ class ScopeCtx:
             return self.node
 
     @cached_property
-    def objects(self) -> T.Dict[str, Object]:
+    def objects(self) -> T.Dict[str, AstNode]:
         return {
             obj.tokens["id"]: obj
             for obj in self._iter_recursive(self.node)
@@ -58,7 +58,7 @@ class ScopeCtx:
     def validate_unique_ids(self) -> None:
         from .gtk_list_item_factory import ExtListItemFactory
 
-        passed = {}
+        passed: T.Dict[str, AstNode] = {}
         for obj in self._iter_recursive(self.node):
             if obj.tokens["id"] is None:
                 continue
@@ -71,10 +71,16 @@ class ScopeCtx:
                     raise CompileError(
                         f"Duplicate object ID '{obj.tokens['id']}'",
                         token.range,
+                        references=[
+                            ErrorReference(
+                                passed[obj.tokens["id"]].group.tokens["id"].range,
+                                "previous declaration was here",
+                            )
+                        ],
                     )
             passed[obj.tokens["id"]] = obj
 
-    def _iter_recursive(self, node: AstNode):
+    def _iter_recursive(self, node: AstNode) -> T.Generator[AstNode, T.Any, None]:
         yield node
         for child in node.children:
             if child.context[ScopeCtx] is self:

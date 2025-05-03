@@ -235,7 +235,15 @@ class ParseNode:
         start_idx = ctx.index
         inner_ctx = ctx.create_child()
 
-        if self._parse(inner_ctx):
+        try:
+            result = self._parse(inner_ctx)
+        except Exception as e:
+            # If an exception occurs, there's an explicit error, not just a rule that didn't match. Apply the context
+            # state so that whichever rule handles the exception (e.g. a Statement) knows where the error occurred.
+            ctx.apply_child(inner_ctx)
+            raise e
+
+        if result:
             ctx.apply_child(inner_ctx)
             if ctx.index == start_idx:
                 return ParseResult.EMPTY
@@ -269,11 +277,11 @@ class Err(ParseNode):
         if self.child.parse(ctx).failed():
             start_idx = ctx.start
             while ctx.tokens[start_idx].type in SKIP_TOKENS:
-                start_idx += 1
+                start_idx -= 1
             start_token = ctx.tokens[start_idx]
 
             raise CompileError(
-                self.message, Range(start_token.start, start_token.start, ctx.text)
+                self.message, Range(start_token.end, start_token.end, ctx.text)
             )
         return True
 
@@ -350,7 +358,20 @@ class Statement(ParseNode):
 
         token = ctx.peek_token()
         if str(token) != self.end:
-            ctx.errors.append(CompileError(f"Expected `{self.end}`", token.range))
+            start_idx = ctx.index - 1
+            while ctx.tokens[start_idx].type in SKIP_TOKENS:
+                start_idx -= 1
+            start_token = ctx.tokens[start_idx]
+
+            position = (
+                start_token.start if ctx.index - 1 == start_idx else start_token.end
+            )
+
+            ctx.errors.append(
+                CompileError(
+                    f"Expected `{self.end}`", Range(position, position, ctx.text)
+                )
+            )
         else:
             ctx.next_token()
         return True
@@ -411,7 +432,6 @@ class Until(ParseNode):
                         ctx.skip_unexpected_token()
             except CompileError as e:
                 ctx.errors.append(e)
-                ctx.next_token()
 
         return True
 
