@@ -57,7 +57,11 @@ new_statement_patterns = [
     [(TokenType.PUNCTUATION, "}")],
     [(TokenType.PUNCTUATION, "]")],
     [(TokenType.PUNCTUATION, ";")],
+    [(TokenType.OP, "<")],
 ]
+
+
+completers = []
 
 
 def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
@@ -65,6 +69,9 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
         def inner(
             prev_tokens: T.List[Token], next_token: Token, ast_node, lsp, idx: int
         ):
+            if not any(isinstance(ast_node, rule) for rule in applies_in):
+                return
+
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
@@ -118,8 +125,7 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
             )
             yield from func(context)
 
-        for c in applies_in:
-            c.completers.append(inner)
+        completers.append(inner)
         return inner
 
     return decorator

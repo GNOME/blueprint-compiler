@@ -289,7 +289,7 @@ class TypeType(BasicType):
         return isinstance(other, TypeType)
 
 
-_BASIC_TYPES = {
+BASIC_TYPES = {
     "bool": BoolType,
     "string": StringType,
     "int": IntType,
@@ -914,7 +914,7 @@ class Namespace(GirNode):
 
     def get_type_by_cname(self, cname: str) -> T.Optional[GirType]:
         """Gets a type from this namespace by its C name."""
-        for basic in _BASIC_TYPES.values():
+        for basic in BASIC_TYPES.values():
             if basic.glib_type_name == cname:
                 return basic()
 
@@ -1036,8 +1036,8 @@ class GirContext:
         return None
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
-        if ns is None and name in _BASIC_TYPES:
-            return _BASIC_TYPES[name]()
+        if ns is None and name in BASIC_TYPES:
+            return BASIC_TYPES[name]()
 
         ns = ns or "Gtk"
 

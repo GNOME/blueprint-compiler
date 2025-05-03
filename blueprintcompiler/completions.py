@@ -21,7 +21,16 @@ import typing as T
 
 from . import annotations, gir, language
 from .ast_utils import AstNode
-from .completions_utils import *
+from .completions_utils import (
+    CompletionContext,
+    completers,
+    completer,
+    get_sort_key,
+    new_statement_patterns,
+    get_property_completion,
+    CompletionItemKind,
+    CompletionPriority,
+)
 from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
 from .parser import SKIP_TOKENS
@@ -38,13 +47,6 @@ def _complete(
     token_idx: int,
     next_token: Token,
 ) -> T.Iterator[Completion]:
-    for child in ast_node.children:
-        if child.group.start <= idx and (
-            idx < child.group.end or (idx == child.group.end and child.incomplete)
-        ):
-            yield from _complete(lsp, child, tokens, idx, token_idx, next_token)
-            return
-
     prev_tokens: T.List[Token] = []
 
     # collect the 5 previous non-skipped tokens
@@ -54,7 +56,7 @@ def _complete(
             prev_tokens.insert(0, token)
         token_idx -= 1
 
-    for completer in ast_node.completers:
+    for completer in completers:
         yield from completer(prev_tokens, next_token, ast_node, lsp, idx)
 
 
@@ -84,7 +86,17 @@ def complete(
             idx = tokens[token_idx].start
             token_idx -= 1
 
-    yield from _complete(lsp, ast_node, tokens, idx, token_idx, next_token)
+    child_node = ast_node.get_child_at(idx)
+    # If the cursor is at the end of a node, completions should be for the next child of the parent, unless the node
+    # is incomplete.
+    while (
+        child_node.range.end == idx
+        and not child_node.incomplete
+        and child_node.parent is not None
+    ):
+        child_node = child_node.parent
+
+    yield from _complete(lsp, child_node, tokens, idx, token_idx, next_token)
 
 
 @completer([language.GtkDirective])
@@ -163,7 +175,13 @@ def _available_namespace_completions(ctx: CompletionContext):
 
 
 @completer(
-    applies_in=[language.UI, language.ObjectContent, language.Template],
+    applies_in=[
+        language.UI,
+        language.ObjectContent,
+        language.Template,
+        language.TypeName,
+        language.BracketedTypeName,
+    ],
     matches=new_statement_patterns,
 )
 def namespace(ctx: CompletionContext):
@@ -184,7 +202,13 @@ def namespace(ctx: CompletionContext):
 
 
 @completer(
-    applies_in=[language.UI, language.ObjectContent, language.Template],
+    applies_in=[
+        language.UI,
+        language.ObjectContent,
+        language.Template,
+        language.TypeName,
+        language.BracketedTypeName,
+    ],
     matches=[
         [(TokenType.IDENT, None), (TokenType.OP, "."), (TokenType.IDENT, None)],
         [(TokenType.IDENT, None), (TokenType.OP, ".")],
@@ -195,7 +219,11 @@ def object_completer(ctx: CompletionContext):
     if ns is not None:
         for c in ns.classes.values():
             snippet = c.name
-            if str(ctx.next_token) != "{":
+            if (
+                str(ctx.next_token) != "{"
+                and not isinstance(ctx.ast_node, language.TypeName)
+                and not isinstance(ctx.ast_node, language.BracketedTypeName)
+            ):
                 snippet += " {\n  $0\n}"
 
             yield Completion(
@@ -209,7 +237,13 @@ def object_completer(ctx: CompletionContext):
 
 
 @completer(
-    applies_in=[language.UI, language.ObjectContent, language.Template],
+    applies_in=[
+        language.UI,
+        language.ObjectContent,
+        language.Template,
+        language.TypeName,
+        language.BracketedTypeName,
+    ],
     matches=new_statement_patterns,
 )
 def gtk_object_completer(ctx: CompletionContext):
@@ -217,7 +251,11 @@ def gtk_object_completer(ctx: CompletionContext):
     if ns is not None:
         for c in ns.classes.values():
             snippet = c.name
-            if str(ctx.next_token) != "{":
+            if (
+                str(ctx.next_token) != "{"
+                and not isinstance(ctx.ast_node, language.TypeName)
+                and not isinstance(ctx.ast_node, language.BracketedTypeName)
+            ):
                 snippet += " {\n  $0\n}"
 
             yield Completion(
@@ -227,6 +265,17 @@ def gtk_object_completer(ctx: CompletionContext):
                 snippet=snippet,
                 docs=c.doc,
                 detail=c.detail,
+            )
+
+    if isinstance(ctx.ast_node, language.BracketedTypeName) or (
+        isinstance(ctx.ast_node, language.TypeName)
+        and not isinstance(ctx.ast_node, language.ClassName)
+    ):
+        for basic_type in gir.BASIC_TYPES:
+            yield Completion(
+                basic_type,
+                CompletionItemKind.Class,
+                sort_text=get_sort_key(CompletionPriority.CLASS, basic_type),
             )
 
 

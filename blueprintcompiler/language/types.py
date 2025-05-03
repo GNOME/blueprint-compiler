@@ -27,11 +27,11 @@ class TypeName(AstNode):
         [
             UseIdent("namespace"),
             ".",
-            UseIdent("class_name"),
+            UseIdent("class_name").expected("class name"),
         ],
         [
             AnyOf("$", [".", UseLiteral("old_extern", True)]),
-            UseIdent("class_name"),
+            UseIdent("class_name").expected("class name"),
             UseLiteral("extern", True),
         ],
         UseIdent("class_name"),
@@ -47,7 +47,11 @@ class TypeName(AstNode):
 
     @validate("class_name")
     def type_exists(self):
-        if not self.tokens["extern"] and self.gir_ns is not None:
+        if (
+            not self.tokens["extern"]
+            and self.gir_ns is not None
+            and self.tokens["class_name"] is not None
+        ):
             self.root.gir.validate_type(
                 self.tokens["class_name"], self.tokens["namespace"]
             )
@@ -182,3 +186,14 @@ class TemplateClassName(ClassName):
             self.root.gir.validate_type(
                 self.tokens["class_name"], self.tokens["namespace"]
             )
+
+
+class BracketedTypeName(AstNode):
+    grammar = Statement("<", to_parse_node(TypeName).expected("type name"), end=">")
+
+    @property
+    def type_name(self) -> T.Optional[TypeName]:
+        if len(self.children[TypeName]) == 0:
+            return None
+
+        return self.children[TypeName][0]
