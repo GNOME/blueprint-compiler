@@ -23,13 +23,14 @@ from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import (
     CompletionContext,
-    completers,
-    completer,
-    get_sort_key,
-    new_statement_patterns,
-    get_property_completion,
     CompletionItemKind,
     CompletionPriority,
+    completer,
+    completers,
+    get_object_id_completions,
+    get_property_completion,
+    get_sort_key,
+    new_statement_patterns,
 )
 from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
@@ -350,16 +351,7 @@ def prop_value_completer(ctx: CompletionContext):
                 sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
             )
 
-            for id, obj in ctx.ast_node.root.context[language.ScopeCtx].objects.items():
-                if obj.gir_class is not None and obj.gir_class.assignable_to(
-                    vt.value_type
-                ):
-                    yield Completion(
-                        id,
-                        CompletionItemKind.Variable,
-                        signature=" " + obj.signature,
-                        sort_text=get_sort_key(CompletionPriority.NAMED_OBJECT, id),
-                    )
+            yield from get_object_id_completions(ctx, vt.value_type)
 
             if isinstance(ctx.ast_node, language.Property):
                 yield from _available_namespace_completions(ctx)

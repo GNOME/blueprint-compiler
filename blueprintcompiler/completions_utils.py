@@ -22,7 +22,7 @@ import typing as T
 from dataclasses import dataclass
 from enum import Enum
 
-from . import gir
+from . import gir, language
 from .ast_utils import AstNode
 from .lsp_utils import Completion, CompletionItemKind
 from .tokenizer import Token, TokenType
@@ -163,3 +163,18 @@ def get_property_completion(
         snippet=snippet,
         docs=doc,
     )
+
+
+def get_object_id_completions(
+    ctx: CompletionContext, value_type: T.Optional[gir.GirType] = None
+):
+    for id, obj in ctx.ast_node.root.context[language.ScopeCtx].objects.items():
+        if value_type is None or (
+            obj.gir_class is not None and obj.gir_class.assignable_to(value_type)
+        ):
+            yield Completion(
+                id,
+                CompletionItemKind.Variable,
+                signature=" " + obj.signature,
+                sort_text=get_sort_key(CompletionPriority.NAMED_OBJECT, id),
+            )
