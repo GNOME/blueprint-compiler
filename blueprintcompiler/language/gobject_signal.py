@@ -225,8 +225,14 @@ class Signal(AstNode):
 
 
 @decompiler("signal")
-def decompile_signal(ctx, gir, name, handler, swapped=None, after="false", object=None):
+def decompile_signal(
+    ctx: DecompileCtx, gir, name, handler, swapped=None, after="false", object=None
+):
     object_name = object or ""
+
+    if object_name == ctx.template_class:
+        object_name = "template"
+
     name = name.replace("_", "-")
     line = f"{name} => ${handler}({object_name})"
 

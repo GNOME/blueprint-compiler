@@ -198,6 +198,7 @@ class TestSamples(unittest.TestCase):
                 "parseable",
                 "signal",
                 "signal_not_swapped",
+                "signal_template_object",
                 "template",
                 "template_binding",
                 "template_binding_extern",
