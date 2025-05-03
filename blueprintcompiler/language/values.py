@@ -26,7 +26,7 @@ from .common import *
 from .contexts import ExprValueCtx, ScopeCtx, ValueTypeCtx
 from .expression import Expression
 from .gobject_object import Object
-from .types import TypeName
+from .types import BracketedTypeName, TypeName
 
 
 class Translated(AstNode):
@@ -80,11 +80,7 @@ class TypeLiteral(AstNode):
     grammar = [
         "typeof",
         AnyOf(
-            [
-                "<",
-                to_parse_node(TypeName).expected("type name"),
-                Match(">").expected(),
-            ],
+            BracketedTypeName,
             [
                 UseExact("lparen", "("),
                 to_parse_node(TypeName).expected("type name"),
@@ -98,8 +94,13 @@ class TypeLiteral(AstNode):
         return gir.TypeType()
 
     @property
-    def type_name(self) -> TypeName:
-        return self.children[TypeName][0]
+    def type_name(self) -> T.Optional[TypeName]:
+        if len(self.children[BracketedTypeName]) == 1:
+            return self.children[BracketedTypeName][0].type_name
+        elif len(self.children[TypeName]) == 1:
+            return self.children[TypeName][0]
+        else:
+            return None
 
     @validate()
     def validate_for_type(self) -> None:
