@@ -81,10 +81,10 @@ def complete(
     if tokens[token_idx].type == TokenType.IDENT:
         idx = tokens[token_idx].start
         token_idx -= 1
-    else:
-        while tokens[token_idx].type == TokenType.WHITESPACE:
-            idx = tokens[token_idx].start
-            token_idx -= 1
+
+    while tokens[token_idx].type == TokenType.WHITESPACE:
+        idx = tokens[token_idx].start
+        token_idx -= 1
 
     child_node = ast_node.get_child_at(idx)
     # If the cursor is at the end of a node, completions should be for the next child of the parent, unless the node
