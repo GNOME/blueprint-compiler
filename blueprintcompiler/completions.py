@@ -27,14 +27,15 @@ from .completions_utils import (
     CompletionPriority,
     completer,
     completers,
-    get_object_id_completions,
+    get_available_namespace_completions,
     get_property_completion,
     get_sort_key,
+    get_value_completions,
     new_statement_patterns,
 )
 from .language.contexts import ValueTypeCtx
 from .language.types import ClassName
-from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
+from .lsp_utils import Completion, CompletionItemKind, get_docs_section
 from .parser import SKIP_TOKENS
 from .tokenizer import Token, TokenType
 
@@ -155,27 +156,6 @@ def translation_domain(ctx: CompletionContext):
     )
 
 
-def _available_namespace_completions(ctx: CompletionContext):
-    imported_namespaces = set(
-        [import_.namespace for import_ in ctx.ast_node.root.using]
-    )
-
-    for ns, version in gir.get_available_namespaces():
-        if ns not in imported_namespaces and ns != "Gtk":
-            yield Completion(
-                ns,
-                CompletionItemKind.Module,
-                text=ns + ".",
-                sort_text=get_sort_key(CompletionPriority.IMPORT_NAMESPACE, ns),
-                signature=f" using {ns} {version}",
-                additional_text_edits=[
-                    TextEdit(
-                        ctx.ast_node.root.import_range(ns), f"\nusing {ns} {version};"
-                    )
-                ],
-            )
-
-
 @completer(
     applies_in=[
         language.UI,
@@ -200,7 +180,7 @@ def namespace(ctx: CompletionContext):
                 ),
             )
 
-    yield from _available_namespace_completions(ctx)
+    yield from get_available_namespace_completions(ctx)
 
 
 @completer(
@@ -321,61 +301,7 @@ def prop_value_completer(ctx: CompletionContext):
 
     if (vt := ctx.ast_node.value_type) is not None:
         assert isinstance(vt, ValueTypeCtx)
-
-        if isinstance(vt.value_type, gir.Enumeration):
-            for name, member in vt.value_type.members.items():
-                yield Completion(
-                    name,
-                    CompletionItemKind.EnumMember,
-                    docs=member.doc,
-                    detail=member.detail,
-                    sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, name),
-                )
-
-        elif isinstance(vt.value_type, gir.BoolType):
-            yield Completion(
-                "true",
-                CompletionItemKind.Constant,
-                sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "true"),
-            )
-            yield Completion(
-                "false",
-                CompletionItemKind.Constant,
-                sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "false"),
-            )
-
-        elif isinstance(vt.value_type, gir.Class) or isinstance(
-            vt.value_type, gir.Interface
-        ):
-            if vt.allow_null:
-                yield Completion(
-                    "null",
-                    CompletionItemKind.Constant,
-                    sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
-                )
-
-            yield from get_object_id_completions(ctx, vt.value_type)
-
-            if isinstance(ctx.ast_node, language.Property):
-                yield from _available_namespace_completions(ctx)
-
-                for ns in ctx.ast_node.root.gir.namespaces.values():
-                    for c in ns.classes.values():
-                        if not c.abstract and c.assignable_to(vt.value_type):
-                            name = (
-                                c.name if ns.name == "Gtk" else ns.name + "." + c.name
-                            )
-                            snippet = name
-                            if str(ctx.next_token) != "{":
-                                snippet += " {\n  $0\n}"
-                            yield Completion(
-                                name,
-                                CompletionItemKind.Class,
-                                sort_text=get_sort_key(CompletionPriority.CLASS, name),
-                                snippet=snippet,
-                                detail=c.detail,
-                                docs=c.doc,
-                            )
+        yield from get_value_completions(ctx, vt.value_type, vt.allow_null)
 
 
 @completer(
@@ -474,3 +400,12 @@ def complete_response_default(ctx: CompletionContext):
         "default",
         kind=CompletionItemKind.Keyword,
     )
+
+
+@completer(
+    [language.ObjectContent],
+    matches=new_statement_patterns,
+    applies_in_subclass=["Adw.Breakpoint"],
+)
+def complete_breakpoint_condition(ctx: CompletionContext):
+    yield Completion("condition", CompletionItemKind.Keyword, snippet="condition ($0)")

@@ -24,7 +24,7 @@ from enum import Enum
 
 from . import gir, language
 from .ast_utils import AstNode
-from .lsp_utils import Completion, CompletionItemKind
+from .lsp_utils import Completion, CompletionItemKind, TextEdit
 from .tokenizer import Token, TokenType
 
 
@@ -182,3 +182,79 @@ def get_object_id_completions(
                 signature=" " + obj.signature,
                 sort_text=get_sort_key(CompletionPriority.NAMED_OBJECT, id),
             )
+
+
+def get_available_namespace_completions(ctx: CompletionContext):
+    imported_namespaces = set(
+        [import_.namespace for import_ in ctx.ast_node.root.using]
+    )
+
+    for ns, version in gir.get_available_namespaces():
+        if ns not in imported_namespaces and ns != "Gtk":
+            yield Completion(
+                ns,
+                CompletionItemKind.Module,
+                text=ns + ".",
+                sort_text=get_sort_key(CompletionPriority.IMPORT_NAMESPACE, ns),
+                signature=f" using {ns} {version}",
+                additional_text_edits=[
+                    TextEdit(
+                        ctx.ast_node.root.import_range(ns), f"\nusing {ns} {version};"
+                    )
+                ],
+            )
+
+
+def get_value_completions(
+    ctx: CompletionContext, value_type: T.Optional[gir.GirType], allow_null: bool = True
+):
+    if isinstance(value_type, gir.Enumeration):
+        for name, member in value_type.members.items():
+            yield Completion(
+                name,
+                CompletionItemKind.EnumMember,
+                docs=member.doc,
+                detail=member.detail,
+                sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, name),
+            )
+
+    elif isinstance(value_type, gir.BoolType):
+        yield Completion(
+            "true",
+            CompletionItemKind.Constant,
+            sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "true"),
+        )
+        yield Completion(
+            "false",
+            CompletionItemKind.Constant,
+            sort_text=get_sort_key(CompletionPriority.ENUM_MEMBER, "false"),
+        )
+
+    elif isinstance(value_type, gir.Class) or isinstance(value_type, gir.Interface):
+        if allow_null:
+            yield Completion(
+                "null",
+                CompletionItemKind.Constant,
+                sort_text=get_sort_key(CompletionPriority.KEYWORD, "null"),
+            )
+
+        yield from get_object_id_completions(ctx, value_type)
+
+        if isinstance(ctx.ast_node, language.Property):
+            yield from get_available_namespace_completions(ctx)
+
+            for ns in ctx.ast_node.root.gir.namespaces.values():
+                for c in ns.classes.values():
+                    if not c.abstract and c.assignable_to(value_type):
+                        name = c.name if ns.name == "Gtk" else ns.name + "." + c.name
+                        snippet = name
+                        if str(ctx.next_token) != "{":
+                            snippet += " {\n  $0\n}"
+                        yield Completion(
+                            name,
+                            CompletionItemKind.Class,
+                            sort_text=get_sort_key(CompletionPriority.CLASS, name),
+                            snippet=snippet,
+                            detail=c.detail,
+                            docs=c.doc,
+                        )
