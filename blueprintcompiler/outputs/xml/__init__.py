@@ -364,6 +364,7 @@ class XmlOutput(OutputFormat):
         elif isinstance(extension, ExtAdwResponseDialog):
             xml.start_tag("responses")
             for response in extension.responses:
+                assert response.value is not None
                 xml.start_tag(
                     "response",
                     id=response.id,

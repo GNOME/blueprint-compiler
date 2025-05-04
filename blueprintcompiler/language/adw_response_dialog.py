@@ -80,11 +80,14 @@ class ExtAdwResponseDialogResponse(AstNode):
         return not any(flag.flag == "disabled" for flag in self.flags)
 
     @property
-    def value(self) -> StringValue:
+    def value(self) -> T.Optional[StringValue]:
         return self.children[0]
 
     @property
-    def document_symbol(self) -> DocumentSymbol:
+    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+        if self.value is None:
+            return None
+
         return DocumentSymbol(
             self.id,
             SymbolKind.Field,
