@@ -21,7 +21,7 @@ import typing as T
 
 from .common import *
 from .contexts import ScopeCtx
-from .gtkbuilder_template import Template
+from .gobject_object import Object
 
 
 class SignalFlag(AstNode):
@@ -111,6 +111,10 @@ class Signal(AstNode):
         return self.tokens["object"]
 
     @property
+    def object(self) -> T.Optional[Object]:
+        return self.context[ScopeCtx].objects.get(self.object_id)
+
+    @property
     def flags(self) -> T.List[SignalFlag]:
         return self.children[SignalFlag]
 
@@ -161,6 +165,13 @@ class Signal(AstNode):
                 )
 
         return None
+
+    @docs("object")
+    def object_docs(self):
+        if self.object is not None:
+            return f"```\n{self.object.signature}\n```"
+        else:
+            return None
 
     @validate("handler")
     def old_extern(self):
