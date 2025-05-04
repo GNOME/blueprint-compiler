@@ -53,11 +53,11 @@ class CompletionContext:
 
 
 new_statement_patterns = [
-    [(TokenType.PUNCTUATION, "{")],
-    [(TokenType.PUNCTUATION, "}")],
-    [(TokenType.PUNCTUATION, "]")],
-    [(TokenType.PUNCTUATION, ";")],
-    [(TokenType.OP, "<")],
+    ["{"],
+    ["}"],
+    ["]"],
+    [";"],
+    ["<"],
 ]
 
 
@@ -101,9 +101,13 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
 
                 if len(pattern) <= len(prev_tokens):
                     for i in range(0, len(pattern)):
-                        type, value = pattern[i]
+                        if isinstance(pattern[i], str):
+                            type, value = None, pattern[i]
+                        elif isinstance(pattern[i], TokenType):
+                            type, value = pattern[i], None
+
                         token = prev_tokens[i - len(pattern)]
-                        if token.type != type or (
+                        if (type is not None and token.type != type) or (
                             value is not None and str(token) != value
                         ):
                             break

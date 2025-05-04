@@ -212,8 +212,7 @@ def namespace(ctx: CompletionContext):
         language.BracketedTypeName,
     ],
     matches=[
-        [(TokenType.IDENT, None), (TokenType.OP, "."), (TokenType.IDENT, None)],
-        [(TokenType.IDENT, None), (TokenType.OP, ".")],
+        [TokenType.IDENT, "."],
     ],
 )
 def object_completer(ctx: CompletionContext):
@@ -301,9 +300,9 @@ def property_completer(ctx: CompletionContext):
 @completer(
     applies_in=[language.Property, language.A11yProperty],
     matches=[
-        [(TokenType.IDENT, None), (TokenType.OP, ":")],
-        [(TokenType.PUNCTUATION, ",")],
-        [(TokenType.PUNCTUATION, "[")],
+        [TokenType.IDENT, ":"],
+        [","],
+        ["["],
     ],
 )
 def prop_value_completer(ctx: CompletionContext):
@@ -424,7 +423,7 @@ def template_completer(_ctx: CompletionContext):
 
 @completer(
     applies_in=[language.ObjectContent, language.ChildType],
-    matches=[[(TokenType.PUNCTUATION, "[")]],
+    matches=[["["]],
     applies_in_subclass=[("Gtk", "Dialog"), ("Gtk", "InfoBar")],
 )
 def response_id_completer(ctx: CompletionContext):
@@ -438,7 +437,7 @@ def response_id_completer(ctx: CompletionContext):
 
 @completer(
     [language.ChildAnnotation, language.ExtResponse],
-    [[(TokenType.IDENT, "action"), (TokenType.IDENT, "response"), (TokenType.OP, "=")]],
+    [["action", "response", "="]],
 )
 def complete_response_id(ctx: CompletionContext):
     gir = ctx.ast_node.root.gir
@@ -457,16 +456,16 @@ def complete_response_id(ctx: CompletionContext):
     [language.ChildAnnotation, language.ExtResponse],
     [
         [
-            (TokenType.IDENT, "action"),
-            (TokenType.IDENT, "response"),
-            (TokenType.OP, "="),
-            (TokenType.IDENT, None),
+            "action",
+            "response",
+            "=",
+            TokenType.IDENT,
         ],
         [
-            (TokenType.IDENT, "action"),
-            (TokenType.IDENT, "response"),
-            (TokenType.OP, "="),
-            (TokenType.NUMBER, None),
+            "action",
+            "response",
+            "=",
+            TokenType.NUMBER,
         ],
     ],
 )

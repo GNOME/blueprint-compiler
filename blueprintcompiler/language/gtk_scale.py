@@ -153,7 +153,7 @@ def complete_mark(_ctx: CompletionContext):
 
 @completer(
     applies_in=[ExtScaleMark],
-    matches=[[(TokenType.NUMBER, None), (TokenType.PUNCTUATION, ",")]],
+    matches=[[TokenType.NUMBER, ","]],
 )
 def complete_mark_position(ctx: CompletionContext):
     gir = ctx.ast_node.root.gir
