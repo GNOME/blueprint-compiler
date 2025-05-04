@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from .. import annotations
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .gobject_object import Object, validate_parent_type
@@ -63,9 +64,9 @@ class AdwBreakpointSetter(AstNode):
     grammar = Statement(
         UseIdent("object"),
         Match(".").expected(),
-        UseIdent("property"),
+        UseIdent("property").expected("property"),
         Match(":").expected(),
-        Value,
+        to_parse_node(Value).expected("value"),
     )
 
     @property
@@ -252,3 +253,37 @@ def decompile_setter(ctx: DecompileCtx, gir, element):
                 (child["translatable"], child["context"], child["comments"]),
             )
             ctx.print(f"{comments} {object_id}.{property_name}: {string};")
+
+
+@completer([AdwBreakpointSetters], new_statement_patterns)
+def complete_object(ctx: CompletionContext):
+    yield from get_object_id_completions(ctx)
+
+
+@completer([AdwBreakpointSetter], [[TokenType.IDENT, "."]])
+def complete_properties(ctx: CompletionContext):
+    obj = ctx.ast_node.context[ScopeCtx].objects.get(ctx.match_variables[0])
+    if (
+        obj is not None
+        and obj.gir_class is not None
+        and hasattr(obj.gir_class, "properties")
+    ):
+        for prop_name, prop in obj.gir_class.properties.items():
+            yield get_property_completion(
+                prop_name,
+                prop.type,
+                ctx,
+                annotations.is_property_translated(prop),
+                prop.doc,
+            )
+
+
+@completer([AdwBreakpointSetter], [[TokenType.IDENT, ".", TokenType.IDENT, ":"]])
+def complete_property_value(ctx: CompletionContext):
+    assert isinstance(ctx.ast_node, AdwBreakpointSetter)
+    if ctx.ast_node.gir_property is None:
+        return
+
+    t = ctx.ast_node.gir_property.type
+    if t is not None:
+        yield from get_value_completions(ctx, t)
