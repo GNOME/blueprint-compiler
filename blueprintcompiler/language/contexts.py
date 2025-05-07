@@ -60,19 +60,21 @@ class ScopeCtx:
 
         passed = {}
         for obj in self._iter_recursive(self.node):
-            if obj.tokens["id"] is None:
+            from .gtk_menu import Menu
+
+            if not (isinstance(obj, Object) or isinstance(obj, Menu)) or obj.id is None:
                 continue
 
-            if obj.tokens["id"] in passed:
+            if obj.id in passed:
                 token = obj.group.tokens["id"]
                 if not isinstance(obj, Template) and not isinstance(
                     obj, ExtListItemFactory
                 ):
                     raise CompileError(
-                        f"Duplicate object ID '{obj.tokens['id']}'",
+                        f"Duplicate object ID '{obj.id}'",
                         token.range,
                     )
-            passed[obj.tokens["id"]] = obj
+            passed[obj.id] = obj
 
     def _iter_recursive(self, node: AstNode):
         yield node
