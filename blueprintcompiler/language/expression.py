@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from .. import annotations
 from ..decompiler import decompile_element
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
@@ -112,18 +113,21 @@ class LiteralExpr(ExprBase):
 
 
 class LookupOp(InfixExpr):
-    grammar = [".", UseIdent("property")]
+    grammar = [".", UseIdent("property").expected("property name")]
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         return ValueTypeCtx(None, must_infer_type=True)
 
     @property
-    def property_name(self) -> str:
+    def property_name(self) -> T.Optional[str]:
         return self.tokens["property"]
 
     @property
     def type(self) -> T.Optional[GirType]:
+        if self.property_name is None:
+            return None
+
         if isinstance(self.lhs.type, gir.Class) or isinstance(
             self.lhs.type, gir.Interface
         ):
@@ -167,7 +171,10 @@ class LookupOp(InfixExpr):
                 f"Type {self.lhs.type.full_name} does not have properties"
             )
 
-        elif self.lhs.type.properties.get(self.property_name) is None:
+        elif (
+            self.property_name is not None
+            and self.lhs.type.properties.get(self.property_name) is None
+        ):
             raise CompileError(
                 f"{self.lhs.type.full_name} does not have a property called {self.property_name}",
                 did_you_mean=(self.property_name, self.lhs.type.properties.keys()),
@@ -190,6 +197,22 @@ class LookupOp(InfixExpr):
                     f"{property.signature} is deprecated",
                     hints=hints,
                 )
+
+
+@completer([LookupOp], ["."])
+def complete_lookup_property(ctx: CompletionContext):
+    assert isinstance(ctx.ast_node, LookupOp)
+
+    t = ctx.ast_node.lhs.type
+    if t is not None and hasattr(t, "properties"):
+        for prop_name, prop in t.properties.items():
+            yield Completion(
+                prop_name,
+                CompletionItemKind.Property,
+                deprecated=prop.deprecated,
+                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, prop_name),
+                docs=prop.doc,
+            )
 
 
 class CastExpr(InfixExpr):

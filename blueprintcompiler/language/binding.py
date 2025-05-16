@@ -80,20 +80,24 @@ class Binding(AstNode):
 
     @property
     def simple_binding(self) -> T.Optional["SimpleBinding"]:
-        if isinstance(self.expression.last, LookupOp):
-            if isinstance(self.expression.last.lhs, LiteralExpr):
-                from .values import IdentLiteral
+        from .values import IdentLiteral
 
-                if isinstance(self.expression.last.lhs.literal.value, IdentLiteral):
-                    flags = [x.flag for x in self.flags]
-                    return SimpleBinding(
-                        self.expression.last.lhs.literal.value.ident,
-                        self.expression.last.property_name,
-                        no_sync_create="no-sync-create" in flags,
-                        bidirectional="bidirectional" in flags,
-                        inverted="inverted" in flags,
-                    )
-        return None
+        if (
+            not isinstance(self.expression.last, LookupOp)
+            or not isinstance(self.expression.last.lhs, LiteralExpr)
+            or not isinstance(self.expression.last.lhs.literal.value, IdentLiteral)
+            or self.expression.last.property_name is None
+        ):
+            return None
+
+        flags = [x.flag for x in self.flags]
+        return SimpleBinding(
+            self.expression.last.lhs.literal.value.ident,
+            self.expression.last.property_name,
+            no_sync_create="no-sync-create" in flags,
+            bidirectional="bidirectional" in flags,
+            inverted="inverted" in flags,
+        )
 
     @validate("bind")
     def bind_property(self):
