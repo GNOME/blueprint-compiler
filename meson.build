@@ -79,4 +79,6 @@ else
   )
 endif
 
-subdir('tests')
+if get_option('tests')
+  subdir('tests')
+endif

@@ -1,3 +1,4 @@
 option('docs', type: 'boolean', value: false)
 
 option('python_wheel', type: 'boolean', value: false, description: 'Enabled when building a Python wheel to make sure paths are correct')
+option('tests', type: 'boolean', value: true)
