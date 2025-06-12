@@ -28,6 +28,7 @@ from .gtk_file_filter import (
     ext_file_filter_suffixes,
 )
 from .gtk_layout import ExtLayout
+from .gtk_level_bar import ExtLevelBarOffsets
 from .gtk_list_item_factory import ExtListItemFactory
 from .gtk_menu import Menu, MenuAttribute, menu
 from .gtk_scale import ExtScaleMarks
@@ -67,6 +68,7 @@ OBJECT_CONTENT_HOOKS.children = [
     ext_file_filter_patterns,
     ext_file_filter_suffixes,
     ExtLayout,
+    ExtLevelBarOffsets,
     ExtListItemFactory,
     ExtScaleMarks,
     ExtSizeGroupWidgets,
