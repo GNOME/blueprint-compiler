@@ -374,7 +374,7 @@ def decompile_translatable(
             comments = ""
         else:
             comments = comments.replace("/*", " ").replace("*/", " ")
-            comments = f"/* Translators: {comments} */"
+            comments = f"\n/* Translators: {comments} */"
 
         if context is not None:
             return comments, f"C_({escape_quote(context)}, {escape_quote(string)})"
