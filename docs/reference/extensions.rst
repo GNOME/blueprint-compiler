@@ -23,6 +23,7 @@ Properties are the main way to set values on objects, but they are limited by th
    | :ref:`ExtFileFilterPatterns<Syntax ExtFileFilter>`
    | :ref:`ExtFileFilterSuffixes<Syntax ExtFileFilter>`
    | :ref:`ExtLayout<Syntax ExtLayout>`
+   | :ref:`ExtLevelBarOffsets<Syntax ExtLevelBarOffsets>`
    | :ref:`ExtListItemFactory<Syntax ExtListItemFactory>`
    | :ref:`ExtScaleMarks<Syntax ExtScaleMarks>`
    | :ref:`ExtSizeGroupWidgets<Syntax ExtSizeGroupWidgets>`
@@ -213,6 +214,31 @@ The ``layout`` block describes how the widget should be positioned within its pa
          row-span: 2;
        }
      }
+   }
+
+
+.. _Syntax ExtLevelBarOffsets:
+
+Gtk.LevelBar Offsets
+--------------------
+
+.. rst-class:: grammar-block
+
+   ExtLevelBarOffsets = 'offsets' '[' (ExtLevelBarOffset),* ']'
+   ExtLevelBarOffset = 'offset' '(' <name::ref:`QUOTED<Syntax QUOTED>`> ',' <value::ref:`NUMBER<Syntax NUMBER>`> ')'
+
+Valid in `Gtk.LevelBar <https://docs.gtk.org/gtk4/class.LevelBar.html>`_.
+
+The ``offsets`` block defines the offsets on a level bar. A single ``offset`` has two arguments: a CSS class name and a (non-negative) value.
+
+.. code-block:: blueprint
+
+   LevelBar {
+     offsets [
+       offset ("low-class-name", 0.3),
+       offset ("medium-class-name", 0.5),
+       offset ("high-class-name", 0.7),
+     ]
    }
 
 

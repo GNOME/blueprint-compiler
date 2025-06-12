@@ -379,6 +379,12 @@ class XmlOutput(OutputFormat):
                 xml.end_tag()
             xml.end_tag()
 
+        elif isinstance(extension, ExtLevelBarOffsets):
+            xml.start_tag("offsets")
+            for offset in extension.offsets:
+                xml.put_self_closing("offset", name=offset.name, value=offset.value)
+            xml.end_tag()
+
         elif isinstance(extension, ExtScaleMarks):
             xml.start_tag("marks")
             for mark in extension.marks:
