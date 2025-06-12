@@ -16,14 +16,15 @@ Properties are the main way to set values on objects, but they are limited by th
 
    Extension = :ref:`ExtAccessibility<Syntax ExtAccessibility>`
    | :ref:`ExtAdwAlertDialog<Syntax ExtAdwAlertDialog>`
-   | :ref:`ExtAdwMessageDialog<Syntax ExtAdwMessageDialog>`
    | :ref:`ExtAdwBreakpoint<Syntax ExtAdwBreakpoint>`
+   | :ref:`ExtAdwMessageDialog<Syntax ExtAdwMessageDialog>`
    | :ref:`ExtComboBoxItems<Syntax ExtComboBoxItems>`
    | :ref:`ExtFileFilterMimeTypes<Syntax ExtFileFilter>`
    | :ref:`ExtFileFilterPatterns<Syntax ExtFileFilter>`
    | :ref:`ExtFileFilterSuffixes<Syntax ExtFileFilter>`
    | :ref:`ExtLayout<Syntax ExtLayout>`
    | :ref:`ExtListItemFactory<Syntax ExtListItemFactory>`
+   | :ref:`ExtScaleMarks<Syntax ExtScaleMarks>`
    | :ref:`ExtSizeGroupWidgets<Syntax ExtSizeGroupWidgets>`
    | :ref:`ExtStringListStrings<Syntax ExtStringListStrings>`
    | :ref:`ExtStyles<Syntax ExtStyles>`
@@ -46,25 +47,6 @@ The ``accessibility`` block defines values relevant to accessibility software. T
 .. note::
 
    Relations which allow for a list of values, for example `labelled-by`, must be given as a single relation with a list of values instead of duplicating the relation like done in Gtk.Builder.
-
-.. _Syntax ExtAdwBreakpoint:
-
-Adw.Breakpoint
---------------
-
-.. rst-class:: grammar-block
-
-   ExtAdwBreakpointCondition = 'condition' '(' <condition::ref:`QUOTED<Syntax QUOTED>`> ')'
-   ExtAdwBreakpoint = 'setters' '{' ExtAdwBreakpointSetter* '}'
-   ExtAdwBreakpointSetter = <object::ref:`IDENT<Syntax IDENT>`> '.' <property::ref:`IDENT<Syntax IDENT>`> ':' :ref:`Value <Syntax Value>` ';'
-
-Valid in `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
-
-Defines the condition for a breakpoint and the properties that will be set at that breakpoint. See the documentation for `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
-
-.. note::
-
-   The `Adw.Breakpoint:condition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/property.Breakpoint.condition.html>`_ property has type `Adw.BreakpointCondition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/struct.BreakpointCondition.html>`_, which GtkBuilder doesn't know how to parse from a string. Therefore, the ``condition`` syntax is used instead.
 
 
 .. _Syntax ExtAdwAlertDialog:
@@ -94,6 +76,26 @@ The ``responses`` block defines the buttons that will be added to the dialog. Th
        wipeHardDrive: "Wipe Hard Drive" destructive disabled,
      ]
    }
+
+
+.. _Syntax ExtAdwBreakpoint:
+
+Adw.Breakpoint
+--------------
+
+.. rst-class:: grammar-block
+
+   ExtAdwBreakpointCondition = 'condition' '(' <condition::ref:`QUOTED<Syntax QUOTED>`> ')'
+   ExtAdwBreakpoint = 'setters' '{' ExtAdwBreakpointSetter* '}'
+   ExtAdwBreakpointSetter = <object::ref:`IDENT<Syntax IDENT>`> '.' <property::ref:`IDENT<Syntax IDENT>`> ':' :ref:`Value <Syntax Value>` ';'
+
+Valid in `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
+
+Defines the condition for a breakpoint and the properties that will be set at that breakpoint. See the documentation for `Adw.Breakpoint <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.Breakpoint.html>`_.
+
+.. note::
+
+   The `Adw.Breakpoint:condition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/property.Breakpoint.condition.html>`_ property has type `Adw.BreakpointCondition <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/struct.BreakpointCondition.html>`_, which GtkBuilder doesn't know how to parse from a string. Therefore, the ``condition`` syntax is used instead.
 
 
 .. _Syntax ExtAdwMessageDialog:
@@ -261,6 +263,16 @@ Gtk.Scale Marks
 Valid in `Gtk.Scale <https://docs.gtk.org/gtk4/class.Scale.html>`_.
 
 The ``marks`` block defines the marks on a scale. A single ``mark`` has up to three arguments: a value, an optional position, and an optional label. The position can be ``left``, ``right``, ``top``, or ``bottom``. The label may be translated.
+
+.. code-block:: blueprint
+
+   Scale {
+     marks [
+       mark (-1, bottom),
+       mark (0, top, _("Origin")),
+       mark (2),
+     ]
+   }
 
 
 .. _Syntax ExtSizeGroupWidgets:
