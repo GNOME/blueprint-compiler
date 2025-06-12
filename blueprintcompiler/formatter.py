@@ -183,9 +183,11 @@ def format(data, tab_size=2, insert_space=True):
                     current_line = f"// {current_line[2:]}"
 
                 inline_comment = not last_whitespace_contains_newline
+                line_type = LineType.COMMENT
                 newlines = 1
                 if inline_comment:
                     current_line = " " + current_line
+                    line_type = prev_line_type
                     newlines = 0
                 elif single_line_comment:
                     if prev_line_type == LineType.BLOCK_CLOSE:
@@ -196,7 +198,7 @@ def format(data, tab_size=2, insert_space=True):
                 current_line = "\n".join(
                     [line.rstrip() for line in current_line.split("\n")]
                 )
-                commit_current_line(LineType.COMMENT, newlines_before=newlines)
+                commit_current_line(line_type, newlines_before=newlines)
 
             else:  # pragma: no cover
                 raise CompilerBugError()
