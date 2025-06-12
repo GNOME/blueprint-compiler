@@ -179,17 +179,17 @@ def format(data, tab_size=2, insert_space=True):
                 )
 
                 single_line_comment = str_item.startswith("//")
+                if single_line_comment and not str_item.startswith("// "):
+                    current_line = f"// {current_line[2:]}"
+
+                inline_comment = not last_whitespace_contains_newline
                 newlines = 1
-                if single_line_comment:
-                    if not str_item.startswith("// "):
-                        current_line = f"// {current_line[2:]}"
-
-                    if not last_whitespace_contains_newline:
-                        current_line = " " + current_line
-                        newlines = 0
-                    elif prev_line_type == LineType.BLOCK_CLOSE:
+                if inline_comment:
+                    current_line = " " + current_line
+                    newlines = 0
+                elif single_line_comment:
+                    if prev_line_type == LineType.BLOCK_CLOSE:
                         newlines = 2
-
                 elif prev_line_type in require_extra_newline:
                     newlines = 2
 
