@@ -10,6 +10,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <marks>
       <mark value="-1" position="bottom"></mark>
       <mark value="0" position="top" translatable="yes">Hello, world!</mark>
+      <mark value="1" position="bottom">1</mark>
       <mark value="2"></mark>
     </marks>
   </object>

@@ -172,8 +172,11 @@ def decompile_mark(
     comments=None,
     context=None,
 ):
+    comments, translatable = decompile_translatable(
+        cdata, translatable, context, comments
+    )
     if comments is not None:
-        ctx.print(f"/* Translators: {comments} */")
+        ctx.print(comments)
 
     text = f"mark ({value}"
 
@@ -182,10 +185,7 @@ def decompile_mark(
     elif cdata:
         text += f", bottom"
 
-    if truthy(translatable):
-        comments, translatable = decompile_translatable(
-            cdata, translatable, context, comments
-        )
+    if cdata:
         text += f", {translatable}"
 
     text += "),"
