@@ -82,10 +82,6 @@ Visual Studio Code
 
 - [Blueprint Language Plugin by bodil](https://github.com/bodil/vscode-blueprint)
 
-## Donate
-
-You can support my work on GitHub Sponsors! <https://github.com/sponsors/jameswestman>
-
 ## Getting in Touch
 
 Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
