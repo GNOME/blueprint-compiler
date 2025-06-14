@@ -139,6 +139,11 @@ class XmlOutput(OutputFormat):
             self._emit_expression(value.expression, xml)
             xml.end_tag()
 
+        elif isinstance(value, Menu):
+            xml.start_tag("property", **props)
+            self._emit_menu(value, xml)
+            xml.end_tag()
+
         elif isinstance(value, ObjectValue):
             xml.start_tag("property", **props)
             self._emit_object(value.object, xml)

@@ -58,7 +58,7 @@ Properties
 
 .. rst-class:: grammar-block
 
-   Property = <name::ref:`IDENT<Syntax IDENT>`> ':' ( :ref:`Binding<Syntax Binding>` | :ref:`ExprValue<Syntax ExprValue>` | :ref:`ObjectValue<Syntax ObjectValue>` | :ref:`Value<Syntax Value>` ) ';'
+   Property = <name::ref:`IDENT<Syntax IDENT>`> ':' ( :ref:`Binding<Syntax Binding>` | :ref:`ExprValue<Syntax ExprValue>` | :ref:`Menu<Syntax Menu>` | :ref:`ObjectValue<Syntax ObjectValue>` | :ref:`Value<Syntax Value>` ) ';'
 
 Properties specify the details of each object, like a label's text, an image's icon name, or the margins on a container.
 

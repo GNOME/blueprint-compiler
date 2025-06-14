@@ -60,11 +60,6 @@ class Menu(AstNode):
     def items(self) -> T.List[T.Union["Menu", "MenuAttribute"]]:
         return self.children
 
-    @validate("menu")
-    def has_id(self):
-        if self.tokens["tag"] == "menu" and self.tokens["id"] is None:
-            raise CompileError("Menu requires an ID")
-
     @validate("id")
     def object_id_not_reserved(self):
         if self.id in RESERVED_IDS:
