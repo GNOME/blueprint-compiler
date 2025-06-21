@@ -170,6 +170,18 @@ class BlueprintApp:
                 add_typelib_search_path(typelib_path)
 
         for file in opts.inputs:
+            path = os.path.join(
+                opts.output_dir,
+                os.path.relpath(os.path.splitext(file.name)[0] + ".ui", opts.input_dir),
+            )
+
+            if os.path.isfile(path):
+                in_time = os.path.getmtime(file.name)
+                out_time = os.path.getmtime(path)
+
+                if out_time >= in_time:
+                    continue
+
             data = file.read()
             file_abs = os.path.abspath(file.name)
             input_dir_abs = os.path.abspath(opts.input_dir)
@@ -186,12 +198,6 @@ class BlueprintApp:
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
 
-                path = os.path.join(
-                    opts.output_dir,
-                    os.path.relpath(
-                        os.path.splitext(file.name)[0] + ".ui", opts.input_dir
-                    ),
-                )
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w") as file:
                     file.write(xml)
