@@ -1,3 +1,22 @@
+# v0.18.0
+
+## Added
+- GtkBuilder now allows menus to be specified inline as a property value. Blueprint now supports this as well.
+
+## Fixed
+- Made reference_docs.json build reproducible (Sertonix)
+- Correctly emit XML for nested templates (Tom Greig)
+- Fix crash in language server while typing an AdwBreakpointSetter rule
+- Update URLs after move to GNOME namespace on GitLab
+- Fix crash when decompiling a lookup tag with no type attribute
+- Fix incorrect result when decompiling a signal that has the template as its object
+- Fix an incorrect "Duplicate object ID" error when an Adw.AlertDialog response had the same ID as an object
+
+## Documentation
+- Updated syntax in the example on the Overview page (Chris Mayo)
+- Added examples of Gtk.Scale marks (Matthijs Velsink)
+- Corrected errors in the index on the Extensions page (Matthijs Velsink)
+
 # v0.16.0
 
 ## Added
