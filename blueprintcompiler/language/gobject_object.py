@@ -71,12 +71,15 @@ class Object(AstNode):
 
     @property
     def signature(self) -> str:
-        if self.id:
-            return f"{self.class_name.gir_type.full_name} {self.id}"
-        elif t := self.class_name.gir_type:
-            return f"{t.full_name}"
+        if t := self.class_name.gir_type:
+            result = t.full_name
         else:
-            return f"{self.class_name.as_string}"
+            result = self.class_name.as_string
+
+        if self.id:
+            result += " " + self.id
+
+        return result
 
     @property
     def document_symbol(self) -> T.Optional[DocumentSymbol]:
