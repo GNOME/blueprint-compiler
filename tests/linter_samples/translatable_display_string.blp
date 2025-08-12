@@ -1,0 +1,24 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+Label {
+  label: "foo";
+}
+Button {
+  tooltip-text: "foo";
+}
+Window {
+  title: "foobar";
+}
+
+// Good Example
+Label {
+  label: _("foo");
+}
+Button {
+  tooltip-text: _("foo");
+}
+Window {
+  title: _("foobar");
+} 

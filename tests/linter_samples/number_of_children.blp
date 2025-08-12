@@ -1,0 +1,14 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+// I only display the last child
+Adw.StatusPage {
+  Box {}
+  Box {}
+}
+
+// Good Example
+Adw.StatusPage {
+  Box {}
+}

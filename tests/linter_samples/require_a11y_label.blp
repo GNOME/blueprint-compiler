@@ -1,0 +1,26 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+Gtk.Image {
+  icon-name: "cat-symbolic";
+}
+Button {
+  icon-name: "foobar";
+}
+
+// Good Example
+// TODO: Ask about correct property for Image, because running it with label
+// causes a compiler error
+//Gtk.Image {
+//  tooltip-text: _("cat");
+//}
+
+//Gtk.Picture {
+//  label: _("cat");
+//}
+
+Button {
+  icon-name: "foobar";
+  label: _("button");
+}
