@@ -47,6 +47,11 @@ class TestLinter(unittest.TestCase):
             { 'line': 9, 'message': 'Mark Gtk.Button tooltip-text as translatable using _("...")' },
             { 'line': 12, 'message': 'Mark Gtk.Window title as translatable using _("...")' }
         ])
+        self.check_file('avoid_all_caps', [
+            { 'line': 6, 'message': 'Avoid using all upper case for Gtk.Label label' },
+            { 'line': 9, 'message': 'Avoid using all upper case for Gtk.Button label' }
+            # { 'line': 13, 'message': 'Avoid using all upper case for Gtk.Button label' }
+        ])
         self.check_file('no_visible_true', [
             { 'line': 6, 'message': 'In GTK4 widgets are visible by default' }
         ])

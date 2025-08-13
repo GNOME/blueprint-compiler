@@ -1,0 +1,26 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+Label {
+  label: _("FOO");
+}
+Button {
+  label: _("FOO");
+}
+
+//Button {
+//  label: "FOO";
+//}
+
+// Good Example
+Label {
+  label: _("foo");
+}
+Button {
+  label: _("foo");
+}
+
+//Button {
+//  label: "foo";
+//}
