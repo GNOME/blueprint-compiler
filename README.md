@@ -86,6 +86,17 @@ Sublime Text
 
 - [Syntax highlighting by nbenitez](https://packagecontrol.io/packages/Blueprint%20for%20GTK)
 
+pre-commit
+
+- Add this to your `.pre-commit-config.yaml`:
+
+```yaml
+-   repo: https://gitlab.gnome.org/GNOME/blueprint-compiler
+    rev: ''  # Use the sha / tag you want to point at
+    hooks:
+    -   id: blueprint-format
+```
+
 ## Getting in Touch
 
 Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
