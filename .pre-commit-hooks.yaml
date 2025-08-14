@@ -1,0 +1,6 @@
+-   id: blueprint-format
+    name: blueprint
+    language: script
+    files: \.blp$
+    entry: blueprint-compiler.py format
+    args: [--fix, --no-diff]
