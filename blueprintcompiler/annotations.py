@@ -189,3 +189,32 @@ _ANNOTATIONS = {
         ]
     ),
 }
+
+prefixes = {
+    "Gtk-4.0": "Gtk.",
+    "Adw-1": "Adw.",
+    "Shumate-1.0": "",
+    "GtkSource-5": "Gtk."
+}
+
+# Currently throwing compiler errors, so leaving them out.
+# TODO: need to address these at some point
+compiler_errors = [
+    "FileChooserWidget:subtitle",
+    "MessageDialog:secondary-text",
+    "NativeDialog:title",
+    "Picture:alternative-text",
+    "Widget:tooltip-markup",
+    "Widget:tooltip-text",
+    "Editable:text",
+    "FontChooser:preview-text",
+]
+
+def get_annotation_elements():
+    result = []
+    for key, annotation in _ANNOTATIONS.items():
+        for item in annotation.translatable_properties:
+            if item not in compiler_errors:
+                element, property = item.split(":")
+                result.append((f"{prefixes.get(key)}{element}", property))
+    return result
