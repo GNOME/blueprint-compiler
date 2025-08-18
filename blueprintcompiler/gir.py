@@ -54,7 +54,7 @@ def add_typelib_search_path(path: str):
 
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    search_paths = [*_repo.get_search_path(), *_user_search_paths]
+    search_paths = [*_user_search_paths, *_repo.get_search_path()]
 
     filename = f"{namespace}-{version}.typelib"
 
@@ -86,8 +86,8 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
         return _available_namespaces
 
     search_paths: list[str] = [
-        *_repo.get_search_path(),
         *_user_search_paths,
+        *_repo.get_search_path(),
     ]
 
     for search_path in search_paths:
