@@ -26,6 +26,7 @@ from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
 from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
 from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
+from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
 
 def walk_ast(ast, func, stack = None):
     stack = stack or []
@@ -42,7 +43,8 @@ RULES = [
     NoVisibleTrue,
     NoGtkSwitchState,
     RequireA11yLabel,
-    AvoidAllCaps
+    AvoidAllCaps,
+    PreferUnicodeChars
 ]
 
 def lint(ast):

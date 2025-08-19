@@ -156,6 +156,12 @@ class TestLinter(unittest.TestCase):
             { 'line': 5, 'message': 'Gtk.Image is missing an accessibility label' },
             { 'line': 8, 'message': 'Gtk.Button is missing an accessibility label' }
         ])
+        self.check_file('prefer_unicode', [
+            { 'line': 7, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
+            { 'line': 11, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
+            { 'line': 15, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
+            { 'line': 15, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' }
+        ])
 
     def check_file(self, name, expected_problems):
         filepath = Path(__file__).parent.joinpath('linter_samples', f'{name}.blp')

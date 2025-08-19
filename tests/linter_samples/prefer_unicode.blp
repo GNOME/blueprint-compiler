@@ -1,0 +1,26 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad examples
+
+Button {
+  label: _("hello...");
+}
+
+Button {
+  label: C_("my context", "hello...");
+}
+
+Button {
+  label: "Hello...";
+}
+
+// Good examples
+
+Button {
+  label: _("only two.. dots");
+}
+
+Button {
+  label: _("hello…");
+}
