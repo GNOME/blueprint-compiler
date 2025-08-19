@@ -2,6 +2,7 @@ from blueprintcompiler.linter_rules.utils import LinterRule
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.language.values import Translated, Literal, QuotedLiteral
 from blueprintcompiler.errors import CompileWarning
+from blueprintcompiler.annotations import get_annotation_elements
 # WIP
 class AvoidAllCaps(LinterRule):
     def check(self, type, child, stack):
@@ -23,7 +24,4 @@ class AvoidAllCaps(LinterRule):
                                 problem = CompileWarning(f'Avoid using all upper case for {type} {property.name}', range)
                                 self.problems.append(problem)
 
-label_properties = [
-    ('Gtk.Label', 'label'),
-    ('Gtk.Button', 'label')
-]
+label_properties = get_annotation_elements()
