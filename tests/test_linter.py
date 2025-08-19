@@ -160,7 +160,9 @@ class TestLinter(unittest.TestCase):
             { 'line': 7, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
             { 'line': 11, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
             { 'line': 15, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
-            { 'line': 15, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' }
+            { 'line': 15, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
+            { 'line': 19, 'message': 'Prefer using a bullet ("•", U+2022) instead of "*" at the start of a line' },
+            { 'line': 23, 'message': 'Prefer using a bullet ("•", U+2022) instead of "-" at the start of a line' },
         ])
 
     def check_file(self, name, expected_problems):

@@ -11,6 +11,12 @@ PATTERNS = {
             re.compile(r'\.{3}')
         ],
         'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."'
+    },
+    'bullet-list': {
+        'patterns': [
+            re.compile(r'^ *(\*|-) +', re.MULTILINE)
+        ],
+        'message': 'Prefer using a bullet ("•", U+2022) instead of "{0}" at the start of a line'
     }
 }
 
@@ -24,6 +30,8 @@ class PreferUnicodeChars(LinterRule):
         (string, range) = self.get_string_value(property)
         for name, config in PATTERNS.items():
             for pattern in config['patterns']:
-                for match in pattern.finditer(string):
-                    problem = CompileWarning(config['message'], range)
+                match = pattern.search(string)
+                if match:
+                    message = config['message'].format(*match.groups())
+                    problem = CompileWarning(message, range)
                     self.problems.append(problem)

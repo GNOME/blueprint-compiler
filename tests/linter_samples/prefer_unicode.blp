@@ -15,6 +15,14 @@ Button {
   label: "Hello...";
 }
 
+Button {
+  label: _("a list of things:\n\n* one\n* two\n* three");
+}
+
+Button {
+  label: _("a list of things:\n\n  - one\n  - two\n  - three");
+}
+
 // Good examples
 
 Button {
@@ -23,4 +31,12 @@ Button {
 
 Button {
   label: _("hello…");
+}
+
+Button {
+  label: _("a list of things:\n\n• one\n• two\n• three");
+}
+
+Button {
+  label: _("a list of things:\n\n  • one\n  • two\n  • three");
 }
