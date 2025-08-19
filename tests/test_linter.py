@@ -28,8 +28,8 @@ from blueprintcompiler.tokenizer import tokenize
 
 user_facing_text_checks = [
     (6, "Gtk.Label", "label"),
-    (9, "Gtk.Window", "title"),
-    (12, "Gtk.Button", "label"),
+    (9, "Gtk.Button", "label"),
+    (12, "Gtk.Window", "title"),
     (15, "Gtk.CheckButton", "label"),
     (18, "Gtk.Expander", "label"),
     (21, "Gtk.Frame", "label"),
