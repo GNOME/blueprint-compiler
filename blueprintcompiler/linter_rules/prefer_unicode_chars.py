@@ -10,13 +10,19 @@ PATTERNS = {
         'patterns': [
             re.compile(r'\.{3}')
         ],
-        'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."'
+        'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...>'
     },
     'bullet-list': {
         'patterns': [
             re.compile(r'^ *(\*|-) +', re.MULTILINE)
         ],
-        'message': 'Prefer using a bullet ("•", U+2022) instead of "{0}" at the start of a line'
+        'message': 'Prefer using a bullet (<•>, U+2022) instead of <{0}> at the start of a line'
+    },
+    'quote-marks': {
+        'patterns': [
+            re.compile(r'"')
+        ],
+        'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">'
     }
 }
 

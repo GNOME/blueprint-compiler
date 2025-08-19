@@ -157,12 +157,13 @@ class TestLinter(unittest.TestCase):
             { 'line': 8, 'message': 'Gtk.Button is missing an accessibility label' }
         ])
         self.check_file('prefer_unicode', [
-            { 'line': 7, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
-            { 'line': 11, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
+            { 'line': 7, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...>' },
+            { 'line': 11, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...>' },
             { 'line': 15, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
-            { 'line': 15, 'message': 'Prefer using an ellipsis ("…", U+2026) instead of "..."' },
-            { 'line': 19, 'message': 'Prefer using a bullet ("•", U+2022) instead of "*" at the start of a line' },
-            { 'line': 23, 'message': 'Prefer using a bullet ("•", U+2022) instead of "-" at the start of a line' },
+            { 'line': 15, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...>' },
+            { 'line': 19, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line' },
+            { 'line': 23, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line' },
+            { 'line': 27, 'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">' },
         ])
 
     def check_file(self, name, expected_problems):
