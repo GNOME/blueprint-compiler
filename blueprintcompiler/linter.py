@@ -47,12 +47,11 @@ RULES = [
 
 def lint(ast):
     problems = []
+    rules = [Rule(problems) for Rule in RULES]
 
     def visit_node(type, child, stack):
-        # problems are for logical errors
-        # suggestions are for alternative/recommended way of doing things
-        for Rule in RULES:
-            Rule(problems).check(type, child, stack)
+        for rule in rules:
+            rule.check(type, child, stack)
 
     walk_ast(ast, visit_node)
     return problems
