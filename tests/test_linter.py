@@ -164,6 +164,11 @@ class TestLinter(unittest.TestCase):
             { 'line': 19, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line' },
             { 'line': 23, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line' },
             { 'line': 27, 'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">' },
+            { 'line': 31, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920x1080>' },
+            { 'line': 35, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920 x 1080>' },
+            { 'line': 39, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6in x 4in>' },
+            { 'line': 43, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6" x 4">' },
+            { 'line': 47, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>' },
         ])
 
     def check_file(self, name, expected_problems):

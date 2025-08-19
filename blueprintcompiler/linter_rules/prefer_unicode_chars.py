@@ -5,6 +5,8 @@ from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
 
+NUMERIC = r'[0-9,.]+[^ ]*'
+
 PATTERNS = {
     'ellipsis': {
         'patterns': [
@@ -20,9 +22,16 @@ PATTERNS = {
     },
     'quote-marks': {
         'patterns': [
-            re.compile(r'"')
+            re.compile(r'"[^\s].*[^\s]"')
         ],
         'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">'
+    },
+    'multiplication': {
+        'patterns': [
+            re.compile(fr'({NUMERIC} *x *{NUMERIC})'),
+            re.compile(fr'({NUMERIC} *x)(?: |$)'),
+        ],
+        'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <{0}>'
     }
 }
 
@@ -41,3 +50,4 @@ class PreferUnicodeChars(LinterRule):
                     message = config['message'].format(*match.groups())
                     problem = CompileWarning(message, range)
                     self.problems.append(problem)
+                    break
