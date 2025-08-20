@@ -5,12 +5,12 @@ from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
 
-NUMERIC = r'[0-9,.]+[^ ]*'
+NUMERIC = r'[0-9,.]+\S*'
 
 PATTERNS = {
     'ellipsis': {
         'patterns': [
-            re.compile(r'([^ ]+ *\.{3})')
+            re.compile(r'(\S+ *\.{3})')
         ],
         'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...> in <{0}>'
     },
@@ -22,9 +22,15 @@ PATTERNS = {
     },
     'quote-marks': {
         'patterns': [
-            re.compile(r'("[^\s].*[^\s]")')
+            re.compile(r'("\S.*\S")')
         ],
         'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <"> in <{0}>'
+    },
+    'apostrophe': {
+        'patterns': [
+            re.compile(r"(\S+'\S*)")
+        ],
+        'message': "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <{0}>"
     },
     'multiplication': {
         'patterns': [
