@@ -10,21 +10,21 @@ NUMERIC = r'[0-9,.]+[^ ]*'
 PATTERNS = {
     'ellipsis': {
         'patterns': [
-            re.compile(r'\.{3}')
+            re.compile(r'([^ ]+ *\.{3})')
         ],
-        'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...>'
+        'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...> in <{0}>'
     },
     'bullet-list': {
         'patterns': [
-            re.compile(r'^ *(\*|-) +', re.MULTILINE)
+            re.compile(r'^( *(\*|-) +.*)$', re.MULTILINE)
         ],
-        'message': 'Prefer using a bullet (<•>, U+2022) instead of <{0}> at the start of a line'
+        'message': 'Prefer using a bullet (<•>, U+2022) instead of <{1}> at the start of a line in <{0}>'
     },
     'quote-marks': {
         'patterns': [
-            re.compile(r'"[^\s].*[^\s]"')
+            re.compile(r'("[^\s].*[^\s]")')
         ],
-        'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">'
+        'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <"> in <{0}>'
     },
     'multiplication': {
         'patterns': [
@@ -45,9 +45,13 @@ class PreferUnicodeChars(LinterRule):
         (string, range) = self.get_string_value(property)
         for name, config in PATTERNS.items():
             for pattern in config['patterns']:
-                match = pattern.search(string)
-                if match:
+                matches = 0
+
+                for match in pattern.finditer(string):
                     message = config['message'].format(*match.groups())
                     problem = CompileWarning(message, range)
                     self.problems.append(problem)
+                    matches += 1
+
+                if matches > 0:
                     break
