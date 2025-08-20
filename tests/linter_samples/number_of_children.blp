@@ -1,14 +1,29 @@
 using Gtk 4.0;
 using Adw 1;
 
-// Bad Example
+// Bad Examples
 // I only display the last child
 Adw.StatusPage {
   Box {}
   Box {}
 }
 
-// Good Example
+Adw.Clamp {
+  Box {}
+  Box {}
+}
+
+ScrolledWindow {
+  Box {}
+  Box {}
+}
+
+// Good Examples
 Adw.StatusPage {
   Box {}
 }
+
+Adw.Clamp {
+  Box {}
+}
+

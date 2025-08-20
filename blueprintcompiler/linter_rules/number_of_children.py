@@ -16,4 +16,4 @@ class NumberOfChildren(LinterRule):
             self.problems.append(problem)
 
 gir_types_no_children = ['Gtk.Label']
-gir_types_single_child = ['Adw.Bin', 'Adw.StatusPage']
+gir_types_single_child = ['Adw.Bin', 'Adw.StatusPage',  'Adw.Clamp', 'Gtk.ScrolledWindow']

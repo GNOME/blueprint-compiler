@@ -123,7 +123,9 @@ class TestLinter(unittest.TestCase):
             { 'line': 6, 'message': 'Gtk.Label cannot have children' }
         ])
         self.check_file('number_of_children', [
-            { 'line': 8, 'message': 'Adw.StatusPage cannot have more than one child' }
+            { 'line': 8, 'message': 'Adw.StatusPage cannot have more than one child' },
+            { 'line': 13, 'message': 'Adw.Clamp cannot have more than one child' },
+            { 'line': 18, 'message': 'Gtk.ScrolledWindow cannot have more than one child' }
         ])
         self.check_file('prefer_adw_bin', [
             { 'line': 6, 'message': 'Use Adw.Bin instead of a Gtk.Box for a single child' }
