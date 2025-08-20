@@ -254,10 +254,12 @@ Adw.WindowTitle {
 Adw.WindowTitle {
   title: _("FOO");
 }
-
-//Button {
-//  label: "FOO";
-//}
+Picture {
+  alternative-text: _("FOO");
+}
+Button {
+ label: "FOO";
+}
 
 // Good Example
 Label {
@@ -512,7 +514,11 @@ Adw.WindowTitle {
 Adw.WindowTitle {
   title: _("foo");
 }
-
-//Button {
-//  label: "foo";
-//}
+// TODO: currently the a11y label 'label' is throwing compiler error.
+// Picture {
+//   alternative-text: _("foo");
+//   label: _("foo");
+// }
+Button {
+ label: _("foo");
+}

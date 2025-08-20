@@ -254,6 +254,9 @@ Adw.WindowTitle {
 Adw.WindowTitle {
   title: "foo";
 }
+Picture {
+  alternative-text: "foo";
+}
 
 // Good Example
 Label {
@@ -508,3 +511,8 @@ Adw.WindowTitle {
 Adw.WindowTitle {
   title: _("foo");
 }
+// TODO: currently the a11y label 'label' is throwing compiler error.
+// Picture {
+//   alternative-text: _("foo");
+//   label: _("foo");
+// }

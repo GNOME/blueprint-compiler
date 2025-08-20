@@ -129,12 +129,20 @@ class TestLinter(unittest.TestCase):
             { 'line': 6, 'message': 'Use Adw.Bin instead of a Gtk.Box for a single child' }
         ])
         self.check_file('translatable_display_string', [
-            {'line': line, 'message': f'Mark {toolkit} {properties} as translatable using _("...")'}
+            { 'line': line, 'message': f'Mark {toolkit} {properties} as translatable using _("...")' }
             for line, toolkit, properties in user_facing_text_checks
+        ] + [
+            { 'line': 258, 'message': 'Mark Gtk.Picture alternative-text as translatable using _("...")' },
+            { 'line': 257, 'message': 'Gtk.Picture is missing an accessibility label' },
         ])
         self.check_file('avoid_all_caps', [
-            {'line': line, 'message': f'Avoid using all upper case for {toolkit} {properties}'}
+            { 'line': line, 'message': f'Avoid using all upper case for {toolkit} {properties}' }
             for line, toolkit, properties in user_facing_text_checks
+        ] + [
+            { 'line': 257, 'message': 'Gtk.Picture is missing an accessibility label' },
+            { 'line': 258, 'message': 'Avoid using all upper case for Gtk.Picture alternative-text' },
+            { 'line': 261, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
+            { 'line': 261, 'message': 'Avoid using all upper case for Gtk.Button label' }
         ])
         self.check_file('no_visible_true', [
             { 'line': 6, 'message': 'In GTK4 widgets are visible by default' }
