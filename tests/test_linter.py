@@ -90,7 +90,27 @@ user_facing_text_checks = [
     (186, "Gtk.StackPage", "title"),
     (189, "Gtk.Text", "placeholder-text"),
     (192, "Gtk.TextBuffer", "text"),
-    (195, "Gtk.TreeViewColumn", "title")
+    (195, "Gtk.TreeViewColumn", "title"),
+    (198, "Adw.Dialog", "title"),
+    (201, "Adw.PreferencesGroup", "description"),
+    (204, "Adw.PreferencesGroup", "title"),
+    (207, "Adw.PreferencesPage", "description"),
+    (210, "Adw.PreferencesPage", "title"),
+    (213, "Adw.PreferencesRow", "title"),
+    (216, "Adw.SplitButton", "dropdown-tooltip"),
+    (219, "Adw.SplitButton", "label"),
+    (222, "Adw.StatusPage", "description"),
+    (225, "Adw.StatusPage", "title"),
+    (228, "Adw.TabPage", "indicator-tooltip"),
+    (231, "Adw.TabPage", "keyword"),
+    (234, "Adw.TabPage", "title"),
+    (237, "Adw.Toast", "button-label"),
+    (240, "Adw.Toast", "title"),
+    (243, "Adw.ViewStackPage", "title"),
+    (246, "Adw.ViewSwitcherTitle", "subtitle"),
+    (249, "Adw.ViewSwitcherTitle", "title"),
+    (252, "Adw.WindowTitle", "subtitle"),
+    (255, "Adw.WindowTitle", "title")
 ]
 
 class TestLinter(unittest.TestCase):
