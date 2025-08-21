@@ -173,8 +173,11 @@ class TestLinter(unittest.TestCase):
             { 'line': 39, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920x1080>' },
             { 'line': 43, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920 x 1080>' },
             { 'line': 47, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6in x 4in>' },
+            { 'line': 47, 'message': 'When a number is displayed with units, e.g. <6in>, the two should be separated by a narrow no-break space (< >, U+202F)' },
+            { 'line': 47, 'message': 'When a number is displayed with units, e.g. <4in>, the two should be separated by a narrow no-break space (< >, U+202F)' },
             { 'line': 51, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6" x 4">' },
             { 'line': 55, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>' },
+            { 'line': 55, 'message': 'When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)' },
         ])
 
     def check_file(self, name, expected_problems):

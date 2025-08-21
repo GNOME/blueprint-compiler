@@ -35,9 +35,15 @@ PATTERNS = {
     'multiplication': {
         'patterns': [
             re.compile(fr'({NUMERIC} *x *{NUMERIC})'),
-            re.compile(fr'({NUMERIC} *x)(?: |$)'),
+            re.compile(fr'({NUMERIC} *x)\b'),
         ],
         'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <{0}>'
+    },
+    'units': {
+        'patterns': [
+            re.compile(r'\b([0-9,.]+[^0-9\s]+)\b')
+        ],
+        'message': 'When a number is displayed with units, e.g. <{0}>, the two should be separated by a narrow no-break space (< >, U+202F)'
     }
 }
 
