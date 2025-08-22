@@ -25,7 +25,13 @@ class ExtListItemFactory(AstNode):
 
     @property
     def signature(self) -> str:
-        return f"template {self.gir_class.full_name}"
+        if self.gir_class is not None:
+            name = self.gir_class
+        else:
+            assert self.type_name is not None
+            name = self.type_name.as_string
+
+        return f"template {name}"
 
     @property
     def document_symbol(self) -> DocumentSymbol:

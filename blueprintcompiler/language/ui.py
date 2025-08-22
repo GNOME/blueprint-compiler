@@ -116,7 +116,7 @@ class UI(AstNode):
 
         # try to insert alphabetically
         for import_ in self.children[Import]:
-            if ns.lower() > import_.namespace.lower():
+            if import_.namespace is not None and ns.lower() > import_.namespace.lower():
                 pos = import_.range.end
 
         return Range(pos, pos, self.group.text)
