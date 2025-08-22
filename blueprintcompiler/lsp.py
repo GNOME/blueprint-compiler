@@ -24,7 +24,7 @@ import traceback
 import typing as T
 from difflib import SequenceMatcher
 
-from . import decompiler, formatter, parser, tokenizer, utils, xml_reader
+from . import decompiler, formatter, language, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
@@ -210,6 +210,7 @@ class LanguageServer:
                     },
                     "completionProvider": {},
                     "codeActionProvider": {},
+                    "inlayHintProvider": {},
                     "hoverProvider": True,
                     "documentSymbolProvider": True,
                     "definitionProvider": True,
@@ -322,6 +323,53 @@ class LanguageServer:
                 )
 
         self._send_response(id, lst)
+
+    @command("textDocument/inlayHint")
+    def inlay_hints(self, id, params):
+        open_file = self._open_files[params["textDocument"]["uri"]]
+
+        if open_file.ast is None:
+            self._send_response(id, [])
+            return
+
+        range_start = utils.pos_to_idx(
+            params["range"]["start"]["line"],
+            params["range"]["start"]["character"],
+            open_file.text,
+        )
+        range_end = utils.pos_to_idx(
+            params["range"]["end"]["line"],
+            params["range"]["end"]["character"],
+            open_file.text,
+        )
+
+        hints = []
+
+        def collect_hints(node: AstNode):
+            if node.range.end < range_start or node.range.start > range_end:
+                return
+
+            start_line = utils.idx_to_pos(node.range.start, node.range.original_text)[0]
+            end_line = utils.idx_to_pos(node.range.end, node.range.original_text)[0]
+
+            # Don't show hints for very short blocks
+            if end_line - start_line < 3:
+                return
+
+            if isinstance(node, (language.Object)):
+                line, col = utils.idx_to_pos(node.range.end, node.range.original_text)
+                hints.append(
+                    {
+                        "position": {"line": line, "character": col},
+                        "label": " " + node.signature,
+                    }
+                )
+
+            for child in node.children:
+                collect_hints(child)
+
+        collect_hints(open_file.ast)
+        self._send_response(id, hints)
 
     @command("textDocument/x-blueprint-compile")
     def compile(self, id, params):
