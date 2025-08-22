@@ -185,6 +185,10 @@ class DecompileCtx:
                     return member.name
             return value.replace("-", "_")
 
+        def assignable_to(ns: str, cls: str):
+            assert type is not None
+            return type.assignable_to(self.gir.namespaces[ns].lookup_type(cls))
+
         if translatable is not None and truthy(translatable[0]):
             return decompile_translatable(value, *translatable)
         elif type is None:
@@ -198,17 +202,12 @@ class DecompileCtx:
             items = ", ".join([escape_quote(x) for x in value.split("\n")])
             return "", f"[{items}]"
         elif (
-            type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Pixbuf"))
-            or type.assignable_to(self.gir.namespaces["Gtk"].lookup_type("Gdk.Texture"))
-            or type.assignable_to(
-                self.gir.namespaces["Gtk"].lookup_type("Gdk.Paintable")
-            )
-            or type.assignable_to(
-                self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutAction")
-            )
-            or type.assignable_to(
-                self.gir.namespaces["Gtk"].lookup_type("Gtk.ShortcutTrigger")
-            )
+            assignable_to("Gtk", "Gdk.Pixbuf")
+            or assignable_to("Gtk", "Gdk.Texture")
+            or assignable_to("Gtk", "Gdk.Paintable")
+            or assignable_to("Gtk", "Gtk.ShortcutAction")
+            or assignable_to("Gtk", "Gtk.ShortcutTrigger")
+            or assignable_to("Gtk", "Gio.File")
         ):
             return "", escape_quote(value)
         elif value == self.template_class:
