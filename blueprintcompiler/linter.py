@@ -1,6 +1,6 @@
 # parser.py
 #
-# Copyright © 2024 GNOME Foundation Inc. 
+# Copyright © 2024 GNOME Foundation Inc.
 # Original Author: Sonny Piers <sonnyp@gnome.org>
 #
 # This file is free software; you can redistribute it and/or modify it
@@ -27,6 +27,7 @@ from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
 from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
 from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
+from blueprintcompiler.linter_rules.missing_user_facing_properties import MissingUserFacingProperties
 
 def walk_ast(ast, func, stack = None):
     stack = stack or []
@@ -45,6 +46,7 @@ RULES = [
     RequireA11yLabel,
     AvoidAllCaps,
     PreferUnicodeChars
+    MissingUserFacingProperties
 ]
 
 def lint(ast):

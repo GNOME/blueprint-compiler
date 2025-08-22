@@ -179,6 +179,10 @@ class TestLinter(unittest.TestCase):
             { 'line': 55, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>' },
             { 'line': 55, 'message': 'When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)' },
         ])
+        self.check_file('missing_user_facing_properties', [
+            { 'line': 5, 'message': 'Gtk.Label is missing required user-facing text property label' },
+            { 'line': 9, 'message': 'Gtk.Label is missing required user-facing text property label' },
+        ])
 
     def check_file(self, name, expected_problems):
         filepath = Path(__file__).parent.joinpath('linter_samples', f'{name}.blp')
