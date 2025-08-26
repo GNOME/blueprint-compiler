@@ -10,7 +10,7 @@ class MissingUserFacingProperties(LinterRule):
         for user_facing_property in user_facing_properties:
             if type == user_facing_property[0] or user_facing_property[0] == None:
                 if not properties:
-                    problem = CompileWarning(f'{type} is missing required user-facing text property')
+                    problem = CompileWarning(f'{type} is missing required user-facing text property', child.range)
                     self.problems.append(problem)
 
 user_facing_properties = get_annotation_elements()
