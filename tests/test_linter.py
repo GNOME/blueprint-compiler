@@ -179,9 +179,22 @@ class TestLinter(unittest.TestCase):
             { 'line': 55, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>' },
             { 'line': 55, 'message': 'When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)' },
         ])
-        self.check_file('missing_user_facing_properties', [
-            { 'line': 5, 'message': 'Gtk.Label is missing required user-facing text property label' },
-            { 'line': 9, 'message': 'Gtk.Label is missing required user-facing text property label' },
+        # This creates error messages for the unique elements
+        unique_elements = set()
+        line = 5
+        results = []
+        for _, toolkit, _ in user_facing_text_checks:
+            if toolkit not in unique_elements:
+                results.append({
+                    'line': line,
+                    'message': f'{toolkit} is missing required user-facing text property'
+                })
+                unique_elements.add(toolkit)
+                line += 3
+        results.insert(1, { 'line': 8,'message': 'Gtk.Button is missing an accessibility label' })
+        self.check_file('missing_user_facing_properties', results + [
+            { 'line': 170, 'message': 'Gtk.Picture is missing an accessibility label' },
+            { 'line': 170, 'message': 'Gtk.Picture is missing required user-facing text property' }
         ])
 
     def check_file(self, name, expected_problems):
