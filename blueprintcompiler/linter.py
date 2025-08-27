@@ -45,7 +45,7 @@ RULES = [
     NoGtkSwitchState,
     RequireA11yLabel,
     AvoidAllCaps,
-    PreferUnicodeChars
+    PreferUnicodeChars,
     MissingUserFacingProperties
 ]
 
