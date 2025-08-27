@@ -20,6 +20,7 @@ Blueprint is a markup language and compiler for GTK 4 user interfaces.
    flatpak
    reference/index
    packaging
+   linter
 
 
 .. code-block:: blueprint
