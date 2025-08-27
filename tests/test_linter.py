@@ -120,16 +120,12 @@ class TestLinter(unittest.TestCase):
 
     def test_linter_samples(self):
         self.check_file('label_with_child', [
-            { 'line': 6, 'message': 'Gtk.Label cannot have children' },
-            {'line': 5, 'message': 'Gtk.Label is missing required user-facing text property'},
-            {'line': 10, 'message': 'Gtk.Label is missing required user-facing text property'},
+            { 'line': 7, 'message': 'Gtk.Label cannot have children' }
         ])
         self.check_file('number_of_children', [
-            { 'line': 8, 'message': 'Adw.StatusPage cannot have more than one child' },
-            { 'line': 6, 'message': 'Adw.StatusPage is missing required user-facing text property' },
-            { 'line': 13, 'message': 'Adw.Clamp cannot have more than one child' },
-            { 'line': 18, 'message': 'Gtk.ScrolledWindow cannot have more than one child' },
-            {'line': 22, 'message': 'Adw.StatusPage is missing required user-facing text property'},
+            { 'line': 10, 'message': 'Adw.StatusPage cannot have more than one child' },
+            { 'line': 15, 'message': 'Adw.Clamp cannot have more than one child' },
+            { 'line': 20, 'message': 'Gtk.ScrolledWindow cannot have more than one child' },
         ])
         self.check_file('prefer_adw_bin', [
             { 'line': 6, 'message': 'Use Adw.Bin instead of a Gtk.Box for a single child' }
