@@ -1,6 +1,6 @@
-from blueprintcompiler.linter_rules.utils import LinterRule
-from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.errors import CompileWarning
+from blueprintcompiler.language.gobject_property import Property
+from blueprintcompiler.linter_rules.utils import LinterRule
 
 
 class NoVisibleTrue(LinterRule):

@@ -1,6 +1,6 @@
+from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.language.gtkbuilder_child import Child
 from blueprintcompiler.linter_rules.utils import LinterRule
-from blueprintcompiler.errors import CompileWarning
 
 
 class PreferAdwBin(LinterRule):

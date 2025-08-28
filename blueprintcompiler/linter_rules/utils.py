@@ -1,5 +1,5 @@
 from blueprintcompiler.annotations import get_annotation_elements
-from blueprintcompiler.language.values import Translated, Literal, QuotedLiteral
+from blueprintcompiler.language.values import Literal, QuotedLiteral, Translated
 
 UI_STRING_PROPERTIES = get_annotation_elements()
 

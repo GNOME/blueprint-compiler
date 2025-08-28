@@ -24,12 +24,12 @@ import os
 import sys
 import typing as T
 
+from . import formatter, interactive_port, linter, parser, tokenizer
 from .decompiler import decompile_string
-from . import formatter, interactive_port, parser, tokenizer, linter
 from .errors import (
     CompileError,
-    CompileWarning,
     CompilerBugError,
+    CompileWarning,
     PrintableError,
     report_bug,
 )
