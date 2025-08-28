@@ -60,7 +60,9 @@ new_statement_patterns = [
 
 
 def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
-    def decorator(func: T.Callable[[CompletionContext], T.Generator[Completion]]):
+    def decorator(
+        func: T.Callable[[CompletionContext], T.Generator[Completion, None, None]],
+    ):
         def inner(
             prev_tokens: T.List[Token], next_token: Token, ast_node, lsp, idx: int
         ):
