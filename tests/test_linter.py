@@ -110,8 +110,9 @@ user_facing_text_checks = [
     (246, "Adw.ViewSwitcherTitle", "subtitle"),
     (249, "Adw.ViewSwitcherTitle", "title"),
     (252, "Adw.WindowTitle", "subtitle"),
-    (255, "Adw.WindowTitle", "title")
+    (255, "Adw.WindowTitle", "title"),
 ]
+
 
 class TestLinter(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -119,86 +120,224 @@ class TestLinter(unittest.TestCase):
         self.maxDiff = None
 
     def test_linter_samples(self):
-        self.check_file('label_with_child', [
-            { 'line': 7, 'message': 'Gtk.Label cannot have children' }
-        ])
-        self.check_file('number_of_children', [
-            { 'line': 10, 'message': 'Adw.StatusPage cannot have more than one child' },
-            { 'line': 15, 'message': 'Adw.Clamp cannot have more than one child' },
-            { 'line': 20, 'message': 'Gtk.ScrolledWindow cannot have more than one child' },
-        ])
-        self.check_file('prefer_adw_bin', [
-            { 'line': 6, 'message': 'Use Adw.Bin instead of a Gtk.Box for a single child' }
-        ])
-        self.check_file('translatable_display_string', [
-            { 'line': line, 'message': f'Mark {toolkit} {properties} as translatable using _("...")' }
-            for line, toolkit, properties in user_facing_text_checks
-        ] + [
-            { 'line': 258, 'message': 'Mark Gtk.Picture alternative-text as translatable using _("...")' },
-            { 'line': 257, 'message': 'Gtk.Picture is missing an accessibility label' },
-        ])
-        self.check_file('avoid_all_caps', [
-            { 'line': line, 'message': f'Avoid using all upper case for {toolkit} {properties}' }
-            for line, toolkit, properties in user_facing_text_checks
-        ] + [
-            { 'line': 257, 'message': 'Gtk.Picture is missing an accessibility label' },
-            { 'line': 258, 'message': 'Avoid using all upper case for Gtk.Picture alternative-text' },
-            { 'line': 261, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
-            { 'line': 261, 'message': 'Avoid using all upper case for Gtk.Button label' }
-        ])
-        self.check_file('no_visible_true', [
-            { 'line': 6, 'message': 'In GTK4 widgets are visible by default' }
-        ])
-        self.check_file('no_gtk_switch_state', [
-            { 'line': 6, 'message': 'Use the active property instead of the state property' }
-        ])
-        self.check_file('require_a11y_label', [
-            { 'line': 5, 'message': 'Gtk.Image is missing an accessibility label' },
-            { 'line': 8, 'message': 'Gtk.Button is missing an accessibility label' }
-        ])
-        self.check_file('prefer_unicode', [
-            { 'line': 7, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>' },
-            { 'line': 11, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>' },
-            { 'line': 15, 'message': 'Mark Gtk.Button label as translatable using _("...")' },
-            { 'line': 15, 'message': 'Prefer using an ellipsis (<…>, U+2026) instead of <...> in <times...>' },
-            { 'line': 19, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* one>' },
-            { 'line': 19, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* two>' },
-            { 'line': 19, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* three>' },
-            { 'line': 23, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - one>' },
-            { 'line': 23, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - two>' },
-            { 'line': 23, 'message': 'Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - three>' },
-            { 'line': 27, 'message': 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <"> in <"what?">' },
-            { 'line': 31, 'message': "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <printer's>" },
-            { 'line': 35, 'message': "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <kings'>" },
-            { 'line': 39, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920x1080>' },
-            { 'line': 43, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920 x 1080>' },
-            { 'line': 47, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6in x 4in>' },
-            { 'line': 47, 'message': 'When a number is displayed with units, e.g. <6in>, the two should be separated by a narrow no-break space (< >, U+202F)' },
-            { 'line': 47, 'message': 'When a number is displayed with units, e.g. <4in>, the two should be separated by a narrow no-break space (< >, U+202F)' },
-            { 'line': 51, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6" x 4">' },
-            { 'line': 55, 'message': 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>' },
-            { 'line': 55, 'message': 'When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)' },
-        ])
+        self.check_file(
+            "label_with_child",
+            [{"line": 7, "message": "Gtk.Label cannot have children"}],
+        )
+        self.check_file(
+            "number_of_children",
+            [
+                {
+                    "line": 10,
+                    "message": "Adw.StatusPage cannot have more than one child",
+                },
+                {"line": 15, "message": "Adw.Clamp cannot have more than one child"},
+                {
+                    "line": 20,
+                    "message": "Gtk.ScrolledWindow cannot have more than one child",
+                },
+            ],
+        )
+        self.check_file(
+            "prefer_adw_bin",
+            [
+                {
+                    "line": 6,
+                    "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
+                }
+            ],
+        )
+        self.check_file(
+            "translatable_display_string",
+            [
+                {
+                    "line": line,
+                    "message": f'Mark {toolkit} {properties} as translatable using _("...")',
+                }
+                for line, toolkit, properties in user_facing_text_checks
+            ]
+            + [
+                {
+                    "line": 258,
+                    "message": 'Mark Gtk.Picture alternative-text as translatable using _("...")',
+                },
+                {
+                    "line": 257,
+                    "message": "Gtk.Picture is missing an accessibility label",
+                },
+            ],
+        )
+        self.check_file(
+            "avoid_all_caps",
+            [
+                {
+                    "line": line,
+                    "message": f"Avoid using all upper case for {toolkit} {properties}",
+                }
+                for line, toolkit, properties in user_facing_text_checks
+            ]
+            + [
+                {
+                    "line": 257,
+                    "message": "Gtk.Picture is missing an accessibility label",
+                },
+                {
+                    "line": 258,
+                    "message": "Avoid using all upper case for Gtk.Picture alternative-text",
+                },
+                {
+                    "line": 261,
+                    "message": 'Mark Gtk.Button label as translatable using _("...")',
+                },
+                {
+                    "line": 261,
+                    "message": "Avoid using all upper case for Gtk.Button label",
+                },
+            ],
+        )
+        self.check_file(
+            "no_visible_true",
+            [{"line": 6, "message": "In GTK4 widgets are visible by default"}],
+        )
+        self.check_file(
+            "no_gtk_switch_state",
+            [
+                {
+                    "line": 6,
+                    "message": "Use the active property instead of the state property",
+                }
+            ],
+        )
+        self.check_file(
+            "require_a11y_label",
+            [
+                {"line": 5, "message": "Gtk.Image is missing an accessibility label"},
+                {"line": 8, "message": "Gtk.Button is missing an accessibility label"},
+            ],
+        )
+        self.check_file(
+            "prefer_unicode",
+            [
+                {
+                    "line": 7,
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>",
+                },
+                {
+                    "line": 11,
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>",
+                },
+                {
+                    "line": 15,
+                    "message": 'Mark Gtk.Button label as translatable using _("...")',
+                },
+                {
+                    "line": 15,
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <times...>",
+                },
+                {
+                    "line": 19,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* one>",
+                },
+                {
+                    "line": 19,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* two>",
+                },
+                {
+                    "line": 19,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* three>",
+                },
+                {
+                    "line": 23,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - one>",
+                },
+                {
+                    "line": 23,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - two>",
+                },
+                {
+                    "line": 23,
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - three>",
+                },
+                {
+                    "line": 27,
+                    "message": 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <"> in <"what?">',
+                },
+                {
+                    "line": 31,
+                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <printer's>",
+                },
+                {
+                    "line": 35,
+                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <kings'>",
+                },
+                {
+                    "line": 39,
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920x1080>",
+                },
+                {
+                    "line": 43,
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920 x 1080>",
+                },
+                {
+                    "line": 47,
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6in x 4in>",
+                },
+                {
+                    "line": 47,
+                    "message": "When a number is displayed with units, e.g. <6in>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                },
+                {
+                    "line": 47,
+                    "message": "When a number is displayed with units, e.g. <4in>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                },
+                {
+                    "line": 51,
+                    "message": 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6" x 4">',
+                },
+                {
+                    "line": 55,
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>",
+                },
+                {
+                    "line": 55,
+                    "message": "When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                },
+            ],
+        )
         # This creates error messages for the unique elements
         unique_elements = set()
         line = 5
         results = []
         for _, toolkit, _ in user_facing_text_checks:
             if toolkit not in unique_elements:
-                results.append({
-                    'line': line,
-                    'message': f'{toolkit} is missing required user-facing text property'
-                })
+                results.append(
+                    {
+                        "line": line,
+                        "message": f"{toolkit} is missing required user-facing text property",
+                    }
+                )
                 unique_elements.add(toolkit)
                 line += 3
-        results.insert(1, { 'line': 8,'message': 'Gtk.Button is missing an accessibility label' })
-        self.check_file('missing_user_facing_properties', results + [
-            { 'line': 170, 'message': 'Gtk.Picture is missing an accessibility label' },
-            { 'line': 170, 'message': 'Gtk.Picture is missing required user-facing text property' }
-        ])
+        results.insert(
+            1, {"line": 8, "message": "Gtk.Button is missing an accessibility label"}
+        )
+        self.check_file(
+            "missing_user_facing_properties",
+            results
+            + [
+                {
+                    "line": 170,
+                    "message": "Gtk.Picture is missing an accessibility label",
+                },
+                {
+                    "line": 170,
+                    "message": "Gtk.Picture is missing required user-facing text property",
+                },
+            ],
+        )
 
     def check_file(self, name, expected_problems):
-        filepath = Path(__file__).parent.joinpath('linter_samples', f'{name}.blp')
+        filepath = Path(__file__).parent.joinpath("linter_samples", f"{name}.blp")
 
         with open(filepath, "r+") as file:
             code = file.read()
@@ -211,7 +350,7 @@ class TestLinter(unittest.TestCase):
             problems = lint(ast)
             self.assertEqual(len(problems), len(expected_problems))
 
-            for (actual, expected) in zip(problems, expected_problems):
+            for actual, expected in zip(problems, expected_problems):
                 line_num, col_num = utils.idx_to_pos(actual.range.start + 1, code)
-                self.assertEqual(line_num + 1, expected['line'])
-                self.assertEqual(actual.message, expected['message'])
+                self.assertEqual(line_num + 1, expected["line"])
+                self.assertEqual(actual.message, expected["message"])

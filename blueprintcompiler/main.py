@@ -24,9 +24,15 @@ import os
 import sys
 import typing as T
 
-from . import formatter, interactive_port, parser, tokenizer, linter
 from .decompiler import decompile_string
-from .errors import CompileError, CompileWarning, CompilerBugError, PrintableError, report_bug
+from . import formatter, interactive_port, parser, tokenizer, linter
+from .errors import (
+    CompileError,
+    CompileWarning,
+    CompilerBugError,
+    PrintableError,
+    report_bug,
+)
 from .gir import add_gir_search_path, add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
@@ -125,9 +131,7 @@ class BlueprintApp:
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
 
-        lint = self.add_subcommand(
-            "lint", "Lint given blueprint files", self.cmd_lint
-        )
+        lint = self.add_subcommand("lint", "Lint given blueprint files", self.cmd_lint)
         lint.add_argument(
             "inputs",
             nargs="+",
@@ -398,10 +402,14 @@ class BlueprintApp:
                 problems = linter.lint(ast)
                 for problem in problems:
                     if isinstance(problem, CompileError):
-                        problem.pretty_print(file.name, problem.range.original_text, stream=sys.stderr)
+                        problem.pretty_print(
+                            file.name, problem.range.original_text, stream=sys.stderr
+                        )
                         panic = True
                     elif isinstance(problem, CompileWarning):
-                        problem.pretty_print(file.name, problem.range.original_text, stream=sys.stderr)
+                        problem.pretty_print(
+                            file.name, problem.range.original_text, stream=sys.stderr
+                        )
 
         if panic:
             sys.exit(1)

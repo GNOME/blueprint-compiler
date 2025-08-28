@@ -19,7 +19,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from blueprintcompiler.language.gobject_object import Object
-from blueprintcompiler.linter_rules.translatable_display_string import TranslatableDisplayString
+from blueprintcompiler.linter_rules.translatable_display_string import (
+    TranslatableDisplayString,
+)
 from blueprintcompiler.linter_rules.no_visible_true import NoVisibleTrue
 from blueprintcompiler.linter_rules.number_of_children import NumberOfChildren
 from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
@@ -27,15 +29,19 @@ from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
 from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
 from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
-from blueprintcompiler.linter_rules.missing_user_facing_properties import MissingUserFacingProperties
+from blueprintcompiler.linter_rules.missing_user_facing_properties import (
+    MissingUserFacingProperties,
+)
 
-def walk_ast(ast, func, stack = None):
+
+def walk_ast(ast, func, stack=None):
     stack = stack or []
     for child in ast.children:
         if isinstance(child, Object):
             type = child.class_name.gir_type.full_name
             func(type, child, stack)
             walk_ast(child, func, stack + [ast])
+
 
 RULES = [
     NumberOfChildren,
@@ -46,8 +52,9 @@ RULES = [
     RequireA11yLabel,
     AvoidAllCaps,
     PreferUnicodeChars,
-    MissingUserFacingProperties
+    MissingUserFacingProperties,
 ]
+
 
 def lint(ast):
     problems = []
@@ -59,4 +66,3 @@ def lint(ast):
 
     walk_ast(ast, visit_node)
     return problems
-

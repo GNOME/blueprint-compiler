@@ -4,6 +4,7 @@ from blueprintcompiler.language.values import Translated
 from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.annotations import get_annotation_elements
 
+
 class MissingUserFacingProperties(LinterRule):
     def check(self, type, child, stack):
         properties = child.content.children[Property]
@@ -14,7 +15,11 @@ class MissingUserFacingProperties(LinterRule):
                 unique_elements.add(user_facing_property)
                 if type == user_facing_property or user_facing_property == None:
                     if not properties:
-                        problem = CompileWarning(f'{type} is missing required user-facing text property', child.range)
+                        problem = CompileWarning(
+                            f"{type} is missing required user-facing text property",
+                            child.range,
+                        )
                         self.problems.append(problem)
+
 
 user_facing_properties = get_annotation_elements()

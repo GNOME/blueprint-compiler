@@ -194,8 +194,9 @@ prefixes = {
     "Gtk-4.0": "Gtk.",
     "Adw-1": "Adw.",
     "Shumate-1.0": "",
-    "GtkSource-5": "Gtk."
+    "GtkSource-5": "Gtk.",
 }
+
 
 def get_annotation_elements():
     result = []
