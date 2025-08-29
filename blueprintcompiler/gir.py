@@ -26,6 +26,42 @@ import gi  # type: ignore
 try:
     gi.require_version("GIRepository", "3.0")
     from gi.repository import GIRepository  # type: ignore
+
+    gir3 = True
+
+    arg_info_get_type_info = GIRepository.ArgInfo.get_type_info
+
+    callable_info_get_n_args = GIRepository.CallableInfo.get_n_args
+    callable_info_get_arg = GIRepository.CallableInfo.get_arg
+    callable_info_get_return_type = GIRepository.CallableInfo.get_return_type
+
+    interface_info_get_n_signals = GIRepository.InterfaceInfo.get_n_signals
+    interface_info_get_signal = GIRepository.InterfaceInfo.get_signal
+    interface_info_get_n_prerequisites = GIRepository.InterfaceInfo.get_n_prerequisites
+    interface_info_get_prerequisite = GIRepository.InterfaceInfo.get_prerequisite
+    interface_info_get_n_properties = GIRepository.InterfaceInfo.get_n_properties
+    interface_info_get_property = GIRepository.InterfaceInfo.get_property
+
+    object_info_get_parent = GIRepository.ObjectInfo.get_parent
+    object_info_get_n_signals = GIRepository.ObjectInfo.get_n_signals
+    object_info_get_signal = GIRepository.ObjectInfo.get_signal
+    object_info_get_n_properties = GIRepository.ObjectInfo.get_n_properties
+    object_info_get_property = GIRepository.ObjectInfo.get_property
+    object_info_get_n_interfaces = GIRepository.ObjectInfo.get_n_interfaces
+    object_info_get_interface = GIRepository.ObjectInfo.get_interface
+    object_info_get_type_name = GIRepository.ObjectInfo.get_type_name
+
+    property_info_get_type_info = GIRepository.PropertyInfo.get_type_info
+    property_info_get_flags = GIRepository.PropertyInfo.get_flags
+
+    registered_type_info_get_type_name = GIRepository.RegisteredTypeInfo.get_type_name
+
+    type_info_get_tag = GIRepository.TypeInfo.get_tag
+    type_info_get_interface = GIRepository.TypeInfo.get_interface
+    type_info_get_param_type = GIRepository.TypeInfo.get_param_type
+
+    value_info_get_value = GIRepository.ValueInfo.get_value
+
 except ValueError:
     # We can remove this once we can bump the minimum dependencies
     # to glib 2.80 and pygobject 3.52
@@ -34,12 +70,46 @@ except ValueError:
     gi.require_version("GIRepository", "2.0")
     from gi.repository import GIRepository  # type: ignore
 
+    gir3 = False
+
+    arg_info_get_type_info = GIRepository.arg_info_get_type
+
+    callable_info_get_n_args = GIRepository.callable_info_get_n_args
+    callable_info_get_arg = GIRepository.callable_info_get_arg
+    callable_info_get_return_type = GIRepository.callable_info_get_return_type
+
+    interface_info_get_n_signals = GIRepository.interface_info_get_n_signals
+    interface_info_get_signal = GIRepository.interface_info_get_signal
+    interface_info_get_n_prerequisites = GIRepository.interface_info_get_n_prerequisites
+    interface_info_get_prerequisite = GIRepository.interface_info_get_prerequisite
+    interface_info_get_n_properties = GIRepository.interface_info_get_n_properties
+    interface_info_get_property = GIRepository.interface_info_get_property
+
+    object_info_get_parent = GIRepository.object_info_get_parent
+    object_info_get_n_signals = GIRepository.object_info_get_n_signals
+    object_info_get_signal = GIRepository.object_info_get_signal
+    object_info_get_n_properties = GIRepository.object_info_get_n_properties
+    object_info_get_property = GIRepository.object_info_get_property
+    object_info_get_n_interfaces = GIRepository.object_info_get_n_interfaces
+    object_info_get_interface = GIRepository.object_info_get_interface
+    object_info_get_type_name = GIRepository.object_info_get_type_name
+
+    property_info_get_type_info = GIRepository.property_info_get_type
+    property_info_get_flags = GIRepository.property_info_get_flags
+
+    registered_type_info_get_type_name = GIRepository.registered_type_info_get_type_name
+
+    type_info_get_tag = GIRepository.type_info_get_tag
+    type_info_get_interface = GIRepository.type_info_get_interface
+    type_info_get_param_type = GIRepository.type_info_get_param_type
+
+    value_info_get_value = GIRepository.value_info_get_value
+
 from gi.repository import GLib, GObject
 
 from . import xml_reader
 from .errors import CompileError, CompilerBugError
 
-gir_repo = GIRepository.Repository.get_default()
 repo = None
 
 _namespace_cache: T.Dict[str, "Namespace"] = {}
@@ -53,15 +123,15 @@ def add_typelib_search_path(path: str):
 
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    global repo
-
     filename = f"{namespace}-{version}"
     if filename not in _namespace_cache:
         try:
+            gir_repo = GIRepository.Repository()
             gir_repo.require(namespace, version, 0)
-            if repo is None:
-                repo = Repository(gir_repo)
-            _namespace_cache[filename] = repo.lookup_namespace(namespace)
+            repo = Repository(gir_repo)
+            for ns in gir_repo.get_loaded_namespaces():
+                version = gir_repo.get_version(ns)
+                _namespace_cache[f"{ns}-{version}"] = repo.lookup_namespace(ns)
         except GLib.GError as e:
             if e.matches(
                 GIRepository.Repository.error_quark(),
@@ -73,6 +143,8 @@ def get_namespace(namespace: str, version: str) -> "Namespace":
                         "search path: " + os.pathsep.join(gir_repo.get_search_path())
                     ],
                 )
+            else:
+                raise e
 
     return _namespace_cache[filename]
 
@@ -84,6 +156,7 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
     if len(_available_namespaces):
         return _available_namespaces
 
+    gir_repo = GIRepository.Repository()
     search_paths: list[str] = [
         *_user_search_paths,
         *gir_repo.get_search_path(),
@@ -420,7 +493,7 @@ class Property(GirNode):
     @cached_property
     def type(self):
         return self.get_containing(Repository)._resolve_type_info(
-            GIRepository.property_info_get_type(self.info)
+            property_info_get_type_info(self.info)
         )
 
     @cached_property
@@ -429,12 +502,12 @@ class Property(GirNode):
 
     @property
     def writable(self) -> bool:
-        flags = GIRepository.property_info_get_flags(self.info)
+        flags = property_info_get_flags(self.info)
         return bool(flags & GObject.ParamFlags.WRITABLE)
 
     @property
     def construct_only(self) -> bool:
-        flags = GIRepository.property_info_get_flags(self.info)
+        flags = property_info_get_flags(self.info)
         return bool(flags & GObject.ParamFlags.CONSTRUCT_ONLY)
 
     @property
@@ -452,7 +525,7 @@ class Argument(GirNode):
 
     @cached_property
     def type(self) -> GirType:
-        typeinfo = GIRepository.arg_info_get_type(self.info)
+        typeinfo = arg_info_get_type_info(self.info)
         return self.get_containing(Repository)._resolve_type_info(typeinfo)
 
 
@@ -463,15 +536,15 @@ class Signature(GirNode):
     @cached_property
     def args(self) -> T.List[Argument]:
         result = []
-        for i in range(GIRepository.callable_info_get_n_args(self.info)):
-            arg_info = GIRepository.callable_info_get_arg(self.info, i)
+        for i in range(callable_info_get_n_args(self.info)):
+            arg_info = callable_info_get_arg(self.info, i)
             result.append(Argument(self, arg_info))
         return result
 
     @cached_property
     def return_type(self) -> GirType:
         return self.get_containing(Repository)._resolve_type_info(
-            GIRepository.callable_info_get_return_type(self.info)
+            callable_info_get_return_type(self.info)
         )
 
 
@@ -514,30 +587,28 @@ class Interface(GirNode, GirType):
 
     @cached_property
     def properties(self) -> T.Mapping[str, Property]:
-        n_properties = GIRepository.interface_info_get_n_properties(self.info)
+        n_properties = interface_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
-            property = Property(
-                self, GIRepository.interface_info_get_property(self.info, i)
-            )
+            property = Property(self, interface_info_get_property(self.info, i))
             result[property.name] = property
         return result
 
     @cached_property
     def signals(self) -> T.Mapping[str, Signal]:
-        n_signals = GIRepository.interface_info_get_n_signals(self.info)
+        n_signals = interface_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
-            signal = Signal(self, GIRepository.interface_info_get_signal(self.info, i))
+            signal = Signal(self, interface_info_get_signal(self.info, i))
             result[signal.name] = signal
         return result
 
     @cached_property
     def prerequisites(self) -> T.List["Interface"]:
-        n_prerequisites = GIRepository.interface_info_get_n_prerequisites(self.info)
+        n_prerequisites = interface_info_get_n_prerequisites(self.info)
         result = []
         for i in range(n_prerequisites):
-            entry = GIRepository.interface_info_get_prerequisite(self.info, i)
+            entry = interface_info_get_prerequisite(self.info, i)
             result.append(self.get_containing(Repository)._resolve_entry(entry))
         return result
 
@@ -548,6 +619,10 @@ class Interface(GirNode, GirType):
             if pre.assignable_to(other):
                 return True
         return False
+
+    @cached_property
+    def glib_type_name(self) -> str:
+        return registered_type_info_get_type_name(self.info)
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -565,40 +640,42 @@ class Class(GirNode, GirType):
 
     @property
     def abstract(self) -> bool:
-        return GIRepository.object_info_get_abstract(self.info)
+        if gir3:
+            assert self.info is not None
+            return self.info.get_abstract()
+        else:
+            return GIRepository.object_info_get_abstract(self.info)
 
     @cached_property
     def implements(self) -> T.List[Interface]:
-        n_interfaces = GIRepository.object_info_get_n_interfaces(self.info)
+        n_interfaces = object_info_get_n_interfaces(self.info)
         result = []
         for i in range(n_interfaces):
-            entry = GIRepository.object_info_get_interface(self.info, i)
+            entry = object_info_get_interface(self.info, i)
             result.append(self.get_containing(Repository)._resolve_entry(entry))
         return result
 
     @cached_property
     def own_properties(self) -> T.Mapping[str, Property]:
-        n_properties = GIRepository.object_info_get_n_properties(self.info)
+        n_properties = object_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
-            property = Property(
-                self, GIRepository.object_info_get_property(self.info, i)
-            )
+            property = Property(self, object_info_get_property(self.info, i))
             result[property.name] = property
         return result
 
     @cached_property
     def own_signals(self) -> T.Mapping[str, Signal]:
-        n_signals = GIRepository.object_info_get_n_signals(self.info)
+        n_signals = object_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
-            signal = Signal(self, GIRepository.object_info_get_signal(self.info, i))
+            signal = Signal(self, object_info_get_signal(self.info, i))
             result[signal.name] = signal
         return result
 
     @cached_property
     def parent(self) -> T.Optional["Class"]:
-        if entry := GIRepository.object_info_get_parent(self.info):
+        if entry := object_info_get_parent(self.info):
             return self.get_containing(Repository)._resolve_entry(entry)
         else:
             return None
@@ -626,11 +703,11 @@ class Class(GirNode, GirType):
 
     @cached_property
     def glib_type_name(self) -> str:
-        return GIRepository.object_info_get_type_name(self.info)
+        return object_info_get_type_name(self.info)
 
     @cached_property
     def cname(self) -> str:
-        return GIRepository.object_info_get_type_name(self.info)
+        return self.glib_type_name
 
     def assignable_to(self, other: GirType) -> bool:
         if self == other:
@@ -732,7 +809,7 @@ class EnumMember(GirNode):
 
     @property
     def value(self) -> int:
-        return GIRepository.value_info_get_value(self.info)
+        return value_info_get_value(self.info)
 
     @cached_property
     def nick(self) -> str:
@@ -759,9 +836,14 @@ class Enumeration(GirNode, GirType):
     @cached_property
     def members(self) -> T.Dict[str, EnumMember]:
         members = {}
-        n_values = GIRepository.enum_info_get_n_values(self.info)
+        get_n_values, get_value = (
+            (GIRepository.EnumInfo.get_n_values, GIRepository.EnumInfo.get_value)
+            if gir3
+            else (GIRepository.enum_info_get_n_values, GIRepository.enum_info_get_value)
+        )
+        n_values = get_n_values(self.info)
         for i in range(n_values):
-            member = EnumMember(self, GIRepository.enum_info_get_value(self.info, i))
+            member = EnumMember(self, get_value(self.info, i))
             members[member.name] = member
         return members
 
@@ -810,35 +892,50 @@ class Bitfield(Enumeration):
 
 class Namespace(GirNode):
     def __init__(
-        self, repo: "Repository", girepo: GIRepository.Repository, name: str
+        self, repo: "Repository", gir_repo: GIRepository.Repository, name: str
     ) -> None:
         super().__init__(repo, None)
-        self.repo = girepo
+        self.gir_repo = gir_repo
         self.name = name
+
+    def _create_entry(self, entry: GIRepository.BaseInfo):
+        if gir3:
+            if isinstance(entry, GIRepository.FlagsInfo):
+                return Bitfield(self, entry)
+            elif isinstance(entry, GIRepository.EnumInfo):
+                return Enumeration(self, entry)
+            elif isinstance(entry, GIRepository.ObjectInfo):
+                return Class(self, entry)
+            elif isinstance(entry, GIRepository.InterfaceInfo):
+                return Interface(self, entry)
+            elif isinstance(entry, GIRepository.StructInfo):
+                return Boxed(self, entry)
+        else:
+            entry_type = entry.get_type()
+
+            if entry_type == GIRepository.InfoType.ENUM:
+                return Enumeration(self, entry)
+            elif entry_type == GIRepository.InfoType.FLAGS:
+                return Bitfield(self, entry)
+            elif entry_type == GIRepository.InfoType.OBJECT:
+                return Class(self, entry)
+            elif entry_type == GIRepository.InfoType.INTERFACE:
+                return Interface(self, entry)
+            elif (
+                entry_type == GIRepository.InfoType.BOXED
+                or entry_type == GIRepository.InfoType.STRUCT
+            ):
+                return Boxed(self, entry)
 
     @cached_property
     def entries(self) -> T.Mapping[str, GirType]:
         entries: dict[str, GirType] = {}
 
-        n_entries = self.repo.get_n_infos(self.name)
+        n_entries = self.gir_repo.get_n_infos(self.name)
         for i in range(n_entries):
-            entry = gir_repo.get_info(self.name, i)
+            entry = self.gir_repo.get_info(self.name, i)
             entry_name = entry.get_name()
-            entry_type = entry.get_type()
-
-            if entry_type == GIRepository.InfoType.ENUM:
-                entries[entry_name] = Enumeration(self, entry)
-            elif entry_type == GIRepository.InfoType.FLAGS:
-                entries[entry_name] = Bitfield(self, entry)
-            elif entry_type == GIRepository.InfoType.OBJECT:
-                entries[entry_name] = Class(self, entry)
-            elif entry_type == GIRepository.InfoType.INTERFACE:
-                entries[entry_name] = Interface(self, entry)
-            elif (
-                entry_type == GIRepository.InfoType.BOXED
-                or entry_type == GIRepository.InfoType.STRUCT
-            ):
-                entries[entry_name] = Boxed(self, entry)
+            entries[entry_name] = self._create_entry(entry)
 
         return entries
 
@@ -852,7 +949,7 @@ class Namespace(GirNode):
 
     @cached_property
     def version(self) -> str:
-        return self.repo.get_version(self.name)
+        return self.gir_repo.get_version(self.name)
 
     @property
     def signature(self) -> str:
@@ -898,9 +995,9 @@ class Namespace(GirNode):
 
 
 class Repository(GirNode):
-    def __init__(self, repo: GIRepository.Repository) -> None:
+    def __init__(self, gir_repo: GIRepository.Repository) -> None:
         super().__init__(None, None)
-        self.repo = repo
+        self.gir_repo = gir_repo
 
         self._namespaces: T.Dict[str, Namespace] = {}
 
@@ -910,14 +1007,14 @@ class Repository(GirNode):
     def lookup_namespace(self, ns: str):
         """Finds a namespace among this namespace's dependencies."""
         if ns not in self._namespaces:
-            self._namespaces[ns] = Namespace(self, self.repo, ns)
+            self._namespaces[ns] = Namespace(self, self.gir_repo, ns)
         return self._namespaces[ns]
 
     def _resolve_entry(self, baseinfo: GIRepository.BaseInfo):
         return self.get_type(baseinfo.get_name(), baseinfo.get_namespace())
 
     def _resolve_type_info(self, typeinfo: GIRepository.BaseInfo) -> GirType:
-        type_tag = GIRepository.type_info_get_tag(typeinfo)
+        type_tag = type_info_get_tag(typeinfo)
         if type_tag == GIRepository.TypeTag.VOID:
             return VoidType()
         elif type_tag == GIRepository.TypeTag.BOOLEAN:
@@ -943,9 +1040,9 @@ class Repository(GirNode):
         elif type_tag == GIRepository.TypeTag.GTYPE:
             return TypeType()
         elif type_tag == GIRepository.TypeTag.INTERFACE:
-            return self._resolve_entry(GIRepository.type_info_get_interface(typeinfo))
+            return self._resolve_entry(type_info_get_interface(typeinfo))
         elif type_tag == GIRepository.TypeTag.ARRAY:
-            item_type = GIRepository.type_info_get_param_type(typeinfo, 0)
+            item_type = type_info_get_param_type(typeinfo, 0)
             return ArrayType(self._resolve_type_info(item_type))
         else:
             raise CompilerBugError("Unknown type tag", type_tag)
