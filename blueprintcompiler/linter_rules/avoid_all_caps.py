@@ -9,7 +9,8 @@ class AvoidAllCaps(LinterRule):
         for property in child.content.children[Property]:
             if self.is_ui_string(type, property):
                 (string, range) = self.get_string_value(property)
-                if string and string.isupper():
+                # Show linter error for upper case and multi letter strings
+                if string and string.isupper() and len(string) > 1:
                     problem = CompileWarning(
                         f"Avoid using all upper case for {type} {property.name}", range
                     )

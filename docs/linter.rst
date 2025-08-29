@@ -15,6 +15,11 @@ For checking multiple files, just add them to the above command like this:
 
    python blueprint-compiler.py lint <file1.blp> <file2.blp> <file3.blp>
 
+An entire dirctory can also be scanned by specifiying the folder location:
+
+.. code-block::
+
+   python blueprint-compiler.py lint test/directory/location/
 
 Contexts
 --------

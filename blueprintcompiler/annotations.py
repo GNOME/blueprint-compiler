@@ -190,18 +190,15 @@ _ANNOTATIONS = {
     ),
 }
 
-prefixes = {
-    "Gtk-4.0": "Gtk.",
-    "Adw-1": "Adw.",
-    "Shumate-1.0": "",
-    "GtkSource-5": "Gtk.",
-}
-
-
 def get_annotation_elements():
     result = []
+    exceptions = {
+        "GtkSource": "Gtk"
+    }
     for key, annotation in _ANNOTATIONS.items():
+        namespace = key.split("-")[0]
+        prefix = exceptions.get(namespace, namespace)
         for item in annotation.translatable_properties:
             element, property = item.split(":")
-            result.append((f"{prefixes.get(key)}{element}", property))
+            result.append((f"{prefix}.{element}", property))
     return result
