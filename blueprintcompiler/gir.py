@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import os
-import sys
 import typing as T
 from functools import cached_property
 
@@ -27,8 +26,6 @@ import gi  # type: ignore
 try:
     gi.require_version("GIRepository", "3.0")
     from gi.repository import GIRepository  # type: ignore
-
-    _repo = GIRepository.Repository()
 except ValueError:
     # We can remove this once we can bump the minimum dependencies
     # to glib 2.80 and pygobject 3.52
@@ -37,11 +34,13 @@ except ValueError:
     gi.require_version("GIRepository", "2.0")
     from gi.repository import GIRepository  # type: ignore
 
-    _repo = GIRepository.Repository
+from gi.repository import GLib, GObject
 
-from . import typelib, xml_reader
+from . import xml_reader
 from .errors import CompileError, CompilerBugError
-from .lsp_utils import CodeAction
+
+gir_repo = GIRepository.Repository.get_default()
+repo = None
 
 _namespace_cache: T.Dict[str, "Namespace"] = {}
 _xml_cache = {}
@@ -54,26 +53,26 @@ def add_typelib_search_path(path: str):
 
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    search_paths = [*_user_search_paths, *_repo.get_search_path()]
+    global repo
 
-    filename = f"{namespace}-{version}.typelib"
-
+    filename = f"{namespace}-{version}"
     if filename not in _namespace_cache:
-        for search_path in search_paths:
-            path = os.path.join(search_path, filename)
-
-            if os.path.exists(path) and os.path.isfile(path):
-                tl = typelib.load_typelib(path)
-                repository = Repository(tl)
-
-                _namespace_cache[filename] = repository.namespace
-                break
-
-        if filename not in _namespace_cache:
-            raise CompileError(
-                f"Namespace {namespace}-{version} could not be found",
-                hints=["search path: " + os.pathsep.join(search_paths)],
-            )
+        try:
+            gir_repo.require(namespace, version, 0)
+            if repo is None:
+                repo = Repository(gir_repo)
+            _namespace_cache[filename] = repo.lookup_namespace(namespace)
+        except GLib.GError as e:
+            if e.matches(
+                GIRepository.Repository.error_quark(),
+                GIRepository.RepositoryError.TYPELIB_NOT_FOUND,
+            ):
+                raise CompileError(
+                    f"Namespace {namespace}-{version} could not be found",
+                    hints=[
+                        "search path: " + os.pathsep.join(gir_repo.get_search_path())
+                    ],
+                )
 
     return _namespace_cache[filename]
 
@@ -87,7 +86,7 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
 
     search_paths: list[str] = [
         *_user_search_paths,
-        *_repo.get_search_path(),
+        *gir_repo.get_search_path(),
     ]
 
     for search_path in search_paths:
@@ -233,6 +232,14 @@ class BasicType(GirType):
         return self.name
 
 
+class VoidType(GirType):
+    name: str = "void"
+    glib_type_name: str = "void"
+
+    def assignable_to(self, other: GirType):
+        return False
+
+
 class BoolType(BasicType):
     name = "bool"
     glib_type_name: str = "gboolean"
@@ -306,9 +313,11 @@ TNode = T.TypeVar("TNode", bound="GirNode")
 class GirNode:
     xml_tag: str
 
-    def __init__(self, container: T.Optional["GirNode"], tl: typelib.Typelib) -> None:
+    def __init__(
+        self, container: T.Optional["GirNode"], info: T.Optional[GIRepository.BaseInfo]
+    ) -> None:
         self.container = container
-        self.tl = tl
+        self.info = info
 
     def get_containing(self, container_type: T.Type[TNode]) -> TNode:
         if self.container is None:
@@ -326,10 +335,6 @@ class GirNode:
                     return el
 
     @cached_property
-    def glib_type_name(self) -> str:
-        return self.tl.OBJ_GTYPE_NAME
-
-    @cached_property
     def full_name(self) -> str:
         if self.container is None:
             return self.name
@@ -338,11 +343,8 @@ class GirNode:
 
     @cached_property
     def name(self) -> str:
-        return self.tl.BLOB_NAME
-
-    @cached_property
-    def cname(self) -> str:
-        return self.tl.OBJ_GTYPE_NAME
+        assert self.info is not None
+        return self.info.get_name()
 
     @cached_property
     def available_in(self) -> str:
@@ -393,6 +395,13 @@ class GirNode:
         raise NotImplementedError()
 
     @property
+    def deprecated(self) -> bool:
+        if self.info is None:
+            return False
+        else:
+            return self.info.is_deprecated()
+
+    @property
     def deprecated_doc(self) -> T.Optional[str]:
         try:
             return self.xml.get_elements("doc-deprecated")[0].cdata.strip()
@@ -403,16 +412,16 @@ class GirNode:
 class Property(GirNode):
     xml_tag = "property"
 
-    def __init__(self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib):
-        super().__init__(klass, tl)
-
-    @cached_property
-    def name(self) -> str:
-        return self.tl.PROP_NAME
+    def __init__(
+        self, klass: T.Union["Class", "Interface"], info: GIRepository.BaseInfo
+    ):
+        super().__init__(klass, info)
 
     @cached_property
     def type(self):
-        return self.get_containing(Repository)._resolve_type_id(self.tl.PROP_TYPE)
+        return self.get_containing(Repository)._resolve_type_info(
+            GIRepository.property_info_get_type(self.info)
+        )
 
     @cached_property
     def signature(self):
@@ -420,11 +429,13 @@ class Property(GirNode):
 
     @property
     def writable(self) -> bool:
-        return self.tl.PROP_WRITABLE == 1
+        flags = GIRepository.property_info_get_flags(self.info)
+        return bool(flags & GObject.ParamFlags.WRITABLE)
 
     @property
     def construct_only(self) -> bool:
-        return self.tl.PROP_CONSTRUCT_ONLY == 1
+        flags = GIRepository.property_info_get_flags(self.info)
+        return bool(flags & GObject.ParamFlags.CONSTRUCT_ONLY)
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -434,59 +445,47 @@ class Property(GirNode):
         else:
             return None
 
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.PROP_DEPRECATED == 1
-
 
 class Argument(GirNode):
-    def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
-        super().__init__(container, tl)
-
-    @cached_property
-    def name(self) -> str:
-        return self.tl.ARG_NAME
+    def __init__(self, container: GirNode, info: GIRepository.BaseInfo) -> None:
+        super().__init__(container, info)
 
     @cached_property
     def type(self) -> GirType:
-        return self.get_containing(Repository)._resolve_type_id(self.tl.ARG_TYPE)
+        typeinfo = GIRepository.arg_info_get_type(self.info)
+        return self.get_containing(Repository)._resolve_type_info(typeinfo)
 
 
 class Signature(GirNode):
-    def __init__(self, container: GirNode, tl: typelib.Typelib) -> None:
-        super().__init__(container, tl)
+    def __init__(self, container: GirNode, info: GIRepository.BaseInfo) -> None:
+        super().__init__(container, info)
 
     @cached_property
     def args(self) -> T.List[Argument]:
-        n_arguments = self.tl.SIGNATURE_N_ARGUMENTS
-        blob_size = self.tl.header.HEADER_ARG_BLOB_SIZE
         result = []
-        for i in range(n_arguments):
-            entry = self.tl.SIGNATURE_ARGUMENTS[i * blob_size]
-            result.append(Argument(self, entry))
+        for i in range(GIRepository.callable_info_get_n_args(self.info)):
+            arg_info = GIRepository.callable_info_get_arg(self.info, i)
+            result.append(Argument(self, arg_info))
         return result
 
     @cached_property
-    def return_type(self) -> T.Optional[GirType]:
-        if self.tl.SIGNATURE_RETURN_TYPE == 0:
-            return None
-        else:
-            return self.get_containing(Repository)._resolve_type_id(
-                self.tl.SIGNATURE_RETURN_TYPE
-            )
+    def return_type(self) -> GirType:
+        return self.get_containing(Repository)._resolve_type_info(
+            GIRepository.callable_info_get_return_type(self.info)
+        )
 
 
 class Signal(GirNode):
     xml_tag = "glib:signal"
 
     def __init__(
-        self, klass: T.Union["Class", "Interface"], tl: typelib.Typelib
+        self, klass: T.Union["Class", "Interface"], info: GIRepository.BaseInfo
     ) -> None:
-        super().__init__(klass, tl)
+        super().__init__(klass, info)
 
     @cached_property
     def gir_signature(self) -> Signature:
-        return Signature(self, self.tl.SIGNAL_SIGNATURE)
+        return Signature(self, self.info)
 
     @property
     def signature(self):
@@ -494,7 +493,7 @@ class Signal(GirNode):
             [f"{a.type.full_name} {a.name}" for a in self.gir_signature.args]
         )
         result = f"signal {self.container.full_name}::{self.name} ({args})"
-        if self.gir_signature.return_type is not None:
+        if not isinstance(self.gir_signature.return_type, VoidType):
             result += f" -> {self.gir_signature.return_type.full_name}"
         return result
 
@@ -506,54 +505,40 @@ class Signal(GirNode):
         else:
             return None
 
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.SIGNAL_DEPRECATED == 1
-
 
 class Interface(GirNode, GirType):
     xml_tag = "interface"
 
-    def __init__(self, ns: "Namespace", tl: typelib.Typelib):
-        super().__init__(ns, tl)
+    def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo):
+        super().__init__(ns, info)
 
     @cached_property
     def properties(self) -> T.Mapping[str, Property]:
-        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
-        offset = self.tl.header.HEADER_INTERFACE_BLOB_SIZE
-        offset += (n_prerequisites + n_prerequisites % 2) * 2
-        n_properties = self.tl.INTERFACE_N_PROPERTIES
-        property_size = self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        n_properties = GIRepository.interface_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
-            property = Property(self, self.tl[offset + i * property_size])
+            property = Property(
+                self, GIRepository.interface_info_get_property(self.info, i)
+            )
             result[property.name] = property
         return result
 
     @cached_property
     def signals(self) -> T.Mapping[str, Signal]:
-        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
-        offset = self.tl.header.HEADER_INTERFACE_BLOB_SIZE
-        offset += (n_prerequisites + n_prerequisites % 2) * 2
-        offset += (
-            self.tl.INTERFACE_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
-        )
-        offset += self.tl.INTERFACE_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
-        n_signals = self.tl.INTERFACE_N_SIGNALS
-        property_size = self.tl.header.HEADER_SIGNAL_BLOB_SIZE
+        n_signals = GIRepository.interface_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
-            signal = Signal(self, self.tl[offset + i * property_size])
+            signal = Signal(self, GIRepository.interface_info_get_signal(self.info, i))
             result[signal.name] = signal
         return result
 
     @cached_property
     def prerequisites(self) -> T.List["Interface"]:
-        n_prerequisites = self.tl.INTERFACE_N_PREREQUISITES
+        n_prerequisites = GIRepository.interface_info_get_n_prerequisites(self.info)
         result = []
         for i in range(n_prerequisites):
-            entry = self.tl.INTERFACE_PREREQUISITES[i * 2].AS_DIR_ENTRY
-            result.append(self.get_containing(Repository)._resolve_dir_entry(entry))
+            entry = GIRepository.interface_info_get_prerequisite(self.info, i)
+            result.append(self.get_containing(Repository)._resolve_entry(entry))
         return result
 
     def assignable_to(self, other: GirType) -> bool:
@@ -571,70 +556,50 @@ class Interface(GirNode, GirType):
         else:
             return None
 
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.INTERFACE_DEPRECATED == 1
-
 
 class Class(GirNode, GirType):
     xml_tag = "class"
 
-    def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
-        super().__init__(ns, tl)
+    def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
+        super().__init__(ns, info)
 
     @property
     def abstract(self) -> bool:
-        return self.tl.OBJ_ABSTRACT == 1
+        return GIRepository.object_info_get_abstract(self.info)
 
     @cached_property
     def implements(self) -> T.List[Interface]:
-        n_interfaces = self.tl.OBJ_N_INTERFACES
+        n_interfaces = GIRepository.object_info_get_n_interfaces(self.info)
         result = []
         for i in range(n_interfaces):
-            entry = self.tl[self.tl.header.HEADER_OBJECT_BLOB_SIZE + i * 2].AS_DIR_ENTRY
-            result.append(self.get_containing(Repository)._resolve_dir_entry(entry))
+            entry = GIRepository.object_info_get_interface(self.info, i)
+            result.append(self.get_containing(Repository)._resolve_entry(entry))
         return result
 
     @cached_property
     def own_properties(self) -> T.Mapping[str, Property]:
-        n_interfaces = self.tl.OBJ_N_INTERFACES
-        offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
-        offset += (n_interfaces + n_interfaces % 2) * 2
-        offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
-        offset += (
-            self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
-        )
-        n_properties = self.tl.OBJ_N_PROPERTIES
-        property_size = self.tl.header.HEADER_PROPERTY_BLOB_SIZE
+        n_properties = GIRepository.object_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
-            property = Property(self, self.tl[offset + i * property_size])
+            property = Property(
+                self, GIRepository.object_info_get_property(self.info, i)
+            )
             result[property.name] = property
         return result
 
     @cached_property
     def own_signals(self) -> T.Mapping[str, Signal]:
-        n_interfaces = self.tl.OBJ_N_INTERFACES
-        offset = self.tl.header.HEADER_OBJECT_BLOB_SIZE
-        offset += (n_interfaces + n_interfaces % 2) * 2
-        offset += self.tl.OBJ_N_FIELDS * self.tl.header.HEADER_FIELD_BLOB_SIZE
-        offset += (
-            self.tl.OBJ_N_FIELD_CALLBACKS * self.tl.header.HEADER_CALLBACK_BLOB_SIZE
-        )
-        offset += self.tl.OBJ_N_PROPERTIES * self.tl.header.HEADER_PROPERTY_BLOB_SIZE
-        offset += self.tl.OBJ_N_METHODS * self.tl.header.HEADER_FUNCTION_BLOB_SIZE
-        n_signals = self.tl.OBJ_N_SIGNALS
-        signal_size = self.tl.header.HEADER_SIGNAL_BLOB_SIZE
+        n_signals = GIRepository.object_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
-            signal = Signal(self, self.tl[offset][i * signal_size])
+            signal = Signal(self, GIRepository.object_info_get_signal(self.info, i))
             result[signal.name] = signal
         return result
 
     @cached_property
     def parent(self) -> T.Optional["Class"]:
-        if entry := self.tl.OBJ_PARENT:
-            return self.get_containing(Repository)._resolve_dir_entry(entry)
+        if entry := GIRepository.object_info_get_parent(self.info):
+            return self.get_containing(Repository)._resolve_entry(entry)
         else:
             return None
 
@@ -658,6 +623,14 @@ class Class(GirNode, GirType):
     @cached_property
     def signals(self) -> T.Mapping[str, Signal]:
         return {s.name: s for s in self._enum_signals()}
+
+    @cached_property
+    def glib_type_name(self) -> str:
+        return GIRepository.object_info_get_type_name(self.info)
+
+    @cached_property
+    def cname(self) -> str:
+        return GIRepository.object_info_get_type_name(self.info)
 
     def assignable_to(self, other: GirType) -> bool:
         if self == other:
@@ -695,10 +668,6 @@ class Class(GirNode, GirType):
             return f"{ns}class.{self.name}.html"
         else:
             return None
-
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.OBJ_DEPRECATED == 1
 
 
 class TemplateType(GirType):
@@ -758,24 +727,23 @@ class TemplateType(GirType):
 class EnumMember(GirNode):
     xml_tag = "member"
 
-    def __init__(self, enum: "Enumeration", tl: typelib.Typelib) -> None:
-        super().__init__(enum, tl)
+    def __init__(self, enum: "Enumeration", info: GIRepository.BaseInfo) -> None:
+        super().__init__(enum, info)
 
     @property
     def value(self) -> int:
-        return self.tl.VALUE_VALUE
-
-    @cached_property
-    def name(self) -> str:
-        return self.tl.VALUE_NAME
+        return GIRepository.value_info_get_value(self.info)
 
     @cached_property
     def nick(self) -> str:
         return self.name.replace("_", "-")
 
     @property
-    def c_ident(self) -> str:
-        return self.tl.attr("c:identifier")
+    def c_ident(self) -> T.Optional[str]:
+        if self.info is None:
+            return None
+        else:
+            return self.info.get_attribute("c:identifier")
 
     @property
     def signature(self) -> str:
@@ -785,17 +753,15 @@ class EnumMember(GirNode):
 class Enumeration(GirNode, GirType):
     xml_tag = "enumeration"
 
-    def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
-        super().__init__(ns, tl)
+    def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
+        super().__init__(ns, info)
 
     @cached_property
     def members(self) -> T.Dict[str, EnumMember]:
         members = {}
-        n_values = self.tl.ENUM_N_VALUES
-        values = self.tl.ENUM_VALUES
-        value_size = self.tl.header.HEADER_VALUE_BLOB_SIZE
+        n_values = GIRepository.enum_info_get_n_values(self.info)
         for i in range(n_values):
-            member = EnumMember(self, values[i * value_size])
+            member = EnumMember(self, GIRepository.enum_info_get_value(self.info, i))
             members[member.name] = member
         return members
 
@@ -813,16 +779,12 @@ class Enumeration(GirNode, GirType):
         else:
             return None
 
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.ENUM_DEPRECATED == 1
-
 
 class Boxed(GirNode, GirType):
     xml_tag = "glib:boxed"
 
-    def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
-        super().__init__(ns, tl)
+    def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
+        super().__init__(ns, info)
 
     @property
     def signature(self) -> str:
@@ -838,49 +800,45 @@ class Boxed(GirNode, GirType):
         else:
             return None
 
-    @property
-    def deprecated(self) -> bool:
-        return self.tl.STRUCT_DEPRECATED == 1
-
 
 class Bitfield(Enumeration):
     xml_tag = "bitfield"
 
-    def __init__(self, ns: "Namespace", tl: typelib.Typelib) -> None:
-        super().__init__(ns, tl)
+    def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
+        super().__init__(ns, info)
 
 
 class Namespace(GirNode):
-    def __init__(self, repo: "Repository", tl: typelib.Typelib) -> None:
-        super().__init__(repo, tl)
+    def __init__(
+        self, repo: "Repository", girepo: GIRepository.Repository, name: str
+    ) -> None:
+        super().__init__(repo, None)
+        self.repo = girepo
+        self.name = name
 
     @cached_property
     def entries(self) -> T.Mapping[str, GirType]:
         entries: dict[str, GirType] = {}
 
-        n_local_entries: int = self.tl.HEADER_N_ENTRIES
-        directory: typelib.Typelib = self.tl.HEADER_DIRECTORY
-        blob_size: int = self.tl.header.HEADER_ENTRY_BLOB_SIZE
+        n_entries = self.repo.get_n_infos(self.name)
+        for i in range(n_entries):
+            entry = gir_repo.get_info(self.name, i)
+            entry_name = entry.get_name()
+            entry_type = entry.get_type()
 
-        for i in range(n_local_entries):
-            entry = directory[i * blob_size]
-            entry_name: str = entry.DIR_ENTRY_NAME
-            entry_type: int = entry.DIR_ENTRY_BLOB_TYPE
-            entry_blob: typelib.Typelib = entry.DIR_ENTRY_OFFSET
-
-            if entry_type == typelib.BLOB_TYPE_ENUM:
-                entries[entry_name] = Enumeration(self, entry_blob)
-            elif entry_type == typelib.BLOB_TYPE_FLAGS:
-                entries[entry_name] = Bitfield(self, entry_blob)
-            elif entry_type == typelib.BLOB_TYPE_OBJECT:
-                entries[entry_name] = Class(self, entry_blob)
-            elif entry_type == typelib.BLOB_TYPE_INTERFACE:
-                entries[entry_name] = Interface(self, entry_blob)
+            if entry_type == GIRepository.InfoType.ENUM:
+                entries[entry_name] = Enumeration(self, entry)
+            elif entry_type == GIRepository.InfoType.FLAGS:
+                entries[entry_name] = Bitfield(self, entry)
+            elif entry_type == GIRepository.InfoType.OBJECT:
+                entries[entry_name] = Class(self, entry)
+            elif entry_type == GIRepository.InfoType.INTERFACE:
+                entries[entry_name] = Interface(self, entry)
             elif (
-                entry_type == typelib.BLOB_TYPE_BOXED
-                or entry_type == typelib.BLOB_TYPE_STRUCT
+                entry_type == GIRepository.InfoType.BOXED
+                or entry_type == GIRepository.InfoType.STRUCT
             ):
-                entries[entry_name] = Boxed(self, entry_blob)
+                entries[entry_name] = Boxed(self, entry)
 
         return entries
 
@@ -890,11 +848,11 @@ class Namespace(GirNode):
 
     @cached_property
     def name(self) -> str:
-        return self.tl.HEADER_NAMESPACE
+        return self.name
 
     @cached_property
     def version(self) -> str:
-        return self.tl.HEADER_NSVERSION
+        return self.repo.get_version(self.name)
 
     @property
     def signature(self) -> str:
@@ -940,79 +898,57 @@ class Namespace(GirNode):
 
 
 class Repository(GirNode):
-    def __init__(self, tl: typelib.Typelib) -> None:
-        super().__init__(None, tl)
+    def __init__(self, repo: GIRepository.Repository) -> None:
+        super().__init__(None, None)
+        self.repo = repo
 
-        self.namespace = Namespace(self, tl)
-
-        if dependencies := tl[0x24].string:
-            deps = [tuple(dep.split("-", 1)) for dep in dependencies.split("|")]
-            try:
-                self.includes = {
-                    name: get_namespace(name, version) for name, version in deps
-                }
-            except:  # pragma: no cover
-                raise CompilerBugError(f"Failed to load dependencies.")
-        else:
-            self.includes = {}
+        self._namespaces: T.Dict[str, Namespace] = {}
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
         return self.lookup_namespace(ns).get_type(name)
 
     def lookup_namespace(self, ns: str):
         """Finds a namespace among this namespace's dependencies."""
-        if ns == self.namespace.name:
-            return self.namespace
-        else:
-            for include in self.includes.values():
-                if namespace := include.get_containing(Repository).lookup_namespace(ns):
-                    return namespace
+        if ns not in self._namespaces:
+            self._namespaces[ns] = Namespace(self, self.repo, ns)
+        return self._namespaces[ns]
 
-    def _resolve_dir_entry(self, dir_entry: typelib.Typelib):
-        if dir_entry.DIR_ENTRY_LOCAL:
-            return self.namespace.get_type(dir_entry.DIR_ENTRY_NAME)
-        else:
-            ns = dir_entry.DIR_ENTRY_NAMESPACE
-            return self.lookup_namespace(ns).get_type(dir_entry.DIR_ENTRY_NAME)
+    def _resolve_entry(self, baseinfo: GIRepository.BaseInfo):
+        return self.get_type(baseinfo.get_name(), baseinfo.get_namespace())
 
-    def _resolve_type_id(self, type_id: int) -> GirType:
-        if type_id & (0xFFFFFF if sys.byteorder == "little" else 0xFFFFFF00) == 0:
-            type_id = ((type_id >> 27) if sys.byteorder == "little" else type_id) & 0x1F
-            # simple type
-            if type_id == typelib.TYPE_BOOLEAN:
-                return BoolType()
-            elif type_id in [typelib.TYPE_FLOAT, typelib.TYPE_DOUBLE]:
-                return FloatType()
-            elif type_id in [
-                typelib.TYPE_INT8,
-                typelib.TYPE_INT16,
-                typelib.TYPE_INT32,
-                typelib.TYPE_INT64,
-            ]:
-                return IntType()
-            elif type_id in [
-                typelib.TYPE_UINT8,
-                typelib.TYPE_UINT16,
-                typelib.TYPE_UINT32,
-                typelib.TYPE_UINT64,
-            ]:
-                return UIntType()
-            elif type_id == typelib.TYPE_UTF8:
-                return StringType()
-            elif type_id == typelib.TYPE_GTYPE:
-                return TypeType()
-            else:
-                raise CompilerBugError("Unknown type ID", type_id)
+    def _resolve_type_info(self, typeinfo: GIRepository.BaseInfo) -> GirType:
+        type_tag = GIRepository.type_info_get_tag(typeinfo)
+        if type_tag == GIRepository.TypeTag.VOID:
+            return VoidType()
+        elif type_tag == GIRepository.TypeTag.BOOLEAN:
+            return BoolType()
+        elif type_tag in [GIRepository.TypeTag.FLOAT, GIRepository.TypeTag.DOUBLE]:
+            return FloatType()
+        elif type_tag in [
+            GIRepository.TypeTag.INT8,
+            GIRepository.TypeTag.INT16,
+            GIRepository.TypeTag.INT32,
+            GIRepository.TypeTag.INT64,
+        ]:
+            return IntType()
+        elif type_tag in [
+            GIRepository.TypeTag.UINT8,
+            GIRepository.TypeTag.UINT16,
+            GIRepository.TypeTag.UINT32,
+            GIRepository.TypeTag.UINT64,
+        ]:
+            return UIntType()
+        elif type_tag == GIRepository.TypeTag.UTF8:
+            return StringType()
+        elif type_tag == GIRepository.TypeTag.GTYPE:
+            return TypeType()
+        elif type_tag == GIRepository.TypeTag.INTERFACE:
+            return self._resolve_entry(GIRepository.type_info_get_interface(typeinfo))
+        elif type_tag == GIRepository.TypeTag.ARRAY:
+            item_type = GIRepository.type_info_get_param_type(typeinfo, 0)
+            return ArrayType(self._resolve_type_info(item_type))
         else:
-            blob = self.tl.header[type_id]
-            if blob.TYPE_BLOB_TAG == typelib.TYPE_INTERFACE:
-                return self._resolve_dir_entry(
-                    self.tl.header[type_id].TYPE_BLOB_INTERFACE
-                )
-            elif blob.TYPE_BLOB_TAG == typelib.TYPE_ARRAY:
-                return ArrayType(self._resolve_type_id(blob.TYPE_BLOB_ARRAY_INNER))
-            else:
-                raise CompilerBugError(f"{blob.TYPE_BLOB_TAG}")
+            raise CompilerBugError("Unknown type tag", type_tag)
 
 
 class GirContext:
@@ -1046,8 +982,8 @@ class GirContext:
 
         return self.namespaces[ns].get_type(name)
 
-    def get_class(self, name: str, ns: str) -> T.Optional[Class]:
-        type = self.get_type(name, ns)
+    def get_class(self, ns: str, name: str) -> T.Optional[Class]:
+        type = self.get_type(ns, name)
         if isinstance(type, Class):
             return type
         else:
