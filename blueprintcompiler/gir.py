@@ -18,10 +18,15 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import os
+import sys
 import typing as T
 from functools import cached_property
 
 import gi  # type: ignore
+from gi.repository import GLib, GObject  # type: ignore
+
+from . import xml_reader
+from .errors import CompileError, CompilerBugError
 
 try:
     gi.require_version("GIRepository", "3.0")
@@ -105,30 +110,29 @@ except ValueError:
 
     value_info_get_value = GIRepository.value_info_get_value
 
-from gi.repository import GLib, GObject
-
-from . import xml_reader
-from .errors import CompileError, CompilerBugError
-
-repo = None
-
 _namespace_cache: T.Dict[str, "Namespace"] = {}
-_xml_cache = {}
+_xml_cache: T.Dict[str, xml_reader.Element] = {}
 
-_user_search_paths = []
+_user_typelib_search_paths = []
+_user_gir_search_paths = []
 
 
 def add_typelib_search_path(path: str):
-    _user_search_paths.append(path)
+    _user_typelib_search_paths.append(path)
+
+
+def add_gir_search_path(path: str):
+    _user_gir_search_paths.append(path)
 
 
 def get_namespace(namespace: str, version: str) -> "Namespace":
-    filename = f"{namespace}-{version}"
+    filename = f"{namespace}-{version}.typelib"
+
     if filename not in _namespace_cache:
         try:
             gir_repo = GIRepository.Repository()
 
-            for path in reversed(_user_search_paths):
+            for path in reversed(_user_typelib_search_paths):
                 gir_repo.prepend_search_path(path)
 
             gir_repo.require(namespace, version, 0)
@@ -160,7 +164,7 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
 
     gir_repo = GIRepository.Repository()
     search_paths: list[str] = [
-        *_user_search_paths,
+        *_user_typelib_search_paths,
         *gir_repo.get_search_path(),
     ]
 
@@ -179,12 +183,32 @@ def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
 
 
 def get_xml(namespace: str, version: str):
+    from .main import DATADIR
+
     search_paths = []
 
-    if data_paths := os.environ.get("XDG_DATA_DIRS"):
+    search_paths += _user_gir_search_paths
+
+    if gi_gir_path := os.environ.get("GI_GIR_PATH"):
+        search_paths += gi_gir_path.split(os.pathsep)
+
+    try:
+        from gi.repository import GLib  # type: ignore
+
         search_paths += [
-            os.path.join(path, "gir-1.0") for path in data_paths.split(os.pathsep)
+            os.path.join(path, "gir-1.0") for path in GLib.get_user_data_dir()
         ]
+        search_paths += [
+            os.path.join(path, "gir-1.0") for path in GLib.get_system_data_dirs()
+        ]
+    except ImportError:
+        pass
+
+    if DATADIR is not None:
+        search_paths += [os.path.join(DATADIR, "gir-1.0")]
+
+    if sys.platform != "win32":
+        search_paths += ["/usr/share/gir-1.0", "/usr/local/share/gir-1.0"]
 
     filename = f"{namespace}-{version}.gir"
 

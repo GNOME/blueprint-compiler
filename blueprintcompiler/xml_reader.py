@@ -19,7 +19,6 @@
 
 
 import typing as T
-from collections import defaultdict
 from functools import cached_property
 from xml import sax
 

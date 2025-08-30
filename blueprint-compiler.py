@@ -27,10 +27,12 @@ import sys
 version = "@VERSION@"
 module_path = r"@MODULE_PATH@"
 libdir = r"@LIBDIR@"
+datadir = r"@DATADIR@"
 
 if version == "\u0040VERSION@":
     version = "uninstalled"
     libdir = None
+    datadir = None
 else:
     # If Meson set the configuration values, insert the module path it set
     sys.path.insert(0, module_path)
@@ -38,4 +40,4 @@ else:
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main(version, libdir)
+    main.main(version, libdir, datadir)

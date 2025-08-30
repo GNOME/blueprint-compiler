@@ -20,6 +20,7 @@ configure_file(
 config = configuration_data({
   'VERSION': meson.project_version(),
   'LIBDIR': get_option('prefix') / get_option('libdir'),
+  'DATADIR': get_option('prefix') / get_option('datadir'),
 })
 
 if meson.is_subproject()

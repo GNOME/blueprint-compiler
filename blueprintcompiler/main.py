@@ -27,13 +27,14 @@ import typing as T
 from . import formatter, interactive_port, parser, tokenizer
 from .decompiler import decompile_string
 from .errors import CompileError, CompilerBugError, PrintableError, report_bug
-from .gir import add_typelib_search_path
+from .gir import add_gir_search_path, add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
 from .utils import Colors
 
 VERSION = "uninstalled"
 LIBDIR = None
+DATADIR = None
 
 
 class BlueprintApp:
@@ -47,6 +48,7 @@ class BlueprintApp:
         )
         compile.add_argument("--output", dest="output", default="-")
         compile.add_argument("--typelib-path", nargs="?", action="append")
+        compile.add_argument("--gir-path", nargs="?", action="append")
         compile.add_argument(
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
@@ -59,6 +61,7 @@ class BlueprintApp:
         batch_compile.add_argument("output_dir", metavar="output-dir")
         batch_compile.add_argument("input_dir", metavar="input-dir")
         batch_compile.add_argument("--typelib-path", nargs="?", action="append")
+        batch_compile.add_argument("--gir-path", nargs="?", action="append")
         batch_compile.add_argument(
             "inputs",
             nargs="+",
@@ -109,6 +112,7 @@ class BlueprintApp:
         )
         decompile.add_argument("--output", dest="output", default="-")
         decompile.add_argument("--typelib-path", nargs="?", action="append")
+        decompile.add_argument("--gir-path", nargs="?", action="append")
         decompile.add_argument(
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
@@ -148,6 +152,10 @@ class BlueprintApp:
             for typelib_path in opts.typelib_path:
                 add_typelib_search_path(typelib_path)
 
+        if opts.gir_path != None:
+            for gir_path in opts.gir_path:
+                add_gir_search_path(gir_path)
+
         data = opts.input.read()
         try:
             xml, warnings = self._compile(data)
@@ -168,6 +176,10 @@ class BlueprintApp:
         if opts.typelib_path != None:
             for typelib_path in opts.typelib_path:
                 add_typelib_search_path(typelib_path)
+
+        if opts.gir_path != None:
+            for gir_path in opts.gir_path:
+                add_gir_search_path(gir_path)
 
         for file in opts.inputs:
             path = os.path.join(
@@ -321,6 +333,10 @@ class BlueprintApp:
             for typelib_path in opts.typelib_path:
                 add_typelib_search_path(typelib_path)
 
+        if opts.gir_path != None:
+            for gir_path in opts.gir_path:
+                add_gir_search_path(gir_path)
+
         data = opts.input.read()
         try:
             decompiled = decompile_string(data)
@@ -355,7 +371,7 @@ class BlueprintApp:
         return formatter.emit(ast), warnings
 
 
-def main(version, libdir):
-    global VERSION, LIBDIR
-    VERSION, LIBDIR = version, libdir
+def main(version, libdir, datadir):
+    global VERSION, LIBDIR, DATADIR
+    VERSION, LIBDIR, DATADIR = version, libdir, datadir
     BlueprintApp().main()
