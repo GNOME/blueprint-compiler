@@ -106,6 +106,7 @@ class CompileError(PrintableError):
             if line_num == end_line_num
             else (len(line) - n_spaces - 1)
         )
+        n_carets = max(n_carets, 1)
 
         n_spaces += line.count("\t", 0, col_num)
         n_carets += line.count("\t", col_num, col_num + n_carets)
