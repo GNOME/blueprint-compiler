@@ -283,20 +283,27 @@ class GirType:
 
 
 class ExternType(GirType):
-    def __init__(self, name: str) -> None:
+    def __init__(self, ns: T.Optional[str], name: str) -> None:
         super().__init__()
         self._name = name
+        self._ns = ns
 
     def assignable_to(self, other: GirType) -> bool:
         return True
 
     @property
     def full_name(self) -> str:
-        return self._name
+        if self._ns:
+            return f"${self._ns}.{self._name}"
+        else:
+            return self._name
 
     @property
     def glib_type_name(self) -> str:
-        return self._name
+        if self._ns:
+            return self._ns + self._name
+        else:
+            return self._name
 
     @property
     def incomplete(self) -> bool:

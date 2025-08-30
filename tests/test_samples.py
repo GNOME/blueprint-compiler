@@ -195,6 +195,7 @@ class TestSamples(unittest.TestCase):
                 "expr_closure",
                 "expr_closure_args",
                 "expr_value_closure",
+                "extern_class_with_namespace",
                 "parseable",
                 "signal",
                 "signal_not_swapped",

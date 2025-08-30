@@ -25,6 +25,7 @@ from .common import *
 class TypeName(AstNode):
     grammar = AnyOf(
         [
+            Optional(["$", UseLiteral("extern", True)]),
             UseIdent("namespace"),
             ".",
             UseIdent("class_name"),
@@ -37,6 +38,18 @@ class TypeName(AstNode):
         UseIdent("class_name"),
     )
 
+    @property
+    def is_extern(self) -> bool:
+        return self.tokens["extern"] is True
+
+    @property
+    def class_name(self) -> str:
+        return self.tokens["class_name"]
+
+    @property
+    def namespace(self) -> T.Optional[str]:
+        return self.tokens["namespace"]
+
     @validate()
     def old_extern(self):
         if self.tokens["old_extern"]:
@@ -47,18 +60,16 @@ class TypeName(AstNode):
 
     @validate("class_name")
     def type_exists(self):
-        if not self.tokens["extern"] and self.gir_ns is not None:
-            self.root.gir.validate_type(
-                self.tokens["class_name"], self.tokens["namespace"]
-            )
+        if not self.is_extern and self.gir_ns is not None:
+            self.root.gir.validate_type(self.class_name, self.namespace)
 
     @validate("namespace")
     def gir_ns_exists(self):
-        if not self.tokens["extern"]:
+        if not self.is_extern:
             try:
-                self.root.gir.validate_ns(self.tokens["namespace"])
+                self.root.gir.validate_ns(self.namespace)
             except CompileError as e:
-                ns = self.tokens["namespace"]
+                ns = self.namespace
                 e.actions = [
                     self.root.import_code_action(n, version)
                     for n, version in gir.get_available_namespaces()
@@ -79,29 +90,30 @@ class TypeName(AstNode):
 
     @property
     def gir_ns(self) -> T.Optional[gir.Namespace]:
-        if not self.tokens["extern"]:
-            return self.root.gir.namespaces.get(self.tokens["namespace"] or "Gtk")
+        if not self.is_extern:
+            return self.root.gir.namespaces.get(self.namespace or "Gtk")
         return None
 
     @property
     def gir_type(self) -> gir.GirType:
-        if self.tokens["class_name"] and not self.tokens["extern"]:
-            return self.root.gir.get_type(
-                self.tokens["class_name"], self.tokens["namespace"]
-            )
+        if self.class_name is not None and not self.is_extern:
+            return self.root.gir.get_type(self.class_name, self.namespace)
 
-        return gir.ExternType(self.tokens["class_name"])
+        return gir.ExternType(self.namespace, self.class_name)
 
     @property
     def glib_type_name(self) -> str:
         if gir_type := self.gir_type:
             return gir_type.glib_type_name
         else:
-            return self.tokens["class_name"]
+            if self.namespace:
+                return self.namespace + self.class_name
+            else:
+                return self.class_name
 
     @docs("namespace")
     def namespace_docs(self):
-        if ns := self.root.gir.namespaces.get(self.tokens["namespace"]):
+        if ns := self.root.gir.namespaces.get(self.namespace):
             return ns.doc
 
     @docs("class_name")
@@ -111,12 +123,12 @@ class TypeName(AstNode):
 
     @property
     def as_string(self) -> str:
-        if self.tokens["extern"]:
-            return "$" + self.tokens["class_name"]
-        elif self.tokens["namespace"]:
-            return f"{self.tokens['namespace']}.{self.tokens['class_name']}"
-        else:
-            return self.tokens["class_name"]
+        name = self.class_name
+        if self.namespace:
+            name = f"{self.namespace}.{name}"
+        if self.is_extern:
+            name = f"${name}"
+        return name
 
 
 class ClassName(TypeName):
@@ -153,15 +165,15 @@ class TemplateClassName(ClassName):
     @property
     def is_legacy(self):
         return (
-            self.tokens["extern"] is None
-            and self.tokens["namespace"] is None
-            and self.root.gir.get_type(self.tokens["class_name"], "Gtk") is None
+            not self.is_extern
+            and self.namespace is None
+            and self.root.gir.get_type(self.class_name, "Gtk") is None
         )
 
     @property
     def gir_type(self) -> gir.GirType:
         if self.is_legacy:
-            return gir.ExternType(self.tokens["class_name"])
+            return gir.ExternType(self.namespace, self.class_name)
         else:
             return super().gir_type
 
@@ -178,7 +190,5 @@ class TemplateClassName(ClassName):
                 actions=[CodeAction("Use type syntax", replace_with=replacement)],
             )
 
-        if not self.tokens["extern"] and self.gir_ns is not None:
-            self.root.gir.validate_type(
-                self.tokens["class_name"], self.tokens["namespace"]
-            )
+        if not self.is_extern and self.gir_ns is not None:
+            self.root.gir.validate_type(self.class_name, self.namespace)

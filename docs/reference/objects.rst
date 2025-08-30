@@ -43,12 +43,12 @@ Type Names
 
    TypeName = TypeNameFull | TypeNameExternal | TypeNameShort
    TypeNameFull = <namespace::ref:`IDENT<Syntax IDENT>`> '.' <name::ref:`IDENT<Syntax IDENT>`>
-   TypeNameExternal = '$' <name::ref:`IDENT<Syntax IDENT>`>
+   TypeNameExternal = '$' (TypeNameFull | TypeNameShort)
    TypeNameShort = <name::ref:`IDENT<Syntax IDENT>`>
 
 There are three forms of type names: full, short, and external. Full type names take the form ``{namespace}.{name}``, e.g. ``Gtk.ApplicationWindow`` or ``Adw.Leaflet``. Because GTK types are so common, the Gtk namespace may be omitted, shortening ``Gtk.ApplicationWindow`` to just ``ApplicationWindow``.
 
-External type names refer to types defined in your application. They are prefixed with ``$`` and do not have a dot between the namespace and class name. In fact, anywhere a ``$`` is used in a blueprint, it refers to something that must be defined in your application code.
+External type names refer to types defined in your application and are prefixed with ``$``. In fact, anywhere a ``$`` is used in a blueprint, it refers to something that must be defined in your application code. External type names can have a ``.`` between the namespace and class name for readability, but this is not required.
 
 
 .. _Syntax Property:
