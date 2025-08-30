@@ -33,8 +33,11 @@ class LayoutProperty(AstNode):
         return self.tokens["name"]
 
     @property
-    def value(self) -> Value:
-        return self.children[Value][0]
+    def value(self) -> T.Optional[Value]:
+        if len(self.children[Value]) > 0:
+            return self.children[Value][0]
+        else:
+            return None
 
     @property
     def document_symbol(self) -> DocumentSymbol:
@@ -43,7 +46,7 @@ class LayoutProperty(AstNode):
             SymbolKind.Field,
             self.range,
             self.group.tokens["name"].range,
-            self.value.range.text,
+            self.value.range.text if self.value else None,
         )
 
     @context(ValueTypeCtx)
