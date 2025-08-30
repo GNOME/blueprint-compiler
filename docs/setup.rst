@@ -53,7 +53,7 @@ blueprint-compiler works as a meson subproject.
           # LIST YOUR BLUEPRINT FILES HERE
         ),
         output: '.',
-        command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+        command: [find_program('blueprint-compiler'), 'batch-compile', '--minify', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
       )
 
 #. In the same ``meson.build`` file, add this argument to your ``gnome.compile_resources`` command:

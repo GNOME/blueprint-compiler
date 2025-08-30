@@ -50,6 +50,10 @@ class BlueprintApp:
         compile.add_argument("--typelib-path", nargs="?", action="append")
         compile.add_argument("--gir-path", nargs="?", action="append")
         compile.add_argument(
+            "--minify",
+            action="store_true",
+        )
+        compile.add_argument(
             "input", metavar="filename", default=sys.stdin, type=argparse.FileType("r")
         )
 
@@ -62,6 +66,10 @@ class BlueprintApp:
         batch_compile.add_argument("input_dir", metavar="input-dir")
         batch_compile.add_argument("--typelib-path", nargs="?", action="append")
         batch_compile.add_argument("--gir-path", nargs="?", action="append")
+        batch_compile.add_argument(
+            "--minify",
+            action="store_true",
+        )
         batch_compile.add_argument(
             "inputs",
             nargs="+",
@@ -158,7 +166,7 @@ class BlueprintApp:
 
         data = opts.input.read()
         try:
-            xml, warnings = self._compile(data)
+            xml, warnings = self._compile(data, minify=opts.minify)
 
             for warning in warnings:
                 warning.pretty_print(opts.input.name, data, stream=sys.stderr)
@@ -205,7 +213,7 @@ class BlueprintApp:
                     )
                     sys.exit(1)
 
-                xml, warnings = self._compile(data)
+                xml, warnings = self._compile(data, minify=opts.minify)
 
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
@@ -357,7 +365,7 @@ class BlueprintApp:
     def cmd_port(self, opts):
         interactive_port.run(opts)
 
-    def _compile(self, data: str) -> T.Tuple[str, T.List[CompileError]]:
+    def _compile(self, data: str, minify: bool) -> T.Tuple[str, T.List[CompileError]]:
         tokens = tokenizer.tokenize(data)
         ast, errors, warnings = parser.parse(tokens)
 
@@ -366,7 +374,10 @@ class BlueprintApp:
         if ast is None:
             raise CompilerBugError()
 
-        formatter = XmlOutput()
+        if minify:
+            formatter = XmlOutput(indent=None, generated_notice=False)
+        else:
+            formatter = XmlOutput()
 
         return formatter.emit(ast), warnings
 
