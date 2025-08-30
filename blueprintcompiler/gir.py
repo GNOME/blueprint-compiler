@@ -127,11 +127,13 @@ def get_namespace(namespace: str, version: str) -> "Namespace":
     if filename not in _namespace_cache:
         try:
             gir_repo = GIRepository.Repository()
+
+            for path in reversed(_user_search_paths):
+                gir_repo.prepend_search_path(path)
+
             gir_repo.require(namespace, version, 0)
-            repo = Repository(gir_repo)
-            for ns in gir_repo.get_loaded_namespaces():
-                version = gir_repo.get_version(ns)
-                _namespace_cache[f"{ns}-{version}"] = repo.lookup_namespace(ns)
+            repo = Repository(gir_repo, namespace)
+            _namespace_cache[filename] = repo.lookup_namespace(namespace)
         except GLib.GError as e:
             if e.matches(
                 GIRepository.Repository.error_quark(),
@@ -995,20 +997,22 @@ class Namespace(GirNode):
 
 
 class Repository(GirNode):
-    def __init__(self, gir_repo: GIRepository.Repository) -> None:
+    def __init__(self, gir_repo: GIRepository.Repository, ns: str) -> None:
         super().__init__(None, None)
         self.gir_repo = gir_repo
 
-        self._namespaces: T.Dict[str, Namespace] = {}
+        self._namespace = Namespace(self, gir_repo, ns)
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
         return self.lookup_namespace(ns).get_type(name)
 
     def lookup_namespace(self, ns: str):
         """Finds a namespace among this namespace's dependencies."""
-        if ns not in self._namespaces:
-            self._namespaces[ns] = Namespace(self, self.gir_repo, ns)
-        return self._namespaces[ns]
+        if ns == self._namespace.name:
+            return self._namespace
+
+        version = self.gir_repo.get_version(ns)
+        return get_namespace(ns, version)
 
     def _resolve_entry(self, baseinfo: GIRepository.BaseInfo):
         return self.get_type(baseinfo.get_name(), baseinfo.get_namespace())

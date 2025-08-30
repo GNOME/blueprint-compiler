@@ -84,6 +84,9 @@ class Import(AstNode):
 
     @validate("namespace", "version")
     def namespace_exists(self):
+        if self.namespace is None or self.version is None:
+            return
+
         gir.get_namespace(self.namespace, self.version)
 
     @validate()
@@ -99,6 +102,9 @@ class Import(AstNode):
 
     @property
     def gir_namespace(self):
+        if self.namespace is None or self.version is None:
+            return None
+
         try:
             return gir.get_namespace(self.namespace, self.version)
         except CompileError:
