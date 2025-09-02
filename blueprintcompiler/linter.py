@@ -32,6 +32,9 @@ from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
 from blueprintcompiler.linter_rules.translatable_display_string import (
     TranslatableDisplayString,
 )
+from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
+    UseStylesOverCssClasses,
+)
 
 
 def walk_ast(ast, func, stack=None):
@@ -53,6 +56,7 @@ RULES = [
     AvoidAllCaps,
     PreferUnicodeChars,
     MissingUserFacingProperties,
+    UseStylesOverCssClasses,
 ]
 
 

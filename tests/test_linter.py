@@ -304,6 +304,10 @@ class TestLinter(unittest.TestCase):
                 },
             ],
         )
+        self.check_file(
+            "use_styles_over_css_classes",
+            [{"line": 9, "message": "Avoid using css-classes. Use styles[] instead."}],
+        )
         # This creates error messages for the unique elements
         unique_elements = set()
         line = 5
