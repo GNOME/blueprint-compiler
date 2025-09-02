@@ -4,6 +4,7 @@ from blueprintcompiler.language.gtk_a11y import ExtAccessibility
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
+
 class RequireA11yLabel(LinterRule):
     def check(self, type, child, stack):
         # rule suggestion/require-a11y-label

@@ -5,6 +5,7 @@ from blueprintcompiler.language.values import Translated
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
+
 class MissingUserFacingProperties(LinterRule):
     def check(self, type, child, stack):
         properties = child.content.children[Property]

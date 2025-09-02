@@ -190,3 +190,33 @@ Examples of **correct** code for this rule:
    Window {
       title: _("foobar");
    }
+
+Discourage css-classes usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Rule**: use_styles_over_css_classes
+**Details**: Promotes the use of `styles` array instead of `css-classes` which overrides default classes.
+
+Examples of **incorrect** code for this rule:
+
+.. code-block:: blueprint
+
+   Box {
+      orientation: vertical;
+      overflow: hidden;
+      css-classes: ["shadowed"];
+   }
+
+
+Examples of **correct** code for this rule:
+
+.. code-block:: blueprint
+
+   Box {
+      orientation: vertical;
+      overflow: hidden;
+      styles [
+         "Card",
+         "translation-side-box",
+      ]
+   }

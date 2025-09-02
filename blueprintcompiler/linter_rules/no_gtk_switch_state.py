@@ -3,6 +3,7 @@ from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
+
 class NoGtkSwitchState(LinterRule):
     def check(self, type, child, stack):
         # rule problem/no-gtkswitch-state

@@ -3,6 +3,7 @@ from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
+
 class NoVisibleTrue(LinterRule):
     def check(self, type, child, stack):
         # rule suggestion/no-visible-true
