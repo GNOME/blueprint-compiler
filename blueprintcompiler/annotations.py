@@ -190,11 +190,10 @@ _ANNOTATIONS = {
     ),
 }
 
+
 def get_annotation_elements():
     result = []
-    exceptions = {
-        "GtkSource": "Gtk"
-    }
+    exceptions = {"GtkSource": "Gtk"}
     for key, annotation in _ANNOTATIONS.items():
         namespace = key.split("-")[0]
         prefix = exceptions.get(namespace, namespace)

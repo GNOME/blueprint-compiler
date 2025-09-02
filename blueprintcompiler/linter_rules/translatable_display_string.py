@@ -1,4 +1,4 @@
-from blueprintcompiler.errors import CompileWarning, CodeAction
+from blueprintcompiler.errors import CodeAction, CompileWarning
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.language.values import Translated
 from blueprintcompiler.linter_rules.utils import LinterRule
@@ -16,10 +16,7 @@ class TranslatableDisplayString(LinterRule):
                         f'Mark {type} {property.name} as translatable using _("...")',
                         range,
                         actions=[
-                            CodeAction(
-                                "mark as translatable",
-                                "_(" + range.text + ")"
-                            )
-                        ]
+                            CodeAction("mark as translatable", "_(" + range.text + ")")
+                        ],
                     )
                     self.problems.append(problem)

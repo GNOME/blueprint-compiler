@@ -24,6 +24,7 @@ from blueprintcompiler.linter_rules.missing_user_facing_properties import (
     MissingUserFacingProperties,
 )
 from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
+from blueprintcompiler.linter_rules.no_visible_true import NoVisibleTrue
 from blueprintcompiler.linter_rules.number_of_children import NumberOfChildren
 from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
 from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
@@ -47,6 +48,7 @@ RULES = [
     PreferAdwBin,
     TranslatableDisplayString,
     NoGtkSwitchState,
+    NoVisibleTrue,
     RequireA11yLabel,
     AvoidAllCaps,
     PreferUnicodeChars,
