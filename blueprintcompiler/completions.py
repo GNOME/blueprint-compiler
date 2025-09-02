@@ -244,7 +244,7 @@ def property_completer(ctx: CompletionContext):
             elif isinstance(prop.type, gir.StringType):
                 snippet = (
                     f'{prop_name}: _("$0");'
-                    if annotations.is_property_translated(prop)
+                    if annotations.is_property_user_facing_string(prop.type, prop)
                     else f'{prop_name}: "$0";'
                 )
             elif (

@@ -1,6 +1,7 @@
 import copy
 import re
 
+from blueprintcompiler import annotations
 from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
@@ -41,7 +42,7 @@ PATTERNS = {
 class PreferUnicodeChars(LinterRule):
     def check(self, type, child, stack):
         for property in child.content.children[Property]:
-            if self.is_ui_string(type, property):
+            if annotations.is_property_user_facing_string(type, property):
                 self.check_property(property)
 
     def check_property(self, property):

@@ -30,15 +30,40 @@ class Annotation:
     translatable_properties: T.List[str]
 
 
-def is_property_translated(property: gir.Property):
-    ns = property.get_containing(gir.Namespace)
-    ns_name = ns.name + "-" + ns.version
-    if annotation := _ANNOTATIONS.get(ns_name):
-        assert property.container is not None
-        return (
-            property.container.name + ":" + property.name
-            in annotation.translatable_properties
-        )
+def get_namespace_name(type, property):
+    try:
+        # GIR-style lookup
+        ns = property.get_containing(gir.Namespace)
+        return ns.name + "-" + ns.version
+    except AttributeError:
+        # Fallback if .get_containing() doesn’t exist
+        return type.split(".")[0]
+
+
+def find_annotations(ns_name: str):
+    # Exact match
+    if ns_name in _ANNOTATIONS:
+        return _ANNOTATIONS[ns_name]
+    # Prefix match
+    for key in _ANNOTATIONS:
+        if ns_name.startswith(key.split("-")[0]):
+            return _ANNOTATIONS[key]
+
+
+def is_property_user_facing_string(type, property: gir.Property):
+    ns_name = get_namespace_name(type, property)
+    if annotation := find_annotations(ns_name):
+        try:
+            assert property.container is not None
+            return (
+                property.container.name + ":" + property.name
+                in annotation.translatable_properties
+            )
+        except AttributeError:
+            return (
+                type.split(".")[1] + ":" + property.name
+                in annotation.translatable_properties
+            )
     else:
         return False
 

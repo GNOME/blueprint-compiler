@@ -1,3 +1,4 @@
+from blueprintcompiler import annotations
 from blueprintcompiler.errors import CompileWarning
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.linter_rules.utils import LinterRule
@@ -7,7 +8,7 @@ from blueprintcompiler.linter_rules.utils import LinterRule
 class AvoidAllCaps(LinterRule):
     def check(self, type, child, stack):
         for property in child.content.children[Property]:
-            if self.is_ui_string(type, property):
+            if annotations.is_property_user_facing_string(type, property):
                 (string, range) = self.get_string_value(property)
                 # Show linter error for upper case and multi letter strings
                 if string and string.isupper() and len(string) > 1:
