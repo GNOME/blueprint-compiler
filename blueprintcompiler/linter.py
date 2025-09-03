@@ -19,7 +19,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from blueprintcompiler.language.gobject_object import Object
+from blueprintcompiler.language.gtkbuilder_child import Child
+from blueprintcompiler.language.ui import UI
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
+from blueprintcompiler.linter_rules.clamp_scrolledwindow import ClampScrolledWindow
 from blueprintcompiler.linter_rules.missing_user_facing_properties import (
     MissingUserFacingProperties,
 )
@@ -37,7 +40,7 @@ from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
 )
 
 
-def walk_ast(ast, func, stack=None):
+def walk_ast(node, func, stack=None):
     stack = stack or []
     for child in ast.children:
         if isinstance(child, Object):
@@ -57,6 +60,7 @@ RULES = [
     PreferUnicodeChars,
     MissingUserFacingProperties,
     UseStylesOverCssClasses,
+    ClampScrolledWindow,
 ]
 
 

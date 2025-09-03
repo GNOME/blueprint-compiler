@@ -220,3 +220,38 @@ Examples of **correct** code for this rule:
          "translation-side-box",
       ]
    }
+   
+Clamp in ScrolledWindow warning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Rule**: clamp_scrolledwindow
+**Details**: Clamp should be used as a child property to ScrolledWindow for proper scroll behavior.
+
+Examples of **incorrect** code for this rule:
+
+.. code-block:: blueprint
+
+   ScrolledWindow {
+      child: Adw.Clamp {
+         child: Box {
+            Label {
+            label: _("This is incorrect");
+            }
+         }
+      }
+   }
+
+Examples of **correct** code for this rule:
+
+.. code-block:: blueprint
+
+   Adw.Clamp {
+      child: ScrolledWindow {
+         child: Box {
+            Label {
+            label: _("This is correct");
+            }
+         }
+      }
+   }
+

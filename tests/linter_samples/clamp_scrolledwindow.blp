@@ -1,0 +1,26 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+
+ScrolledWindow {
+  Adw.Clamp {
+    Box {
+      Label {
+        label: _("This is incorrect");
+      }
+    }
+  }
+}
+
+// Good Example
+
+Adw.Clamp {
+  ScrolledWindow {
+    Box {
+      Label {
+        label: _("This is correct");
+      }
+    }
+  }
+}

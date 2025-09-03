@@ -144,7 +144,15 @@ class TestLinter(unittest.TestCase):
                 {
                     "line": 6,
                     "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
-                }
+                },
+                {
+                    "line": 6,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+                {
+                    "line": 11,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
             ],
         )
         self.check_file(
@@ -307,6 +315,23 @@ class TestLinter(unittest.TestCase):
         self.check_file(
             "use_styles_over_css_classes",
             [{"line": 9, "message": "Avoid using css-classes. Use styles[] instead."}],
+        )
+        self.check_file(
+            "clamp_scrolledwindow",
+            [
+                {
+                    "line": 7,
+                    "message": "Clamp should not be nested in ScrolledWindow.",
+                },
+                {
+                    "line": 9,
+                    "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
+                },
+                {
+                    "line": 21,
+                    "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
+                },
+            ],
         )
         # This creates error messages for the unique elements
         unique_elements = set()
