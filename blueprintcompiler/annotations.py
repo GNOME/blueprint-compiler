@@ -35,9 +35,12 @@ def get_namespace_name(type, property):
         # GIR-style lookup
         ns = property.get_containing(gir.Namespace)
         return ns.name + "-" + ns.version
-    except AttributeError:
-        # Fallback if .get_containing() doesn’t exist
-        return type.split(".")[0]
+    except AttributeError as error:
+        if "'Property' object has no attribute 'get_containing'" in str(error):
+            # Fallback if .get_containing() doesn’t exist
+            return type.split(".")[0]
+        else:
+            raise
 
 
 def find_annotations(ns_name: str):
@@ -59,11 +62,14 @@ def is_property_user_facing_string(type, property: gir.Property):
                 property.container.name + ":" + property.name
                 in annotation.translatable_properties
             )
-        except AttributeError:
-            return (
-                type.split(".")[1] + ":" + property.name
-                in annotation.translatable_properties
-            )
+        except AttributeError as error:
+            if "'Property' object has no attribute 'container'" in str(error):
+                return (
+                    type.split(".")[1] + ":" + property.name
+                    in annotation.translatable_properties
+                )
+            else:
+                raise
     else:
         return False
 
