@@ -42,11 +42,18 @@ from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
 
 def walk_ast(node, func, stack=None):
     stack = stack or []
-    for child in ast.children:
-        if isinstance(child, Object):
-            type = child.class_name.gir_type.full_name
-            func(type, child, stack)
-            walk_ast(child, func, stack + [ast])
+
+    if isinstance(node, UI):
+        for child in node.children:
+            if isinstance(child, Object):
+                walk_ast(child, func, stack)
+
+    if isinstance(node, Object):
+        type = node.class_name.gir_type.full_name
+        func(type, node, stack)
+
+        for child in node.content.children[Child]:
+            walk_ast(child.object, func, stack + [node])
 
 
 RULES = [
