@@ -16,5 +16,5 @@ class UnusedWidgets(LinterRule):
                 )
                 self.problems.append(problem)
 
-
+# Add more test widgets as needed with relevant parents
 declared_widgets = {"Gtk.Label": ["Gtk.Box", "Gtk.Window"]}

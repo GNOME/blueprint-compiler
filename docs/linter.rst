@@ -207,7 +207,6 @@ Examples of **incorrect** code for this rule:
       css-classes: ["shadowed"];
    }
 
-
 Examples of **correct** code for this rule:
 
 .. code-block:: blueprint
@@ -220,7 +219,47 @@ Examples of **correct** code for this rule:
          "translation-side-box",
       ]
    }
-   
+
+Warn on unused widgets
+~~~~~~~~~~~~~~~~~~~~~~
+
+**Rule**: unused_widgets
+**Details**:  A widget is declared but not used under an appropriate parent widget.
+
+Examples of **incorrect** code for this rule:
+
+.. code-block:: blueprint
+
+   // If this widget is declared but never added to a container (Box, Window, etc.). It's invisible and unused.
+
+   Label {
+      label: _("Info")
+   }
+
+
+Examples of **correct** code for this rule:
+
+.. code-block:: blueprint
+
+   // Label is part of a Box and Window which is rendered on a screen.
+
+   @template Window
+   window ApplicationWindow {
+      default-width: 300
+      default-height: 100
+      title: _("Used widget")
+
+      Box {
+         orientation: vertical
+         spacing: 6
+
+         Label {
+            label: _("Info")
+         }
+      }
+   }
+
+
 Clamp in ScrolledWindow warning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -239,7 +278,7 @@ Examples of **incorrect** code for this rule:
             }
          }
       }
-   }
+
 
 Examples of **correct** code for this rule:
 
@@ -254,4 +293,3 @@ Examples of **correct** code for this rule:
          }
       }
    }
-
