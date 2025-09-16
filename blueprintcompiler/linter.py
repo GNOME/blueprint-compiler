@@ -32,6 +32,9 @@ from blueprintcompiler.linter_rules.missing_user_facing_properties import (
 from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
 from blueprintcompiler.linter_rules.no_visible_true import NoVisibleTrue
 from blueprintcompiler.linter_rules.number_of_children import NumberOfChildren
+from blueprintcompiler.linter_rules.order_properties_gtk_adjustment import (
+    OrderPropertiesGtkAdjustment,
+)
 from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
 from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
 from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
@@ -74,6 +77,7 @@ RULES = [
     ClampScrolledWindow,
     UnusedWidgets,
     IncorrectWidgetPlacement,
+    OrderPropertiesGtkAdjustment,
 ]
 
 

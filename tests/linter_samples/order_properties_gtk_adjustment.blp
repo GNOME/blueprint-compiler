@@ -1,0 +1,40 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Examples
+Scale one {
+    width-request: 130;
+    adjustment: Adjustment {
+    lower: 0;
+    value: 50;
+    upper: 100;
+  };
+}
+
+Scale two {
+    width-request: 130;
+    adjustment: Adjustment {
+    value: 50;
+    upper: 100;
+    lower: 0;
+  };
+}
+
+Scale three {
+    width-request: 130;
+    adjustment: Adjustment {
+    upper: 100;
+    lower: 0;
+    value: 50;
+  };
+}
+
+// Good Example
+Scale four {
+    width-request: 130;
+    adjustment: Adjustment {
+    lower: 0;
+    upper: 100;
+    value: 50;
+  };
+}

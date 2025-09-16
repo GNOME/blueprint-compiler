@@ -418,6 +418,23 @@ class TestLinter(unittest.TestCase):
                 },
             ],
         )
+        self.check_file(
+            "order_properties_gtk_adjustment",
+            [
+                {
+                    "line": 5,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
+                {
+                    "line": 14,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
+                {
+                    "line": 23,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
+            ],
+        )
 
     def check_file(self, name, expected_problems):
         filepath = Path(__file__).parent.joinpath("linter_samples", f"{name}.blp")
