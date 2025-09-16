@@ -27,6 +27,7 @@ from blueprintcompiler.linter_rules.missing_user_facing_properties import (
     MissingUserFacingProperties,
 )
 from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
+
 from blueprintcompiler.linter_rules.no_visible_true import NoVisibleTrue
 from blueprintcompiler.linter_rules.number_of_children import NumberOfChildren
 from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
@@ -40,8 +41,7 @@ from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
 )
 from blueprintcompiler.linter_rules.unused_widgets import UnusedWidgets
 
-
-def walk_ast(node, func, stack=None):
+def walk_ast(node, func, stack = None):
     stack = stack or []
 
     if isinstance(node, UI):
