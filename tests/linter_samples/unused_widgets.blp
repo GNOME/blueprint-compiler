@@ -1,0 +1,30 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+
+Label {
+  label: _("Info");
+}
+
+Entry {
+  Label {
+    label: _("Info");
+  }
+}
+
+// Good Example
+
+Box {
+  orientation: vertical;
+  spacing: 6;
+  Label {
+    label: _("Info");
+  }
+}
+
+Window {
+  Label {
+    label: _("Info");
+  }
+}

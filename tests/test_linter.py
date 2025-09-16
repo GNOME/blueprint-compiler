@@ -122,7 +122,11 @@ class TestLinter(unittest.TestCase):
     def test_linter_samples(self):
         self.check_file(
             "label_with_child",
-            [{"line": 7, "message": "Gtk.Label cannot have children"}],
+            [
+                {"line": 7, "message": "Gtk.Label cannot have children"},
+                {"line": 5, "message": "Gtk.Label must have a parent"},
+                {"line": 11, "message": "Gtk.Label must have a parent"},
+            ],
         )
         self.check_file(
             "number_of_children",
@@ -153,17 +157,25 @@ class TestLinter(unittest.TestCase):
                     "line": 11,
                     "message": "Gtk.Label is missing required user-facing text property",
                 },
+                {
+                    "line": 11,
+                    "message": "Gtk.Label is incorrectly used and must have parents Gtk.Box, Gtk.Window",
+                },
             ],
+        )
+        translatable_display_string_result = [
+            {
+                "line": line,
+                "message": f'Mark {toolkit} {properties} as translatable using _("...")',
+            }
+            for line, toolkit, properties in user_facing_text_checks
+        ]
+        translatable_display_string_result.insert(
+            1, {"line": 5, "message": "Gtk.Label must have a parent"}
         )
         self.check_file(
             "translatable_display_string",
-            [
-                {
-                    "line": line,
-                    "message": f'Mark {toolkit} {properties} as translatable using _("...")',
-                }
-                for line, toolkit, properties in user_facing_text_checks
-            ]
+            translatable_display_string_result
             + [
                 {
                     "line": 258,
@@ -173,17 +185,25 @@ class TestLinter(unittest.TestCase):
                     "line": 257,
                     "message": "Gtk.Picture is missing an accessibility label",
                 },
+                {
+                    "line": 262,
+                    "message": "Gtk.Label must have a parent",
+                },
             ],
+        )
+        avoid_all_caps_result = [
+            {
+                "line": line,
+                "message": f"Avoid using all upper case for {toolkit} {properties}",
+            }
+            for line, toolkit, properties in user_facing_text_checks
+        ]
+        avoid_all_caps_result.insert(
+            1, {"line": 5, "message": "Gtk.Label must have a parent"}
         )
         self.check_file(
             "avoid_all_caps",
-            [
-                {
-                    "line": line,
-                    "message": f"Avoid using all upper case for {toolkit} {properties}",
-                }
-                for line, toolkit, properties in user_facing_text_checks
-            ]
+            avoid_all_caps_result
             + [
                 {
                     "line": 257,
@@ -200,6 +220,10 @@ class TestLinter(unittest.TestCase):
                 {
                     "line": 261,
                     "message": "Avoid using all upper case for Gtk.Button label",
+                },
+                {
+                    "line": 265,
+                    "message": "Gtk.Label must have a parent",
                 },
             ],
         )
@@ -336,10 +360,10 @@ class TestLinter(unittest.TestCase):
         # This creates error messages for the unique elements
         unique_elements = set()
         line = 5
-        results = []
+        missing_user_facing_properties_result = []
         for _, toolkit, _ in user_facing_text_checks:
             if toolkit not in unique_elements:
-                results.append(
+                missing_user_facing_properties_result.append(
                     {
                         "line": line,
                         "message": f"{toolkit} is missing required user-facing text property",
@@ -347,12 +371,16 @@ class TestLinter(unittest.TestCase):
                 )
                 unique_elements.add(toolkit)
                 line += 3
-        results.insert(
-            1, {"line": 8, "message": "Gtk.Button is missing an accessibility label"}
+        missing_user_facing_properties_result.insert(
+            1, {"line": 5, "message": "Gtk.Label must have a parent"}
+        )
+        missing_user_facing_properties_result.insert(
+            2,
+            {"line": 8, "message": "Gtk.Button is missing an accessibility label"},
         )
         self.check_file(
             "missing_user_facing_properties",
-            results
+            missing_user_facing_properties_result
             + [
                 {
                     "line": 170,
@@ -361,6 +389,32 @@ class TestLinter(unittest.TestCase):
                 {
                     "line": 170,
                     "message": "Gtk.Picture is missing required user-facing text property",
+                },
+                {
+                    "line": 175,
+                    "message": "Gtk.Label must have a parent",
+                },
+            ],
+        )
+        self.check_file(
+            "unused_widgets",
+            [
+                {"line": 6, "message": "Gtk.Label must have a parent"},
+                {
+                    "line": 10,
+                    "message": "Gtk.Entry is missing required user-facing text property",
+                },
+                {
+                    "line": 11,
+                    "message": "Gtk.Label is incorrectly used and must have parents Gtk.Box, Gtk.Window",
+                },
+                {
+                    "line": 21,
+                    "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
+                },
+                {
+                    "line": 26,
+                    "message": "Gtk.Window is missing required user-facing text property",
                 },
             ],
         )
