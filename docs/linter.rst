@@ -153,6 +153,38 @@ Examples of **correct** code for this rule:
       }
    }
 
+Order of properties on Gtk.Adjustment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Rule**: order_properties_gtk_adjustment
+**Details**:  Warn if Gtk.Adjustment properties are declared out of order (lower, upper, and then value).
+
+Examples of **incorrect** code for this rule:
+
+.. code-block:: blueprint
+
+   Scale one {
+      width-request: 130;
+      adjustment: Adjustment {
+         lower: 0;
+         value: 50;
+         upper: 100;
+      };
+   }
+
+
+Examples of **correct** code for this rule:
+
+.. code-block:: blueprint
+
+   Scale one {
+      width-request: 130;
+      adjustment: Adjustment {
+         lower: 0;
+         upper: 100;
+         value: 50;
+      };
+   }
 
 Miscellaneous Rules
 -------------------
