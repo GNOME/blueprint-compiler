@@ -23,6 +23,9 @@ from blueprintcompiler.language.gtkbuilder_child import Child
 from blueprintcompiler.language.ui import UI
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
 from blueprintcompiler.linter_rules.clamp_scrolledwindow import ClampScrolledWindow
+from blueprintcompiler.linter_rules.incorrect_widget_placement import (
+    IncorrectWidgetPlacement,
+)
 from blueprintcompiler.linter_rules.missing_user_facing_properties import (
     MissingUserFacingProperties,
 )
@@ -70,6 +73,7 @@ RULES = [
     UseStylesOverCssClasses,
     ClampScrolledWindow,
     UnusedWidgets,
+    IncorrectWidgetPlacement,
 ]
 
 

@@ -397,7 +397,7 @@ class TestLinter(unittest.TestCase):
             ],
         )
         self.check_file(
-            "unused_widgets",
+            "incorrect_widget_placement",
             [
                 {"line": 6, "message": "Gtk.Label must have a parent"},
                 {

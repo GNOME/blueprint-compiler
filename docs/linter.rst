@@ -223,7 +223,7 @@ Examples of **correct** code for this rule:
 Warn on unused widgets
 ~~~~~~~~~~~~~~~~~~~~~~
 
-**Rule**: unused_widgets
+**Rule**: incorrect_widget_placement
 **Details**:  A widget is declared but not used under an appropriate parent widget.
 
 Examples of **incorrect** code for this rule:

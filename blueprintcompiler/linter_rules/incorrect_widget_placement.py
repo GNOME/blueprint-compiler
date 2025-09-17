@@ -3,7 +3,7 @@ from blueprintcompiler.language.gtkbuilder_child import Child
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
-class UnusedWidgets(LinterRule):
+class IncorrectWidgetPlacement(LinterRule):
     def check(self, type, child, stack):
         if type in declared_widgets:
             if len(stack) == 0:
@@ -15,6 +15,7 @@ class UnusedWidgets(LinterRule):
                     child.range,
                 )
                 self.problems.append(problem)
+
 
 # Add more test widgets as needed with relevant parents
 declared_widgets = {"Gtk.Label": ["Gtk.Box", "Gtk.Window"]}
