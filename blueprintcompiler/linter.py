@@ -45,7 +45,6 @@ from blueprintcompiler.linter_rules.translatable_display_string import (
 from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
     UseStylesOverCssClasses,
 )
-from blueprintcompiler.linter_rules.unused_widgets import UnusedWidgets
 
 
 def walk_ast(node, func, stack=None):
@@ -81,7 +80,6 @@ RULES = [
     MissingUserFacingProperties,
     UseStylesOverCssClasses,
     ClampScrolledWindow,
-    UnusedWidgets,
     IncorrectWidgetPlacement,
     OrderPropertiesGtkAdjustment,
 ]

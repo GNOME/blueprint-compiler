@@ -3,7 +3,6 @@ from blueprintcompiler.language.gtkbuilder_child import Child
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
-
 class PreferAdwBin(LinterRule):
     def check(self, type, child, stack):
         # rule suggestion/prefer-adwbin

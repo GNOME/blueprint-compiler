@@ -5,7 +5,6 @@ from blueprintcompiler.language.values import Translated
 from blueprintcompiler.linter_rules.utils import LinterRule
 
 
-
 class TranslatableDisplayString(LinterRule):
     def check(self, type, child, stack):
         # rule suggestion/translatable-display-string

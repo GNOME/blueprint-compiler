@@ -252,7 +252,7 @@ Examples of **correct** code for this rule:
       ]
    }
 
-Warn on unused widgets
+Warn on incorrect widget placement
 ~~~~~~~~~~~~~~~~~~~~~~
 
 **Rule**: incorrect_widget_placement

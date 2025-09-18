@@ -422,15 +422,15 @@ class TestLinter(unittest.TestCase):
             "order_properties_gtk_adjustment",
             [
                 {
-                    "line": 5,
+                    "line": 7,
                     "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
                 },
                 {
-                    "line": 14,
+                    "line": 16,
                     "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
                 },
                 {
-                    "line": 23,
+                    "line": 25,
                     "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
                 },
             ],

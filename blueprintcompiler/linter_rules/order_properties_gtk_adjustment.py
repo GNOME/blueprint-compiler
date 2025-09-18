@@ -8,23 +8,15 @@ class OrderPropertiesGtkAdjustment(LinterRule):
         properties = child.content.children[Property]
         preferred_order = ["lower", "upper", "value"]
         current_order = []
-        for property in properties:
-            #  Ensure property is 'adjustment'
-            if property.name in type_order_properties:
-                adjustment_name = property.children[0].children[0].class_name.as_string
-                adjustment_list = (
-                    property.children[0].children[0].content.children[Property]
+        if type in type_order_properties:
+            for property in properties:
+                current_order.append(property.name)
+            if current_order != preferred_order:
+                problem = CompileWarning(
+                    f"{type} properties should be ordered as lower, upper, and then value.",
+                    child.range,
                 )
-                #  Ensure widget used is 'Adjustment'
-                if adjustment_name in type_order_properties[property.name]:
-                    for prop in adjustment_list:
-                        current_order.append(prop.name)
-                    if current_order != preferred_order:
-                        problem = CompileWarning(
-                            f"Gtk.{adjustment_name} properties should be ordered as lower, upper, and then value.",
-                            child.range,
-                        )
-                        self.problems.append(problem)
+                self.problems.append(problem)
 
 
-type_order_properties = {"adjustment": ["Adjustment"]}
+type_order_properties = ["Gtk.Adjustment"]
