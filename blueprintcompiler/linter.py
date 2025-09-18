@@ -19,6 +19,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from blueprintcompiler.language.gobject_object import Object
+from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.language.gtkbuilder_child import Child
 from blueprintcompiler.language.ui import UI
 from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
@@ -61,6 +62,11 @@ def walk_ast(node, func, stack=None):
 
         for child in node.content.children[Child]:
             walk_ast(child.object, func, stack + [node])
+
+        # for properties that have object as value
+        for prop in node.content.children[Property]:
+            if hasattr(prop, "value") and hasattr(prop.value, "object"):
+                walk_ast(prop.value.object, func, stack + [node])
 
 
 RULES = [
