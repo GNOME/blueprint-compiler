@@ -1,8 +1,6 @@
 from blueprintcompiler.annotations import get_annotation_elements
 from blueprintcompiler.language.values import Literal, QuotedLiteral, Translated
 
-UI_STRING_PROPERTIES = get_annotation_elements()
-
 
 class LinterRule:
     def __init__(self, problems):

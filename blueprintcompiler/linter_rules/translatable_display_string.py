@@ -9,7 +9,7 @@ class TranslatableDisplayString(LinterRule):
     def check(self, type, child, stack):
         # rule suggestion/translatable-display-string
         for property in child.content.children[Property]:
-            if annotations.is_property_user_facing_string(type, property):
+            if annotations.is_property_user_facing_string(property.gir_property):
                 value = property.children[0].child
                 if not isinstance(value, Translated):
                     range = value.range

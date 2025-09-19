@@ -42,7 +42,7 @@ PATTERNS = {
 class PreferUnicodeChars(LinterRule):
     def check(self, type, child, stack):
         for property in child.content.children[Property]:
-            if annotations.is_property_user_facing_string(type, property):
+            if annotations.is_property_user_facing_string(property.gir_property):
                 self.check_property(property)
 
     def check_property(self, property):
