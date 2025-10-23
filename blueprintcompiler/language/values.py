@@ -165,6 +165,7 @@ class QuotedLiteral(AstNode):
                 "Gdk.ContentFormats",
                 "Gsk.Transform",
                 "GLib.Variant",
+                "Pango.AttrList",
             ]
             if expected_type.full_name not in parseable_types:
                 hints = []
