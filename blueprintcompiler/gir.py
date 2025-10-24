@@ -867,6 +867,10 @@ class Enumeration(GirNode, GirType):
         super().__init__(ns, info)
 
     @cached_property
+    def glib_type_name(self) -> str:
+        return registered_type_info_get_type_name(self.info)
+
+    @cached_property
     def members(self) -> T.Dict[str, EnumMember]:
         members = {}
         get_n_values, get_value = (
