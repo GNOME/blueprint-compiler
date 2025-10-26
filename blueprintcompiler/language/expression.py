@@ -21,6 +21,7 @@
 from ..decompiler import decompile_element
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
+from .translated import *
 from .types import TypeName
 
 expr = Sequence()
@@ -295,7 +296,7 @@ class ClosureExpr(ExprBase):
 
 
 expr.children = [
-    AnyOf(ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
+    AnyOf(Translated, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]
 
@@ -346,7 +347,13 @@ def decompile_lookup(
 
 @decompiler("constant", cdata=True)
 def decompile_constant(
-    ctx: DecompileCtx, gir: gir.GirContext, cdata: str, type: T.Optional[str] = None
+    ctx: DecompileCtx,
+    gir: gir.GirContext,
+    cdata: str,
+    type: T.Optional[str] = None,
+    translatable="false",
+    context=None,
+    comment=None,
 ):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
@@ -357,7 +364,11 @@ def decompile_constant(
         else:
             ctx.print(cdata)
     else:
-        _, string = ctx.decompile_value(cdata, ctx.type_by_cname(type))
+        _, string = ctx.decompile_value(
+            cdata,
+            ctx.type_by_cname(type),
+            (translatable, context, comment),
+        )
         ctx.print(string)
 
 

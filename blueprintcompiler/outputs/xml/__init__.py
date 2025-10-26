@@ -239,7 +239,9 @@ class XmlOutput(OutputFormat):
         self._emit_expression_part(expression.last, xml)
 
     def _emit_expression_part(self, expression: ExprBase, xml: XmlEmitter):
-        if isinstance(expression, LiteralExpr):
+        if isinstance(expression, Translated):
+            self._emit_translated_expr(expression, xml)
+        elif isinstance(expression, LiteralExpr):
             self._emit_literal_expr(expression, xml)
         elif isinstance(expression, LookupOp):
             self._emit_lookup_op(expression, xml)
@@ -251,6 +253,13 @@ class XmlOutput(OutputFormat):
             self._emit_closure_expr(expression, xml)
         else:
             raise CompilerBugError()
+
+    def _emit_translated_expr(self, value: Translated, xml: XmlEmitter):
+        xml.start_tag(
+            "constant", type="gchararray", **self._translated_string_attrs(value)
+        )
+        xml.put_text(value.string)
+        xml.end_tag()
 
     def _emit_literal_expr(self, expr: LiteralExpr, xml: XmlEmitter):
         if expr.is_this:

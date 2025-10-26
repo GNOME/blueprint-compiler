@@ -1,0 +1,9 @@
+using Gtk 4.0;
+
+Label {
+  label: bind $closure(_("Hello, world!")) as <string>;
+}
+
+Label {
+  label: bind $closure(C_("translation context", "Hello")) as <string>;
+}
