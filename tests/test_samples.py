@@ -194,6 +194,7 @@ class TestSamples(unittest.TestCase):
                 "adw_breakpoint_template",
                 "expr_closure",
                 "expr_closure_args",
+                "expr_translated",
                 "expr_value_closure",
                 "extern_class_with_namespace",
                 "issue_221",
