@@ -31,7 +31,7 @@ Expressions
 
 .. rst-class:: grammar-block
 
-   Expression = ( :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' ) ) ( :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>` )*
+   Expression = ( :ref:`Translated<Syntax Translated>` | :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' ) ) ( :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>` )*
 
 .. note::
 
