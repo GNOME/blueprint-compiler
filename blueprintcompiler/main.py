@@ -421,7 +421,9 @@ class BlueprintApp:
     def cmd_port(self, opts):
         interactive_port.run(opts)
 
-    def _compile(self, data: str, minify: bool) -> T.Tuple[str, T.List[CompileError]]:
+    def _compile(
+        self, data: str, *, minify: bool = False
+    ) -> T.Tuple[str, T.List[CompileError]]:
         tokens = tokenizer.tokenize(data)
         ast, errors, warnings = parser.parse(tokens)
 
