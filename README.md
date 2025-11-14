@@ -82,6 +82,10 @@ Visual Studio Code
 
 - [Blueprint Language Plugin by bodil](https://github.com/bodil/vscode-blueprint)
 
+Sublime Text
+
+- [Syntax highlighting by nbenitez](https://packagecontrol.io/packages/Blueprint%20for%20GTK)
+
 ## Getting in Touch
 
 Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
