@@ -67,6 +67,7 @@ Links
 - `Vim syntax highlighting plugin by gabmus <https://gitlab.com/gabmus/vim-blueprint>`_
 - `GNU Emacs major mode by DrBluefall <https://github.com/DrBluefall/blueprint-mode>`_
 - `Visual Studio Code plugin by bodil <https://github.com/bodil/vscode-blueprint>`_
+- `Sublime Text syntax highlighting plugin by nbenitez <https://packagecontrol.io/packages/Blueprint%20for%20GTK>`_
 
 History
 -------
