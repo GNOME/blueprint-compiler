@@ -67,7 +67,7 @@ template ShumateDemoWindow : Gtk.ApplicationWindow {
 
 ## Editors
 
-[Workbench](https://github.com/sonnyp/Workbench) and [GNOME Builder](https://apps.gnome.org/app/org.gnome.Builder/) have builtin support for Blueprint.
+[Workbench](https://github.com/sonnyp/Workbench), [GNOME Builder](https://apps.gnome.org/app/org.gnome.Builder/) and KDE's [Kate](https://kate-editor.org/en-gb/) have builtin support for Blueprint.
 
 Vim
 
