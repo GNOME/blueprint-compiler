@@ -274,7 +274,11 @@ class XmlOutput(OutputFormat):
 
     def _emit_lookup_op(self, expr: LookupOp, xml: XmlEmitter):
         xml.start_tag("lookup", name=expr.property_name, type=expr.lhs.type)
-        self._emit_expression_part(expr.lhs, xml)
+        if isinstance(expr.lhs, LiteralExpr) and expr.lhs.is_object:
+            # If it's an object literal, we can skip the <constant> tag
+            self._emit_literal(expr.lhs.literal, xml)
+        else:
+            self._emit_expression_part(expr.lhs, xml)
         xml.end_tag()
 
     def _emit_cast_expr(self, expr: CastExpr, xml: XmlEmitter):

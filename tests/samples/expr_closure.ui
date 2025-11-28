@@ -9,9 +9,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <object class="GtkLabel" id="my-label">
     <binding name="label">
       <closure function="my-closure" type="gchararray">
-        <lookup name="margin-bottom" type="GtkLabel">
-          <constant>my-label</constant>
-        </lookup>
+        <lookup name="margin-bottom" type="GtkLabel">my-label</lookup>
       </closure>
     </binding>
   </object>

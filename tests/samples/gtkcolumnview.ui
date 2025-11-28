@@ -34,9 +34,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
       <object class="GtkLabel">
         <binding name="label">
           <lookup name="name" type="MyObject">
-            <lookup name="item" type="GtkColumnViewCell">
-              <constant>GtkColumnViewCell</constant>
-            </lookup>
+            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
       </object>

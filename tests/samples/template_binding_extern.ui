@@ -9,9 +9,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <template class="MyTemplate" parent="MyParentClass">
     <binding name="prop1">
       <lookup name="prop3" type="MyObject">
-        <lookup name="prop2" type="MyTemplate">
-          <constant>MyTemplate</constant>
-        </lookup>
+        <lookup name="prop2" type="MyTemplate">MyTemplate</lookup>
       </lookup>
     </binding>
   </template>

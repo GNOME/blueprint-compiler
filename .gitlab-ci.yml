@@ -22,7 +22,7 @@ build:
     - ninja -C _build docs/en
     - git clone https://gitlab.gnome.org/jwestman/blueprint-regression-tests.git
     - cd blueprint-regression-tests
-    - git checkout 57e988aa0f7c1e16fc806a6751df5abffe4bf8a5
+    - git checkout c4c8a52e03616c1cf5a4f879c14a5feb1cb1679f
     - ./test.sh
     - cd ..
     - meson dist -C _build --include-subprojects --no-tests
