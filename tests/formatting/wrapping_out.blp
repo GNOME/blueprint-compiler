@@ -1,0 +1,18 @@
+using Gtk 4.0;
+
+template $MyTemplate {
+  Label {
+    label: bind $func1(
+      template
+        .prop1 as <$My.Obj>
+        .prop2 as <$My.Obj>
+        .prop3 as <$My.Obj>
+        .prop4 as <$My.Obj>
+        .prop5 as <$My.Obj>
+        .prop6 as <$My.Obj>,
+      template.prop7 as <$My.Obj>.prop8 as <$My.Obj>,
+      $func2(template.prop1 as <$My.Obj>.prop2 as <$My.Obj>) as <$My.Obj>,
+      "a string that's over the 120-character line limit all by itself because it's just so very very very very long that i don't know what else to type to make it longer"
+    ) as <string>;
+  }
+}

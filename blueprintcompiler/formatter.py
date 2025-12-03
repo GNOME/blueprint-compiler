@@ -18,6 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import re
+import typing as T
+from dataclasses import dataclass
 from enum import Enum
 
 from . import tokenizer
@@ -58,21 +60,142 @@ def format(data, tab_size=2, insert_space=True):
     parentheses_balance = 0
     bracket_tracker = [None]
     last_whitespace_contains_newline = False
+    previous_indent_levels = 0
+    max_line_length = 120
+    min_line_content_length = 40
+
+    def wrap_line(line: str):
+        line_tokens = tokenizer.tokenize(line)
+
+        @dataclass
+        class Break:
+            idx: int
+            level: int
+            indent: int
+
+        @dataclass
+        class Frame:
+            parent: T.Optional["Frame"]
+            level: int
+            indent: int
+            extra_indent: bool = False
+
+            def create_break(
+                self, idx: int, level_adjust: int = 0, indent_adjust: int = 0
+            ):
+                return Break(
+                    idx,
+                    self.level + 1 + level_adjust,
+                    self.indent + indent_adjust + (1 if self.extra_indent else 0),
+                )
+
+            def child(self):
+                return Frame(self, self.level + 10, self.indent + 1)
+
+        frame = Frame(None, 0, 0)
+        breaks: list[Break] = []
+        in_type = 0
+        for token in line_tokens:
+            str_token = str(token)
+            if str_token in ("(", "[", "{"):
+                frame = frame.child()
+                breaks.append(frame.create_break(token.end))
+            elif str_token in ("}", "]", ")"):
+                breaks.append(frame.create_break(token.start, 0, -1))
+                frame = frame.parent or frame
+            elif str_token in (",", ";"):
+                frame.extra_indent = False
+                breaks.append(frame.create_break(token.end))
+            elif str_token == "<":
+                in_type += 1
+            elif str_token == ">":
+                in_type -= 1
+            elif str_token == "." and in_type == 0:
+                frame.extra_indent = True
+                breaks.append(frame.create_break(token.start, 1))
+            # elif token.type == tokenizer.TokenType.COMMENT:
+            #     breaks.append(frame.create_break(token.start))
+            #     breaks.append(frame.create_break(token.end))
+
+        @dataclass
+        class Span:
+            start: int
+            end: int
+            indent: int
+            breaks: list[Break]
+
+            def __len__(self):
+                return self.end - self.start
+
+            def pick_breaks(self, limit: int):
+                if len(self) <= limit or len(self.breaks) == 0:
+                    return
+
+                level = min(br.level for br in self.breaks)
+                new_spans = [self]
+                for br in self.breaks:
+                    if br.level == level:
+                        yield br
+                        new_spans += new_spans.pop().split(br.idx)
+
+                for span in new_spans:
+                    yield from span.pick_breaks(
+                        max(limit - (self.indent * tab_size), min_line_content_length)
+                    )
+
+            def split(self, idx: int):
+                if idx == self.start or idx == self.end:
+                    return [self]
+                else:
+                    return [
+                        Span(
+                            self.start,
+                            idx,
+                            self.indent,
+                            [b for b in self.breaks if b.idx < idx],
+                        ),
+                        Span(
+                            idx,
+                            self.end,
+                            self.indent,
+                            [b for b in self.breaks if b.idx > idx],
+                        ),
+                    ]
+
+        span = Span(
+            0, len(line), 0, [b for b in breaks if b.idx > 0 and b.idx < len(line)]
+        )
+        available_len = max_line_length - previous_indent_levels * tab_size
+        breaks = sorted(list(span.pick_breaks(available_len)), key=lambda br: br.idx)
+
+        adjust = 0
+        for br in breaks:
+            insert_text = "\n" + (indent_item * (previous_indent_levels + br.indent))
+            old_len = len(line)
+            line = (
+                line[: br.idx + adjust].rstrip()
+                + insert_text
+                + line[br.idx + adjust :].lstrip()
+            )
+            adjust += len(line) - old_len
+
+        return line
 
     def commit_current_line(
         line_type=prev_line_type, redo_whitespace=False, newlines_before=1
     ):
-        nonlocal end_str, current_line, prev_line_type
+        nonlocal end_str, current_line, prev_line_type, previous_indent_levels
 
         indent_whitespace = indent_levels * indent_item
         whitespace_to_add = "\n" + indent_whitespace
+        previous_indent_levels = indent_levels
 
         if redo_whitespace or newlines_before != 1:
             end_str = end_str.strip() + "\n" * newlines_before
             if newlines_before > 0:
                 end_str += indent_whitespace
 
-        end_str += current_line + whitespace_to_add
+        end_str += wrap_line(current_line) + whitespace_to_add
 
         current_line = ""
         prev_line_type = line_type
