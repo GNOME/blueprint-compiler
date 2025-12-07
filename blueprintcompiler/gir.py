@@ -909,6 +909,10 @@ class Boxed(GirNode, GirType):
     def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
         super().__init__(ns, info)
 
+    @cached_property
+    def glib_type_name(self) -> str:
+        return registered_type_info_get_type_name(self.info)
+
     @property
     def signature(self) -> str:
         return f"boxed {self.full_name}"
