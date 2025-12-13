@@ -94,7 +94,12 @@ class CompileError(PrintableError):
 
         line_num, col_num = utils.idx_to_pos(self.range.start + 1, code)
         end_line_num, end_col_num = utils.idx_to_pos(self.range.end + 1, code)
-        line = code.splitlines(True)[line_num] if code != "" else ""
+        code_lines = code.splitlines(True)
+        # When the code ends in a newline (or is an empty string), splitlines() does not add a newline
+        # for the final, empty "line" (the newline is considered part of the previous line).
+        # If an error is reported at the very end of such a file, line_num may be greater than the number of lines
+        # in code_lines
+        line = code_lines[line_num] if line_num < len(code_lines) else ""
 
         # Display 1-based line numbers
         line_num += 1
