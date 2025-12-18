@@ -225,19 +225,19 @@ Gtk.LevelBar Offsets
 .. rst-class:: grammar-block
 
    ExtLevelBarOffsets = 'offsets' '[' (ExtLevelBarOffset),* ']'
-   ExtLevelBarOffset = 'offset' '(' <name::ref:`QUOTED<Syntax QUOTED>`> ',' <value::ref:`NUMBER<Syntax NUMBER>`> ')'
+   ExtLevelBarOffset = 'offset' '(' <value::ref:`NUMBER<Syntax NUMBER>`> ',' <name::ref:`QUOTED<Syntax QUOTED>`> ')'
 
 Valid in `Gtk.LevelBar <https://docs.gtk.org/gtk4/class.LevelBar.html>`_.
 
-The ``offsets`` block defines the offsets on a level bar. A single ``offset`` has two arguments: a CSS class name and a (non-negative) value.
+The ``offsets`` block defines the offsets on a level bar. A single ``offset`` has two arguments: a (non-negative) value and a CSS class name.
 
 .. code-block:: blueprint
 
    LevelBar {
      offsets [
-       offset ("low-class-name", 0.3),
-       offset ("medium-class-name", 0.5),
-       offset ("high-class-name", 0.7),
+       offset (0.3, "low-class-name"),
+       offset (0.5, "medium-class-name"),
+       offset (0.7, "high-class-name"),
      ]
    }
 

@@ -27,30 +27,30 @@ class ExtLevelBarOffset(AstNode):
         Keyword("offset"),
         Match("(").expected(),
         [
-            UseQuoted("name"),
-            ",",
             Optional(AnyOf(UseExact("sign", "-"), UseExact("sign", "+"))),
             UseNumber("value"),
+            ",",
+            UseQuoted("name"),
         ],
         Match(")").expected(),
     ]
-
-    @property
-    def name(self) -> str:
-        return self.tokens["name"]
 
     @property
     def value(self) -> float:
         return self.tokens["value"]
 
     @property
+    def name(self) -> str:
+        return self.tokens["name"]
+
+    @property
     def document_symbol(self) -> DocumentSymbol:
         return DocumentSymbol(
-            self.name,
+            str(self.value),
             SymbolKind.Field,
             self.range,
             self.group.tokens["offset"].range,
-            str(self.value),
+            self.name,
         )
 
     @validate("value")
@@ -120,7 +120,7 @@ def complete_offset(_ctx: CompletionContext):
     yield Completion(
         "offset",
         CompletionItemKind.Snippet,
-        snippet='offset ("${1:name}", ${2:value}),',
+        snippet='offset (${1:value}, "${2:name}"),',
     )
 
 
@@ -130,5 +130,5 @@ def decompile_offsets(ctx, gir):
 
 
 @decompiler("offset")
-def decompile_offset(ctx: DecompileCtx, gir, name, value):
-    ctx.print(f'offset ("{name}", {value}),')
+def decompile_offset(ctx: DecompileCtx, gir, value, name):
+    ctx.print(f'offset ({value}, "{name}"),')
