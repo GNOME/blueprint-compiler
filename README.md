@@ -86,6 +86,10 @@ Sublime Text
 
 - [Syntax highlighting by nbenitez](https://packagecontrol.io/packages/Blueprint%20for%20GTK)
 
+Zed
+
+- [Language Support by tfuxu](https://zed.dev/extensions/blueprint)
+
 ## Getting in Touch
 
 Matrix room: [#blueprint-language:matrix.org](https://matrix.to/#/#blueprint-language:matrix.org)
