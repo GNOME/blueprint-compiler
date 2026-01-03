@@ -248,6 +248,16 @@ class TestLinter(unittest.TestCase):
                 },
             ],
         )
+        self.check_file(
+            "unused_object",
+            "unused-object",
+            [
+                {
+                    "line": 4,
+                    "message": "Gtk.Label is unused because it has no ID and no parent",
+                }
+            ],
+        )
 
     def check_file(self, name, rule_id, expected_problems):
         with self.subTest("linter/" + name):

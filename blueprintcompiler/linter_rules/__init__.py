@@ -18,6 +18,7 @@ from .require_a11y_label import RequireA11yLabel
 from .translatable_display_string import (
     TranslatableDisplayString,
 )
+from .unused_object import UnusedObject
 from .use_styles_over_css_classes import (
     UseStylesOverCssClasses,
 )
@@ -37,4 +38,5 @@ LINTER_RULES: list[type[LinterRule]] = [
     ClampScrolledWindow,
     IncorrectWidgetPlacement,
     OrderPropertiesGtkAdjustment,
+    UnusedObject,
 ]
