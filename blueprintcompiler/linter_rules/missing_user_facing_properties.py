@@ -20,7 +20,7 @@ class MissingUserFacingProperties(LinterRule):
                     if not properties:
                         problem = CompileWarning(
                             f"{type} is missing required user-facing text property",
-                            child.range,
+                            child.signature_range,
                         )
                         self.problems.append(problem)
 
