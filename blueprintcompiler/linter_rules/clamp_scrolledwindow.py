@@ -1,8 +1,5 @@
-from blueprintcompiler import annotations
-from blueprintcompiler.errors import CompileWarning
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.language.gtkbuilder_child import Child
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..errors import CompileWarning
+from .utils import LinterRule
 
 
 class ClampScrolledWindow(LinterRule):

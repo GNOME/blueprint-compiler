@@ -1,8 +1,7 @@
-from blueprintcompiler import annotations
-from blueprintcompiler.errors import CodeAction, CompileWarning
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.language.values import Translated
-from blueprintcompiler.linter_rules.utils import LinterRule
+from .. import annotations
+from ..errors import CodeAction, CompileWarning
+from ..language import Property, Translated
+from .utils import LinterRule
 
 
 class TranslatableDisplayString(LinterRule):

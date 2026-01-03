@@ -1,6 +1,6 @@
-from blueprintcompiler.errors import CompileError
-from blueprintcompiler.language.gtkbuilder_child import Child
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..errors import CompileError
+from ..language import Child
+from .utils import LinterRule
 
 
 class NumberOfChildren(LinterRule):

@@ -1,8 +1,7 @@
-from blueprintcompiler.annotations import get_annotation_elements
-from blueprintcompiler.errors import CompileWarning
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.language.values import Translated
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..annotations import get_annotation_elements
+from ..errors import CompileWarning
+from ..language import Property
+from .utils import LinterRule
 
 
 class MissingUserFacingProperties(LinterRule):

@@ -1,7 +1,6 @@
-from blueprintcompiler.errors import CompileWarning
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.language.gtk_a11y import ExtAccessibility
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..errors import CompileWarning
+from ..language import ExtAccessibility, Property
+from .utils import LinterRule
 
 
 class RequireA11yLabel(LinterRule):

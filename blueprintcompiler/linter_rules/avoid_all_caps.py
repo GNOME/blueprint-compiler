@@ -1,10 +1,9 @@
-from blueprintcompiler import annotations
-from blueprintcompiler.errors import CompileWarning
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.linter_rules.utils import LinterRule
+from .. import annotations
+from ..errors import CompileWarning
+from ..language import Property
+from .utils import LinterRule
 
 
-# WIP
 class AvoidAllCaps(LinterRule):
     def check(self, type, child, stack):
         for property in child.content.children[Property]:

@@ -1,6 +1,6 @@
-from blueprintcompiler.errors import CompileError
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..errors import CompileError
+from ..language import Property
+from .utils import LinterRule
 
 
 class NoGtkSwitchState(LinterRule):

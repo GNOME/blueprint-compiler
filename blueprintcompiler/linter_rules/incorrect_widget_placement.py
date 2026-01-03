@@ -1,6 +1,5 @@
-from blueprintcompiler.errors import CompileWarning
-from blueprintcompiler.language.gtkbuilder_child import Child
-from blueprintcompiler.linter_rules.utils import LinterRule
+from ..errors import CompileWarning
+from .utils import LinterRule
 
 
 class IncorrectWidgetPlacement(LinterRule):

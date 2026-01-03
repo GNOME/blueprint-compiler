@@ -20,36 +20,10 @@
 
 from typing import Callable
 
-from blueprintcompiler.ast_utils import AstNode
-from blueprintcompiler.errors import CompileError
-from blueprintcompiler.language.gobject_object import Object
-from blueprintcompiler.language.gobject_property import Property
-from blueprintcompiler.language.gtkbuilder_child import Child
-from blueprintcompiler.language.ui import UI
-from blueprintcompiler.linter_rules.avoid_all_caps import AvoidAllCaps
-from blueprintcompiler.linter_rules.clamp_scrolledwindow import ClampScrolledWindow
-from blueprintcompiler.linter_rules.incorrect_widget_placement import (
-    IncorrectWidgetPlacement,
-)
-from blueprintcompiler.linter_rules.missing_user_facing_properties import (
-    MissingUserFacingProperties,
-)
-from blueprintcompiler.linter_rules.no_gtk_switch_state import NoGtkSwitchState
-from blueprintcompiler.linter_rules.no_visible_true import NoVisibleTrue
-from blueprintcompiler.linter_rules.number_of_children import NumberOfChildren
-from blueprintcompiler.linter_rules.order_properties_gtk_adjustment import (
-    OrderPropertiesGtkAdjustment,
-)
-from blueprintcompiler.linter_rules.prefer_adw_bin import PreferAdwBin
-from blueprintcompiler.linter_rules.prefer_unicode_chars import PreferUnicodeChars
-from blueprintcompiler.linter_rules.require_a11y_label import RequireA11yLabel
-from blueprintcompiler.linter_rules.translatable_display_string import (
-    TranslatableDisplayString,
-)
-from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
-    UseStylesOverCssClasses,
-)
-from blueprintcompiler.linter_rules.utils import LinterRule
+from .ast_utils import AstNode
+from .errors import CompileError
+from .language import UI, Child, Object, Property
+from .linter_rules import LINTER_RULES
 
 
 def walk_ast(
@@ -75,26 +49,9 @@ def walk_ast(
                 walk_ast(prop.value.object, func, stack + [node])
 
 
-RULES: list[type[LinterRule]] = [
-    NumberOfChildren,
-    PreferAdwBin,
-    TranslatableDisplayString,
-    NoGtkSwitchState,
-    NoVisibleTrue,
-    RequireA11yLabel,
-    AvoidAllCaps,
-    PreferUnicodeChars,
-    MissingUserFacingProperties,
-    UseStylesOverCssClasses,
-    ClampScrolledWindow,
-    IncorrectWidgetPlacement,
-    OrderPropertiesGtkAdjustment,
-]
-
-
 def lint(ast: AstNode):
     problems: list[CompileError] = []
-    rules = [Rule(problems) for Rule in RULES]
+    rules = [Rule(problems) for Rule in LINTER_RULES]
 
     def visit_node(type: str, child: Object, stack: list[Object]):
         for rule in rules:

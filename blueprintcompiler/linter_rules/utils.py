@@ -1,9 +1,7 @@
 from abc import abstractmethod
 
-from blueprintcompiler.annotations import get_annotation_elements
-from blueprintcompiler.errors import CompileError
-from blueprintcompiler.language import Object, Property, Value
-from blueprintcompiler.language.values import Literal, QuotedLiteral, Translated
+from ..errors import CompileError
+from ..language import Literal, Object, Property, QuotedLiteral, Translated, Value
 
 
 class LinterRule:
