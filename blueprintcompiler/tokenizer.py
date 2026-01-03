@@ -20,10 +20,9 @@
 
 import re
 import typing as T
-from dataclasses import dataclass
 from enum import Enum
 
-from . import utils
+from .utils import Range
 
 
 class TokenType(Enum):
@@ -111,45 +110,3 @@ def _tokenize(ui_ml: str):
 
 def tokenize(data: str) -> T.List[Token]:
     return list(_tokenize(data))
-
-
-@dataclass
-class Range:
-    start: int
-    end: int
-    original_text: str
-
-    @property
-    def length(self) -> int:
-        return self.end - self.start
-
-    @property
-    def text(self) -> str:
-        return self.original_text[self.start : self.end]
-
-    @property
-    def with_trailing_newline(self) -> "Range":
-        if len(self.original_text) > self.end and self.original_text[self.end] == "\n":
-            return Range(self.start, self.end + 1, self.original_text)
-        else:
-            return self
-
-    @staticmethod
-    def join(a: T.Optional["Range"], b: T.Optional["Range"]) -> T.Optional["Range"]:
-        if a is None:
-            return b
-        if b is None:
-            return a
-        return Range(min(a.start, b.start), max(a.end, b.end), a.original_text)
-
-    def __contains__(self, other: T.Union[int, "Range"]) -> bool:
-        if isinstance(other, int):
-            return self.start <= other <= self.end
-        else:
-            return self.start <= other.start and self.end >= other.end
-
-    def to_json(self):
-        return utils.idxs_to_range(self.start, self.end, self.original_text)
-
-    def overlaps(self, other: "Range") -> bool:
-        return not (self.end < other.start or self.start > other.end)

@@ -24,7 +24,7 @@ from dataclasses import dataclass
 
 from . import utils
 from .tokenizer import Range
-from .utils import Colors
+from .utils import Colors, TextEdit
 
 
 class PrintableError(Exception):
@@ -186,6 +186,7 @@ class CodeAction:
     title: str
     replace_with: str
     edit_range: T.Optional[Range] = None
+    additional_edits: T.Optional[list[TextEdit]] = None
 
 
 class MultipleErrors(PrintableError):

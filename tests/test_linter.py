@@ -146,7 +146,7 @@ class TestLinter(unittest.TestCase):
             "prefer_adw_bin",
             [
                 {
-                    "line": 6,
+                    "line": 5,
                     "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
                 },
                 {
@@ -348,11 +348,11 @@ class TestLinter(unittest.TestCase):
                     "message": "Clamp should not be nested in ScrolledWindow.",
                 },
                 {
-                    "line": 9,
+                    "line": 8,
                     "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
                 },
                 {
-                    "line": 21,
+                    "line": 20,
                     "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
                 },
             ],
@@ -409,7 +409,7 @@ class TestLinter(unittest.TestCase):
                     "message": "Gtk.Label is incorrectly used and must have parents Gtk.Box, Gtk.Window",
                 },
                 {
-                    "line": 21,
+                    "line": 18,
                     "message": "Use Adw.Bin instead of a Gtk.Box for a single child",
                 },
                 {

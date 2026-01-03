@@ -441,24 +441,31 @@ class LanguageServer:
             open_file.text,
         )
 
+        def action_to_json(action: CodeAction, diagnostic: CompileError):
+            assert diagnostic.range is not None
+            edits = [
+                {
+                    "range": (
+                        action.edit_range.to_json()
+                        if action.edit_range
+                        else diagnostic.range.to_json()
+                    ),
+                    "newText": action.replace_with,
+                }
+            ]
+
+            for edit in action.additional_edits or []:
+                edits.append(edit.to_json())
+
+            return edits
+
         actions = [
             {
                 "title": action.title,
                 "kind": "quickfix",
                 "diagnostics": [self._create_diagnostic(open_file.uri, diagnostic)],
                 "edit": {
-                    "changes": {
-                        open_file.uri: [
-                            {
-                                "range": (
-                                    action.edit_range.to_json()
-                                    if action.edit_range
-                                    else diagnostic.range.to_json()
-                                ),
-                                "newText": action.replace_with,
-                            }
-                        ]
-                    }
+                    "changes": {open_file.uri: action_to_json(action, diagnostic)}
                 },
             }
             for diagnostic in open_file.diagnostics

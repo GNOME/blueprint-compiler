@@ -52,8 +52,10 @@ class ObjectContent(AstNode):
 
 class Object(AstNode):
     grammar: T.Any = [
+        Mark("sig_start"),
         ConcreteClassName,
         Optional(UseIdent("id")),
+        Mark("sig_end"),
         ObjectContent,
     ]
 
@@ -80,6 +82,10 @@ class Object(AstNode):
             result += " " + self.id
 
         return result
+
+    @property
+    def signature_range(self) -> Range:
+        return self.ranges["sig_start", "sig_end"]
 
     @property
     def document_symbol(self) -> T.Optional[DocumentSymbol]:

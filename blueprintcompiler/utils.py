@@ -154,3 +154,61 @@ def unescape_quote(string: str) -> str:
         i += 1
 
     return result
+
+
+@dataclass
+class Range:
+    start: int
+    end: int
+    original_text: str
+
+    @property
+    def length(self) -> int:
+        return self.end - self.start
+
+    @property
+    def text(self) -> str:
+        return self.original_text[self.start : self.end]
+
+    @property
+    def with_trailing_newline(self) -> "Range":
+        if len(self.original_text) > self.end and self.original_text[self.end] == "\n":
+            return Range(self.start, self.end + 1, self.original_text)
+        else:
+            return self
+
+    @property
+    def with_preceding_whitespace(self) -> "Range":
+        start = self.start
+        while start > 0 and self.original_text[start - 1].isspace():
+            start -= 1
+        return Range(start, self.end, self.original_text)
+
+    @staticmethod
+    def join(a: T.Optional["Range"], b: T.Optional["Range"]) -> T.Optional["Range"]:
+        if a is None:
+            return b
+        if b is None:
+            return a
+        return Range(min(a.start, b.start), max(a.end, b.end), a.original_text)
+
+    def __contains__(self, other: T.Union[int, "Range"]) -> bool:
+        if isinstance(other, int):
+            return self.start <= other <= self.end
+        else:
+            return self.start <= other.start and self.end >= other.end
+
+    def to_json(self):
+        return idxs_to_range(self.start, self.end, self.original_text)
+
+    def overlaps(self, other: "Range") -> bool:
+        return not (self.end < other.start or self.start > other.end)
+
+
+@dataclass
+class TextEdit:
+    range: Range
+    newText: str
+
+    def to_json(self):
+        return {"range": self.range.to_json(), "newText": self.newText}
