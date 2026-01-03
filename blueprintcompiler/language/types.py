@@ -95,7 +95,7 @@ class TypeName(AstNode):
         return None
 
     @property
-    def gir_type(self) -> gir.GirType:
+    def gir_type(self) -> T.Optional[gir.GirType]:
         if self.class_name is not None and not self.is_extern:
             return self.root.gir.get_type(self.class_name, self.namespace)
 
@@ -171,7 +171,7 @@ class TemplateClassName(ClassName):
         )
 
     @property
-    def gir_type(self) -> gir.GirType:
+    def gir_type(self) -> T.Optional[gir.GirType]:
         if self.is_legacy:
             return gir.ExternType(self.namespace, self.class_name)
         else:

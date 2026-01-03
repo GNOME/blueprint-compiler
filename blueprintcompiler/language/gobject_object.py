@@ -98,7 +98,7 @@ class Object(AstNode):
         )
 
     @property
-    def gir_class(self) -> GirType:
+    def gir_class(self) -> T.Optional[GirType]:
         if self.class_name is None:
             raise CompilerBugError()
         return self.class_name.gir_type

@@ -226,12 +226,12 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "incorrect_widget_placement",
-            "incorrect-widget-placement",
+            "wrong-parent",
             [
-                {"line": 6, "message": "Gtk.Label must have a parent"},
+                {"line": 6, "message": "Gtk.StackPage must be a child of a Gtk.Stack"},
                 {
-                    "line": 11,
-                    "message": "Gtk.Label is incorrectly used and must have parents Gtk.Box, Gtk.Window",
+                    "line": 9,
+                    "message": "Gtk.StackPage must be a child of a Gtk.Stack",
                 },
             ],
         )
