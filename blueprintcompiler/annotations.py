@@ -31,6 +31,9 @@ class Annotation:
 
 
 def is_property_user_facing_string(property: gir.Property):
+    if property is None:
+        return False
+
     ns = property.get_containing(gir.Namespace)
     ns_name = ns.name + "-" + ns.version
     if annotation := _ANNOTATIONS.get(ns_name):
@@ -39,6 +42,8 @@ def is_property_user_facing_string(property: gir.Property):
             property.container.name + ":" + property.name
             in annotation.translatable_properties
         )
+    else:
+        return False
 
 
 _ANNOTATIONS = {
