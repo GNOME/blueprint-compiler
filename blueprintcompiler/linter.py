@@ -18,6 +18,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from typing import Callable
+
+from blueprintcompiler.ast_utils import AstNode
+from blueprintcompiler.errors import CompileError
 from blueprintcompiler.language.gobject_object import Object
 from blueprintcompiler.language.gobject_property import Property
 from blueprintcompiler.language.gtkbuilder_child import Child
@@ -45,9 +49,12 @@ from blueprintcompiler.linter_rules.translatable_display_string import (
 from blueprintcompiler.linter_rules.use_styles_over_css_classes import (
     UseStylesOverCssClasses,
 )
+from blueprintcompiler.linter_rules.utils import LinterRule
 
 
-def walk_ast(node, func, stack=None):
+def walk_ast(
+    node: AstNode, func: Callable[[str, Object, list[Object]], None], stack=None
+):
     stack = stack or []
 
     if isinstance(node, UI):
@@ -68,7 +75,7 @@ def walk_ast(node, func, stack=None):
                 walk_ast(prop.value.object, func, stack + [node])
 
 
-RULES = [
+RULES: list[type[LinterRule]] = [
     NumberOfChildren,
     PreferAdwBin,
     TranslatableDisplayString,
@@ -85,11 +92,11 @@ RULES = [
 ]
 
 
-def lint(ast):
-    problems = []
+def lint(ast: AstNode):
+    problems: list[CompileError] = []
     rules = [Rule(problems) for Rule in RULES]
 
-    def visit_node(type, child, stack):
+    def visit_node(type: str, child: Object, stack: list[Object]):
         for rule in rules:
             rule.check(type, child, stack)
 
