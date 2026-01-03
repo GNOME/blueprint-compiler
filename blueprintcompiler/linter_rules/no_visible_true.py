@@ -4,6 +4,10 @@ from .utils import LinterRule
 
 
 class NoVisibleTrue(LinterRule):
+    id = "visible-true"
+    severity = "suggestion"
+    category = "technical"
+
     def check(self, type, child, stack):
         # rule suggestion/no-visible-true
         # FIXME GTK4 only

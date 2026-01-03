@@ -3,6 +3,10 @@ from .utils import LinterRule
 
 
 class ClampScrolledWindow(LinterRule):
+    id = "clamp-in-scrolled-window"
+    severity = "problem"
+    category = "technical"
+
     def check(self, type, child, stack):
         if type == "Adw.Clamp":
             if len(stack) > 0:

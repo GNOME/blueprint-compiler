@@ -133,6 +133,28 @@ class BlueprintApp:
 
         lint = self.add_subcommand("lint", "Lint given blueprint files", self.cmd_lint)
         lint.add_argument(
+            "-c",
+            "--category",
+            "--categories",
+            help="Rule categories to include (default: all)",
+            default="all",
+        )
+        lint.add_argument(
+            "-r",
+            "--rule",
+            "--rules",
+            help="Specific rules to include (default: all)",
+            default="all",
+        )
+        lint.add_argument(
+            "-p", "--platform", help="Enable platform-specific rules", default="Adw"
+        )
+        lint.add_argument(
+            "--no-suggestions",
+            help="Report only problems, not suggestions",
+            action="store_true",
+        )
+        lint.add_argument(
             "inputs",
             nargs="+",
             metavar="filenames",
@@ -399,7 +421,13 @@ class BlueprintApp:
                 if ast is None:
                     raise CompilerBugError()
 
-                problems = linter.lint(ast)
+                problems = linter.lint(
+                    ast,
+                    categories=opts.category.lower().split(","),
+                    rule_ids=opts.rule.lower().split(","),
+                    platform=opts.platform.lower(),
+                    no_suggestions=opts.no_suggestions,
+                )
                 for problem in problems:
                     if isinstance(problem, CompileError):
                         problem.pretty_print(

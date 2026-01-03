@@ -5,6 +5,10 @@ from .utils import LinterRule
 
 
 class MissingUserFacingProperties(LinterRule):
+    id = "missing-user-facing-text"
+    severity = "suggestion"
+    category = "a11y"
+
     def check(self, type, child, stack):
         properties = child.content.children[Property]
         # This ensures only the unique elements are run through

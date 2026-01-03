@@ -4,6 +4,10 @@ from .utils import LinterRule
 
 
 class NumberOfChildren(LinterRule):
+    id = "number-of-children"
+    severity = "problem"
+    category = "technical"
+
     def check(self, type, child, stack):
         # rule problem/number-of-children
         children = child.content.children[Child]

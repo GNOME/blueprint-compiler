@@ -1,3 +1,4 @@
+import typing as T
 from abc import abstractmethod
 
 from ..errors import CompileError
@@ -5,6 +6,11 @@ from ..language import Literal, Object, Property, QuotedLiteral, Translated, Val
 
 
 class LinterRule:
+    id: str
+    severity: T.Union[T.Literal["problem"], T.Literal["suggestion"]]
+    platform: T.Optional[str] = None
+    category: str
+
     def __init__(self, problems: list[CompileError]):
         self.problems = problems
 

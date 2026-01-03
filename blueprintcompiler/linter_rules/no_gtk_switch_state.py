@@ -4,6 +4,10 @@ from .utils import LinterRule
 
 
 class NoGtkSwitchState(LinterRule):
+    id = "gtk-switch-state"
+    severity = "problem"
+    category = "technical"
+
     def check(self, type, child, stack):
         # rule problem/no-gtkswitch-state
         properties = child.content.children[Property]

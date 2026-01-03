@@ -4,6 +4,10 @@ from .utils import LinterRule
 
 
 class OrderPropertiesGtkAdjustment(LinterRule):
+    id = "adjustment-prop-order"
+    severity = "problem"
+    category = "technical"
+
     def check(self, type, child, stack):
         properties = child.content.children[Property]
         preferred_order = ["lower", "upper", "value"]

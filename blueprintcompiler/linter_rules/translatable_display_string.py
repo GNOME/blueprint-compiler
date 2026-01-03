@@ -5,6 +5,10 @@ from .utils import LinterRule
 
 
 class TranslatableDisplayString(LinterRule):
+    id = "translate-display-string"
+    severity = "suggestion"
+    category = "hig"
+
     def check(self, type, child, stack):
         # rule suggestion/translatable-display-string
         for property in child.content.children[Property]:

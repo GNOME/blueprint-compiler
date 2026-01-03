@@ -1,10 +1,15 @@
-from ..errors import CompileWarning, CodeAction
+from ..errors import CodeAction, CompileWarning
 from ..language import Child, Property
-from .utils import LinterRule
 from ..utils import TextEdit
+from .utils import LinterRule
 
 
 class PreferAdwBin(LinterRule):
+    id = "use-adw-bin"
+    severity = "suggestion"
+    category = "technical"
+    platform = "adw"
+
     def check(self, type, child, stack):
         # rule suggestion/prefer-adwbin
         # FIXME: Only if use Adw is in scope and no Gtk.Box properties are used

@@ -4,6 +4,10 @@ from .utils import LinterRule
 
 
 class RequireA11yLabel(LinterRule):
+    id = "missing-descriptive-text"
+    severity = "suggestion"
+    category = "a11y"
+
     def check(self, type, child, stack):
         # rule suggestion/require-a11y-label
         properties = child.content.children[Property]

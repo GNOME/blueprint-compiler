@@ -5,6 +5,10 @@ from .utils import LinterRule
 
 
 class AvoidAllCaps(LinterRule):
+    id = "avoid-all-caps"
+    severity = "suggestion"
+    category = "hig"
+
     def check(self, type, child, stack):
         for property in child.content.children[Property]:
             if annotations.is_property_user_facing_string(property.gir_property):

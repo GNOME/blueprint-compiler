@@ -49,9 +49,24 @@ def walk_ast(
                 walk_ast(prop.value.object, func, stack + [node])
 
 
-def lint(ast: AstNode):
+def lint(
+    ast: AstNode,
+    categories: list[str] = ["all"],
+    rule_ids: list[str] = ["all"],
+    platform: str = "adw",
+    no_suggestions: bool = False,
+):
     problems: list[CompileError] = []
-    rules = [Rule(problems) for Rule in LINTER_RULES]
+    rules = [
+        Rule(problems)
+        for Rule in LINTER_RULES
+        if (
+            ("all" in categories or Rule.category in categories)
+            and ("all" in rule_ids or Rule.id in rule_ids)
+            and (Rule.platform is None or Rule.platform == platform)
+            and (Rule.severity != "suggestion" or not no_suggestions)
+        )
+    ]
 
     def visit_node(type: str, child: Object, stack: list[Object]):
         for rule in rules:

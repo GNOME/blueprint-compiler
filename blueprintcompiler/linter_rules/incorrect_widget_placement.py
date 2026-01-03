@@ -3,6 +3,10 @@ from .utils import LinterRule
 
 
 class IncorrectWidgetPlacement(LinterRule):
+    id = "incorrect-widget-placement"
+    severity = "problem"
+    category = "technical"
+
     def check(self, type, child, stack):
         if type in declared_widgets:
             if len(stack) == 0:
