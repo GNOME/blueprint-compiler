@@ -50,6 +50,9 @@ class PreferUnicodeChars(LinterRule):
 
     def check_property(self, property):
         (string, range) = self.get_string_value(property)
+        if string is None:
+            return
+
         for name, config in PATTERNS.items():
             for pattern in config["patterns"]:
                 matches = 0

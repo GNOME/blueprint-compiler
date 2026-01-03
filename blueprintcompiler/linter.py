@@ -37,8 +37,9 @@ def walk_ast(
                 walk_ast(child, func, stack)
 
     if isinstance(node, Object):
-        type = node.class_name.gir_type.full_name
-        func(type, node, stack)
+        if node.class_name.gir_type is not None:
+            type = node.class_name.gir_type.full_name
+            func(type, node, stack)
 
         for child in node.content.children[Child]:
             walk_ast(child.object, func, stack + [node])
