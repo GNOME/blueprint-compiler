@@ -13,6 +13,7 @@ from blueprintcompiler.errors import (
     CompilerBugError,
     PrintableError,
 )
+from blueprintcompiler.linter import lint
 from blueprintcompiler.lsp import LanguageServer
 
 fuzz_level = int(os.getenv("FUZZ_LEVEL") or "0")
@@ -49,6 +50,7 @@ def assert_ast_doesnt_crash(text, tokens, ast):
     for i in range(len(text) + 1):
         ast.get_reference(i)
     ast.get_document_symbols()
+    lint(ast)
 
 
 if __name__ == "__main__":
