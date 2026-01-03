@@ -36,6 +36,7 @@ from blueprintcompiler.errors import (
     MultipleErrors,
     PrintableError,
 )
+from blueprintcompiler.linter import lint
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
 
@@ -71,6 +72,7 @@ class TestSamples(unittest.TestCase):
         for i in range(len(text) + 1):
             ast.get_reference(i)
         ast.get_document_symbols()
+        lint(ast)
 
     def assert_sample(self, name, skip_run=False):
         print(f'assert_sample("{name}", skip_run={skip_run})')
