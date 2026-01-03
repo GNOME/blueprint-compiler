@@ -1,5 +1,6 @@
 from ..errors import CompileWarning
-from ..language import Property
+from ..language import Property, Value
+from ..lsp_utils import CodeAction
 from .utils import LinterRule
 
 
@@ -9,16 +10,29 @@ class NoVisibleTrue(LinterRule):
     category = "technical"
 
     def check(self, type, child, stack):
-        # rule suggestion/no-visible-true
-        # FIXME GTK4 only
+        if not child.gir_class.assignable_to(child.root.gir.get_type("Widget", "Gtk")):
+            return
+
         properties = child.content.children[Property]
         for property in properties:
-            if property.name == "visible":
-                value = property.children[0].child
-                ident = value.value.ident
-                if ident == "true":
-                    range = value.range
-                    problem = CompileWarning(
-                        f"In GTK4 widgets are visible by default", range
+            if property.name != "visible":
+                continue
+
+            if not isinstance(property.value, Value):
+                continue
+
+            ident = property.value.range.text
+            if ident == "true":
+                self.problems.append(
+                    CompileWarning(
+                        f"In GTK 4, widgets are visible by default, so this property is unnecessary",
+                        property.value.range,
+                        actions=[
+                            CodeAction(
+                                "remove the property",
+                                "",
+                                edit_range=property.range.with_preceding_whitespace,
+                            )
+                        ],
                     )
-                    self.problems.append(problem)
+                )

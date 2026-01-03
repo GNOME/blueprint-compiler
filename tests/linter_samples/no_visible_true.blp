@@ -10,6 +10,10 @@ Box {
 Box {
 }
 
-Box {
+Box box1 {
   visible: false;
+}
+
+Box {
+  visible: bind box1.visible;
 }

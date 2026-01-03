@@ -88,7 +88,12 @@ class TestLinter(unittest.TestCase):
         self.check_file(
             "no_visible_true",
             "visible-true",
-            [{"line": 6, "message": "In GTK4 widgets are visible by default"}],
+            [
+                {
+                    "line": 6,
+                    "message": "In GTK 4, widgets are visible by default, so this property is unnecessary",
+                }
+            ],
         )
         self.check_file(
             "no_gtk_switch_state",
