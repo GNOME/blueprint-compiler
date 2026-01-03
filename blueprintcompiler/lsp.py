@@ -28,6 +28,7 @@ from . import decompiler, formatter, language, parser, tokenizer, utils, xml_rea
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
+from .linter import lint
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
 from .tokenizer import Token
@@ -81,6 +82,8 @@ class OpenFile:
             self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors
+            if self.ast is not None:
+                self.diagnostics += lint(self.ast)
         except MultipleErrors as e:
             self.diagnostics += e.errors
         except CompileError as e:
