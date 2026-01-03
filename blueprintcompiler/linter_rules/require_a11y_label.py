@@ -31,7 +31,7 @@ class RequireA11yLabel(LinterRule):
 
             if label is None and tooltip_text is None and accessibility_label is False:
                 problem = CompileWarning(
-                    f"{type} is missing an accessibility label", child.range
+                    f"{type} is missing an accessibility label", child.signature_range
                 )
                 self.problems.append(problem)
 
@@ -50,6 +50,6 @@ class RequireA11yLabel(LinterRule):
 
             if accessibility_label is False:
                 problem = CompileWarning(
-                    f"{type} is missing an accessibility label", child.range
+                    f"{type} is missing an accessibility label", child.signature_range
                 )
                 self.problems.append(problem)
