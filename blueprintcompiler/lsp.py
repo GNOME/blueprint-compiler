@@ -539,6 +539,9 @@ class LanguageServer:
             ),
         }
 
+        if err.id is not None:
+            result["code"] = err.id
+
         if isinstance(err, DeprecatedWarning):
             result["tags"] = [DiagnosticTag.Deprecated]
 

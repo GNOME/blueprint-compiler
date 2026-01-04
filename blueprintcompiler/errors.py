@@ -73,6 +73,10 @@ class CompileError(PrintableError):
         if did_you_mean is not None:
             self._did_you_mean(*did_you_mean)
 
+    @property
+    def docs_url(self):
+        return None if self.id is None else DIAGNOSTIC_URL + self.id.replace("_", "-")
+
     def hint(self, hint: str) -> "CompileError":
         self.hints.append(hint)
         return self
@@ -122,8 +126,7 @@ class CompileError(PrintableError):
         line = line.replace("\t", "  ")
 
         if self.id is not None:
-            url = DIAGNOSTIC_URL + self.id.replace("_", "-")
-            diagnostic_id = f" [{terminal_link(self.id, url)}]"
+            diagnostic_id = f" [{terminal_link(self.id, self.docs_url)}]"
         else:
             diagnostic_id = ""
 
