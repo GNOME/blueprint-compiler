@@ -42,6 +42,10 @@ class Translated(AstNode):
     def translate_context(self) -> T.Optional[str]:
         return self.tokens["context"]
 
+    @property
+    def string_token(self) -> Token:
+        return self.group.tokens["string"]
+
     @validate()
     def validate_for_type(self) -> None:
         expected_type = self.context[ValueTypeCtx].value_type

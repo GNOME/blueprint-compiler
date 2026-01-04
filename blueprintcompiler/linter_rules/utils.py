@@ -20,9 +20,9 @@ class LinterRule:
 
         value = property.value.child
         if isinstance(value, Translated):
-            return (value.string, value.range)
+            return (value.string, value.string_token.range_without_quotes)
         elif isinstance(value, Literal) and isinstance(value.value, QuotedLiteral):
-            return (value.value.value, value.range)
+            return (value.value.value, value.value.value_token.range_without_quotes)
         else:
             return (None, None)
 

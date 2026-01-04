@@ -120,6 +120,18 @@ def escape_quote(string: str) -> str:
     )
 
 
+def adjust_quote_pos(string: str, pos: int):
+    """Given the unescaped text of a quote literal (minus the quotes), convert the given index in the escaped string
+    to the corresponding index in the unescaped string."""
+    i = 0
+    for _ in range(pos):
+        if string[i] == "\\":
+            i += 2
+        else:
+            i += 1
+    return i
+
+
 def unescape_quote(string: str) -> str:
     string = string[1:-1]
 

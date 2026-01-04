@@ -87,6 +87,10 @@ class QuotedLiteral(AstNode):
         return self.tokens["value"]
 
     @property
+    def value_token(self) -> Token:
+        return self.group.tokens["value"]
+
+    @property
     def type(self):
         return gir.StringType()
 

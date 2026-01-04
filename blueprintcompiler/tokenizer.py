@@ -63,8 +63,15 @@ class Token:
         return self.string[self.start : self.end]
 
     @property
-    def range(self) -> "Range":
+    def range(self) -> Range:
         return Range(self.start, self.end, self.string)
+
+    @property
+    def range_without_quotes(self) -> Range:
+        if self.type == TokenType.QUOTED:
+            return Range(self.start + 1, self.end - 1, self.string)
+        else:
+            return self.range
 
     def get_number(self) -> T.Union[int, float]:
         from .errors import CompileError, CompilerBugError

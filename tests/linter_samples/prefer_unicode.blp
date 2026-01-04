@@ -3,88 +3,92 @@ using Adw 1;
 
 // Bad examples
 
-Button {
+Button a {
   label: _("hello...");
 }
 
-Button {
+Button b {
   label: C_("my context", "hello...");
 }
 
-Button {
-  label: "it was the best of times... it was the worst of times";
+Button c {
+  label: _("it was the best of times.... it was the worst of times");
 }
 
-Button {
+Button d {
   label: _("a list of things:\n\n* one\n* two\n* three");
 }
 
-Button {
+Button e {
   label: _("a list of things:\n\n  - one\n  - two\n  - three");
 }
 
-Button {
+Button f {
   label: _("So I said, \"what?\"");
 }
 
-Button {
-  label: _("the printer's not working");
+Button g {
+  label: _("the \\\\ printer's not working");
 }
 
-Button {
+Button h {
   label: _("all the kings' men");
 }
 
-Button {
+Button i {
   label: _("the resolution is 1920x1080");
 }
 
-Button {
+Button j {
   label: _("the resolution is 1920 x 1080");
 }
 
-Button {
+Button k {
   label: _("the photo is printed at 6in x 4in");
 }
 
-Button {
+Button l {
   label: _("the photo is printed at 6\" x 4\"");
 }
 
-Button {
+Button m {
   label: _("reporting a 10x sales increase");
 }
 
 // Good examples
 
-Button {
+Button n {
   label: _("only two.. dots");
 }
 
-Button {
+Button o {
+  label: _("e.g. this text");
+}
+
+Button p {
   label: _("hello…");
 }
 
-Button {
+Button q {
   label: _("a list of things:\n\n• one\n• two\n• three");
 }
 
-Button {
+Button r {
   label: _("a list of things:\n\n  • one\n  • two\n  • three");
 }
 
-Button {
+Button s {
   label: _("So I said, “what?”");
 }
 
-Button {
+Button t {
   label: _("the printer’s not working");
 }
 
-Button {
+Button u {
   label: _("Using x as a letter is fine, for example, the movie T-Rex 2");
 }
 
-Button {
+Button v {
   label: _("the photo is printed at 6 in × 4 in");
 }

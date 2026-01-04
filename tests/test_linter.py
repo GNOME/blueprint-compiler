@@ -119,83 +119,79 @@ class TestLinter(unittest.TestCase):
             [
                 {
                     "line": 7,
-                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>",
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...>",
                 },
                 {
                     "line": 11,
-                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <hello...>",
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...>",
                 },
                 {
                     "line": 15,
-                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <...> in <times...>",
+                    "message": "Prefer using an ellipsis (<…>, U+2026) instead of <....>",
                 },
                 {
                     "line": 19,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* one>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line",
                 },
                 {
                     "line": 19,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* two>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line",
                 },
                 {
                     "line": 19,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line in <* three>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <*> at the start of a line",
                 },
                 {
                     "line": 23,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - one>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line",
                 },
                 {
                     "line": 23,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - two>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line",
                 },
                 {
                     "line": 23,
-                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line in <  - three>",
+                    "message": "Prefer using a bullet (<•>, U+2022) instead of <-> at the start of a line",
                 },
                 {
                     "line": 27,
-                    "message": 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <"> in <"what?">',
+                    "message": 'Prefer using genuine quote marks (<“>, U+201C, and <”>, U+201D) instead of <">',
                 },
                 {
                     "line": 31,
-                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <printer's>",
+                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe",
                 },
                 {
                     "line": 35,
-                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe in <kings'>",
+                    "message": "Prefer using a right single quote (<’>, U+2019) instead of <'> to denote an apostrophe",
                 },
                 {
                     "line": 39,
-                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920x1080>",
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x>",
                 },
                 {
                     "line": 43,
-                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <1920 x 1080>",
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x>",
                 },
                 {
                     "line": 47,
-                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6in x 4in>",
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x>",
                 },
                 {
                     "line": 47,
-                    "message": "When a number is displayed with units, e.g. <6in>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                    "message": "When a number is displayed with units, the two should be separated by a narrow no-break space (< >, U+202F)",
                 },
                 {
                     "line": 47,
-                    "message": "When a number is displayed with units, e.g. <4in>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                    "message": "When a number is displayed with units, the two should be separated by a narrow no-break space (< >, U+202F)",
                 },
                 {
                     "line": 51,
-                    "message": 'Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <6" x 4">',
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x>",
                 },
                 {
                     "line": 55,
-                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x> in <10x>",
-                },
-                {
-                    "line": 55,
-                    "message": "When a number is displayed with units, e.g. <10x>, the two should be separated by a narrow no-break space (< >, U+202F)",
+                    "message": "Prefer using a multiplication sign (<×>, U+00D7), instead of <x>",
                 },
             ],
         )
