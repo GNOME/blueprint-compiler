@@ -24,7 +24,9 @@ from dataclasses import dataclass
 
 from . import utils
 from .tokenizer import Range
-from .utils import Colors, TextEdit
+from .utils import Colors, TextEdit, terminal_link
+
+DIAGNOSTIC_URL = "https://gnome.pages.gitlab.gnome.org/blueprint-compiler/reference/diagnostics.html#"
 
 
 class PrintableError(Exception):
@@ -56,6 +58,7 @@ class CompileError(PrintableError):
         actions: T.Optional[T.List["CodeAction"]] = None,
         fatal: bool = False,
         references: T.Optional[T.List[ErrorReference]] = None,
+        id: T.Optional[str] = None,
     ) -> None:
         super().__init__(message)
 
@@ -65,6 +68,7 @@ class CompileError(PrintableError):
         self.actions = actions or []
         self.references = references or []
         self.fatal = fatal
+        self.id = id
 
         if did_you_mean is not None:
             self._did_you_mean(*did_you_mean)
@@ -117,8 +121,14 @@ class CompileError(PrintableError):
         n_carets += line.count("\t", col_num, col_num + n_carets)
         line = line.replace("\t", "  ")
 
+        if self.id is not None:
+            url = DIAGNOSTIC_URL + self.id.replace("_", "-")
+            diagnostic_id = f" [{terminal_link(self.id, url)}]"
+        else:
+            diagnostic_id = ""
+
         stream.write(
-            f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.CLEAR}
+            f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.FAINT}{diagnostic_id}{Colors.CLEAR}
 at {filename} line {line_num} column {col_num}:
 {Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*n_spaces}{"^"*n_carets}{Colors.CLEAR}\n"""
         )

@@ -34,6 +34,10 @@ class Colors:
     CLEAR = "\033[0m"
 
 
+def terminal_link(text: str, url: str):
+    return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
+
+
 def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
     if len(options) == 0:
         return None
