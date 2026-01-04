@@ -205,13 +205,6 @@ avoid_all_caps
 According to the `GNOME Human Interface Guidelines <https://developer.gnome.org/hig/guidelines/typography.html>`_, labels should not use all capital letters.
 
 
-.. _Diagnostic scrollable_parent:
-
-scrollable_parent
-~~~~~~~~~~~~~~~~~
-A widget that implements `Scrollable <https://docs.gtk.org/gtk4/iface.Scrollable.html>`_ should be a child of a `ScrolledWindow <https://docs.gtk.org/gtk4/class.ScrolledWindow.html>`_ or a `Adw.ClampScrollable <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.ClampScrollable.html>`_. Otherwise, it may not work correctly.
-
-
 .. _Diagnostic gtk_switch_state:
 
 gtk_switch_state
@@ -226,6 +219,7 @@ missing_descriptive_text
 This widget has no text that would describe its purpose to a screen reader or other accessibility software. You should add a tooltip, or an accessibilty block:
 
 .. code-block:: blueprint
+
    Image {
      accessibility {
        description: _("A cat jumping into a box");
@@ -235,6 +229,7 @@ This widget has no text that would describe its purpose to a screen reader or ot
 If the widget is purely decorative, you can set the ``presentation`` accessibility role to hide it from accessibility software:
 
 .. code-block:: blueprint
+
    Image {
      accessible-role: presentation;
    }
@@ -253,6 +248,33 @@ number_of_children
 ~~~~~~~~~~~~~~~~~~
 Some widgets can only have one child, and some cannot have any. Check the documentation for the widget you are using.
 
+.. _Diagnostic scrollable_parent:
+
+scrollable_parent
+~~~~~~~~~~~~~~~~~
+A widget that implements `Scrollable <https://docs.gtk.org/gtk4/iface.Scrollable.html>`_ should be a child of a `ScrolledWindow <https://docs.gtk.org/gtk4/class.ScrolledWindow.html>`_ or a `Adw.ClampScrollable <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.ClampScrollable.html>`_. Otherwise, it may not work correctly.
+
+In particular, this setup with an `Adw.Clamp <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.Clamp.html>`_ is incorrect:
+
+.. code-block:: blueprint
+   :class: bad-example
+
+   ScrolledWindow {
+     Adw.Clamp {
+       ListView {}
+     }
+   }
+
+because the ListView's direct parent needs to provide scrolling for it. `Adw.ClampScrollable <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.6/class.ClampScrollable.html>`_ exists for this purpose:
+
+.. code-block:: blueprint
+
+   ScrolledWindow {
+     Adw.ClampScrollable {
+       ListView {}
+     }
+   }
+
 
 .. _Diagnostic translate_display_string:
 
@@ -268,7 +290,7 @@ unused_object
 This top-level object has no ID, so it can't be referenced elsewhere in the blueprint or the application.
 
 .. note::
-   Technically, it could be referenced in the application, since you can call `Gtk.Builder.get_objects() <https://docs.gtk.org/gtk4/method.Builder.get_objects.html>`_ to get all objects in the blueprint. However, this is not recommended.
+   Technically, it could be referenced in the application, since you can call `Gtk.Builder.get_objects() <https://docs.gtk.org/gtk4/method.Builder.get_objects.html>`_ to get all objects in the blueprint. However, this is not recommended, since it could break easily if you change the blueprint.
 
 
 .. _Diagnostic use_adw_bin:

@@ -1,0 +1,12 @@
+using Gtk 4.0;
+using Adw 1;
+
+// Bad Example
+Adw.Clamp clamp {
+  ListView {}
+}
+
+// Good Example
+Adw.ClampScrollable clamp_scrollable {
+  ListView {}
+}

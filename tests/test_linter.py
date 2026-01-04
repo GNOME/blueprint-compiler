@@ -201,12 +201,12 @@ class TestLinter(unittest.TestCase):
             [{"line": 9, "message": "Avoid using css-classes. Use styles[] instead."}],
         )
         self.check_file(
-            "clamp_scrolledwindow",
-            "clamp-in-scrolled-window",
+            "scrollable_parent",
+            "scrollable_parent",
             [
                 {
-                    "line": 7,
-                    "message": "Clamp should not be nested in ScrolledWindow.",
+                    "line": 6,
+                    "message": "Scrollable widget should be placed in a scroll container",
                 },
             ],
         )

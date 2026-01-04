@@ -1,5 +1,4 @@
 from .avoid_all_caps import AvoidAllCaps
-from .clamp_scrolledwindow import ClampScrolledWindow
 from .incorrect_widget_placement import (
     IncorrectWidgetPlacement,
 )
@@ -15,6 +14,7 @@ from .order_properties_gtk_adjustment import (
 from .prefer_adw_bin import PreferAdwBin
 from .prefer_unicode_chars import PreferUnicodeChars
 from .require_a11y_label import RequireA11yLabel
+from .scrollable_parent import ScrollableParent
 from .translatable_display_string import (
     TranslatableDisplayString,
 )
@@ -35,7 +35,7 @@ LINTER_RULES: list[type[LinterRule]] = [
     PreferUnicodeChars,
     MissingUserFacingProperties,
     UseStylesOverCssClasses,
-    ClampScrolledWindow,
+    ScrollableParent,
     IncorrectWidgetPlacement,
     OrderPropertiesGtkAdjustment,
     UnusedObject,

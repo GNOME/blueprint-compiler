@@ -22,3 +22,11 @@ body:not([data-theme="light"]) .grammar-block {
   background: #202020;
   color: #d0d0d0;
 }
+
+body[data-theme="light"] .bad-example {
+  border-left: 3px solid #F66151;
+}
+
+.bad-example {
+  border-left: 3px solid #A51D2D;
+}
