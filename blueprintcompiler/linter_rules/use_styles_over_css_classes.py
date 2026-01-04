@@ -4,7 +4,7 @@ from .utils import LinterRule
 
 
 class UseStylesOverCssClasses(LinterRule):
-    id = "use-styles"
+    id = "use_styles"
     severity = "problem"
     category = "technical"
 
@@ -12,8 +12,10 @@ class UseStylesOverCssClasses(LinterRule):
         for property in child.content.children[Property]:
             if property.name == "css-classes":
                 range = property.range
-                problem = CompileWarning(
-                    "Avoid using css-classes. Use styles[] instead.",
-                    range,
+                self.problems.append(
+                    CompileWarning(
+                        "Avoid using css-classes. Use styles[] instead.",
+                        range,
+                        id=self.id,
+                    )
                 )
-                self.problems.append(problem)

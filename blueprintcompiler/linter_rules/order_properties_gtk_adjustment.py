@@ -4,7 +4,7 @@ from .utils import LinterRule
 
 
 class OrderPropertiesGtkAdjustment(LinterRule):
-    id = "adjustment-prop-order"
+    id = "adjustment_prop_order"
     severity = "problem"
     category = "technical"
 
@@ -16,11 +16,13 @@ class OrderPropertiesGtkAdjustment(LinterRule):
             for property in properties:
                 current_order.append(property.name)
             if current_order != preferred_order:
-                problem = CompileWarning(
-                    f"{type} properties should be ordered as lower, upper, and then value.",
-                    child.range,
+                self.problems.append(
+                    CompileWarning(
+                        f"{type} properties should be ordered as lower, upper, and then value.",
+                        child.range,
+                        id=self.id,
+                    )
                 )
-                self.problems.append(problem)
 
 
 type_order_properties = ["Gtk.Adjustment"]
