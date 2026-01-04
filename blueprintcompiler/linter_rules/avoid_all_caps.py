@@ -5,7 +5,7 @@ from .utils import LinterRule
 
 
 class AvoidAllCaps(LinterRule):
-    id = "avoid-all-caps"
+    id = "avoid_all_caps"
     severity = "suggestion"
     category = "hig"
 
@@ -15,7 +15,10 @@ class AvoidAllCaps(LinterRule):
                 (string, range) = self.get_string_value(property)
                 # Show linter error for upper case and multi letter strings
                 if string and string.isupper() and len(string) > 1:
-                    problem = CompileWarning(
-                        f"Avoid using all upper case for {type} {property.name}", range
+                    self.problems.append(
+                        CompileWarning(
+                            f"Avoid using all upper case for {type} {property.name}",
+                            range,
+                            id=self.id,
+                        )
                     )
-                    self.problems.append(problem)

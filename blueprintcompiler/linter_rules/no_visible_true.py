@@ -5,7 +5,7 @@ from .utils import LinterRule
 
 
 class NoVisibleTrue(LinterRule):
-    id = "visible-true"
+    id = "visible_true"
     severity = "suggestion"
     category = "technical"
 
@@ -34,5 +34,6 @@ class NoVisibleTrue(LinterRule):
                                 edit_range=property.range.with_preceding_whitespace,
                             )
                         ],
+                        id=self.id,
                     )
                 )

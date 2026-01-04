@@ -186,3 +186,122 @@ because libhandy imports ``Gtk 3.0``.
 wrong_compiler_version
 ----------------------
 This version of blueprint-compiler is for GTK 4 blueprints only. Future GTK versions will use different versions of blueprint-compiler.
+
+
+Linter Rules
+------------
+
+.. _Diagnostic adjustment_prop_order:
+
+adjustment_prop_order
+~~~~~~~~~~~~~~~~~~~~~
+An `Adjustment <https://docs.gtk.org/gtk4/class.Adjustment.html>`_'s ``value`` property must be set after the ``lower`` and ``upper`` properties. Otherwise, it will be clamped to 0 when it is set, since that is the default lower and upper bounds of the Adjustment.
+
+
+.. _Diagnostic avoid_all_caps:
+
+avoid_all_caps
+~~~~~~~~~~~~~~
+According to the `GNOME Human Interface Guidelines <https://developer.gnome.org/hig/guidelines/typography.html>`_, labels should not use all capital letters.
+
+
+.. _Diagnostic scrollable_parent:
+
+scrollable_parent
+~~~~~~~~~~~~~~~~~
+A widget that implements `Scrollable <https://docs.gtk.org/gtk4/iface.Scrollable.html>`_ should be a child of a `ScrolledWindow <https://docs.gtk.org/gtk4/class.ScrolledWindow.html>`_ or a `Adw.ClampScrollable <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.ClampScrollable.html>`_. Otherwise, it may not work correctly.
+
+
+.. _Diagnostic gtk_switch_state:
+
+gtk_switch_state
+~~~~~~~~~~~~~~~~
+The `state <https://docs.gtk.org/gtk4/property.Switch.state.html>`_ property controls the backend state of the switch directly. In most cases, you want to use `active <https://docs.gtk.org/gtk4/property.Switch.active.html>`_, unless you are using the delayed state change feature described in `state-set <https://docs.gtk.org/gtk4/signal.Switch.state-set.html>`_.
+
+
+.. _Diagnostic missing_descriptive_text:
+
+missing_descriptive_text
+~~~~~~~~~~~~~~~~~~~~~~~~
+This widget has no text that would describe its purpose to a screen reader or other accessibility software. You should add a tooltip, or an accessibilty block:
+
+.. code-block:: blueprint
+   Image {
+     accessibility {
+       description: _("A cat jumping into a box");
+     }
+   }
+
+If the widget is purely decorative, you can set the ``presentation`` accessibility role to hide it from accessibility software:
+
+.. code-block:: blueprint
+   Image {
+     accessible-role: presentation;
+   }
+
+
+.. _Diagnostic missing_user_facing_text:
+
+missing_user_facing_text
+~~~~~~~~~~~~~~~~~~~~~~~~
+This widget should have some text to display to the user to describe its function, such as a label or tooltip, but it doesn't.
+
+
+.. _Diagnostic number_of_children:
+
+number_of_children
+~~~~~~~~~~~~~~~~~~
+Some widgets can only have one child, and some cannot have any. Check the documentation for the widget you are using.
+
+
+.. _Diagnostic translate_display_string:
+
+translate_display_string
+~~~~~~~~~~~~~~~~~~~~~~~~
+This property should usually be marked as translated.
+
+
+.. _Diagnostic unused_object:
+
+unused_object
+~~~~~~~~~~~~~
+This top-level object has no ID, so it can't be referenced elsewhere in the blueprint or the application.
+
+.. note::
+   Technically, it could be referenced in the application, since you can call `Gtk.Builder.get_objects() <https://docs.gtk.org/gtk4/method.Builder.get_objects.html>`_ to get all objects in the blueprint. However, this is not recommended.
+
+
+.. _Diagnostic use_adw_bin:
+
+use_adw_bin
+~~~~~~~~~~~
+When using libadwaita, it is preferable to use `Adw.Bin <https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/class.Bin.html>`_ for a container that only has one child, rather than a `Box <https://docs.gtk.org/gtk4/class.Box.html>`_, since ``Bin`` is specifically designed for this case.
+
+
+.. _Diagnostic use_styles:
+
+use_styles
+~~~~~~~~~~
+The `Widget:css-classes <https://docs.gtk.org/gtk4/property.Widget.css-classes.html>`_ property allows you to set the widget's CSS classes in an array. However, doing so overwrites any default classes the widget may set, which could make the styling look broken. Use the :ref:`styles<Syntax ExtStyles>` block instead, since it adds the classes to the existing list.
+
+
+.. _Diagnostic use_unicode:
+
+use_unicode
+~~~~~~~~~~~
+The text in a translated string should use Unicode characters where appropriate, such as “smart quotes” `GNOME Human Interface Guidelines <https://developer.gnome.org/hig/guidelines/typography.html>`_.
+
+
+.. _Diagnostic wrong_parent:
+
+wrong_parent
+~~~~~~~~~~~~
+Some object classes only have meaning inside a particular parent class. For example, a `StackPage <https://docs.gtk.org/gtk4/class.StackPage.html>`_ is a child of a `Stack <https://docs.gtk.org/gtk4/class.Stack.html>`_ and will not work elsewhere.
+
+
+.. _Diagnostic visible_true:
+
+visible_true
+~~~~~~~~~~~~
+In GTK 3, widgets were not visible by default, so you had to set ``visible: true`` on each one. However, in GTK 4,
+the `visible <https://docs.gtk.org/gtk4/property.Widget.visible.html>` property defaults to ``true``, so this is no longer necessary.

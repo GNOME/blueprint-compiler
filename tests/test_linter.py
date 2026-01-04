@@ -35,14 +35,14 @@ class TestLinter(unittest.TestCase):
     def test_linter_samples(self):
         self.check_file(
             "label_with_child",
-            "number-of-children",
+            "number_of_children",
             [
                 {"line": 7, "message": "Gtk.Label cannot have children"},
             ],
         )
         self.check_file(
             "number_of_children",
-            "number-of-children",
+            "number_of_children",
             [
                 {
                     "line": 10,
@@ -57,7 +57,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "prefer_adw_bin",
-            "use-adw-bin",
+            "use_adw_bin",
             [
                 {
                     "line": 5,
@@ -67,7 +67,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "translatable_display_string",
-            "translate-display-string",
+            "translate_display_string",
             [
                 {
                     "line": 6,
@@ -77,7 +77,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "avoid_all_caps",
-            "avoid-all-caps",
+            "avoid_all_caps",
             [
                 {
                     "line": 6,
@@ -87,7 +87,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "no_visible_true",
-            "visible-true",
+            "visible_true",
             [
                 {
                     "line": 6,
@@ -97,7 +97,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "no_gtk_switch_state",
-            "gtk-switch-state",
+            "gtk_switch_state",
             [
                 {
                     "line": 6,
@@ -107,7 +107,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "require_a11y_label",
-            "missing-descriptive-text",
+            "missing_descriptive_text",
             [
                 {"line": 5, "message": "Gtk.Image is missing an accessibility label"},
                 {"line": 8, "message": "Gtk.Button is missing an accessibility label"},
@@ -115,7 +115,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "prefer_unicode",
-            "typography",
+            "use_unicode",
             [
                 {
                     "line": 7,
@@ -197,7 +197,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "use_styles_over_css_classes",
-            "use-styles",
+            "use_styles",
             [{"line": 9, "message": "Avoid using css-classes. Use styles[] instead."}],
         )
         self.check_file(
@@ -212,7 +212,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "missing_user_facing_properties",
-            "missing-user-facing-text",
+            "missing_user_facing_text",
             [
                 {
                     "line": 5,
@@ -222,7 +222,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "incorrect_widget_placement",
-            "wrong-parent",
+            "wrong_parent",
             [
                 {"line": 6, "message": "Gtk.StackPage must be a child of a Gtk.Stack"},
                 {
@@ -233,7 +233,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "order_properties_gtk_adjustment",
-            "adjustment-prop-order",
+            "adjustment_prop_order",
             [
                 {
                     "line": 7,
@@ -251,7 +251,7 @@ class TestLinter(unittest.TestCase):
         )
         self.check_file(
             "unused_object",
-            "unused-object",
+            "unused_object",
             [
                 {
                     "line": 4,

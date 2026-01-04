@@ -4,7 +4,7 @@ from .utils import LinterRule
 
 
 class NoGtkSwitchState(LinterRule):
-    id = "gtk-switch-state"
+    id = "gtk_switch_state"
     severity = "problem"
     category = "technical"
 
@@ -16,6 +16,8 @@ class NoGtkSwitchState(LinterRule):
                 if property.name == "state":
                     range = property.range
                     problem = CompileError(
-                        f"Use the active property instead of the state property", range
+                        f"Use the active property instead of the state property",
+                        range,
+                        id=self.id,
                     )
                     self.problems.append(problem)

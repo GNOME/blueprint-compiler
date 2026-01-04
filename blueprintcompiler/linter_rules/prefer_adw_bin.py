@@ -5,7 +5,7 @@ from .utils import LinterRule
 
 
 class PreferAdwBin(LinterRule):
-    id = "use-adw-bin"
+    id = "use_adw_bin"
     severity = "suggestion"
     category = "technical"
     platform = "adw"
@@ -43,5 +43,6 @@ class PreferAdwBin(LinterRule):
                         additional_edits=additional_edits,
                     )
                 ],
+                id=self.id,
             )
             self.problems.append(problem)

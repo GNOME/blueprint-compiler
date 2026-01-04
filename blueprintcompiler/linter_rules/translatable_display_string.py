@@ -5,7 +5,7 @@ from .utils import LinterRule
 
 
 class TranslatableDisplayString(LinterRule):
-    id = "translate-display-string"
+    id = "translate_display_string"
     severity = "suggestion"
     category = "hig"
 
@@ -21,11 +21,13 @@ class TranslatableDisplayString(LinterRule):
 
             if not isinstance(value.child, Translated):
                 range = value.range
-                problem = CompileWarning(
-                    f'Mark {type} {property.name} as translatable using _("...")',
-                    range,
-                    actions=[
-                        CodeAction("mark as translatable", "_(" + range.text + ")")
-                    ],
+                self.problems.append(
+                    CompileWarning(
+                        f'Mark {type} {property.name} as translatable using _("...")',
+                        range,
+                        actions=[
+                            CodeAction("mark as translatable", "_(" + range.text + ")")
+                        ],
+                        id=self.id,
+                    )
                 )
-                self.problems.append(problem)

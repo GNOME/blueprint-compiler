@@ -4,7 +4,7 @@ from .utils import LinterRule
 
 
 class UnusedObject(LinterRule):
-    id = "unused-object"
+    id = "unused_object"
     severity = "suggestion"
     category = "technical"
 
@@ -21,5 +21,6 @@ class UnusedObject(LinterRule):
                             edit_range=child.range.with_preceding_whitespace,
                         )
                     ],
+                    id=self.id,
                 )
             )

@@ -5,7 +5,7 @@ from .utils import LinterRule
 
 
 class MissingUserFacingProperties(LinterRule):
-    id = "missing-user-facing-text"
+    id = "missing_user_facing_text"
     severity = "suggestion"
     category = "a11y"
 
@@ -18,11 +18,13 @@ class MissingUserFacingProperties(LinterRule):
                 unique_elements.add(user_facing_property)
                 if type == user_facing_property or user_facing_property == None:
                     if not properties:
-                        problem = CompileWarning(
-                            f"{type} is missing required user-facing text property",
-                            child.signature_range,
+                        self.problems.append(
+                            CompileWarning(
+                                f"{type} is missing required user-facing text property",
+                                child.signature_range,
+                                id=self.id,
+                            )
                         )
-                        self.problems.append(problem)
 
 
 user_facing_properties = get_annotation_elements()

@@ -3,7 +3,7 @@ from .utils import LinterRule
 
 
 class IncorrectWidgetPlacement(LinterRule):
-    id = "wrong-parent"
+    id = "wrong_parent"
     severity = "problem"
     category = "technical"
 
@@ -21,11 +21,13 @@ class IncorrectWidgetPlacement(LinterRule):
                     parent_type is None
                     or parent_type.full_name not in declared_widgets[type]
                 ):
-                    problem = CompileWarning(
-                        f"{type} must be a child of a {declared_widgets[type]}",
-                        child.signature_range,
+                    self.problems.append(
+                        CompileWarning(
+                            f"{type} must be a child of a {declared_widgets[type]}",
+                            child.signature_range,
+                            id=self.id,
+                        )
                     )
-                    self.problems.append(problem)
 
 
 # Add more test widgets as needed with relevant parents

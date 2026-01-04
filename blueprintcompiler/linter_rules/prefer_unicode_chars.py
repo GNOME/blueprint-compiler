@@ -64,7 +64,7 @@ PATTERNS: dict[str, Subrule] = {
 
 
 class PreferUnicodeChars(LinterRule):
-    id = "typography"
+    id = "use_unicode"
     severity = "suggestion"
     category = "hig"
 
@@ -106,5 +106,6 @@ class PreferUnicodeChars(LinterRule):
                                 replace(pattern.replace_with),
                             )
                         ],
+                        id=self.id,
                     )
                 )

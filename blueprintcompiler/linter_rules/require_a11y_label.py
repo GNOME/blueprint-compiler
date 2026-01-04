@@ -4,7 +4,7 @@ from .utils import LinterRule
 
 
 class RequireA11yLabel(LinterRule):
-    id = "missing-descriptive-text"
+    id = "missing_descriptive_text"
     severity = "suggestion"
     category = "a11y"
 
@@ -34,10 +34,13 @@ class RequireA11yLabel(LinterRule):
                         accessibility_label = True
 
             if label is None and tooltip_text is None and accessibility_label is False:
-                problem = CompileWarning(
-                    f"{type} is missing an accessibility label", child.signature_range
+                self.problems.append(
+                    CompileWarning(
+                        f"{type} is missing an accessibility label",
+                        child.signature_range,
+                        id=self.id,
+                    )
                 )
-                self.problems.append(problem)
 
         # rule suggestion/require-a11y-label
         elif type == "Gtk.Image" or type == "Gtk.Picture":
@@ -53,7 +56,10 @@ class RequireA11yLabel(LinterRule):
                         accessibility_label = True
 
             if accessibility_label is False:
-                problem = CompileWarning(
-                    f"{type} is missing an accessibility label", child.signature_range
+                self.problems.append(
+                    CompileWarning(
+                        f"{type} is missing an accessibility label",
+                        child.signature_range,
+                        id=self.id,
+                    )
                 )
-                self.problems.append(problem)
