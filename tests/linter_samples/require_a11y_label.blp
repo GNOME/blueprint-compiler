@@ -1,26 +1,32 @@
 using Gtk 4.0;
-using Adw 1;
 
-// Bad Example
-Gtk.Image {
+// Bad examples
+Image a {
   icon-name: "cat-symbolic";
 }
-Button {
+
+Button b {
   icon-name: "foobar";
 }
 
-// Good Example
-// TODO: Ask about correct property for Image, because running it with label
-// causes a compiler error
-//Gtk.Image {
-//  tooltip-text: _("cat");
-//}
-
-//Gtk.Picture {
-//  label: _("cat");
-//}
-
-Button {
+// Good examples
+Button c {
   icon-name: "foobar";
   label: _("button");
+}
+
+Image d {
+  accessible-role: presentation;
+}
+
+Box e {
+  Image {
+    accessibility {
+      labelled-by: f;
+    }
+  }
+
+  Label f {
+    label: _("text");
+  }
 }

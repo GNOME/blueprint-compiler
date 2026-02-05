@@ -109,7 +109,7 @@ class TestLinter(unittest.TestCase):
             "require_a11y_label",
             "missing_descriptive_text",
             [
-                {"line": 5, "message": "Gtk.Image is missing an accessibility label"},
+                {"line": 4, "message": "Gtk.Image is missing an accessibility label"},
                 {"line": 8, "message": "Gtk.Button is missing an accessibility label"},
             ],
         )

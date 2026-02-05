@@ -24,13 +24,13 @@ class RequireA11yLabel(LinterRule):
                 elif property.name == "tooltip-text":
                     tooltip_text = property.value
 
-            accessibility__child = child.content.children[ExtAccessibility]
-            if len(accessibility__child) > 0:
+            accessibility_child = child.content.children[ExtAccessibility]
+            if len(accessibility_child) > 0:
                 accessibility_properties = child.content.children[ExtAccessibility][
                     0
                 ].properties
                 for accessibility_property in accessibility_properties:
-                    if accessibility_property.name == "label":
+                    if accessibility_property.name in ("label", "labelled-by"):
                         accessibility_label = True
 
             if label is None and tooltip_text is None and accessibility_label is False:
@@ -44,22 +44,26 @@ class RequireA11yLabel(LinterRule):
 
         # rule suggestion/require-a11y-label
         elif type == "Gtk.Image" or type == "Gtk.Picture":
-            accessibility_label = False
+            for property in properties:
+                if (
+                    property.name == "accessible-role"
+                    and property.value.range.text == "presentation"
+                ):
+                    return
 
-            accessibility__child = child.content.children[ExtAccessibility]
-            if len(accessibility__child) > 0:
+            accessibility_child = child.content.children[ExtAccessibility]
+            if len(accessibility_child) > 0:
                 accessibility_properties = child.content.children[ExtAccessibility][
                     0
                 ].properties
                 for accessibility_property in accessibility_properties:
-                    if accessibility_property.name == "label":
-                        accessibility_label = True
+                    if accessibility_property.name in ("label", "labelled-by"):
+                        return
 
-            if accessibility_label is False:
-                self.problems.append(
-                    CompileWarning(
-                        f"{type} is missing an accessibility label",
-                        child.signature_range,
-                        id=self.id,
-                    )
+            self.problems.append(
+                CompileWarning(
+                    f"{type} is missing an accessibility label",
+                    child.signature_range,
+                    id=self.id,
                 )
+            )
