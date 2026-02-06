@@ -417,7 +417,9 @@ class BlueprintApp:
                 ast, errors, warnings = parser.parse(tokens)
 
                 if errors:
-                    raise errors
+                    errors.pretty_print(file.name, data)
+                    panic = True
+                    continue
                 if ast is None:
                     raise CompilerBugError()
 
@@ -429,15 +431,10 @@ class BlueprintApp:
                     no_suggestions=opts.no_suggestions,
                 )
                 for problem in problems:
-                    if isinstance(problem, CompileError):
-                        problem.pretty_print(
-                            file.name, problem.range.original_text, stream=sys.stderr
-                        )
-                        panic = True
-                    elif isinstance(problem, CompileWarning):
-                        problem.pretty_print(
-                            file.name, problem.range.original_text, stream=sys.stderr
-                        )
+                    problem.pretty_print(
+                        file.name, problem.range.original_text, stream=sys.stderr
+                    )
+                    panic = True
 
         if panic:
             sys.exit(1)
