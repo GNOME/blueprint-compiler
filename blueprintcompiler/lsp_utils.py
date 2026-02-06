@@ -112,6 +112,7 @@ class Completion:
             ),
             "deprecated": self.deprecated,
             "sortText": self.sort_text,
+            "filterText": insert_text,
             "insertText": insert_text,
             "insertTextFormat": insert_text_format,
             "detail": self.detail if self.detail else None,

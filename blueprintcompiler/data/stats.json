@@ -1,0 +1,669 @@
+{
+  "Adw.ActionRow": [
+    "p:title",
+    "p:activatable-widget",
+    "p:subtitle",
+    "c:Gtk.Switch",
+    "p:use-underline"
+  ],
+  "Adw.AlertDialog": [
+    "p:heading",
+    "p:default-response",
+    "p:close-response",
+    "p:body"
+  ],
+  "Adw.ApplicationWindow": [
+    "p:default-width",
+    "p:default-height",
+    "p:title",
+    "p:content"
+  ],
+  "Adw.Avatar": [
+    "p:size"
+  ],
+  "Adw.Banner": [
+    "p:title",
+    "p:button-label",
+    "p:revealed",
+    "s:button-clicked"
+  ],
+  "Adw.Bin": [
+    "p:halign",
+    "p:valign",
+    "p:hexpand",
+    "p:child",
+    "p:vexpand"
+  ],
+  "Adw.BreakpointBin": [
+    "c:Adw.Breakpoint",
+    "p:width-request",
+    "p:height-request",
+    "p:child"
+  ],
+  "Adw.ButtonContent": [
+    "p:icon-name",
+    "p:label",
+    "p:halign",
+    "p:use-underline"
+  ],
+  "Adw.ButtonRow": [
+    "p:title",
+    "s:activated",
+    "p:use-underline",
+    "p:end-icon-name",
+    "p:sensitive"
+  ],
+  "Adw.Carousel": [
+    "c:Adw.StatusPage",
+    "p:allow-scroll-wheel",
+    "c:Gtk.Box",
+    "c:Adw.LayoutSlot",
+    "p:hexpand"
+  ],
+  "Adw.CarouselIndicatorDots": [
+    "p:carousel",
+    "p:orientation"
+  ],
+  "Adw.Clamp": [
+    "p:maximum-size",
+    "c:Gtk.Box",
+    "p:child",
+    "p:tightening-threshold",
+    "p:margin-start"
+  ],
+  "Adw.ClampScrollable": [
+    "p:maximum-size",
+    "p:child",
+    "p:tightening-threshold",
+    "c:Gtk.ListView"
+  ],
+  "Adw.ComboRow": [
+    "p:title",
+    "p:model",
+    "p:use-underline",
+    "p:subtitle",
+    "p:visible"
+  ],
+  "Adw.Dialog": [
+    "p:title",
+    "p:content-width",
+    "p:child"
+  ],
+  "Adw.EntryRow": [
+    "p:title",
+    "p:input-hints",
+    "p:use-underline",
+    "s:changed",
+    "p:show-apply-button"
+  ],
+  "Adw.ExpanderRow": [
+    "c:Adw.ActionRow",
+    "p:title",
+    "p:show-enable-switch",
+    "p:subtitle",
+    "p:use-underline"
+  ],
+  "Adw.HeaderBar": [
+    "c:Gtk.Button",
+    "p:title-widget",
+    "c:Gtk.MenuButton",
+    "p:show-end-title-buttons",
+    "p:show-start-title-buttons"
+  ],
+  "Adw.InlineViewSwitcher": [
+    "p:stack"
+  ],
+  "Adw.Layout": [
+    "p:name",
+    "p:content"
+  ],
+  "Adw.LayoutSlot": [
+    "p:id",
+    "p:hexpand",
+    "p:visible"
+  ],
+  "Adw.MultiLayoutView": [
+    "c:Adw.Layout",
+    "c:Gtk.Grid"
+  ],
+  "Adw.NavigationPage": [
+    "p:title",
+    "p:tag",
+    "p:child",
+    "c:Adw.ToolbarView",
+    "p:can-pop"
+  ],
+  "Adw.NavigationSplitView": [
+    "p:sidebar",
+    "p:sidebar-width-fraction",
+    "p:min-sidebar-width",
+    "p:max-sidebar-width"
+  ],
+  "Adw.NavigationView": [
+    "c:Adw.NavigationPage"
+  ],
+  "Adw.OverlaySplitView": [
+    "p:sidebar",
+    "p:content",
+    "p:show-sidebar",
+    "p:max-sidebar-width",
+    "p:sidebar-width-fraction"
+  ],
+  "Adw.PasswordEntryRow": [
+    "p:title",
+    "p:use-underline",
+    "s:changed",
+    "p:activates-default"
+  ],
+  "Adw.PreferencesGroup": [
+    "c:Adw.ActionRow",
+    "p:title",
+    "c:Adw.SwitchRow",
+    "c:Adw.EntryRow",
+    "c:Adw.ComboRow"
+  ],
+  "Adw.PreferencesPage": [
+    "c:Adw.PreferencesGroup",
+    "p:description",
+    "p:title",
+    "p:icon-name",
+    "p:name"
+  ],
+  "Adw.PreferencesRow": [
+    "p:activatable",
+    "p:child",
+    "c:Gtk.Box",
+    "p:visible",
+    "c:Adw.ActionRow"
+  ],
+  "Adw.ShortcutsDialog": [
+    "c:Adw.ShortcutsSection"
+  ],
+  "Adw.ShortcutsItem": [
+    "p:title",
+    "p:accelerator",
+    "p:action-name",
+    "p:direction"
+  ],
+  "Adw.ShortcutsSection": [
+    "c:Adw.ShortcutsItem",
+    "p:title"
+  ],
+  "Adw.SpinRow": [
+    "p:title",
+    "p:adjustment",
+    "p:subtitle",
+    "p:numeric",
+    "p:use-underline"
+  ],
+  "Adw.Spinner": [
+    "p:width-request",
+    "p:height-request",
+    "p:halign",
+    "p:valign",
+    "p:visible"
+  ],
+  "Adw.SplitButton": [
+    "p:tooltip-text",
+    "s:clicked"
+  ],
+  "Adw.StatusPage": [
+    "p:title",
+    "p:icon-name",
+    "p:description",
+    "p:vexpand",
+    "p:hexpand"
+  ],
+  "Adw.SwitchRow": [
+    "p:title",
+    "p:use-underline",
+    "p:subtitle",
+    "s:notify::active",
+    "p:visible"
+  ],
+  "Adw.TabBar": [
+    "p:view"
+  ],
+  "Adw.Toast": [
+    "p:title",
+    "p:timeout"
+  ],
+  "Adw.ToastOverlay": [
+    "p:child",
+    "c:Adw.Leaflet",
+    "c:Adw.ToolbarView",
+    "p:vexpand",
+    "c:Gtk.Box"
+  ],
+  "Adw.Toggle": [
+    "p:name",
+    "p:label",
+    "p:use-underline",
+    "p:icon-name",
+    "p:tooltip"
+  ],
+  "Adw.ToggleGroup": [
+    "c:Adw.Toggle",
+    "p:valign",
+    "p:homogeneous",
+    "s:notify::active"
+  ],
+  "Adw.ToolbarView": [
+    "c:Adw.HeaderBar",
+    "p:content",
+    "c:Gtk.Box",
+    "p:top-bar-style",
+    "c:Gtk.ScrolledWindow"
+  ],
+  "Adw.ViewStack": [
+    "c:Adw.ViewStackPage",
+    "p:enable-transitions",
+    "p:vexpand",
+    "p:vhomogeneous",
+    "p:transition-duration"
+  ],
+  "Adw.ViewStackPage": [
+    "p:child",
+    "p:name",
+    "p:title",
+    "p:icon-name",
+    "p:use-underline"
+  ],
+  "Adw.ViewSwitcher": [
+    "p:policy",
+    "p:stack"
+  ],
+  "Adw.ViewSwitcherBar": [
+    "p:stack",
+    "p:reveal"
+  ],
+  "Adw.WindowTitle": [
+    "p:title",
+    "p:subtitle"
+  ],
+  "Adw.WrapBox": [
+    "c:Gtk.Button",
+    "p:child-spacing",
+    "p:line-spacing",
+    "c:Gtk.ToggleButton",
+    "p:align"
+  ],
+  "Gtk.ActionBar": [
+    "c:Gtk.Button",
+    "c:Gtk.Box"
+  ],
+  "Gtk.Adjustment": [
+    "p:upper",
+    "p:step-increment",
+    "p:lower",
+    "p:page-increment",
+    "p:value"
+  ],
+  "Gtk.Box": [
+    "p:orientation",
+    "c:Gtk.Label",
+    "p:spacing",
+    "c:Gtk.Box",
+    "c:Gtk.Button"
+  ],
+  "Gtk.BoxLayout": [
+    "p:orientation"
+  ],
+  "Gtk.Button": [
+    "p:label",
+    "p:tooltip-text",
+    "p:icon-name",
+    "p:action-name",
+    "s:clicked"
+  ],
+  "Gtk.CenterBox": [
+    "c:Gtk.Label",
+    "c:Gtk.Box",
+    "c:Gtk.Button",
+    "p:center-widget"
+  ],
+  "Gtk.CheckButton": [
+    "p:valign",
+    "p:label",
+    "p:group",
+    "p:halign",
+    "p:action-target"
+  ],
+  "Gtk.ColorDialogButton": [
+    "p:dialog"
+  ],
+  "Gtk.ColumnView": [
+    "c:Gtk.ColumnViewColumn"
+  ],
+  "Gtk.ColumnViewColumn": [
+    "p:title",
+    "p:factory",
+    "p:id",
+    "p:resizable",
+    "p:expand"
+  ],
+  "Gtk.DropDown": [
+    "p:valign",
+    "p:model",
+    "p:show-arrow",
+    "s:notify::selected"
+  ],
+  "Gtk.DropTarget": [
+    "p:actions",
+    "s:drop"
+  ],
+  "Gtk.Entry": [
+    "p:hexpand",
+    "p:placeholder-text",
+    "s:changed",
+    "s:activate",
+    "p:valign"
+  ],
+  "Gtk.EventControllerFocus": [
+    "s:leave",
+    "s:enter"
+  ],
+  "Gtk.EventControllerKey": [
+    "s:key-pressed",
+    "p:propagation-phase"
+  ],
+  "Gtk.EventControllerMotion": [
+    "s:motion",
+    "s:leave",
+    "s:enter"
+  ],
+  "Gtk.EventControllerScroll": [
+    "p:flags",
+    "s:scroll"
+  ],
+  "Gtk.FileFilter": [
+    "p:name"
+  ],
+  "Gtk.Fixed": [
+    "c:Gtk.Button"
+  ],
+  "Gtk.FlowBox": [
+    "p:selection-mode",
+    "p:column-spacing",
+    "p:homogeneous",
+    "p:row-spacing",
+    "p:max-children-per-line"
+  ],
+  "Gtk.FlowBoxChild": [
+    "p:child",
+    "p:width-request",
+    "p:height-request"
+  ],
+  "Gtk.GestureClick": [
+    "p:button",
+    "s:released",
+    "s:pressed",
+    "p:exclusive",
+    "p:propagation-phase"
+  ],
+  "Gtk.GestureDrag": [
+    "p:button",
+    "p:propagation-phase",
+    "s:drag-end",
+    "s:drag-begin",
+    "s:drag-update"
+  ],
+  "Gtk.GestureLongPress": [
+    "s:pressed",
+    "p:touch-only"
+  ],
+  "Gtk.Grid": [
+    "c:Gtk.Button",
+    "c:Gtk.Label",
+    "p:column-spacing",
+    "p:row-spacing",
+    "c:Gtk.Box"
+  ],
+  "Gtk.GridView": [
+    "p:max-columns",
+    "p:min-columns"
+  ],
+  "Gtk.HeaderBar": [
+    "c:Gtk.Button",
+    "c:Gtk.MenuButton",
+    "p:show-title-buttons",
+    "p:title-widget",
+    "c:Adw.Squeezer"
+  ],
+  "Gtk.Image": [
+    "p:icon-name",
+    "p:pixel-size",
+    "p:valign",
+    "p:visible",
+    "p:halign"
+  ],
+  "Gtk.Inscription": [
+    "p:text-overflow"
+  ],
+  "Gtk.Label": [
+    "p:label",
+    "p:halign",
+    "p:xalign",
+    "p:wrap",
+    "p:ellipsize"
+  ],
+  "Gtk.LinkButton": [
+    "p:label",
+    "p:uri"
+  ],
+  "Gtk.ListBox": [
+    "p:selection-mode",
+    "s:row-activated",
+    "p:valign",
+    "c:Adw.ActionRow",
+    "p:hexpand"
+  ],
+  "Gtk.ListBoxRow": [
+    "c:Gtk.Box",
+    "p:child",
+    "c:Gtk.Label",
+    "p:name",
+    "p:height-request"
+  ],
+  "Gtk.ListView": [
+    "p:factory",
+    "p:model",
+    "p:single-click-activate",
+    "s:activate",
+    "p:show-separators"
+  ],
+  "Gtk.MenuButton": [
+    "p:icon-name",
+    "p:tooltip-text",
+    "p:menu-model",
+    "p:popover",
+    "p:valign"
+  ],
+  "Gtk.NoSelection": [
+    "p:model"
+  ],
+  "Gtk.Overlay": [
+    "c:Gtk.Box",
+    "c:Gtk.Image",
+    "c:Gtk.Button",
+    "c:Gtk.Revealer",
+    "p:child"
+  ],
+  "Gtk.PasswordEntry": [
+    "p:show-peek-icon",
+    "s:changed"
+  ],
+  "Gtk.Picture": [
+    "p:halign",
+    "p:can-shrink",
+    "p:content-fit",
+    "p:valign",
+    "p:height-request"
+  ],
+  "Gtk.Popover": [
+    "c:Gtk.Box",
+    "p:child",
+    "c:Gtk.Label",
+    "p:position",
+    "p:has-arrow"
+  ],
+  "Gtk.PopoverMenu": [
+    "p:menu-model",
+    "p:has-arrow",
+    "p:halign",
+    "c:Gtk.Box",
+    "c:Gtk.Button"
+  ],
+  "Gtk.ProgressBar": [
+    "p:valign",
+    "p:show-text",
+    "p:halign",
+    "p:margin-top",
+    "p:width-request"
+  ],
+  "Gtk.Revealer": [
+    "p:transition-type",
+    "p:reveal-child",
+    "p:child",
+    "p:valign",
+    "p:halign"
+  ],
+  "Gtk.Scale": [
+    "p:adjustment",
+    "p:hexpand",
+    "p:draw-value",
+    "p:width-request",
+    "p:valign"
+  ],
+  "Gtk.ScrolledWindow": [
+    "p:hscrollbar-policy",
+    "p:vexpand",
+    "p:propagate-natural-height",
+    "p:child",
+    "c:Adw.Clamp"
+  ],
+  "Gtk.SearchBar": [
+    "c:Gtk.SearchEntry",
+    "p:search-mode-enabled",
+    "c:Adw.Clamp",
+    "p:child",
+    "p:key-capture-widget"
+  ],
+  "Gtk.SearchEntry": [
+    "p:placeholder-text",
+    "p:hexpand",
+    "s:search-changed",
+    "s:stop-search",
+    "s:activate"
+  ],
+  "Gtk.Separator": [
+    "p:orientation",
+    "p:margin-start",
+    "p:margin-end",
+    "p:halign",
+    "p:visible"
+  ],
+  "Gtk.Shortcut": [
+    "p:trigger",
+    "p:action",
+    "p:arguments"
+  ],
+  "Gtk.ShortcutController": [
+    "c:Gtk.Shortcut",
+    "p:scope"
+  ],
+  "Gtk.SignalListItemFactory": [
+    "s:setup",
+    "s:bind",
+    "s:unbind"
+  ],
+  "Gtk.SingleSelection": [
+    "p:model",
+    "p:autoselect",
+    "p:can-unselect"
+  ],
+  "Gtk.SizeGroup": [
+    "p:mode"
+  ],
+  "Gtk.SliceListModel": [
+    "p:size",
+    "p:model",
+    "p:offset"
+  ],
+  "Gtk.SpinButton": [
+    "p:adjustment",
+    "p:numeric",
+    "p:valign",
+    "p:orientation",
+    "p:width-chars"
+  ],
+  "Gtk.Spinner": [
+    "p:valign",
+    "p:visible",
+    "p:width-request",
+    "p:height-request",
+    "p:halign"
+  ],
+  "Gtk.Stack": [
+    "c:Gtk.StackPage",
+    "p:transition-type",
+    "p:vhomogeneous",
+    "p:hhomogeneous",
+    "p:vexpand"
+  ],
+  "Gtk.StackPage": [
+    "p:child",
+    "p:name",
+    "p:title",
+    "p:icon-name"
+  ],
+  "Gtk.Switch": [
+    "p:valign",
+    "p:halign",
+    "p:active",
+    "s:notify::active",
+    "p:margin-top"
+  ],
+  "Gtk.TextView": [
+    "p:wrap-mode",
+    "p:left-margin",
+    "p:right-margin",
+    "p:top-margin",
+    "p:bottom-margin"
+  ],
+  "Gtk.ToggleButton": [
+    "p:tooltip-text",
+    "p:icon-name",
+    "p:action-name",
+    "p:action-target",
+    "p:label"
+  ],
+  "Gtk.Viewport": [
+    "p:child",
+    "p:scroll-to-focus",
+    "c:Gtk.ListBox",
+    "c:Adw.Clamp",
+    "c:Gtk.Box"
+  ],
+  "Gtk.WindowControls": [
+    "p:side"
+  ],
+  "Gtk.WindowHandle": [
+    "p:child",
+    "c:Gtk.Box",
+    "p:vexpand",
+    "p:hexpand"
+  ],
+  "GtkSource.Buffer": [
+    "p:enable-undo",
+    "p:highlight-syntax",
+    "p:highlight-matching-brackets"
+  ],
+  "GtkSource.View": [
+    "p:editable",
+    "p:wrap-mode",
+    "p:left-margin",
+    "p:right-margin",
+    "p:top-margin"
+  ]
+}

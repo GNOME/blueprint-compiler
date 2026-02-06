@@ -19,6 +19,8 @@
 
 # Extra information about types in common libraries that's used for things like completions.
 
+import json
+import os
 import typing as T
 from dataclasses import dataclass
 
@@ -202,3 +204,21 @@ def get_annotation_elements():
             element, property = item.split(":")
             result.append((f"{prefix}.{element}", property))
     return result
+
+
+stats = None
+
+
+def load_stats():
+    global stats
+    if stats is None:
+        with open(
+            os.path.join(os.path.dirname(__file__), "data", "stats.json"), "r"
+        ) as f:
+            stats = json.load(f)
+    return stats
+
+
+def get_common_completions(class_name: str) -> T.List[str]:
+    stats = load_stats()
+    return stats.get(class_name, [])

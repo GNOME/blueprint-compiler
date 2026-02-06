@@ -166,6 +166,18 @@ class BlueprintApp:
             "lsp", "Run the language server (for internal use by IDEs)", self.cmd_lsp
         )
 
+        tools = self.add_subcommand(
+            "tools", "Tools for developing blueprint-compiler", self.cmd_help
+        )
+        tools_sub = tools.add_subparsers(metavar="tool")
+        collect_stats = tools_sub.add_parser(
+            "collect-stats", help="Collect usage statistics from Blueprint files"
+        )
+        collect_stats.set_defaults(func=self.cmd_collect_stats)
+        collect_stats.add_argument(
+            "input_dir", type=str, help="Directory to scan for .blp files"
+        )
+
         self.add_subcommand("help", "Show this message", self.cmd_help)
 
         self.parser.add_argument("--version", action="version", version=VERSION)
@@ -442,6 +454,11 @@ class BlueprintApp:
     def cmd_lsp(self, opts):
         langserv = LanguageServer()
         langserv.run()
+
+    def cmd_collect_stats(self, opts):
+        from .data.collect_stats import collect_stats
+
+        collect_stats(opts.input_dir)
 
     def cmd_port(self, opts):
         interactive_port.run(opts)

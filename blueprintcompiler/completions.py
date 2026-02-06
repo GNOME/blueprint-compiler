@@ -189,15 +189,31 @@ def namespace(ctx: CompletionContext):
 def object_completer(ctx: CompletionContext):
     ns = ctx.ast_node.root.gir.namespaces.get(ctx.match_variables[0])
     if ns is not None:
+        if (
+            isinstance(ctx.ast_node, language.ObjectContent)
+            and ctx.ast_node.gir_class is not None
+        ):
+            pop_stats = annotations.get_common_completions(
+                ctx.ast_node.gir_class.full_name
+            )
+        else:
+            pop_stats = []
+
         for c in ns.classes.values():
             snippet = c.name
             if str(ctx.next_token) != "{":
                 snippet += " {\n  $0\n}"
 
+            pop = (
+                pop_stats.index("c:" + c.full_name)
+                if "c:" + c.full_name in pop_stats
+                else None
+            )
+
             yield Completion(
-                c.name,
+                pop_label(c.name, pop),
                 CompletionItemKind.Class,
-                sort_text=get_sort_key(CompletionPriority.CLASS, c.name),
+                sort_text=get_sort_key(CompletionPriority.CLASS, c.name, pop),
                 snippet=snippet,
                 docs=c.doc,
                 detail=c.detail,
@@ -211,15 +227,31 @@ def object_completer(ctx: CompletionContext):
 def gtk_object_completer(ctx: CompletionContext):
     ns = ctx.ast_node.root.gir.namespaces.get("Gtk")
     if ns is not None:
+        if (
+            isinstance(ctx.ast_node, language.ObjectContent)
+            and ctx.ast_node.gir_class is not None
+        ):
+            pop_stats = annotations.get_common_completions(
+                ctx.ast_node.gir_class.full_name
+            )
+        else:
+            pop_stats = []
+
         for c in ns.classes.values():
             snippet = c.name
             if str(ctx.next_token) != "{":
                 snippet += " {\n  $0\n}"
 
+            pop = (
+                pop_stats.index("c:" + c.full_name)
+                if "c:" + c.full_name in pop_stats
+                else None
+            )
+
             yield Completion(
-                c.name,
+                pop_label(c.name, pop),
                 CompletionItemKind.Class,
-                sort_text=get_sort_key(CompletionPriority.CLASS, c.name),
+                sort_text=get_sort_key(CompletionPriority.CLASS, c.name, pop),
                 snippet=snippet,
                 docs=c.doc,
                 detail=c.detail,
@@ -233,6 +265,7 @@ def gtk_object_completer(ctx: CompletionContext):
 def property_completer(ctx: CompletionContext):
     assert isinstance(ctx.ast_node, language.ObjectContent)
     if ctx.ast_node.gir_class and hasattr(ctx.ast_node.gir_class, "properties"):
+        pop_stats = annotations.get_common_completions(ctx.ast_node.gir_class.full_name)
         for prop_name, prop in ctx.ast_node.gir_class.properties.items():
             if str(ctx.next_token) == ":":
                 snippet = prop_name
@@ -259,10 +292,25 @@ def property_completer(ctx: CompletionContext):
             else:
                 snippet = f"{prop_name}: $0;"
 
+            already_exists = any(
+                isinstance(child, language.Property) and child.name == prop_name
+                for child in ctx.ast_node.children
+            )
+            if already_exists:
+                pop = None
+            else:
+                pop = (
+                    pop_stats.index("p:" + prop_name)
+                    if "p:" + prop_name in pop_stats
+                    else None
+                )
+
             yield Completion(
-                prop_name,
+                pop_label(prop_name, pop),
                 CompletionItemKind.Property,
-                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, prop_name),
+                sort_text=get_sort_key(
+                    CompletionPriority.OBJECT_MEMBER, prop_name, pop
+                ),
                 snippet=snippet,
                 docs=prop.doc,
                 detail=prop.detail,
@@ -357,6 +405,7 @@ def signal_completer(ctx: CompletionContext):
     assert isinstance(ctx.ast_node, language.ObjectContent)
 
     if ctx.ast_node.gir_class and hasattr(ctx.ast_node.gir_class, "signals"):
+        pop_stats = annotations.get_common_completions(ctx.ast_node.gir_class.full_name)
         for signal_name, signal in ctx.ast_node.gir_class.signals.items():
             if str(ctx.next_token) == "=>":
                 snippet = signal_name
@@ -373,10 +422,25 @@ def signal_completer(ctx: CompletionContext):
 
                 snippet = f"{signal_name} => \\$${{1:{name}_{signal_name.replace('-', '_')}}}()$0;"
 
+            already_exists = any(
+                isinstance(child, language.Signal) and child.full_name == signal_name
+                for child in ctx.ast_node.children
+            )
+            if already_exists:
+                pop = None
+            else:
+                pop = (
+                    pop_stats.index("s:" + signal_name)
+                    if "s:" + signal_name in pop_stats
+                    else None
+                )
+
             yield Completion(
-                signal_name,
+                pop_label(signal_name, pop),
                 CompletionItemKind.Event,
-                sort_text=get_sort_key(CompletionPriority.OBJECT_MEMBER, signal_name),
+                sort_text=get_sort_key(
+                    CompletionPriority.OBJECT_MEMBER, signal_name, pop
+                ),
                 snippet=snippet,
                 docs=signal.doc,
                 detail=signal.detail,

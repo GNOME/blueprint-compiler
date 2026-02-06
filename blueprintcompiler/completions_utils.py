@@ -38,8 +38,17 @@ class CompletionPriority(Enum):
     IMPORT_NAMESPACE = "99"
 
 
-def get_sort_key(priority: CompletionPriority, name: str):
-    return f"{priority.value} {name}"
+def get_sort_key(
+    priority: CompletionPriority, name: str, popularity: T.Optional[int] = None
+) -> str:
+    if popularity is not None:
+        return f"0 {priority.value} {popularity:02d} {name}"
+    else:
+        return f"1 {priority.value} {name}"
+
+
+def pop_label(name: str, pop: T.Optional[int]) -> str:
+    return ("\u2605 " if pop is not None else "") + name
 
 
 @dataclass
