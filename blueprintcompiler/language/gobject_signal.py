@@ -248,9 +248,11 @@ def decompile_signal(
     line = f"{name} => ${handler}({object_name})"
 
     if decompile.truthy(swapped):
-        line += " swapped"
+        if not object_name:
+            line += " swapped"
     elif swapped is not None:
-        line += " not-swapped"
+        if object_name:
+            line += " not-swapped"
 
     if decompile.truthy(after):
         line += " after"

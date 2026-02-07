@@ -1,0 +1,6 @@
+using Gtk 4.0;
+
+Button b {
+  clicked => $on_button_clicked(b);
+  notify::label => $on_label_changed();
+}
