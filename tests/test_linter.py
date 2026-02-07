@@ -250,8 +250,8 @@ class TestLinter(unittest.TestCase):
             ],
         )
         self.check_file(
-            "unused_object",
-            "unused_object",
+            "unused_widget",
+            "unused_widget",
             [
                 {
                     "line": 4,

@@ -283,11 +283,11 @@ translate_display_string
 This property should usually be marked as translated.
 
 
-.. _Diagnostic unused_object:
+.. _Diagnostic unused_widget:
 
-unused_object
+unused_widget
 ~~~~~~~~~~~~~
-This top-level object has no ID, so it can't be referenced elsewhere in the blueprint or the application.
+This top-level widget has no ID, so it can't be referenced elsewhere in the blueprint or the application.
 
 .. note::
    Technically, it could be referenced in the application, since you can call `Gtk.Builder.get_objects() <https://docs.gtk.org/gtk4/method.Builder.get_objects.html>`_ to get all objects in the blueprint. However, this is not recommended, since it could break easily if you change the blueprint.

@@ -18,7 +18,7 @@ from .scrollable_parent import ScrollableParent
 from .translatable_display_string import (
     TranslatableDisplayString,
 )
-from .unused_object import UnusedObject
+from .unused_widget import UnusedWidget
 from .use_styles_over_css_classes import (
     UseStylesOverCssClasses,
 )
@@ -38,5 +38,5 @@ LINTER_RULES: list[type[LinterRule]] = [
     ScrollableParent,
     IncorrectWidgetPlacement,
     OrderPropertiesGtkAdjustment,
-    UnusedObject,
+    UnusedWidget,
 ]
