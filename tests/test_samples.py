@@ -195,6 +195,7 @@ class TestSamples(unittest.TestCase):
             SKIP_RUN = [
                 "adw_breakpoint_template",
                 "expr_closure",
+                "expr_closure_inferred_type",
                 "expr_closure_args",
                 "expr_translated",
                 "expr_value_closure",
