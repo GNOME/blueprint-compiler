@@ -16,6 +16,7 @@ from .expression import (
     LiteralExpr,
     LookupOp,
     TranslatedExpr,
+    TryExpr,
 )
 from .gobject_object import Object, ObjectContent
 from .gobject_property import Property

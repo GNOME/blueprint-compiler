@@ -31,7 +31,7 @@ Expressions
 
 .. rst-class:: grammar-block
 
-   Expression = ( :ref:`Translated<Syntax Translated>` | :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' ) ) ( :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>` )*
+   Expression = ( :ref:`Translated<Syntax Translated>` | :ref:`TryExpression<Syntax TryExpression>` | :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' ) ) ( :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>` )*
 
 .. note::
 
@@ -88,6 +88,28 @@ Example
 
    // Cast the result of the closure so blueprint knows it's a string
    label: bind $format_bytes(template.file-size) as <string>
+
+
+.. _Syntax TryExpression:
+
+Try Expressions
+---------------
+
+.. rst-class:: grammar-block
+
+   TryExpression = 'try' '{' ( :ref:`Expression<Syntax Expression>` ),* '}'
+
+Try expressions allow you to attempt multiple expressions in order, returning the value of the first one that succeeds. This is useful for providing fallback values when a property might not be available.
+
+Example
+~~~~~~~
+
+.. code-block:: blueprint
+
+   Label {
+     label: bind try (template.account.username, "Guest");
+   }
+
 
 .. _Syntax ExprValue:
 

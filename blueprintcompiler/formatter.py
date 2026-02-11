@@ -35,8 +35,8 @@ NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", ">", "]", "=")
 NO_WHITESPACE_AFTER = ("C_", "_", "(", ".", "$", "<", "::", "[", "=")
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
-WHITESPACE_AFTER = (":", ",", ">", ")", "|", "=>")
-WHITESPACE_BEFORE = ("{", "|")
+WHITESPACE_AFTER = (":", ",", ">", ")", "|", "=>", "{")
+WHITESPACE_BEFORE = ("{", "|", "}")
 
 
 class LineType(Enum):
@@ -55,6 +55,7 @@ def format(data, tab_size=2, insert_space=True):
     current_line = ""
     prev_line_type = None
     is_child_type = False
+    is_expression = False
     indent_item = " " * tab_size if insert_space else "\t"
     watch_parentheses = False
     parentheses_balance = 0
@@ -207,6 +208,11 @@ def format(data, tab_size=2, insert_space=True):
             last_whitespace_contains_newline = "\n" in str_item
             continue
 
+        if str_item in ("bind", "expr") and str(last_not_whitespace) == ":":
+            is_expression = True
+        elif str_item == ";":
+            is_expression = False
+
         whitespace_required = (
             str_item in WHITESPACE_BEFORE
             or str(last_not_whitespace) in WHITESPACE_AFTER
@@ -240,47 +246,55 @@ def format(data, tab_size=2, insert_space=True):
         )
         if needs_newline_treatment:
             if str_item in OPENING_TOKENS:
-                list_or_child_type = str_item == "["
-                if list_or_child_type:
-                    is_child_type = current_line.startswith("[")
+                if not is_expression:
+                    list_or_child_type = str_item == "["
+                    if list_or_child_type:
+                        is_child_type = current_line.startswith("[")
 
-                    if is_child_type:
-                        if str(last_not_whitespace) not in OPENING_TOKENS:
-                            end_str = (
-                                end_str.strip() + "\n\n" + (indent_item * indent_levels)
-                            )
-                        last_not_whitespace = item
-                        continue
+                        if is_child_type:
+                            if str(last_not_whitespace) not in OPENING_TOKENS:
+                                end_str = (
+                                    end_str.strip()
+                                    + "\n\n"
+                                    + (indent_item * indent_levels)
+                                )
+                            last_not_whitespace = item
+                            continue
 
-                indent_levels += 1
-                keep_same_indent = prev_line_type not in (
-                    LineType.CHILD_TYPE,
-                    LineType.COMMENT,
-                    LineType.BLOCK_OPEN,
-                )
-                if keep_same_indent:
-                    end_str = (
-                        end_str.strip() + "\n\n" + indent_item * (indent_levels - 1)
+                    indent_levels += 1
+                    keep_same_indent = prev_line_type not in (
+                        LineType.CHILD_TYPE,
+                        LineType.COMMENT,
+                        LineType.BLOCK_OPEN,
                     )
-                commit_current_line(LineType.BLOCK_OPEN)
+                    if keep_same_indent:
+                        end_str = (
+                            end_str.strip() + "\n\n" + indent_item * (indent_levels - 1)
+                        )
+                    commit_current_line(LineType.BLOCK_OPEN)
 
             elif str_item == "]" and is_child_type:
                 commit_current_line(LineType.CHILD_TYPE, False)
                 is_child_type = False
 
             elif str_item in CLOSING_TOKENS:
-                if str_item == "]" and str(last_not_whitespace) != "[":
-                    current_line = current_line[:-1]
-                    if str(last_not_whitespace) != ",":
-                        current_line += ","
-                    commit_current_line()
-                    current_line = "]"
-                elif str(last_not_whitespace) in OPENING_TOKENS:
-                    end_str = end_str.strip()
-                    commit_current_line(LineType.BLOCK_CLOSE, True, 0)
+                if not is_expression:
+                    if str_item == "]" and str(last_not_whitespace) != "[":
+                        current_line = current_line[:-1]
+                        if str(last_not_whitespace) != ",":
+                            current_line += ","
+                        commit_current_line()
+                        current_line = "]"
+                    elif str_item == "}" and str(last_not_whitespace) != "{":
+                        current_line = current_line[:-1]
+                        commit_current_line(LineType.BLOCK_CLOSE, True)
+                        current_line = "}"
+                    else:
+                        end_str = end_str.strip()
+                        commit_current_line(LineType.BLOCK_CLOSE, True, 0)
 
-                indent_levels -= 1
-                commit_current_line(LineType.BLOCK_CLOSE, True)
+                    indent_levels -= 1
+                    commit_current_line(LineType.BLOCK_CLOSE, True)
 
             elif str_item == ";":
                 line_type = LineType.STATEMENT
@@ -293,6 +307,7 @@ def format(data, tab_size=2, insert_space=True):
                     newlines = 2
 
                 commit_current_line(line_type, newlines_before=newlines)
+                is_expression = False
 
             elif item.type == TokenType.COMMENT:
                 require_extra_newline = (

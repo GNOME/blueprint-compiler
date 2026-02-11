@@ -48,11 +48,13 @@ class TestSamples(unittest.TestCase):
 
         self.have_adw_1_4 = False
         self.have_adw_1_5 = False
+        self.have_gtk_22 = False
 
         try:
             import gi
 
             gi.require_version("Adw", "1")
+            gi.require_version("Gtk", "4.0")
             from gi.repository import Adw
 
             Adw.init()
@@ -60,6 +62,8 @@ class TestSamples(unittest.TestCase):
                 self.have_adw_1_4 = True
             if Adw.MINOR_VERSION >= 5:
                 self.have_adw_1_5 = True
+            if Gtk.MINOR_VERSION >= 22:
+                self.have_gtk_22 = True
         except:
             pass
 
@@ -191,6 +195,7 @@ class TestSamples(unittest.TestCase):
                 "adw_alertdialog_responses",
                 "adw_alert_dialog_duplicate_flags",
             ]
+            REQUIRE_GTK_22 = ["expr_try"]
 
             SKIP_RUN = [
                 "adw_breakpoint_template",
@@ -228,6 +233,8 @@ class TestSamples(unittest.TestCase):
             if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
                 continue
             if sample in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
+                continue
+            if sample in REQUIRE_GTK_22 and not self.have_gtk_22:
                 continue
 
             with self.subTest(sample):

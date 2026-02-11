@@ -252,6 +252,8 @@ class XmlOutput(OutputFormat):
             self._emit_cast_expr(expression, xml)
         elif isinstance(expression, ClosureExpr):
             self._emit_closure_expr(expression, xml)
+        elif isinstance(expression, TryExpr):
+            self._emit_try_expr(expression, xml)
         else:
             raise CompilerBugError()
 
@@ -291,6 +293,12 @@ class XmlOutput(OutputFormat):
         xml.start_tag("closure", function=expr.closure_name, type=expr.type)
         for arg in expr.args:
             self._emit_expression_part(arg.expr, xml)
+        xml.end_tag()
+
+    def _emit_try_expr(self, expr: TryExpr, xml: XmlEmitter):
+        xml.start_tag("try")
+        for e in expr.expressions:
+            self._emit_expression_part(e, xml)
         xml.end_tag()
 
     def _emit_attribute(

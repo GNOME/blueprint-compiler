@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from ..gir import Class, ExternType, Interface
+from ..gir import Class, ExternType, Interface, Repository
 from .common import *
 
 
@@ -99,7 +99,11 @@ class TypeName(AstNode):
         if self.class_name is not None and not self.is_extern:
             return self.root.gir.get_type(self.class_name, self.namespace)
 
-        return gir.ExternType(self.namespace, self.class_name)
+        return gir.ExternType(
+            self.root.gir.get_type("Widget", "Gtk").get_containing(Repository),
+            self.namespace,
+            self.class_name,
+        )
 
     @property
     def glib_type_name(self) -> str:
@@ -173,7 +177,7 @@ class TemplateClassName(ClassName):
     @property
     def gir_type(self) -> T.Optional[gir.GirType]:
         if self.is_legacy:
-            return gir.ExternType(self.namespace, self.class_name)
+            return gir.ExternType(self.root.gir, self.namespace, self.class_name)
         else:
             return super().gir_type
 

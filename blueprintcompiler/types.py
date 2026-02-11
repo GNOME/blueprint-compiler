@@ -32,6 +32,33 @@ class GirType:
     def castable_to(self, other: "GirType") -> bool:
         return self.assignable_to(other)
 
+    def parent_types(self) -> T.Iterable["GirType"]:
+        return []
+
+    @staticmethod
+    def common_ancestor(types: T.List["GirType"]) -> T.Optional["GirType"]:
+        """Returns the most specific type that both this and the other type can be assigned to, or None if there is no such type."""
+
+        if len(types) == 0:
+            return None
+
+        def pairwise(a: GirType, b: GirType):
+            for ancestor_a in [a] + list(a.parent_types()):
+                for ancestor_b in [b] + list(b.parent_types()):
+                    if ancestor_a.assignable_to(ancestor_b):
+                        return ancestor_b
+                    elif ancestor_b.assignable_to(ancestor_a):
+                        return ancestor_a
+            return None
+
+        common = types[0]
+        for t in types[1:]:
+            common = pairwise(common, t)
+            if common is None:
+                return None
+
+        return common
+
     @property
     def name(self) -> str:
         """The GIR name of the type, not including the namespace"""
@@ -63,34 +90,6 @@ class GirType:
 class ObjectType(GirType):
     def castable_to(self, other: GirType) -> bool:
         return self.assignable_to(other) or other.assignable_to(self)
-
-
-class ExternType(ObjectType):
-    def __init__(self, ns: T.Optional[str], name: str) -> None:
-        super().__init__()
-        self._name = name
-        self._ns = ns
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, ObjectType)
-
-    @property
-    def full_name(self) -> str:
-        if self._ns:
-            return f"${self._ns}.{self._name}"
-        else:
-            return self._name
-
-    @property
-    def glib_type_name(self) -> str:
-        if self._ns:
-            return self._ns + self._name
-        else:
-            return self._name
-
-    @property
-    def incomplete(self) -> bool:
-        return True
 
 
 class ArrayType(GirType):

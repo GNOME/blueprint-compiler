@@ -471,8 +471,13 @@ class Interface(GirNode, ObjectType):
         return result
 
     @cached_property
-    def prerequisites(self) -> T.List["Interface"]:
+    def prerequisites(self) -> T.List[T.Union["Class", "Interface"]]:
         n_prerequisites = interface_info_get_n_prerequisites(self.info)
+        if n_prerequisites == 0:
+            gobject = self.get_containing(Repository).get_type("Object", "GObject")
+            assert isinstance(gobject, Class)
+            return [gobject]
+
         result = []
         for i in range(n_prerequisites):
             entry = interface_info_get_prerequisite(self.info, i)
@@ -487,9 +492,18 @@ class Interface(GirNode, ObjectType):
                 return True
         return False
 
+    def parent_types(self) -> T.Iterable[GirType]:
+        for pre in self.prerequisites:
+            yield pre
+            yield from pre.parent_types()
+
     @cached_property
     def glib_type_name(self) -> str:
         return registered_type_info_get_type_name(self.info)
+
+    @property
+    def cname(self) -> str:
+        return self.glib_type_name
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -497,6 +511,38 @@ class Interface(GirNode, ObjectType):
             return f"{ns}iface.{self.name}.html"
         else:
             return None
+
+
+class ExternType(ObjectType):
+    def __init__(self, repo: "Repository", ns: T.Optional[str], name: str) -> None:
+        super().__init__()
+        self._name = name
+        self._ns = ns
+        self._repo = repo
+
+    def assignable_to(self, other: GirType) -> bool:
+        return isinstance(other, ObjectType)
+
+    def parent_types(self):
+        return [self._repo.get_type("Object", "GObject")]
+
+    @property
+    def full_name(self) -> str:
+        if self._ns:
+            return f"${self._ns}.{self._name}"
+        else:
+            return self._name
+
+    @property
+    def glib_type_name(self) -> str:
+        if self._ns:
+            return self._ns + self._name
+        else:
+            return self._name
+
+    @property
+    def incomplete(self) -> bool:
+        return True
 
 
 class Class(GirNode, ObjectType):
@@ -587,6 +633,11 @@ class Class(GirNode, ObjectType):
                     return True
 
             return False
+
+    def parent_types(self) -> T.Iterable["Class"]:
+        if self.parent:
+            yield self.parent
+            yield from self.parent.parent_types()
 
     def _enum_properties(self) -> T.Iterable[Property]:
         yield from self.own_properties.values()
