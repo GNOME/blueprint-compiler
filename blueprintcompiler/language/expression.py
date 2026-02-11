@@ -197,7 +197,7 @@ class CastExpr(InfixExpr):
     grammar = [
         Keyword("as"),
         AnyOf(
-            ["<", TypeName, Match(">").expected()],
+            ["<", to_parse_node(TypeName).expected("type name"), Match(">").expected()],
             [
                 UseExact("lparen", "("),
                 TypeName,
@@ -265,10 +265,7 @@ class ClosureExpr(ExprBase):
 
     @property
     def type(self) -> T.Optional[GirType]:
-        if isinstance(self.rhs, CastExpr):
-            return self.rhs.type
-        else:
-            return None
+        return self.context[ValueTypeCtx].value_type
 
     @property
     def closure_name(self) -> str:
@@ -279,10 +276,13 @@ class ClosureExpr(ExprBase):
         return self.children[ClosureArg]
 
     @validate()
-    def cast_to_return_type(self):
-        if not isinstance(self.rhs, CastExpr):
+    def return_type_known(self):
+        if self.type is None:
             raise CompileError(
-                "Closure expression must be cast to the closure's return type"
+                "Closure expression must be cast to the closure's return type",
+                hints=[
+                    "The return type of this closure cannot be inferred, so you must add a type cast to indicate the return type."
+                ],
             )
 
     @validate()
