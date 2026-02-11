@@ -1,0 +1,6 @@
+using Gtk 4.0;
+
+Button button {
+  label: bind try { button.label, $backup_label(button), "Hello, world!" } as <string>;
+  child: bind try { $expr1() as <Label>, $expr2() as <Button> };
+}

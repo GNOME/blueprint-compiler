@@ -1,5 +1,7 @@
 using Gtk 4.0;
 
-Overlay overlay {
-  margin-bottom: bind overlay.child as (Adjustment).value;
+Adjustment {
+  value: bind button.child as <Adjustment>.value;
 }
+
+Button button {}

@@ -1,0 +1,5 @@
+using Gtk 4.0;
+
+$MyWidget widget {
+  label: bind try { $expr1() as <Label>, $expr2() as <Button> } as <string>;
+}

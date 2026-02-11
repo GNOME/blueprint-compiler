@@ -35,6 +35,7 @@ template $MyTemplate: Label {
   as: 1;
   signal => $on_signal() after; // Inline comment
   type_value: typeof<$MyTemplate>;
+  try: expr try { $func1(), $func2() } as <string>;
 }
 
 Dialog {

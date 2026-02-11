@@ -18,7 +18,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from functools import cached_property
+
 from ..decompiler import decompile_element
+from ..utils import TextEdit
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .translated import *
@@ -61,6 +64,18 @@ class Expression(ExprBase):
     @property
     def type(self) -> T.Optional[GirType]:
         return self.last.type
+
+    @validate()
+    def validate_for_type(self):
+        expected_type = self.parent.context[ValueTypeCtx].value_type
+        if (
+            self.type is not None
+            and expected_type is not None
+            and not self.type.assignable_to(expected_type)
+        ):
+            raise CompileError(
+                f"Cannot assign {self.type.full_name} to {expected_type.full_name}",
+            )
 
 
 class InfixExpr(ExprBase):
@@ -110,6 +125,18 @@ class LiteralExpr(ExprBase):
 
             if not isinstance(self.rhs.rhs, LookupOp):
                 raise CompileError('"item" can only be used for looking up properties')
+
+
+class TranslatedExpr(ExprBase):
+    grammar = Translated
+
+    @property
+    def translated(self) -> Translated:
+        return self.children[Translated][0]
+
+    @property
+    def type(self) -> GirType:
+        return StringType()
 
 
 class LookupOp(InfixExpr):
@@ -215,11 +242,13 @@ class CastExpr(InfixExpr):
         return self.children[TypeName][0].gir_type
 
     @validate()
-    def cast_makes_sense(self):
+    def cast_makes_sense(self) -> None:
         if self.type is None or self.lhs.type is None:
             return
 
-        if not self.type.assignable_to(self.lhs.type):
+        if not self.type.assignable_to(
+            self.lhs.type
+        ) and not self.lhs.type.assignable_to(self.type):
             raise CompileError(
                 f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}."
             )
@@ -295,8 +324,69 @@ class ClosureExpr(ExprBase):
         return get_docs_section("Syntax ClosureExpression")
 
 
+class TryExpr(ExprBase):
+    grammar = [
+        Keyword("try"),
+        UseExact("lbrace", "{"),
+        Delimited(Expression, ","),
+        UseExact("rbrace", "}").expected("'}'"),
+    ]
+
+    @property
+    def expressions(self) -> T.List[Expression]:
+        return self.children[Expression]
+
+    @cached_property
+    def type(self) -> T.Optional[GirType]:
+        return None
+
+    @docs("try")
+    def ref_docs(self):
+        return get_docs_section("Syntax TryExpression")
+
+    @validate()
+    def at_least_one_expression(self):
+        exprs = self.children[Expression]
+        if len(exprs) == 0:
+            raise CompileError("A try expression must have at least one branch")
+
+    @validate("try")
+    def at_least_two_expressions(self):
+        exprs = self.children[Expression]
+        if len(exprs) < 2:
+            raise CompileWarning(
+                "This try expression has only one branch",
+                actions=[
+                    CodeAction(
+                        "Remove try",
+                        "",
+                        additional_edits=[
+                            TextEdit(self.ranges["lbrace"], ""),
+                            TextEdit(self.ranges["rbrace"], ""),
+                        ],
+                    )
+                ],
+            )
+
+    @validate()
+    def expressions_have_same_type(self):
+        if len(self.expressions) < 2:
+            return
+
+        types = [expr.type for expr in self.expressions]
+        if None in types:
+            return None
+
+        t = GirType.common_ancestor(T.cast(T.List[GirType], types))
+
+        if t is None:
+            raise CompileError(
+                "All branches of a try expression must have compatible types"
+            )
+
+
 expr.children = [
-    AnyOf(Translated, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
+    AnyOf(TranslatedExpr, TryExpr, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]
 
@@ -393,3 +483,21 @@ def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, typ
             ctx.print(", ")
 
     ctx.end_block_with(f") as <{type}>")
+
+
+@decompiler("try", skip_children=True)
+def decompile_try(ctx: DecompileCtx, gir: gir.GirContext):
+    if ctx.parent_node is not None and ctx.parent_node.tag == "property":
+        ctx.print("expr ")
+
+    ctx.print("try(")
+
+    assert ctx.current_node is not None
+    for i, node in enumerate(ctx.current_node.children):
+        decompile_element(ctx, gir, node)
+
+        assert ctx.current_node is not None
+        if i < len(ctx.current_node.children) - 1:
+            ctx.print(", ")
+
+    ctx.end_block_with(")")

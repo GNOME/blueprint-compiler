@@ -254,6 +254,33 @@ class GirType:
     def assignable_to(self, other: "GirType") -> bool:
         raise NotImplementedError()
 
+    def parent_types(self) -> T.Iterable["GirType"]:
+        return []
+
+    @staticmethod
+    def common_ancestor(types: T.List["GirType"]) -> T.Optional["GirType"]:
+        """Returns the most specific type that both this and the other type can be assigned to, or None if there is no such type."""
+
+        if len(types) == 0:
+            return None
+
+        def pairwise(a: GirType, b: GirType):
+            for ancestor_a in [a] + list(a.parent_types()):
+                for ancestor_b in [b] + list(b.parent_types()):
+                    if ancestor_a.assignable_to(ancestor_b):
+                        return ancestor_b
+                    elif ancestor_b.assignable_to(ancestor_a):
+                        return ancestor_a
+            return None
+
+        common = types[0]
+        for t in types[1:]:
+            common = pairwise(common, t)
+            if common is None:
+                return None
+
+        return common
+
     @property
     def name(self) -> str:
         """The GIR name of the type, not including the namespace"""
@@ -283,13 +310,17 @@ class GirType:
 
 
 class ExternType(GirType):
-    def __init__(self, ns: T.Optional[str], name: str) -> None:
+    def __init__(self, repo: "Repository", ns: T.Optional[str], name: str) -> None:
         super().__init__()
         self._name = name
         self._ns = ns
+        self._repo = repo
 
     def assignable_to(self, other: GirType) -> bool:
         return True
+
+    def parent_types(self):
+        return [self._repo.get_type("Object", "GObject")]
 
     @property
     def full_name(self) -> str:
@@ -637,8 +668,13 @@ class Interface(GirNode, GirType):
         return result
 
     @cached_property
-    def prerequisites(self) -> T.List["Interface"]:
+    def prerequisites(self) -> T.List[T.Union["Class", "Interface"]]:
         n_prerequisites = interface_info_get_n_prerequisites(self.info)
+        if n_prerequisites == 0:
+            gobject = self.get_containing(Repository).get_type("Object", "GObject")
+            assert isinstance(gobject, Class)
+            return [gobject]
+
         result = []
         for i in range(n_prerequisites):
             entry = interface_info_get_prerequisite(self.info, i)
@@ -653,9 +689,18 @@ class Interface(GirNode, GirType):
                 return True
         return False
 
+    def parent_types(self) -> T.Iterable[GirType]:
+        for pre in self.prerequisites:
+            yield pre
+            yield from pre.parent_types()
+
     @cached_property
     def glib_type_name(self) -> str:
         return registered_type_info_get_type_name(self.info)
+
+    @property
+    def cname(self) -> str:
+        return self.glib_type_name
 
     @property
     def online_docs(self) -> T.Optional[str]:
@@ -753,6 +798,11 @@ class Class(GirNode, GirType):
                     return True
 
             return False
+
+    def parent_types(self) -> T.Iterable["Class"]:
+        if self.parent:
+            yield self.parent
+            yield from self.parent.parent_types()
 
     def _enum_properties(self) -> T.Iterable[Property]:
         yield from self.own_properties.values()

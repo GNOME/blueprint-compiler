@@ -240,7 +240,7 @@ class XmlOutput(OutputFormat):
         self._emit_expression_part(expression.last, xml)
 
     def _emit_expression_part(self, expression: ExprBase, xml: XmlEmitter):
-        if isinstance(expression, Translated):
+        if isinstance(expression, TranslatedExpr):
             self._emit_translated_expr(expression, xml)
         elif isinstance(expression, LiteralExpr):
             self._emit_literal_expr(expression, xml)
@@ -252,14 +252,18 @@ class XmlOutput(OutputFormat):
             self._emit_cast_expr(expression, xml)
         elif isinstance(expression, ClosureExpr):
             self._emit_closure_expr(expression, xml)
+        elif isinstance(expression, TryExpr):
+            self._emit_try_expr(expression, xml)
         else:
             raise CompilerBugError()
 
-    def _emit_translated_expr(self, value: Translated, xml: XmlEmitter):
+    def _emit_translated_expr(self, value: TranslatedExpr, xml: XmlEmitter):
         xml.start_tag(
-            "constant", type="gchararray", **self._translated_string_attrs(value)
+            "constant",
+            type="gchararray",
+            **self._translated_string_attrs(value.translated),
         )
-        xml.put_text(value.string)
+        xml.put_text(value.translated.string)
         xml.end_tag()
 
     def _emit_literal_expr(self, expr: LiteralExpr, xml: XmlEmitter):
@@ -289,6 +293,12 @@ class XmlOutput(OutputFormat):
         xml.start_tag("closure", function=expr.closure_name, type=expr.type)
         for arg in expr.args:
             self._emit_expression_part(arg.expr, xml)
+        xml.end_tag()
+
+    def _emit_try_expr(self, expr: TryExpr, xml: XmlEmitter):
+        xml.start_tag("try")
+        for e in expr.expressions:
+            self._emit_expression_part(e, xml)
         xml.end_tag()
 
     def _emit_attribute(
