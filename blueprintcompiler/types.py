@@ -121,6 +121,22 @@ class VoidType(GirType):
         return False
 
 
+class CharType(BasicType):
+    name = "char"
+    glib_type_name: str = "gchar"
+
+    def assignable_to(self, other: GirType) -> bool:
+        return isinstance(other, CharType)
+
+
+class UCharType(BasicType):
+    name = "uchar"
+    glib_type_name: str = "guchar"
+
+    def assignable_to(self, other: GirType) -> bool:
+        return isinstance(other, UCharType) or isinstance(other, CharType)
+
+
 class BoolType(BasicType):
     name = "bool"
     glib_type_name: str = "gboolean"
@@ -179,10 +195,12 @@ class TypeType(BasicType):
 
 BASIC_TYPES = {
     "bool": BoolType,
-    "string": StringType,
-    "int": IntType,
-    "uint": UIntType,
-    "float": FloatType,
+    "char": CharType,
     "double": FloatType,
+    "float": FloatType,
+    "int": IntType,
+    "string": StringType,
     "type": TypeType,
+    "uchar": UCharType,
+    "uint": UIntType,
 }
