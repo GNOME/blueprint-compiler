@@ -145,36 +145,132 @@ class BoolType(BasicType):
         return isinstance(other, BoolType)
 
 
-class IntType(BasicType):
+class NumericType(BasicType):
+    signed: bool
+    size: int
+    floating: bool
+
+    def assignable_to(self, other: GirType) -> bool:
+        if not isinstance(other, NumericType):
+            return False
+
+        return not (
+            (self.signed and not other.signed)
+            or (self.size > other.size)
+            or (self.floating and not other.floating)
+        )
+
+
+class IntegerType(NumericType):
+    floating = False
+
+    @property
+    def min_value(self):
+        return 0 if not self.signed else -(2 ** (self.size - 1))
+
+    @property
+    def max_value(self):
+        return (2**self.size - 1) if not self.signed else (2 ** (self.size - 1) - 1)
+
+
+class Int8Type(IntegerType):
+    name = "int8"
+    glib_type_name: str = "gint8"
+    signed = True
+    size = 8
+
+
+class UInt8Type(IntegerType):
+    name = "uint8"
+    glib_type_name: str = "guint8"
+    signed = False
+    size = 8
+
+
+class Int16Type(IntegerType):
+    name = "int16"
+    glib_type_name: str = "gint16"
+    signed = True
+    size = 16
+
+
+class UInt16Type(IntegerType):
+    name = "uint16"
+    glib_type_name: str = "guint16"
+    signed = False
+    size = 16
+
+
+class Int32Type(IntegerType):
+    name = "int32"
+    glib_type_name: str = "gint32"
+    signed = True
+    size = 32
+
+
+class UInt32Type(IntegerType):
+    name = "uint32"
+    glib_type_name: str = "guint32"
+    signed = False
+    size = 32
+
+
+class Int64Type(IntegerType):
+    name = "int64"
+    glib_type_name: str = "gint64"
+    signed = True
+    size = 64
+
+
+class UInt64Type(IntegerType):
+    name = "uint64"
+    glib_type_name: str = "guint64"
+    signed = False
+    size = 64
+
+
+class IntType(IntegerType):
     name = "int"
     glib_type_name: str = "gint"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return (
-            isinstance(other, IntType)
-            or isinstance(other, UIntType)
-            or isinstance(other, FloatType)
-        )
+    signed = True
+    size = 32
 
 
-class UIntType(BasicType):
+class UIntType(IntegerType):
     name = "uint"
     glib_type_name: str = "guint"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return (
-            isinstance(other, IntType)
-            or isinstance(other, UIntType)
-            or isinstance(other, FloatType)
-        )
+    signed = False
+    size = 32
 
 
-class FloatType(BasicType):
+class LongType(IntegerType):
+    name = "long"
+    glib_type_name: str = "glong"
+    signed = True
+    size = 64  # on most platforms
+
+
+class ULongType(IntegerType):
+    name = "ulong"
+    glib_type_name: str = "gulong"
+    signed = False
+    size = 64
+
+
+class FloatType(NumericType):
     name = "float"
     glib_type_name: str = "gfloat"
+    signed = True
+    size = 32
+    floating = True
 
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, FloatType)
+
+class DoubleType(NumericType):
+    name = "double"
+    glib_type_name: str = "gdouble"
+    signed = True
+    size = 64
+    floating = True
 
 
 class StringType(BasicType):
@@ -199,8 +295,18 @@ BASIC_TYPES = {
     "double": FloatType,
     "float": FloatType,
     "int": IntType,
+    "int16": Int16Type,
+    "int32": Int32Type,
+    "int64": Int64Type,
+    "int8": Int8Type,
+    "long": LongType,
     "string": StringType,
     "type": TypeType,
     "uchar": UCharType,
     "uint": UIntType,
+    "uint16": UInt16Type,
+    "uint32": UInt32Type,
+    "uint64": UInt64Type,
+    "uint8": UInt8Type,
+    "ulong": ULongType,
 }
