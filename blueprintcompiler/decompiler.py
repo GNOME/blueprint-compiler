@@ -199,8 +199,11 @@ class DecompileCtx:
             val = truthy(value)
             return "", ("true" if val else "false")
         elif type.assignable_to(ArrayType(StringType())):
-            items = ", ".join([escape_quote(x) for x in value.split("\n")])
-            return "", f"[{items}]"
+            if value == "":
+                return "", "[]"
+            else:
+                items = ", ".join([escape_quote(x) for x in value.split("\n")])
+                return "", f"[{items}]"
         elif (
             assignable_to("Gtk", "Gdk.Pixbuf")
             or assignable_to("Gtk", "Gdk.Texture")
