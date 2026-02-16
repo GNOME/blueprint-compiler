@@ -27,6 +27,7 @@ from gi.repository import GLib, GObject  # type: ignore
 
 from . import xml_reader
 from .errors import CompileError, CompilerBugError
+from .types import *
 
 try:
     gi.require_version("GIRepository", "3.0")
@@ -243,173 +244,6 @@ ONLINE_DOCS = {
     "Pango-1.0": "https://docs.gtk.org/Pango/",
     "Shumate-1.0": "https://gnome.pages.gitlab.gnome.org/libshumate/",
     "WebKit2-4.1": "https://webkitgtk.org/reference/webkit2gtk/stable/",
-}
-
-
-class GirType:
-    @property
-    def doc(self) -> T.Optional[str]:
-        return None
-
-    def assignable_to(self, other: "GirType") -> bool:
-        raise NotImplementedError()
-
-    @property
-    def name(self) -> str:
-        """The GIR name of the type, not including the namespace"""
-        raise NotImplementedError()
-
-    @property
-    def full_name(self) -> str:
-        """The GIR name of the type to use in diagnostics"""
-        raise NotImplementedError()
-
-    @property
-    def glib_type_name(self) -> str:
-        """The name of the type in the GObject type system, suitable to pass to `g_type_from_name()`."""
-        raise NotImplementedError()
-
-    @property
-    def incomplete(self) -> bool:
-        return False
-
-    @property
-    def deprecated(self) -> bool:
-        return False
-
-    @property
-    def deprecated_doc(self) -> T.Optional[str]:
-        return None
-
-
-class ExternType(GirType):
-    def __init__(self, ns: T.Optional[str], name: str) -> None:
-        super().__init__()
-        self._name = name
-        self._ns = ns
-
-    def assignable_to(self, other: GirType) -> bool:
-        return True
-
-    @property
-    def full_name(self) -> str:
-        if self._ns:
-            return f"${self._ns}.{self._name}"
-        else:
-            return self._name
-
-    @property
-    def glib_type_name(self) -> str:
-        if self._ns:
-            return self._ns + self._name
-        else:
-            return self._name
-
-    @property
-    def incomplete(self) -> bool:
-        return True
-
-
-class ArrayType(GirType):
-    def __init__(self, inner: GirType) -> None:
-        self._inner = inner
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, ArrayType) and self._inner.assignable_to(other._inner)
-
-    @property
-    def inner(self) -> GirType:
-        return self._inner
-
-    @property
-    def name(self) -> str:
-        return self._inner.name + "[]"
-
-    @property
-    def full_name(self) -> str:
-        return self._inner.full_name + "[]"
-
-
-class BasicType(GirType):
-    name: str = "unknown type"
-
-    @property
-    def full_name(self) -> str:
-        return self.name
-
-
-class VoidType(GirType):
-    name: str = "void"
-    glib_type_name: str = "void"
-
-    def assignable_to(self, other: GirType):
-        return False
-
-
-class BoolType(BasicType):
-    name = "bool"
-    glib_type_name: str = "gboolean"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, BoolType)
-
-
-class IntType(BasicType):
-    name = "int"
-    glib_type_name: str = "gint"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return (
-            isinstance(other, IntType)
-            or isinstance(other, UIntType)
-            or isinstance(other, FloatType)
-        )
-
-
-class UIntType(BasicType):
-    name = "uint"
-    glib_type_name: str = "guint"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return (
-            isinstance(other, IntType)
-            or isinstance(other, UIntType)
-            or isinstance(other, FloatType)
-        )
-
-
-class FloatType(BasicType):
-    name = "float"
-    glib_type_name: str = "gfloat"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, FloatType)
-
-
-class StringType(BasicType):
-    name = "string"
-    glib_type_name: str = "gchararray"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, StringType)
-
-
-class TypeType(BasicType):
-    name = "GType"
-    glib_type_name: str = "GType"
-
-    def assignable_to(self, other: GirType) -> bool:
-        return isinstance(other, TypeType)
-
-
-_BASIC_TYPES = {
-    "bool": BoolType,
-    "string": StringType,
-    "int": IntType,
-    "uint": UIntType,
-    "float": FloatType,
-    "double": FloatType,
-    "type": TypeType,
 }
 
 
@@ -1014,7 +848,7 @@ class Namespace(GirNode):
 
     def get_type_by_cname(self, cname: str) -> T.Optional[GirType]:
         """Gets a type from this namespace by its C name."""
-        for basic in _BASIC_TYPES.values():
+        for basic in BASIC_TYPES.values():
             if basic.glib_type_name == cname:
                 return basic()
 
@@ -1116,8 +950,8 @@ class GirContext:
         return None
 
     def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
-        if ns is None and name in _BASIC_TYPES:
-            return _BASIC_TYPES[name]()
+        if ns is None and name in BASIC_TYPES:
+            return BASIC_TYPES[name]()
 
         ns = ns or "Gtk"
 
