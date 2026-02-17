@@ -98,7 +98,7 @@ class AstNode:
         self.tokens = ChainMap(tokens, defaultdict(lambda: None))
         self.incomplete = incomplete
 
-        self.parent = None
+        self.parent: AstNode = None
         for child in self.children:
             child.parent = self
 

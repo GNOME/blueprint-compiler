@@ -20,6 +20,7 @@
 from dataclasses import dataclass
 
 from .common import *
+from .contexts import ValueTypeCtx
 from .expression import CastExpr, Expression, LiteralExpr, LookupOp
 
 
@@ -69,6 +70,15 @@ class Binding(AstNode):
         Expression,
         ZeroOrMore(BindingFlag),
     ]
+
+    @context(ValueTypeCtx)
+    def value_type(self):
+        prev_ctx = self.parent.context[ValueTypeCtx]
+        return ValueTypeCtx(
+            prev_ctx.value_type,
+            must_infer_type=prev_ctx.must_infer_type,
+            allow_null=True,
+        )
 
     @property
     def expression(self) -> Expression:

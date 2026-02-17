@@ -1,4 +1,4 @@
-# gir.py
+# types.py
 #
 # Copyright 2021 James Westman <james@jwestman.net>
 #
@@ -42,7 +42,7 @@ class GirType:
         if len(types) == 0:
             return None
 
-        def pairwise(a: GirType, b: GirType):
+        def pairwise(a: GirType, b: GirType) -> T.Optional[GirType]:
             for ancestor_a in [a] + list(a.parent_types()):
                 for ancestor_b in [b] + list(b.parent_types()):
                     if ancestor_a.assignable_to(ancestor_b):
@@ -53,8 +53,9 @@ class GirType:
 
         common = types[0]
         for t in types[1:]:
-            common = pairwise(common, t)
-            if common is None:
+            if c := pairwise(common, t):
+                common = c
+            else:
                 return None
 
         return common
