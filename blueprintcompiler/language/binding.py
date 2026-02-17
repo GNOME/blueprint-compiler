@@ -20,7 +20,7 @@
 from dataclasses import dataclass
 
 from .common import *
-from .expression import Expression, LiteralExpr, LookupOp
+from .expression import CastExpr, Expression, LiteralExpr, LookupOp
 
 
 class BindingFlag(AstNode):
@@ -80,15 +80,20 @@ class Binding(AstNode):
 
     @property
     def simple_binding(self) -> T.Optional["SimpleBinding"]:
-        if isinstance(self.expression.last, LookupOp):
-            if isinstance(self.expression.last.lhs, LiteralExpr):
+        expr = self.expression.last
+
+        if isinstance(expr, CastExpr):
+            expr = expr.lhs
+
+        if isinstance(expr, LookupOp):
+            if isinstance(expr.lhs, LiteralExpr):
                 from .values import IdentLiteral
 
-                if isinstance(self.expression.last.lhs.literal.value, IdentLiteral):
+                if isinstance(expr.lhs.literal.value, IdentLiteral):
                     flags = [x.flag for x in self.flags]
                     return SimpleBinding(
-                        self.expression.last.lhs.literal.value.ident,
-                        self.expression.last.property_name,
+                        expr.lhs.literal.value.ident,
+                        expr.property_name,
                         no_sync_create="no-sync-create" in flags,
                         bidirectional="bidirectional" in flags,
                         inverted="inverted" in flags,
