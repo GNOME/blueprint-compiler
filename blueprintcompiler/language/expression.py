@@ -20,7 +20,7 @@
 
 from functools import cached_property
 
-from ..decompiler import decompile_element
+from ..decompiler import decompile_element, full_name
 from ..utils import TextEdit
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
@@ -235,7 +235,7 @@ class CastExpr(InfixExpr):
 
     @context(ValueTypeCtx)
     def value_type(self):
-        return ValueTypeCtx(self.type)
+        return ValueTypeCtx(self.type, allow_null=True)
 
     @property
     def type(self) -> T.Optional[GirType]:
@@ -280,7 +280,7 @@ class ClosureArg(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True)
+        return ValueTypeCtx(None, must_infer_type=True, allow_null=True)
 
 
 class ClosureExpr(ExprBase):
@@ -444,11 +444,18 @@ def decompile_constant(
     translatable="false",
     context=None,
     comment=None,
+    initial="false",
 ):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    if type is None:
+    if truthy(initial) and type is not None:
+        t = ctx.type_by_cname(type)
+        if t is None:
+            ctx.print(f"null as <${type}>")
+        else:
+            ctx.print(f"null as <{full_name(t)}>")
+    elif type is None:
         if cdata == ctx.template_class:
             ctx.print("template")
         else:

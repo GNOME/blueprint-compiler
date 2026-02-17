@@ -195,7 +195,7 @@ class TestSamples(unittest.TestCase):
                 "adw_alertdialog_responses",
                 "adw_alert_dialog_duplicate_flags",
             ]
-            REQUIRE_GTK_22 = ["expr_try"]
+            REQUIRE_GTK_22 = ["expr_try", "expr_null"]
 
             SKIP_RUN = [
                 "adw_breakpoint_template",

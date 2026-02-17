@@ -270,6 +270,14 @@ class XmlOutput(OutputFormat):
         if expr.is_this:
             return
 
+        if (
+            isinstance(expr.literal.value, IdentLiteral)
+            and expr.literal.value.ident == "null"
+            and not expr.is_object
+        ):
+            xml.put_self_closing("constant", initial=True, type=expr.type)
+            return
+
         if expr.is_object:
             xml.start_tag("constant")
         else:
