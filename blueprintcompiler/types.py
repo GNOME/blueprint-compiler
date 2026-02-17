@@ -29,6 +29,9 @@ class GirType:
     def assignable_to(self, other: "GirType") -> bool:
         raise NotImplementedError()
 
+    def castable_to(self, other: "GirType") -> bool:
+        return self.assignable_to(other)
+
     @property
     def name(self) -> str:
         """The GIR name of the type, not including the namespace"""
@@ -57,14 +60,19 @@ class GirType:
         return None
 
 
-class ExternType(GirType):
+class ObjectType(GirType):
+    def castable_to(self, other: GirType) -> bool:
+        return self.assignable_to(other) or other.assignable_to(self)
+
+
+class ExternType(ObjectType):
     def __init__(self, ns: T.Optional[str], name: str) -> None:
         super().__init__()
         self._name = name
         self._ns = ns
 
     def assignable_to(self, other: GirType) -> bool:
-        return True
+        return isinstance(other, ObjectType)
 
     @property
     def full_name(self) -> str:
@@ -112,16 +120,39 @@ class BasicType(GirType):
     def full_name(self) -> str:
         return self.name
 
+    def transformable_to(self, other: GirType):
+        raise NotImplementedError()
+
+    def castable_to(self, other: GirType):
+        return self.transformable_to(other)
+
 
 class VoidType(GirType):
     name: str = "void"
     glib_type_name: str = "void"
 
+    def transformable_to(self, other: GirType):
+        return False
+
     def assignable_to(self, other: GirType):
         return False
 
 
-class CharType(BasicType):
+class CharacterType(BasicType):
+    def transformable_to(self, other: GirType) -> bool:
+        from .gir import Enumeration
+
+        return (
+            isinstance(other, CharType)
+            or isinstance(other, UCharType)
+            or isinstance(other, BoolType)
+            or isinstance(other, NumericType)
+            or isinstance(other, Enumeration)
+            or isinstance(other, StringType)
+        )
+
+
+class CharType(CharacterType):
     name = "char"
     glib_type_name: str = "gchar"
 
@@ -129,7 +160,7 @@ class CharType(BasicType):
         return isinstance(other, CharType)
 
 
-class UCharType(BasicType):
+class UCharType(CharacterType):
     name = "uchar"
     glib_type_name: str = "guchar"
 
@@ -143,6 +174,18 @@ class BoolType(BasicType):
 
     def assignable_to(self, other: GirType) -> bool:
         return isinstance(other, BoolType)
+
+    def transformable_to(self, other: GirType) -> bool:
+        from .gir import Enumeration
+
+        return (
+            isinstance(other, CharType)
+            or isinstance(other, UCharType)
+            or isinstance(other, BoolType)
+            or isinstance(other, IntegerType)
+            or isinstance(other, Enumeration)
+            or isinstance(other, StringType)
+        )
 
 
 class NumericType(BasicType):
@@ -171,6 +214,18 @@ class IntegerType(NumericType):
     @property
     def max_value(self):
         return (2**self.size - 1) if not self.signed else (2 ** (self.size - 1) - 1)
+
+    def transformable_to(self, other: GirType) -> bool:
+        from .gir import Enumeration
+
+        return (
+            isinstance(other, CharType)
+            or isinstance(other, UCharType)
+            or isinstance(other, BoolType)
+            or isinstance(other, NumericType)
+            or isinstance(other, Enumeration)
+            or isinstance(other, StringType)
+        )
 
 
 class Int8Type(IntegerType):
@@ -257,20 +312,29 @@ class ULongType(IntegerType):
     size = 64
 
 
-class FloatType(NumericType):
+class FloatingPointType(NumericType):
+    floating = True
+    signed = True
+
+    def transformable_to(self, other: GirType) -> bool:
+        return (
+            isinstance(other, CharType)
+            or isinstance(other, UCharType)
+            or isinstance(other, NumericType)
+            or isinstance(other, StringType)
+        )
+
+
+class FloatType(FloatingPointType):
     name = "float"
     glib_type_name: str = "gfloat"
-    signed = True
     size = 32
-    floating = True
 
 
-class DoubleType(NumericType):
+class DoubleType(FloatingPointType):
     name = "double"
     glib_type_name: str = "gdouble"
-    signed = True
     size = 64
-    floating = True
 
 
 class StringType(BasicType):

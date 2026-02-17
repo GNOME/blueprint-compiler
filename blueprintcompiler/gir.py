@@ -446,7 +446,7 @@ class Signal(GirNode):
             return None
 
 
-class Interface(GirNode, GirType):
+class Interface(GirNode, ObjectType):
     xml_tag = "interface"
 
     def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo):
@@ -499,7 +499,7 @@ class Interface(GirNode, GirType):
             return None
 
 
-class Class(GirNode, GirType):
+class Class(GirNode, ObjectType):
     xml_tag = "class"
 
     def __init__(self, ns: "Namespace", info: GIRepository.BaseInfo) -> None:
@@ -614,7 +614,7 @@ class Class(GirNode, GirType):
             return None
 
 
-class TemplateType(GirType):
+class TemplateType(ObjectType):
     def __init__(self, name: str, parent: T.Optional[GirType]):
         self._name = name
         self.parent = parent

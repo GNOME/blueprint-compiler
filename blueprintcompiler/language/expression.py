@@ -62,6 +62,18 @@ class Expression(ExprBase):
     def type(self) -> T.Optional[GirType]:
         return self.last.type
 
+    @validate()
+    def validate_for_type(self):
+        expected_type = self.parent.context[ValueTypeCtx].value_type
+        if self.type is not None and expected_type is not None:
+            if not self.type.assignable_to(expected_type):
+                castable = (
+                    " without casting" if self.type.castable_to(expected_type) else ""
+                )
+                raise CompileWarning(
+                    f"Cannot assign {self.type.full_name} to {expected_type.full_name}{castable}"
+                )
+
 
 class InfixExpr(ExprBase):
     @property
@@ -110,6 +122,18 @@ class LiteralExpr(ExprBase):
 
             if not isinstance(self.rhs.rhs, LookupOp):
                 raise CompileError('"item" can only be used for looking up properties')
+
+
+class TranslatedExpr(ExprBase):
+    grammar = Translated
+
+    @property
+    def translated(self) -> Translated:
+        return self.children[Translated][0]
+
+    @property
+    def type(self) -> GirType:
+        return StringType()
 
 
 class LookupOp(InfixExpr):
@@ -296,7 +320,7 @@ class ClosureExpr(ExprBase):
 
 
 expr.children = [
-    AnyOf(Translated, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
+    AnyOf(TranslatedExpr, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
     ZeroOrMore(AnyOf(LookupOp, CastExpr)),
 ]
 
