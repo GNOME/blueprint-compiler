@@ -1,3 +1,57 @@
+# v0.20.0
+
+## Added
+- Added help-text and visited accessibility properties
+- Added a --minify argument to compile and batch-compile to emit XML with no comments or whitespace
+- Extern class names can now include a "." for readability
+- Added a linter (Sonny Piers, Neighborhoodie/STA)
+- Added extension syntax for Gtk.LevelBar offsets (Matthijs Velsink)
+- Allow translated string constants in expressions (Julian Sparber)
+- Added support for some Pango types to be specified as strings (Matthijs Velsink)
+- The formatter wraps long lines now
+- Added support for Gtk.TryExpression
+- Added support for `null` in expressions
+
+### Language Server
+- Added the signature of a long block as an inlay hint at the end of the block
+- Added completions for available namespaces when typing a class name
+- Added completions for imports
+- Added completion for `translation-domain`
+- Added object value completions
+- Completions are now sorted. Up to five commonly used completions are highlighted at the top, based on statistics from a collection of open-source projects that use Blueprint.
+- Hovering over the object in a signal shows the object's signature
+
+## Changed
+- blueprint-compiler now uses libgirepository to load typelib information, rather than a custom parser.
+- Lookup expressions on an object reference no longer emit an unnecessary `<constant>` tag
+
+## Fixed
+- Skip unchanged files in batch-compile to prevent unnecessary rebuilds (Alice Mikhaylenko)
+- Don't allow assigning true or false to an object
+- Reversed the GIR search order so it searches user-configured paths before default ones (Qiu Wenbo)
+- The decompiler properly quotes Gio.File properties
+- Fixed a crash when an Adw.AlertDialog response block is malformed
+- Error messages in the CLI show at least one caret under the source code line, even for diagnostics reported with zero length
+- Fixed a crash when using `typeof` with enum and boxed types (Jamie Gravendeel)
+- Treat `/* ... */` comments as inline in the formatter (Matthijs Velsink)
+- Fixed a crash when an error is reported on an empty last line
+- The decompiler no longer emits unnecessary signal flags
+- Closure arguments are now type checked
+- Expressions in property bindings are now type checked
+- Added support for more primitive types and added type checking for conversions between them
+- Fixed a crash when a string array is empty
+- Bindings consisting of a single lookup can use flags even if they have a cast at the end
+
+### Language Server
+- Completions no longer add the body of an object when you're editing the class name of an existing object. Made similar changes for properties and signals.
+- Fixed a crash that occurred when you hovered over a reference to an object that has an invalid class name.
+- Signal completions now include a default name for the handler function
+
+## Documentation
+- Add Kate editor as having built in support (Zoey Ahmed)
+- Link to Sublime Text syntax highlighting plugin (Nelson Benítez León)
+- Link to Zed plugin (tfuxu)
+
 # v0.18.0
 
 ## Added
