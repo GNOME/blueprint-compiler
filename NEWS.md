@@ -4,7 +4,7 @@
 - Added help-text and visited accessibility properties
 - Added a --minify argument to compile and batch-compile to emit XML with no comments or whitespace
 - Extern class names can now include a "." for readability
-- Added a linter (Sonny Piers, Neighborhoodie/STA)
+- Added a linter (Sonny Piers, Neighbourhoodie/STA)
 - Added extension syntax for Gtk.LevelBar offsets (Matthijs Velsink)
 - Allow translated string constants in expressions (Julian Sparber)
 - Added support for some Pango types to be specified as strings (Matthijs Velsink)
