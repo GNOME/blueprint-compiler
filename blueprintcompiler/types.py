@@ -344,6 +344,9 @@ class StringType(BasicType):
     def assignable_to(self, other: GirType) -> bool:
         return isinstance(other, StringType)
 
+    def transformable_to(self, other: GirType) -> bool:
+        return isinstance(other, StringType)
+
 
 class TypeType(BasicType):
     name = "GType"

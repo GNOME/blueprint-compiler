@@ -228,3 +228,17 @@ class TextEdit:
 
     def to_json(self):
         return {"range": self.range.to_json(), "newText": self.newText}
+
+    @staticmethod
+    def apply_edits(string: str, edits: T.List["TextEdit"]):
+        offset = 0
+        edits = sorted(edits, key=lambda e: e.range.start)
+        for edit in edits:
+            string = (
+                string[: edit.range.start + offset]
+                + edit.newText
+                + string[edit.range.end + offset :]
+            )
+            offset += len(edit.newText) - edit.range.length
+
+        return string

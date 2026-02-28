@@ -20,7 +20,7 @@
 
 from .. import decompiler as decompile
 from .. import gir
-from ..ast_utils import AstNode, context, docs, validate
+from ..ast_utils import AstNode, autofix, context, docs, validate
 from ..completions_utils import *
 from ..decompiler import (
     DecompileCtx,

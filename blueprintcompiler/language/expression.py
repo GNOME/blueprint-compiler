@@ -77,6 +77,17 @@ class Expression(ExprBase):
                     f"Cannot assign {self.type.full_name} to {expected_type.full_name}{castable}"
                 )
 
+    @autofix
+    def autofix_cast(self):
+        expected_type = self.parent.context[ValueTypeCtx].value_type
+        if self.type is not None and expected_type is not None:
+            if not self.type.assignable_to(expected_type):
+                if self.type.castable_to(expected_type):
+                    range = Range(
+                        self.range.end, self.range.end, self.range.original_text
+                    )
+                    return TextEdit(range, f" as <{expected_type.full_name}>")
+
 
 class InfixExpr(ExprBase):
     @property
@@ -246,9 +257,9 @@ class CastExpr(InfixExpr):
         if self.type is None or self.lhs.type is None:
             return
 
-        if not self.type.assignable_to(
-            self.lhs.type
-        ) and not self.lhs.type.assignable_to(self.type):
+        if not self.type.castable_to(self.lhs.type) and not self.lhs.type.castable_to(
+            self.type
+        ):
             raise CompileError(
                 f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}."
             )
