@@ -178,9 +178,9 @@ class TestSamples(unittest.TestCase):
             name = name.removesuffix("_dec")
             ui_path = (Path(__file__).parent / f"samples/{name}.ui").resolve()
 
-            actual = decompiler.decompile(ui_path).strip()
+            ast, errors, warnings, actual = decompiler.decompile(ui_path)
 
-            self.assertEqual(actual, expected)
+            self.assertEqual(actual.strip(), expected)
         except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", expected)
             raise AssertionError()

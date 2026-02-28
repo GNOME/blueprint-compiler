@@ -178,6 +178,13 @@ class AstNode:
                     self.attrs_by_type[attr_type].append((name, item))
         return self.attrs_by_type[attr_type]
 
+    def autofix(self) -> T.Generator[TextEdit]:
+        fixes = [getattr(self, name) for name, attr in self._attrs_by_type(Autofix)]
+        yield from [f for f in fixes if f is not None]
+
+        for child in self.children:
+            yield from child.autofix()
+
     def get_docs(self, idx: int) -> T.Optional[str]:
         for name, attr in self._attrs_by_type(Docs):
             if attr.token_name:
@@ -289,6 +296,22 @@ def validate(
         return inner
 
     return decorator
+
+
+class Autofix:
+    def __init__(self, func: T.Callable[[], T.Optional[TextEdit]]):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.func(instance)
+
+
+def autofix(func):
+    """Decorator for functions that can apply auto-fixes to Blueprint files. This is used when decompiling."""
+
+    return Autofix(func)
 
 
 class Docs:

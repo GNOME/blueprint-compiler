@@ -23,8 +23,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 from . import formatter
+from .errors import MultipleErrors
 from .gir import *
-from .utils import Colors, escape_quote
+from .tokenizer import tokenize
+from .utils import Colors, TextEdit, escape_quote
 from .xml_reader import Element, parse, parse_string
 
 __all__ = ["decompile"]
@@ -274,13 +276,25 @@ def decompile_element(
         raise e
 
 
-def decompile(data: str) -> str:
+def decompile(
+    data: str,
+) -> T.Tuple[T.Any, T.Optional[MultipleErrors], T.List[CompileError], str]:
+    from . import parser
+
     ctx = DecompileCtx()
 
     xml = parse(data)
     decompile_element(ctx, None, xml)
 
-    return ctx.result
+    tokens = tokenize(ctx.result)
+    ast, errors, warnings = parser.parse(tokens)
+
+    result = ctx.result
+    if ast is not None:
+        fixes = [*ast.autofix()]
+        result = TextEdit.apply_edits(ctx.result, fixes)
+
+    return ast, errors, warnings, result
 
 
 def decompile_string(data: str) -> str:
