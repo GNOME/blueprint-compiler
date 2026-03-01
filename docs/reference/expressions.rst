@@ -107,7 +107,7 @@ Example
 .. code-block:: blueprint
 
    Label {
-     label: bind try (template.account.username, "Guest");
+     label: bind try { template.account.username, "Guest" };
    }
 
 
