@@ -1,3 +1,11 @@
+# v0.20.1
+
+## Fixed
+- Fix casting from uint to bool, which should work but was generating an error.
+
+## Docs
+- Fixed the syntax documentation for TryExpression. (Jamie Gravendeel)
+
 # v0.20.0
 
 ## Added

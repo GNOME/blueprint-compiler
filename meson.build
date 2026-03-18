@@ -1,5 +1,5 @@
 project('blueprint-compiler',
-  version: '0.20.0',
+  version: '0.20.1',
 )
 
 prefix = get_option('prefix')
