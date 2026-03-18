@@ -78,7 +78,7 @@ class TestSamples(unittest.TestCase):
         ast.get_document_symbols()
         lint(ast)
 
-    def assert_sample(self, name, skip_run=False):
+    def assert_sample(self, name: str, skip_run=False):
         print(f'assert_sample("{name}", skip_run={skip_run})')
         try:
             with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
@@ -87,7 +87,7 @@ class TestSamples(unittest.TestCase):
                 expected = f.read()
 
             tokens = tokenizer.tokenize(blueprint)
-            ast, errors, warnings = parser.parse(tokens)
+            ast, errors, warnings = parser.parse(tokens, blpx=name.startswith("blpx_"))
 
             # Ignore deprecation warnings because some of the things we're testing
             # are deprecated
@@ -199,6 +199,7 @@ class TestSamples(unittest.TestCase):
 
             SKIP_RUN = [
                 "adw_breakpoint_template",
+                "blpx_operators",
                 "expr_closure",
                 "expr_closure_inferred_type",
                 "expr_closure_args",

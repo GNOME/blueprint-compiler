@@ -274,7 +274,9 @@ def decompile_element(ctx: DecompileCtx, gir: GirContext | None, xml: Element) -
         raise e
 
 
-def decompile_xml(xml: Element):
+def decompile_xml(
+    xml: Element,
+) -> T.Tuple[T.Any, T.Optional[MultipleErrors], T.List[CompileError], str]:
     from . import parser
 
     ctx = DecompileCtx()
@@ -294,12 +296,13 @@ def decompile_xml(xml: Element):
 def decompile(
     data: str,
 ) -> tuple[Any, MultipleErrors | None, list[CompileError], str]:
+
     return decompile_xml(parse(data))
 
 
 def decompile_string(data: str) -> str:
-    ast, errors, warnings, result = decompile_xml(parse_string(data))
-    return result
+    xml = parse_string(data)
+    return decompile_xml(xml)[3]
 
 
 def canon(string: str) -> str:

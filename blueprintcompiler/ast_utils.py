@@ -184,7 +184,12 @@ class AstNode:
         return self.attrs_by_type[attr_type]
 
     def autofix(self) -> Generator[TextEdit, None, None]:
-        fixes = [getattr(self, name) for name, attr in self._attrs_by_type(Autofix)]
+        fixes = [
+            f
+            for name, attr in self._attrs_by_type(Autofix)
+            for f in getattr(self, name)
+        ]
+
         yield from [f for f in fixes if f is not None]
 
         for child in self.children:
@@ -304,7 +309,7 @@ def validate(
 
 
 class Autofix:
-    def __init__(self, func: Callable[[], TextEdit | None]):
+    def __init__(self, func: Callable[[], list[TextEdit]]):
         self.func = func
 
     def __get__(self, instance, owner):
