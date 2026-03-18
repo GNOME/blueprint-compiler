@@ -37,6 +37,9 @@ class Children:
     def __iter__(self) -> T.Iterator["AstNode"]:
         return iter(self._children)
 
+    def __len__(self):
+        return len(self._children)
+
     @T.overload
     def __getitem__(self, key: T.Type[TType]) -> T.List[TType]: ...
 
@@ -179,7 +182,12 @@ class AstNode:
         return self.attrs_by_type[attr_type]
 
     def autofix(self) -> T.Generator[TextEdit, None, None]:
-        fixes = [getattr(self, name) for name, attr in self._attrs_by_type(Autofix)]
+        fixes = [
+            f
+            for name, attr in self._attrs_by_type(Autofix)
+            for f in getattr(self, name)
+        ]
+
         yield from [f for f in fixes if f is not None]
 
         for child in self.children:
@@ -299,7 +307,7 @@ def validate(
 
 
 class Autofix:
-    def __init__(self, func: T.Callable[[], T.Optional[TextEdit]]):
+    def __init__(self, func: T.Callable[[], T.List[TextEdit]]):
         self.func = func
 
     def __get__(self, instance, owner):

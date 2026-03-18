@@ -254,6 +254,10 @@ class XmlOutput(OutputFormat):
             self._emit_closure_expr(expression, xml)
         elif isinstance(expression, TryExpr):
             self._emit_try_expr(expression, xml)
+        elif isinstance(expression, OpExpr):
+            self._emit_op_expr(expression, xml)
+        elif isinstance(expression, Parenthesized):
+            self._emit_expression_part(expression.child, xml)
         else:
             raise CompilerBugError()
 
@@ -307,6 +311,12 @@ class XmlOutput(OutputFormat):
         xml.start_tag("try")
         for e in expr.expressions:
             self._emit_expression_part(e, xml)
+        xml.end_tag()
+
+    def _emit_op_expr(self, expr: OpExpr, xml: XmlEmitter):
+        xml.start_tag("closure", function=expr.closure_name, type=expr.type)
+        for arg in expr.args:
+            self._emit_expression_part(arg, xml)
         xml.end_tag()
 
     def _emit_attribute(

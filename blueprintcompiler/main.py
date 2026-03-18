@@ -29,7 +29,6 @@ from .decompiler import decompile_string
 from .errors import (
     CompileError,
     CompilerBugError,
-    CompileWarning,
     PrintableError,
     report_bug,
 )
@@ -55,6 +54,9 @@ class BlueprintApp:
         compile.add_argument("--typelib-path", nargs="?", action="append")
         compile.add_argument("--gir-path", nargs="?", action="append")
         compile.add_argument(
+            "--blpx", help="Enable advanced expressions", action="store_true"
+        )
+        compile.add_argument(
             "--minify",
             action="store_true",
         )
@@ -71,6 +73,9 @@ class BlueprintApp:
         batch_compile.add_argument("input_dir", metavar="input-dir")
         batch_compile.add_argument("--typelib-path", nargs="?", action="append")
         batch_compile.add_argument("--gir-path", nargs="?", action="append")
+        batch_compile.add_argument(
+            "--blpx", help="Enable advanced expressions", action="store_true"
+        )
         batch_compile.add_argument(
             "--minify",
             action="store_true",
@@ -212,7 +217,7 @@ class BlueprintApp:
 
         data = opts.input.read()
         try:
-            xml, warnings = self._compile(data, minify=opts.minify)
+            xml, warnings = self._compile(data, minify=opts.minify, blpx=opts.blpx)
 
             for warning in warnings:
                 warning.pretty_print(opts.input.name, data, stream=sys.stderr)
@@ -259,7 +264,7 @@ class BlueprintApp:
                     )
                     sys.exit(1)
 
-                xml, warnings = self._compile(data, minify=opts.minify)
+                xml, warnings = self._compile(data, minify=opts.minify, blpx=opts.blpx)
 
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
@@ -298,6 +303,7 @@ class BlueprintApp:
                     self._compile(data)
                 except:
                     errored = True
+                    errored = False
 
                 formatted_str = formatter.format(data, opts.spaces_num, not opts.tabs)
 
@@ -463,10 +469,10 @@ class BlueprintApp:
         interactive_port.run(opts)
 
     def _compile(
-        self, data: str, *, minify: bool = False
+        self, data: str, *, minify: bool = False, blpx: bool = False
     ) -> T.Tuple[str, T.List[CompileError]]:
         tokens = tokenizer.tokenize(data)
-        ast, errors, warnings = parser.parse(tokens)
+        ast, errors, warnings = parser.parse(tokens, blpx=blpx)
 
         if errors:
             raise errors

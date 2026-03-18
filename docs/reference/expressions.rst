@@ -31,7 +31,9 @@ Expressions
 
 .. rst-class:: grammar-block
 
-   Expression = ( :ref:`Translated<Syntax Translated>` | :ref:`TryExpression<Syntax TryExpression>` | :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' ) ) ( :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>` )*
+   Expression = ExpressionPrefix ( ExpressionSuffix )*
+   ExpressionPrefix = :ref:`Translated<Syntax Translated>` | :ref:`TryExpression<Syntax TryExpression>` | :ref:`ClosureExpression<Syntax ClosureExpression>` | :ref:`Literal<Syntax Literal>` | ( '(' Expression ')' )
+   ExpressionSuffix = :ref:`LookupExpression<Syntax LookupExpression>` | :ref:`CastExpression<Syntax CastExpression>`
 
 .. note::
 

@@ -18,14 +18,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .errors import MultipleErrors, PrintableError
-from .language import OBJECT_CONTENT_HOOKS, UI, Template
+from .errors import MultipleErrors
+from .language import UI
 from .parse_tree import *
-from .tokenizer import TokenType
 
 
 def parse(
     tokens: T.List[Token],
+    blpx: bool = False,
 ) -> T.Tuple[T.Optional[UI], T.Optional[MultipleErrors], T.List[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
 
@@ -35,7 +35,8 @@ def parse(
         AnyOf(UI).parse(ctx)
 
         assert ctx.last_group is not None
-        ast_node = ctx.last_group.to_ast()
+        ast_node = ctx.last_group.to_ast(blpx=blpx)
+        assert isinstance(ast_node, UI)
 
         errors = [*ctx.errors, *ast_node.errors]
         warnings = [*ctx.warnings, *ast_node.warnings]

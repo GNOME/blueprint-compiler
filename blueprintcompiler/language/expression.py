@@ -33,8 +33,8 @@ expr = Sequence()
 class ExprBase(AstNode):
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        if rhs := self.rhs:
-            return rhs.context[ValueTypeCtx]
+        if container := self.containing_expression:
+            return container.context[ValueTypeCtx]
         else:
             return self.parent.context[ValueTypeCtx]
 
@@ -43,42 +43,84 @@ class ExprBase(AstNode):
         raise NotImplementedError()
 
     @property
-    def rhs(self) -> T.Optional["ExprBase"]:
+    def containing_expression(self) -> T.Optional["InfixExpr"]:
         if isinstance(self.parent, Expression):
             children = list(self.parent.children)
             if children.index(self) + 1 < len(children):
-                return children[children.index(self) + 1]
+                child = children[children.index(self) + 1]
+                assert isinstance(child, InfixExpr)
+                return child
             else:
-                return self.parent.rhs
+                return self.parent.containing_expression
+        elif isinstance(self.parent, InfixExpr):
+            return self.parent
+        else:
+            return None
+
+    @property
+    def left_expression(self):
+        if isinstance(self.parent, InfixExpr):
+            return self.parent
+        elif isinstance(self.parent, Expression):
+            return self.parent.left_expression
+        else:
+            return None
+
+    @property
+    def right_expression(self):
+        if isinstance(self.parent, InfixExpr):
+            return self.parent.containing_expression
+        elif isinstance(self.parent, Expression):
+            return self.containing_expression
         else:
             return None
 
 
 class Expression(ExprBase):
-    grammar = expr
+    """An Expression contains a prefix node and optionally some infix operators."""
+
+    grammar: T.Any = expr
 
     @property
     def last(self) -> ExprBase:
-        return self.children[-1]
+        last = self.children[-1]
+        if isinstance(last, Expression):
+            return last.last
+        else:
+            return last
 
     @property
     def type(self) -> T.Optional[GirType]:
         return self.last.type
 
+    @property
+    def is_stub(self) -> bool:
+        return len(self.children) == 1 and isinstance(self.children[0], Expression)
+
     @validate()
     def validate_for_type(self):
-        expected_type = self.parent.context[ValueTypeCtx].value_type
+        if self.is_stub:
+            # Avoid duplicate errors on expressions that just wrap another expression
+            return
+
+        expected_type = self.context[ValueTypeCtx].value_type
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
-                castable = (
-                    " without casting" if self.type.castable_to(expected_type) else ""
-                )
-                raise CompileWarning(
-                    f"Cannot assign {self.type.full_name} to {expected_type.full_name}{castable}"
-                )
+                if not isinstance(self.containing_expression, CastExpr):
+                    castable = (
+                        " without casting"
+                        if self.type.castable_to(expected_type)
+                        else ""
+                    )
+                    raise CompileWarning(
+                        f"Cannot assign {self.type.full_name} to {expected_type.full_name}{castable}"
+                    )
 
     @autofix
     def autofix_cast(self):
+        if self.is_stub:
+            return []
+
         expected_type = self.parent.context[ValueTypeCtx].value_type
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
@@ -86,14 +128,25 @@ class Expression(ExprBase):
                     range = Range(
                         self.range.end, self.range.end, self.range.original_text
                     )
-                    return TextEdit(range, f" as <{expected_type.full_name}>")
+                    return [TextEdit(range, f" as <{expected_type.full_name}>")]
+
+        return []
 
 
 class InfixExpr(ExprBase):
     @property
     def lhs(self):
         children = list(self.parent_by_type(Expression).children)
-        return children[children.index(self) - 1]
+        index = children.index(self)
+        if index == 0:
+            return self.parent_by_type(Expression).left_expression
+        else:
+            prev = children[index - 1]
+            if isinstance(prev, Expression):
+                return prev.last
+            else:
+                assert isinstance(prev, ExprBase)
+                return prev
 
 
 class LiteralExpr(ExprBase):
@@ -131,10 +184,12 @@ class LiteralExpr(ExprBase):
     @validate()
     def item_validations(self):
         if self.is_this:
-            if not isinstance(self.rhs, CastExpr):
+            if not isinstance(self.containing_expression, CastExpr):
                 raise CompileError('"item" must be cast to its object type')
 
-            if not isinstance(self.rhs.rhs, LookupOp):
+            if not isinstance(
+                self.containing_expression.containing_expression, LookupOp
+            ):
                 raise CompileError('"item" can only be used for looking up properties')
 
 
@@ -152,6 +207,7 @@ class TranslatedExpr(ExprBase):
 
 class LookupOp(InfixExpr):
     grammar = [".", UseIdent("property")]
+    precedence = 6
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
@@ -243,6 +299,7 @@ class CastExpr(InfixExpr):
             ],
         ),
     ]
+    precedence = 6
 
     @context(ValueTypeCtx)
     def value_type(self):
@@ -284,7 +341,7 @@ class CastExpr(InfixExpr):
     @autofix
     def autofix_unnecessary_cast(self):
         if self.type is None:
-            return
+            return []
 
         expected_type = self.parent.context[ValueTypeCtx].value_type
         if (
@@ -292,7 +349,9 @@ class CastExpr(InfixExpr):
             and self.type.assignable_to(expected_type)
             and expected_type.assignable_to(self.type)
         ):
-            return TextEdit(self.range.with_preceding_whitespace, "")
+            return [TextEdit(self.range.with_preceding_whitespace, "")]
+        else:
+            return []
 
 
 class ClosureArg(AstNode):
@@ -409,10 +468,361 @@ class TryExpr(ExprBase):
             )
 
 
-expr.children = [
-    AnyOf(TranslatedExpr, TryExpr, ClosureExpr, LiteralExpr, ["(", Expression, ")"]),
-    ZeroOrMore(AnyOf(LookupOp, CastExpr)),
-]
+class OpExpr(InfixExpr):
+    @property
+    def closure_name(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    def args(self) -> T.List[ExprBase]:
+        raise NotImplementedError()
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(None, must_infer_type=True)
+
+    @validate()
+    def blpx_enabled(self):
+        # Only emit this error on top-level expressions, to avoid duplicate errors on sub-expressions
+        parent = self.parent
+        while parent is not None:
+            if isinstance(parent, OpExpr):
+                return
+            parent = parent.parent
+
+        if not self.root.blpx_enabled:
+            raise CompileError(
+                f"Enable --blpx to use advanced expression features",
+                range=Range(
+                    self.lhs.range.start if self.lhs is not None else self.range.start,
+                    self.range.end,
+                    self.range.original_text,
+                ),
+            )
+
+
+class Parenthesized(ExprBase):
+    grammar = [
+        UseExact("lparen", "("),
+        Expression,
+        UseExact("rparen", ")").expected("')'"),
+    ]
+
+    @property
+    def child(self) -> Expression:
+        return self.children[Expression][0]
+
+    @property
+    def type(self) -> T.Optional[GirType]:
+        return self.child.type
+
+    @autofix
+    def autofix_redundant_parentheses(self):
+        redundant = False
+
+        left = self.left_expression
+        right = self.right_expression
+
+        if not hasattr(self.child.last, "precedence"):
+            redundant = True
+        elif (
+            left is not None
+            and hasattr(left, "precedence")
+            and left.precedence < self.child.last.precedence
+        ):
+            redundant = True
+        elif (
+            right is not None
+            and hasattr(right, "precedence")
+            and right.precedence < self.child.last.precedence
+        ):
+            redundant = True
+
+        if redundant:
+            return [
+                TextEdit(self.ranges["lparen"], ""),
+                TextEdit(self.ranges["rparen"], ""),
+            ]
+        else:
+            return []
+
+
+def precedence(g) -> T.Type[Expression]:
+    class Precedence(Expression):
+        grammar = g
+
+    return Precedence
+
+
+class UnaryOpExpr(OpExpr):
+    @property
+    def args(self) -> T.List[ExprBase]:
+        return self.children
+
+
+class BinaryOpExpr(OpExpr):
+    @property
+    def args(self) -> T.List[ExprBase]:
+        return [self.lhs, *self.children]
+
+    @property
+    def rhs(self) -> ExprBase:
+        return self.children[-1]
+
+    @property
+    def type(self):
+        if self.lhs is None or self.rhs is None:
+            return None
+
+        lhs_type = self.lhs.type
+        rhs_type = self.rhs.type
+
+        if isinstance(lhs_type, StringType) and isinstance(rhs_type, StringType):
+            return StringType()
+        elif isinstance(lhs_type, NumericType) and isinstance(rhs_type, NumericType):
+            if lhs_type.floating or rhs_type.floating:
+                if max(lhs_type.size, rhs_type.size) <= 32:
+                    return FloatType()
+                else:
+                    return DoubleType()
+            elif lhs_type.signed or rhs_type.signed:
+                if max(lhs_type.size, rhs_type.size) <= 32:
+                    return IntType(32, signed=True)
+                else:
+                    return IntType(64, signed=True)
+            else:
+                if max(lhs_type.size, rhs_type.size) <= 32:
+                    return IntType(32, signed=False)
+                else:
+                    return IntType(64, signed=False)
+
+        return None
+
+    def require_numeric_operands(self, operator: str):
+        lhs_numeric = isinstance(self.lhs.type, NumericType)
+        rhs_numeric = isinstance(self.rhs.type, NumericType)
+
+        if self.lhs.type is None:
+            # Literal values throw their own errors if the type isn't known
+            if isinstance(self.lhs, LiteralExpr):
+                return
+
+            raise CompileError(
+                f"Could not determine the type of this expression", range=self.lhs.range
+            )
+        elif self.rhs.type is None:
+            if isinstance(self.rhs, LiteralExpr):
+                return
+
+            raise CompileError(
+                f"Could not determine the type of this expression", range=self.rhs.range
+            )
+        elif not lhs_numeric and not rhs_numeric:
+            raise CompileError(
+                f"Cannot apply {operator} to non-numeric types {self.lhs.type.full_name} and {self.rhs.type.full_name}",
+                Range(self.lhs.range.start, self.range.end, self.range.original_text),
+            )
+        elif not lhs_numeric:
+            raise CompileError(
+                f"Cannot apply {operator} to non-numeric type {self.lhs.type.full_name}",
+                Range(
+                    self.lhs.range.start,
+                    self.ranges["after_op"].end,
+                    self.range.original_text,
+                ),
+            )
+        elif not rhs_numeric:
+            raise CompileError(
+                f"Cannot apply {operator} to non-numeric type {self.rhs.type.full_name}",
+                self.range,
+            )
+
+
+lvl8 = precedence(
+    AnyOf(TranslatedExpr, TryExpr, ClosureExpr, LiteralExpr, Parenthesized)
+)
+
+
+class NotExpr(UnaryOpExpr):
+    grammar = [Keyword("!"), lvl8]
+    closure_name = "blpx_not"
+    precedence = 7
+    type = BoolType()
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(BoolType())
+
+    @validate()
+    def boolean_operand(self):
+        operand = self.children[0]
+        if not isinstance(operand.type, BoolType):
+            raise CompileError(
+                f"Cannot apply ! to non-boolean type {operand.type.full_name}",
+                Range(operand.range.start, self.range.end, self.range.original_text),
+            )
+
+
+lvl7 = precedence(AnyOf(NotExpr, lvl8))
+
+lvl6 = precedence([lvl7, ZeroOrMore(AnyOf(CastExpr, LookupOp))])
+
+
+class MulExpr(BinaryOpExpr):
+    grammar = [
+        AnyOf(Keyword("*"), Keyword("/"), Keyword("%")),
+        Mark("after_op"),
+        lvl6,
+    ]
+    precedence = 5
+
+    @property
+    def closure_name(self) -> str:
+        if self.tokens["*"]:
+            op = "mul"
+        elif self.tokens["/"]:
+            op = "div"
+        elif self.tokens["%"]:
+            op = "mod"
+        return f"blpx_{op}_{self.type.glib_type_name}"
+
+    @validate()
+    def numeric_operands(self):
+        operator = ""
+        if self.tokens["*"]:
+            operator = "*"
+        elif self.tokens["/"]:
+            operator = "/"
+        elif self.tokens["%"]:
+            operator = "%"
+        self.require_numeric_operands(operator)
+
+
+lvl5 = precedence([lvl6, ZeroOrMore(MulExpr)])
+
+
+class AddExpr(BinaryOpExpr):
+    grammar = [AnyOf(Keyword("+"), Keyword("-")), lvl5]
+    precedence = 4
+
+    @property
+    def closure_name(self) -> str:
+        if self.tokens["+"]:
+            op = "add"
+        elif self.tokens["-"]:
+            op = "sub"
+        return f"blpx_{op}_{self.type.glib_type_name}"
+
+    @property
+    def is_string_concatenation(self) -> bool:
+        return self.tokens["+"] and (
+            isinstance(self.lhs.type, StringType)
+            or isinstance(self.rhs.type, StringType)
+        )
+
+    @property
+    def type(self):
+        if self.is_string_concatenation:
+            return StringType()
+        else:
+            return super().type
+
+    @validate()
+    def numeric_operands(self):
+        if self.tokens["-"]:
+            self.require_numeric_operands("-")
+        elif self.tokens["+"]:
+            if not self.is_string_concatenation:
+                self.require_numeric_operands("+")
+
+
+class NegateExpr(UnaryOpExpr):
+    grammar = [Keyword("-"), lvl8]
+    precedence = 7
+    type = NumericType()
+
+    @property
+    def closure_name(self) -> str:
+        return f"blpx_neg_{self.type.glib_type_name}"
+
+    @validate()
+    def numeric_operand(self):
+        operand = self.children[0]
+        if not isinstance(operand.type, NumericType):
+            raise CompileError(
+                f"Cannot negate non-numeric type {operand.type.full_name}",
+                Range(operand.range.start, self.range.end, self.range.original_text),
+            )
+
+
+lvl4 = precedence([AnyOf(NegateExpr, lvl5), ZeroOrMore(AddExpr)])
+
+
+class CompareExpr(BinaryOpExpr):
+    grammar = [
+        AnyOf(
+            UseExact("op", "=="),
+            UseExact("op", "!="),
+            UseExact("op", "<"),
+            UseExact("op", "<="),
+            UseExact("op", ">"),
+            UseExact("op", ">="),
+        ),
+        lvl4,
+    ]
+    precedence = 3
+    type = BoolType()
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(None, must_infer_type=True)
+
+    @property
+    def closure_name(self) -> str:
+        op = {
+            "==": "eq",
+            "!=": "ne",
+            "<": "lt",
+            "<=": "le",
+            ">": "gt",
+            ">=": "ge",
+        }[self.tokens["op"]]
+
+        return f"blpx_{op}_{self.lhs.type.glib_type_name}"
+
+
+lvl3 = precedence([lvl4, ZeroOrMore(CompareExpr)])
+
+
+class AndExpr(BinaryOpExpr):
+    grammar = [Keyword("&&"), lvl3]
+    precedence = 2
+    closure_name = "blpx_and"
+    type = BoolType()
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(BoolType())
+
+
+lvl2 = precedence([lvl3, ZeroOrMore(AndExpr)])
+
+
+class OrExpr(BinaryOpExpr):
+    grammar = [Keyword("||"), lvl2]
+    precedence = 1
+    closure_name = "blpx_or"
+    type = BoolType()
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(BoolType())
+
+
+lvl1 = precedence([lvl2, ZeroOrMore(OrExpr)])
+
+
+expr.children = [to_parse_node(lvl1)]
 
 
 @decompiler("lookup", skip_children=True, cdata=True)
@@ -496,17 +906,43 @@ def decompile_constant(
         ctx.print(string)
 
 
+OPERATORS = {
+    "blpx_add": "+",
+    "blpx_sub": "-",
+    "blpx_mul": "*",
+    "blpx_div": "/",
+    "blpx_mod": "%",
+    "blpx_eq": "==",
+    "blpx_ne": "!=",
+    "blpx_lt": "<",
+    "blpx_le": "<=",
+    "blpx_gt": ">",
+    "blpx_ge": ">=",
+    "blpx_and": "&&",
+    "blpx_or": "||",
+    "blpx_not": "!",
+    "blpx_neg": "-",
+}
+
+
 @decompiler("closure", skip_children=True)
 def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, type: str):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    if t := ctx.type_by_cname(type):
-        type = decompile.full_name(t)
+    op = OPERATORS.get(function)
+    if op is not None:
+        assert ctx.current_node is not None
+        if op == "!" or (op == "-" and len(ctx.current_node.children) == 1):
+            ctx.print(op)
+        ctx.print("(")
     else:
-        type = "$" + type
+        if t := ctx.type_by_cname(type):
+            type = decompile.full_name(t)
+        else:
+            type = "$" + type
 
-    ctx.print(f"${function}(")
+        ctx.print(f"${function}(")
 
     assert ctx.current_node is not None
     for i, node in enumerate(ctx.current_node.children):
@@ -514,9 +950,15 @@ def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, typ
 
         assert ctx.current_node is not None
         if i < len(ctx.current_node.children) - 1:
-            ctx.print(", ")
+            if op is not None:
+                ctx.print(f" {op} ")
+            else:
+                ctx.print(", ")
 
-    ctx.end_block_with(f") as <{type}>")
+    if op is None:
+        ctx.end_block_with(f") as <{type}>")
+    else:
+        ctx.end_block_with(")")
 
 
 @decompiler("try", skip_children=True)

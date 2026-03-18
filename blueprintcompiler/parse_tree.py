@@ -89,12 +89,17 @@ class ParseGroup:
         assert_true(key not in self.ranges)
         self.ranges[key] = range
 
-    def to_ast(self):
+    def to_ast(self, **extra_kwargs) -> AstNode:
         """Creates an AST node from the match group."""
         children = [child.to_ast() for child in self.children]
 
         try:
-            return self.ast_type(self, children, self.keys, incomplete=self.incomplete)
+            return self.ast_type(
+                self,
+                children,
+                {**self.keys, **extra_kwargs},
+                incomplete=self.incomplete,
+            )
         except TypeError:  # pragma: no cover
             raise CompilerBugError(
                 f"Failed to construct ast.{self.ast_type.__name__} from ParseGroup. See the previous stacktrace."

@@ -40,11 +40,13 @@ from ..errors import (
 )
 from ..gir import (
     BoolType,
+    DoubleType,
     Enumeration,
     ExternType,
     FloatType,
     GirType,
     IntType,
+    NumericType,
     StringType,
 )
 from ..lsp_utils import (
