@@ -153,7 +153,7 @@ at {filename} line {line_num} column {col_num}:
                 )
             elif action.replace_with == "":
                 stream.write(f"suggestion: remove {Colors.RED}{old}{Colors.CLEAR}\n")
-            else:
+            elif action.replace_with is not None:
                 stream.write(
                     f"suggestion: replace {Colors.RED}{old}{Colors.CLEAR} with {Colors.GREEN}{action.replace_with}{Colors.CLEAR}\n"
                 )
@@ -216,7 +216,7 @@ class UnexpectedTokenError(CompileError):
 @dataclass
 class CodeAction:
     title: str
-    replace_with: str
+    replace_with: str | None
     edit_range: Range | None = None
     additional_edits: list[TextEdit] | None = None
 

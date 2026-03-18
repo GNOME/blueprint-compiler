@@ -75,8 +75,7 @@ class OpenFile:
     def _update(self) -> None:
         self.diagnostics: list[CompileError] = []
         try:
-            self.source = tokenizer.tokenize(self.text)
-            self.ast, errors, warnings = parser.parse(self.source)
+            self.ast, errors, warnings = parser.parse(self.source, blpx=True)
             self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors
@@ -436,16 +435,19 @@ class LanguageServer:
 
         def action_to_json(action: CodeAction, diagnostic: CompileError):
             assert diagnostic.range is not None
-            edits = [
-                {
-                    "range": (
-                        action.edit_range.to_json()
-                        if action.edit_range
-                        else diagnostic.range.to_json()
-                    ),
-                    "newText": action.replace_with,
-                }
-            ]
+            edits = []
+
+            if action.replace_with is not None:
+                edits.append(
+                    {
+                        "range": (
+                            action.edit_range.to_json()
+                            if action.edit_range
+                            else diagnostic.range.to_json()
+                        ),
+                        "newText": action.replace_with,
+                    }
+                )
 
             for edit in action.additional_edits or []:
                 edits.append(edit.to_json())

@@ -15,6 +15,8 @@ from .expression import (
     Expression,
     LiteralExpr,
     LookupOp,
+    OpExpr,
+    Parenthesized,
     TranslatedExpr,
     TryExpr,
 )

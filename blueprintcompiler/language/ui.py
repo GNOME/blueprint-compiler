@@ -88,6 +88,10 @@ class UI(AstNode):
             return None
 
     @property
+    def blpx_enabled(self) -> bool:
+        return self.tokens["blpx"]
+
+    @property
     def contents(self) -> list[Object | Template | Menu]:
         return [
             child
