@@ -1,9 +1,9 @@
 using Gtk 4.0;
 
 Label {
-  label: bind $closure(_("Hello, world!")) as <string>;
+  label: bind $closure(_("Hello, world!"));
 }
 
 Label {
-  label: bind $closure(C_("translation context", "Hello")) as <string>;
+  label: bind $closure(C_("translation context", "Hello"));
 }
