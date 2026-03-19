@@ -281,6 +281,19 @@ class CastExpr(InfixExpr):
     def ref_docs(self):
         return get_docs_section("Syntax CastExpression")
 
+    @autofix
+    def autofix_unnecessary_cast(self):
+        if self.type is None:
+            return
+
+        expected_type = self.parent.context[ValueTypeCtx].value_type
+        if (
+            expected_type is not None
+            and self.type.assignable_to(expected_type)
+            and expected_type.assignable_to(self.type)
+        ):
+            return TextEdit(self.range.with_preceding_whitespace, "")
+
 
 class ClosureArg(AstNode):
     grammar = Expression
