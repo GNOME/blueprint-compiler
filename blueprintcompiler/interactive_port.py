@@ -128,16 +128,14 @@ def step1():
         VERSION = "main" if VERSION == "uninstalled" else "v" + VERSION
 
         with open("subprojects/blueprint-compiler.wrap", "w") as wrap:
-            wrap.write(
-                f"""[wrap-git]
+            wrap.write(f"""[wrap-git]
 directory = blueprint-compiler
 url = https://gitlab.gnome.org/GNOME/blueprint-compiler.git
 revision = {VERSION}
 depth = 1
 
 [provide]
-program_names = blueprint-compiler"""
-            )
+program_names = blueprint-compiler""")
 
     print()
 
@@ -243,8 +241,7 @@ def step4(ported):
                     print(
                         f"{Colors.BOLD}Paste the following into {Colors.UNDERLINE}{meson_file}{Colors.NO_UNDERLINE}:{Colors.CLEAR}"
                     )
-                    print(
-                        f"""
+                    print(f"""
 blueprints = custom_target('blueprints',
   input: files(
     {file_list}
@@ -252,8 +249,7 @@ blueprints = custom_target('blueprints',
   output: '.',
   command: [find_program('blueprint-compiler'), 'batch-compile', '--minify', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
 )
-"""
-                    )
+""")
                     enter()
 
                     print(

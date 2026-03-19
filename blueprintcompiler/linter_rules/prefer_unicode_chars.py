@@ -74,7 +74,7 @@ class PreferUnicodeChars(LinterRule):
                 self.check_property(property)
 
     def check_property(self, property):
-        (string, range) = self.get_string_value(property)
+        string, range = self.get_string_value(property)
         if string is None:
             return
 

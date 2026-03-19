@@ -12,7 +12,7 @@ class AvoidAllCaps(LinterRule):
     def check(self, type, child, stack):
         for property in child.content.children[Property]:
             if annotations.is_property_user_facing_string(property.gir_property):
-                (string, range) = self.get_string_value(property)
+                string, range = self.get_string_value(property)
                 # Show linter error for upper case and multi letter strings
                 if string and string.isupper() and len(string) > 1:
                     self.problems.append(
