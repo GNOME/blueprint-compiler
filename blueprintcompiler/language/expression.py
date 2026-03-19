@@ -508,7 +508,7 @@ def decompile_try(ctx: DecompileCtx, gir: gir.GirContext):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    ctx.print("try(")
+    ctx.print("try{")
 
     assert ctx.current_node is not None
     for i, node in enumerate(ctx.current_node.children):
@@ -518,4 +518,4 @@ def decompile_try(ctx: DecompileCtx, gir: gir.GirContext):
         if i < len(ctx.current_node.children) - 1:
             ctx.print(", ")
 
-    ctx.end_block_with(")")
+    ctx.end_block_with("}")
