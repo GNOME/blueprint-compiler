@@ -178,7 +178,7 @@ class AstNode:
                     self.attrs_by_type[attr_type].append((name, item))
         return self.attrs_by_type[attr_type]
 
-    def autofix(self) -> T.Generator[TextEdit]:
+    def autofix(self) -> T.Generator[TextEdit, None, None]:
         fixes = [getattr(self, name) for name, attr in self._attrs_by_type(Autofix)]
         yield from [f for f in fixes if f is not None]
 
