@@ -7,6 +7,11 @@ datadir = join_paths(prefix, get_option('datadir'))
 
 py = import('python').find_installation('python3')
 
+required_python_version = '>=3.9'
+if not py.language_version().version_compare(required_python_version)
+  error('Python @0@ is required, but found @1@'.format(required_python_version, py.language_version()))
+endif
+
 subdir('docs')
 
 configure_file(
