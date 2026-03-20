@@ -1,3 +1,19 @@
+# v0.20.4
+
+## Fixed
+- Fixed a crash in Python 3.9.
+
+# v0.20.3
+
+## Fixed
+- Fixed GtkTryExpression tests that were failing on GTK 4.22.
+- The decompiler no longer emits some unnecessary casts.
+
+# v0.20.2
+
+## Fixed
+- Fixed a test failure due to an updated version of black.
+
 # v0.20.1
 
 ## Fixed
