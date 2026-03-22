@@ -473,21 +473,24 @@ def decompile_constant(
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
+    gtype = ctx.type_by_cname(type) if type else None
+
     if truthy(initial) and type is not None:
-        t = ctx.type_by_cname(type)
-        if t is None:
+        if gtype is None:
             ctx.print(f"null as <${type}>")
         else:
-            ctx.print(f"null as <{full_name(t)}>")
+            ctx.print(f"null as <{full_name(gtype)}>")
     elif type is None:
         if cdata == ctx.template_class:
             ctx.print("template")
         else:
             ctx.print(cdata)
+    elif gtype is None:
+        ctx.print(f"{cdata} as <${type}>")
     else:
         _, string = ctx.decompile_value(
             cdata,
-            ctx.type_by_cname(type),
+            gtype,
             (translatable, context, comment),
         )
         ctx.print(string)

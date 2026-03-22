@@ -288,7 +288,11 @@ class IdentLiteral(AstNode):
                 actions=[CodeAction("Use 'template'", "template")],
             )
 
-        elif expected_type is not None or self.context[ValueTypeCtx].must_infer_type:
+        elif (
+            expected_type is not None
+            and not isinstance(expected_type, ExternType)
+            or self.context[ValueTypeCtx].must_infer_type
+        ):
             object = self.context[ScopeCtx].objects.get(self.ident)
             if object is None:
                 if self.ident == "null":

@@ -208,6 +208,7 @@ class TestSamples(unittest.TestCase):
                 "expr_try",
                 "expr_value_closure",
                 "extern_class_with_namespace",
+                "extern_enum",
                 "issue_221",
                 "parseable",
                 "signal",
