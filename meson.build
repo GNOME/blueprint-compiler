@@ -26,6 +26,7 @@ config = configuration_data({
   'VERSION': meson.project_version(),
   'LIBDIR': get_option('prefix') / get_option('libdir'),
   'DATADIR': get_option('prefix') / get_option('datadir'),
+  'PYTHON': py.full_path(),
 })
 
 if meson.is_subproject()
@@ -35,11 +36,12 @@ else
 endif
 
 blueprint_compiler = configure_file(
-  input: 'blueprint-compiler.py',
+  input: 'blueprint-compiler-installed.py',
   output: 'blueprint-compiler',
   configuration: config,
   install: not meson.is_subproject(),
   install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x',
 )
 
 if meson.is_subproject()

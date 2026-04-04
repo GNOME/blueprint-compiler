@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!@PYTHON@
 
 # blueprint-compiler.py
 #
@@ -19,9 +19,27 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-# This blueprint-compiler script can be used to run the compiler from the source tree.
+# This is the blueprint-compiler script that meson configures and installs. It contains extra code to set up certain
+# paths that are configured at build time.
+
+import sys
+
+# These variables should be set by meson. If they aren't, we're running
+# uninstalled, and we might have to guess some values.
+version = "@VERSION@"
+module_path = r"@MODULE_PATH@"
+libdir = r"@LIBDIR@"
+datadir = r"@DATADIR@"
+
+if version == "\u0040VERSION@":
+    version = "uninstalled"
+    libdir = None
+    datadir = None
+else:
+    # If Meson set the configuration values, insert the module path it set
+    sys.path.insert(0, module_path)
 
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main("uninstalled", None, None)
+    main.main(version, libdir, datadir)
