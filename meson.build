@@ -14,30 +14,43 @@ endif
 
 subdir('docs')
 
-
-config = configuration_data({
-  'VERSION': meson.project_version(),
-  'LIBDIR': get_option('prefix') / get_option('libdir'),
-  'DATADIR': get_option('prefix') / get_option('datadir'),
-  'PYTHON': py.full_path(),
-})
-
-if meson.is_subproject()
-  config.set('MODULE_PATH', meson.current_source_dir())
+if get_option('python_wheel')
+  config = configuration_data({
+    'VERSION': meson.project_version(),
+    'DATADIR': '',
+  })
 else
-  config.set('MODULE_PATH', py.get_install_dir())
+  config = configuration_data({
+    'VERSION': meson.project_version(),
+    'DATADIR': get_option('prefix') / get_option('datadir'),
+  })
 endif
 
-blueprint_compiler = configure_file(
-  input: 'data/blueprint-compiler-installed.py.in',
-  output: 'blueprint-compiler',
+configure_file(
+  input: 'data/config.py.in',
+  output: 'config.py',
   configuration: config,
   install: not meson.is_subproject(),
-  install_dir: get_option('bindir'),
-  install_mode: 'rwxr-xr-x',
+  install_dir: py.get_install_dir() / 'blueprintcompiler',
 )
 
+if not get_option('python_wheel')
+  # In wheel builds, the wrapper script is specified in pyproject.toml and doesn't need to be generated here.
+  blueprint_compiler = configure_file(
+    input: 'data/blueprint-compiler.py.in',
+    output: 'blueprint-compiler',
+    configuration: { 'PYTHON': py.full_path() },
+    install: not meson.is_subproject(),
+    install_dir: get_option('bindir'),
+    install_mode: 'rwxr-xr-x',
+  )
+endif
+
 if meson.is_subproject()
+  if get_option('python_wheel')
+    error('Building a wheel from a subproject is not supported')
+  endif
+
   meson.override_find_program('blueprint-compiler', blueprint_compiler)
 else
   if get_option('python_wheel')
@@ -56,7 +69,13 @@ else
   install_subdir(
     'blueprintcompiler',
     install_dir: py.get_install_dir(),
-    exclude_directories: ['__pycache__'],
+    exclude_directories: [
+      '__pycache__',
+      'data/__pycache__',
+      'language/__pycache__',
+      'linter_rules/__pycache__',
+      'outputs/__pycache__'
+    ],
   )
 endif
 

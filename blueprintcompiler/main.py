@@ -39,7 +39,6 @@ from .outputs import XmlOutput
 from .utils import Colors
 
 VERSION = "uninstalled"
-LIBDIR = None
 DATADIR = None
 
 
@@ -482,7 +481,19 @@ class BlueprintApp:
         return formatter.emit(ast), warnings
 
 
-def main(version, libdir, datadir):
-    global VERSION, LIBDIR, DATADIR
-    VERSION, LIBDIR, DATADIR = version, libdir, datadir
+def main():
+    global VERSION, DATADIR
+
+    try:
+        from . import config
+
+        VERSION = config.VERSION
+        if config.DATADIR == "":
+            DATADIR = None
+        else:
+            DATADIR = config.DATADIR
+    except ImportError:
+        # running from source tree
+        pass
+
     BlueprintApp().main()

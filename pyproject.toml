@@ -8,10 +8,23 @@ setup = ['-Dpython_wheel=true']
 [project]
 name = 'blueprint-compiler'
 description = 'Markup compiler for GTK user interface definitions'
-version = '0.20.1'
+dynamic = ['version']
 readme = 'README.md'
 requires-python = '>=3.9'
 license = {file = 'COPYING'}
 authors = [
     {name = 'James Westman', email = 'james@jwestman.net'},
 ]
+dependencies = [
+    'PyGObject',
+]
+
+[project.scripts]
+blueprint-compiler = 'blueprintcompiler.main:main'
+
+[project.urls]
+Homepage = 'https://gitlab.gnome.org/GNOME/blueprint-compiler'
+Documentation = 'https://gnome.pages.gitlab.gnome.org/blueprint-compiler/'
+Repository = 'https://gitlab.gnome.org/GNOME/blueprint-compiler.git'
+Issues = 'https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues'
+Changelog = 'https://gitlab.gnome.org/GNOME/blueprint-compiler/-/blob/main/NEWS.md'

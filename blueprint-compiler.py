@@ -24,4 +24,4 @@
 from blueprintcompiler import main
 
 if __name__ == "__main__":
-    main.main("uninstalled", None, None)
+    main.main()
