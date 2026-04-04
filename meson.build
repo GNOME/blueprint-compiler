@@ -14,13 +14,6 @@ endif
 
 subdir('docs')
 
-configure_file(
-  input: 'blueprint-compiler.pc.in',
-  output: 'blueprint-compiler.pc',
-  configuration: { 'VERSION': meson.project_version() },
-  install: not meson.is_subproject(),
-  install_dir: join_paths(datadir, 'pkgconfig'),
-)
 
 config = configuration_data({
   'VERSION': meson.project_version(),
@@ -36,7 +29,7 @@ else
 endif
 
 blueprint_compiler = configure_file(
-  input: 'blueprint-compiler-installed.py',
+  input: 'data/blueprint-compiler-installed.py.in',
   output: 'blueprint-compiler',
   configuration: config,
   install: not meson.is_subproject(),
@@ -47,6 +40,19 @@ blueprint_compiler = configure_file(
 if meson.is_subproject()
   meson.override_find_program('blueprint-compiler', blueprint_compiler)
 else
+  if get_option('python_wheel')
+    pkgconfig_path = 'share' / 'pkgconfig'
+  else
+    pkgconfig_path = 'pkgconfig'
+  endif
+
+  blueprint_compiler_pc = configure_file(
+    input: 'data/blueprint-compiler.pc.in',
+    output: 'blueprint-compiler.pc',
+    configuration: { 'VERSION': meson.project_version() },
+    install_dir: get_option('datadir') / pkgconfig_path,
+  )
+
   install_subdir(
     'blueprintcompiler',
     install_dir: py.get_install_dir(),

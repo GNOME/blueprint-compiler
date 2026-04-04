@@ -27,6 +27,12 @@ build:
     - cd ..
     - meson dist -C _build --include-subprojects --no-tests
     - cp -r "_build/meson-dist/" "${CI_PROJECT_DIR}/public-dist/"
+    # Make sure uninstalling works
+    - ninja -C _build uninstall
+    # Make sure the python wheel build works
+    - pip install .
+    - blueprint-compiler compile tests/samples/using.blp
+    - pip uninstall -y blueprint-compiler
   coverage: '/TOTAL.*\s([.\d]+)%/'
   artifacts:
     paths:
