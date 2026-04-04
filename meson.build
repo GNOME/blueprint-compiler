@@ -47,7 +47,11 @@ blueprint_compiler = configure_file(
 if meson.is_subproject()
   meson.override_find_program('blueprint-compiler', blueprint_compiler)
 else
-  install_subdir('blueprintcompiler', install_dir: py.get_install_dir())
+  install_subdir(
+    'blueprintcompiler',
+    install_dir: py.get_install_dir(),
+    exclude_directories: ['__pycache__'],
+  )
 endif
 
 subdir('tests')
