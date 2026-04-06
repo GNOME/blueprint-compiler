@@ -235,10 +235,12 @@ def report_bug():  # pragma: no cover
     print(traceback.format_exc())
     print(f"Arguments: {sys.argv}")
     print(f"Version: {main.VERSION}\n")
-    print(f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
+    print(
+        f"""{Colors.BOLD}{Colors.RED}***** COMPILER BUG *****
 The blueprint-compiler program has crashed. Please report the above stacktrace,
 along with the input file(s) if possible, on GitLab:
 {Colors.BOLD}{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues/new?issue
-{Colors.CLEAR}""")
+{Colors.CLEAR}"""
+    )
 
     sys.exit(1)
