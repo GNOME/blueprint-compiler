@@ -113,6 +113,28 @@ class ArrayType(GirType):
         return self._inner.full_name + "[]"
 
 
+class GListType(GirType):
+    """GList values don't have any blueprint syntax, but they can be passed between functions in expressions."""
+
+    def __init__(self, inner: GirType) -> None:
+        self._inner = inner
+
+    def assignable_to(self, other: GirType) -> bool:
+        return isinstance(other, GListType) and self._inner.assignable_to(other._inner)
+
+    @property
+    def inner(self) -> GirType:
+        return self._inner
+
+    @property
+    def name(self) -> str:
+        return "GList<" + self._inner.name + ">"
+
+    @property
+    def full_name(self) -> str:
+        return "GList<" + self._inner.full_name + ">"
+
+
 class BasicType(GirType):
     name: str = "unknown type"
 

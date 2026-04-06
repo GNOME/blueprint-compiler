@@ -976,6 +976,9 @@ class Repository(GirNode):
         elif type_tag == GIRepository.TypeTag.ARRAY:
             item_type = type_info_get_param_type(typeinfo, 0)
             return ArrayType(self._resolve_type_info(item_type))
+        elif type_tag == GIRepository.TypeTag.GLIST:
+            item_type = type_info_get_param_type(typeinfo, 0)
+            return GListType(self._resolve_type_info(item_type))
         else:
             raise CompilerBugError("Unknown type tag", type_tag)
 
