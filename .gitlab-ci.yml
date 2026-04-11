@@ -9,7 +9,9 @@ build:
   image: registry.gitlab.gnome.org/gnome/blueprint-compiler
   stage: build
   script:
+    - black --version
     - black --check --diff ./ tests
+    - isort --version
     - isort --check --diff --profile black ./ tests
     - mypy --python-version=3.9 blueprintcompiler/
     - G_DEBUG=fatal-warnings xvfb-run coverage run -m unittest
