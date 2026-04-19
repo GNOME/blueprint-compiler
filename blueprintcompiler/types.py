@@ -250,48 +250,6 @@ class IntegerType(NumericType):
         )
 
 
-class Int8Type(IntegerType):
-    name = "int8"
-    glib_type_name: str = "gint8"
-    signed = True
-    size = 8
-
-
-class UInt8Type(IntegerType):
-    name = "uint8"
-    glib_type_name: str = "guint8"
-    signed = False
-    size = 8
-
-
-class Int16Type(IntegerType):
-    name = "int16"
-    glib_type_name: str = "gint16"
-    signed = True
-    size = 16
-
-
-class UInt16Type(IntegerType):
-    name = "uint16"
-    glib_type_name: str = "guint16"
-    signed = False
-    size = 16
-
-
-class Int32Type(IntegerType):
-    name = "int32"
-    glib_type_name: str = "gint32"
-    signed = True
-    size = 32
-
-
-class UInt32Type(IntegerType):
-    name = "uint32"
-    glib_type_name: str = "guint32"
-    signed = False
-    size = 32
-
-
 class Int64Type(IntegerType):
     name = "int64"
     glib_type_name: str = "gint64"
@@ -384,18 +342,12 @@ BASIC_TYPES = {
     "double": FloatType,
     "float": FloatType,
     "int": IntType,
-    "int16": Int16Type,
-    "int32": Int32Type,
     "int64": Int64Type,
-    "int8": Int8Type,
     "long": LongType,
     "string": StringType,
     "type": TypeType,
     "uchar": UCharType,
     "uint": UIntType,
-    "uint16": UInt16Type,
-    "uint32": UInt32Type,
     "uint64": UInt64Type,
-    "uint8": UInt8Type,
     "ulong": ULongType,
 }
