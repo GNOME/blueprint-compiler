@@ -113,7 +113,9 @@ class TestSamples(unittest.TestCase):
 
         # Make sure the sample runs
         if not skip_run:
-            Gtk.Builder.new_from_string(actual, -1)
+            builder = Gtk.Builder()
+            builder.set_scope(builder_scope)
+            builder.add_from_string(expected)
 
     def assert_sample_error(self, name):
         print(f'assert_sample_error("{name}")')
@@ -199,7 +201,6 @@ class TestSamples(unittest.TestCase):
 
             SKIP_RUN = [
                 "adw_breakpoint_template",
-                "blpx_operators",
                 "expr_closure",
                 "expr_closure_inferred_type",
                 "expr_closure_args",
@@ -235,9 +236,9 @@ class TestSamples(unittest.TestCase):
                 "comments",
             ]
 
-            if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
+            if sample in REQUIRE_ADW_1_4 and not self.have_adw_1_4:  # pragma: no cover
                 continue
-            if sample in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
+            if sample in REQUIRE_ADW_1_5 and not self.have_adw_1_5:  # pragma: no cover
                 continue
             if sample in REQUIRE_GTK_22 and not self.have_gtk_22:
                 continue
@@ -256,10 +257,59 @@ class TestSamples(unittest.TestCase):
         ]
         sample_errors.sort()
         for sample_error in sample_errors:
-            if sample_error in REQUIRE_ADW_1_4 and not self.have_adw_1_4:
+            if (
+                sample_error in REQUIRE_ADW_1_4 and not self.have_adw_1_4
+            ):  # pragma: no cover
                 continue
-            if sample_error in REQUIRE_ADW_1_5 and not self.have_adw_1_5:
+            if (
+                sample_error in REQUIRE_ADW_1_5 and not self.have_adw_1_5
+            ):  # pragma: no cover
                 continue
 
             with self.subTest(sample_error):
                 self.assert_sample_error(sample_error)
+
+
+class BuilderScope(Gtk.BuilderCScope):
+    __gtype_name__ = "BlpBuilderScope"
+
+    def __init__(self):
+        super().__init__()
+
+        for type in ("string", "float", "double", "int64", "uint64", "int", "uint"):
+            setattr(self, f"blpx_eq_{type}", lambda this, a, b: a == b)
+            setattr(self, f"blpx_ne_{type}", lambda this, a, b: a != b)
+            setattr(self, f"blpx_lt_{type}", lambda this, a, b: a < b)
+            setattr(self, f"blpx_le_{type}", lambda this, a, b: a <= b)
+            setattr(self, f"blpx_gt_{type}", lambda this, a, b: a > b)
+            setattr(self, f"blpx_ge_{type}", lambda this, a, b: a >= b)
+            setattr(self, f"blpx_add_{type}", lambda this, a, b: a + b)
+            if type != "string":
+                setattr(self, f"blpx_sub_{type}", lambda this, a, b: a - b)
+                setattr(self, f"blpx_mul_{type}", lambda this, a, b: a * b)
+                setattr(self, f"blpx_div_{type}", lambda this, a, b: a / b)
+                setattr(self, f"blpx_mod_{type}", lambda this, a, b: a % b)
+
+    def blpx_or(self, this, a, b):
+        return a or b
+
+    def blpx_and(self, this, a, b):
+        return a and b
+
+    def blpx_if(self, this, condition, then_branch, else_branch):
+        return then_branch if condition else else_branch
+
+    def blpx_not(self, this, value):
+        return not value
+
+    def do_create_closure(
+        self,
+        builder: Gtk.Builder,
+        function_name: str,
+        flags: Gtk.BuilderClosureFlags,
+        object,
+    ):
+        return getattr(self, function_name, None)
+
+
+builder_scope = BuilderScope()

@@ -18,9 +18,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .errors import MultipleErrors, CompileError
+from .errors import CompileError, MultipleErrors
 from .language import UI
-
 from .parse_tree import AnyOf, ParseContext
 from .tokenizer import SourceCode
 

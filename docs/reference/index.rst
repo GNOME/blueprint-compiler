@@ -18,6 +18,7 @@ Wherever commas are used as delimiters in repetition (expressed in this referenc
    templates
    values
    expressions
+   advanced_expressions
    menus
    extensions
    diagnostics
