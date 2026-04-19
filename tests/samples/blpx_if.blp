@@ -1,0 +1,11 @@
+using Gtk 4.0;
+
+Stack {
+  visible-child: bind if true { label1 } elif false { label2 } else { label3 };
+
+  Label label1 {}
+
+  Label label2 {}
+
+  Label label3 {}
+}

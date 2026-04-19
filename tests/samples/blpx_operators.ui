@@ -8,10 +8,18 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <requires lib="gtk" version="4.0"/>
   <object class="GtkLabel" id="label">
     <binding name="visible">
-      <closure function="blpx_not" type="gboolean">
-        <closure function="blpx_or" type="gboolean">
-          <constant type="gboolean">true</constant>
-          <constant type="gboolean">false</constant>
+      <closure function="blpx_and" type="gboolean">
+        <closure function="blpx_not" type="gboolean">
+          <closure function="blpx_or" type="gboolean">
+            <constant type="gboolean">true</constant>
+            <constant type="gboolean">false</constant>
+          </closure>
+        </closure>
+        <closure function="blpx_gt_int" type="gboolean">
+          <closure function="blpx_neg_int" type="gint">
+            <constant type="gint">1</constant>
+          </closure>
+          <constant type="gint">0</constant>
         </closure>
       </closure>
     </binding>

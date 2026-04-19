@@ -20,7 +20,9 @@
 
 from functools import cached_property
 
-from ..decompiler import decompile_element, full_name
+from blueprintcompiler.types import Int64Type, LongType, UInt64Type, UIntType, ULongType
+
+from ..decompiler import Element, decompile_element, full_name
 from ..utils import TextEdit
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
@@ -43,7 +45,7 @@ class ExprBase(AstNode):
         raise NotImplementedError()
 
     @property
-    def containing_expression(self) -> T.Optional["InfixExpr"]:
+    def containing_expression(self) -> T.Optional["ExprBase"]:
         if isinstance(self.parent, Expression):
             children = list(self.parent.children)
             if children.index(self) + 1 < len(children):
@@ -52,7 +54,7 @@ class ExprBase(AstNode):
                 return child
             else:
                 return self.parent.containing_expression
-        elif isinstance(self.parent, InfixExpr):
+        elif isinstance(self.parent, ExprBase):
             return self.parent
         else:
             return None
@@ -121,7 +123,7 @@ class Expression(ExprBase):
         if self.is_stub:
             return []
 
-        expected_type = self.parent.context[ValueTypeCtx].value_type
+        expected_type = self.context[ValueTypeCtx].value_type
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
                 if self.type.castable_to(expected_type):
@@ -468,7 +470,7 @@ class TryExpr(ExprBase):
             )
 
 
-class OpExpr(InfixExpr):
+class OpExpr(ExprBase):
     @property
     def closure_name(self) -> str:
         raise NotImplementedError()
@@ -491,14 +493,23 @@ class OpExpr(InfixExpr):
             parent = parent.parent
 
         if not self.root.blpx_enabled:
+            start = (
+                self.lhs.range.start
+                if isinstance(self, InfixExpr) and self.lhs is not None
+                else self.range.start
+            )
             raise CompileError(
                 f"Enable --blpx to use advanced expression features",
                 range=Range(
-                    self.lhs.range.start if self.lhs is not None else self.range.start,
+                    start,
                     self.range.end,
                     self.range.original_text,
                 ),
             )
+
+    @docs()
+    def ref_docs(self):
+        return get_docs_section("Syntax AdvancedExpression")
 
 
 class Parenthesized(ExprBase):
@@ -537,6 +548,10 @@ class Parenthesized(ExprBase):
             and right.precedence < self.child.last.precedence
         ):
             redundant = True
+        elif not isinstance(self.parent, ExprBase):
+            redundant = True
+        elif self.containing_expression is None:
+            redundant = True
 
         if redundant:
             return [
@@ -559,8 +574,12 @@ class UnaryOpExpr(OpExpr):
     def args(self) -> T.List[ExprBase]:
         return self.children
 
+    @property
+    def inner(self) -> ExprBase:
+        return self.children[0]
 
-class BinaryOpExpr(OpExpr):
+
+class BinaryOpExpr(OpExpr, InfixExpr):
     @property
     def args(self) -> T.List[ExprBase]:
         return [self.lhs, *self.children]
@@ -587,14 +606,14 @@ class BinaryOpExpr(OpExpr):
                     return DoubleType()
             elif lhs_type.signed or rhs_type.signed:
                 if max(lhs_type.size, rhs_type.size) <= 32:
-                    return IntType(32, signed=True)
+                    return IntType()
                 else:
-                    return IntType(64, signed=True)
+                    return Int64Type()
             else:
                 if max(lhs_type.size, rhs_type.size) <= 32:
-                    return IntType(32, signed=False)
+                    return UIntType()
                 else:
-                    return IntType(64, signed=False)
+                    return UInt64Type()
 
         return None
 
@@ -638,8 +657,84 @@ class BinaryOpExpr(OpExpr):
             )
 
 
+class TernaryCondition(AstNode):
+    grammar = Expression
+
+    @property
+    def expression(self) -> Expression:
+        return self.children[Expression][0]
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(BoolType())
+
+
+ternary_expr = AnyOf()
+
+
+class TernaryExpr(OpExpr):
+    grammar = [
+        TernaryCondition,
+        "{",
+        Expression,
+        "}",
+        AnyOf(["elif", ternary_expr], ["else", "{", Expression, "}"]),
+    ]
+    closure_name = "blpx_if"
+
+    @context(ValueTypeCtx)
+    def value_type(self) -> ValueTypeCtx:
+        return ValueTypeCtx(None, must_infer_type=True, allow_null=True)
+
+    @cached_property
+    def type(self):
+        types = [self.true_branch.type, self.false_branch.type]
+        if None in types:
+            return None
+        return GirType.common_ancestor(T.cast(T.List[GirType], types))
+
+    @property
+    def condition(self) -> TernaryCondition:
+        return self.children[TernaryCondition][0].expression
+
+    @property
+    def true_branch(self) -> ExprBase:
+        return self.children[ExprBase][0]
+
+    @property
+    def false_branch(self) -> ExprBase:
+        return self.children[ExprBase][1]
+
+    @property
+    def args(self):
+        return [self.condition, self.true_branch, self.false_branch]
+
+    @validate()
+    def expressions_have_same_type(self):
+        types = [self.true_branch.type, self.false_branch.type]
+        if None in types:
+            return None
+
+        t = GirType.common_ancestor(T.cast(T.List[GirType], types))
+
+        if t is None:
+            raise CompileError(
+                "The true and false branches of a ternary expression must have compatible types"
+            )
+
+
+ternary_expr.children = [to_parse_node(TernaryExpr)]
+
+
 lvl8 = precedence(
-    AnyOf(TranslatedExpr, TryExpr, ClosureExpr, LiteralExpr, Parenthesized)
+    AnyOf(
+        ["if", TernaryExpr],
+        TranslatedExpr,
+        TryExpr,
+        ClosureExpr,
+        LiteralExpr,
+        Parenthesized,
+    )
 )
 
 
@@ -684,7 +779,7 @@ class MulExpr(BinaryOpExpr):
             op = "div"
         elif self.tokens["%"]:
             op = "mod"
-        return f"blpx_{op}_{self.type.glib_type_name}"
+        return f"blpx_{op}_{self.type.name}"
 
     @validate()
     def numeric_operands(self):
@@ -711,7 +806,7 @@ class AddExpr(BinaryOpExpr):
             op = "add"
         elif self.tokens["-"]:
             op = "sub"
-        return f"blpx_{op}_{self.type.glib_type_name}"
+        return f"blpx_{op}_{self.type.name}"
 
     @property
     def is_string_concatenation(self) -> bool:
@@ -739,11 +834,25 @@ class AddExpr(BinaryOpExpr):
 class NegateExpr(UnaryOpExpr):
     grammar = [Keyword("-"), lvl8]
     precedence = 7
-    type = NumericType()
 
     @property
     def closure_name(self) -> str:
-        return f"blpx_neg_{self.type.glib_type_name}"
+        return f"blpx_neg_{self.type.name}"
+
+    @property
+    def type(self):
+        if isinstance(self.inner.type, (Int64Type, UInt64Type)):
+            return Int64Type()
+        elif isinstance(self.inner.type, (IntType, UIntType)):
+            return IntType()
+        elif isinstance(self.inner.type, (ULongType, LongType)):
+            return LongType()
+        elif isinstance(self.inner.type, FloatType):
+            return FloatType()
+        elif isinstance(self.inner.type, DoubleType):
+            return DoubleType()
+        else:
+            return None
 
     @validate()
     def numeric_operand(self):
@@ -788,7 +897,7 @@ class CompareExpr(BinaryOpExpr):
             ">=": "ge",
         }[self.tokens["op"]]
 
-        return f"blpx_{op}_{self.lhs.type.glib_type_name}"
+        return f"blpx_{op}_{self.lhs.type.name}"
 
 
 lvl3 = precedence([lvl4, ZeroOrMore(CompareExpr)])
@@ -925,12 +1034,45 @@ OPERATORS = {
 }
 
 
+def decompile_if(ctx: DecompileCtx, gir: gir.GirContext, element: Element):
+    assert len(element.children) == 3
+
+    decompile_element(ctx, gir, element.children[0])
+    ctx.print("{")
+    decompile_element(ctx, gir, element.children[1])
+    ctx.print("}")
+
+    if (
+        element.children[2].tag == "closure"
+        and element.children[2].attrs.get("function") == "blpx_if"
+    ):
+        ctx.print("elif ")
+        decompile_if(ctx, gir, element.children[2])
+    else:
+        ctx.print("else {")
+        decompile_element(ctx, gir, element.children[2])
+
+    ctx.end_block_with("}")
+
+
 @decompiler("closure", skip_children=True)
 def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, type: str):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    op = OPERATORS.get(function)
+    if function == "blpx_if":
+        assert ctx.current_node is not None
+        ctx.print("if ")
+        decompile_if(ctx, gir, ctx.current_node)
+        return
+
+    for op in OPERATORS:
+        if function == op or function.startswith(op + "_"):
+            op = OPERATORS[op]
+            break
+    else:
+        op = None
+
     if op is not None:
         assert ctx.current_node is not None
         if op == "!" or (op == "-" and len(ctx.current_node.children) == 1):

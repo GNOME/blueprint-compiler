@@ -31,12 +31,23 @@ CLOSING_TOKENS = ("}", "]")
 
 NEWLINE_AFTER = tuple(";") + OPENING_TOKENS + CLOSING_TOKENS
 
-NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", ">", "]", "=")
-NO_WHITESPACE_AFTER = ("C_", "_", "(", ".", "$", "<", "::", "[", "=")
+NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", "]", "=")
+NO_WHITESPACE_AFTER = ("C_", "_", "(", ".", "$", "::", "[", "=", "!")
+
+OPERATORS = ("+", "-", "*", "/", "%", "&&", "||", ">", "<", "=")
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
-WHITESPACE_AFTER = (":", ",", ">", ")", "|", "=>", "{")
-WHITESPACE_BEFORE = ("{", "|", "}")
+WHITESPACE_AFTER = (
+    ":",
+    ",",
+    ">",
+    ")",
+    "|",
+    "=>",
+    "{",
+    *OPERATORS,
+)
+WHITESPACE_BEFORE = ("{", "|", "}", "(", *OPERATORS)
 
 
 class LineType(Enum):
@@ -52,6 +63,7 @@ def format(data, tab_size=2, insert_space=True):
     tokens = tokenizer.tokenize(data)
     end_str = ""
     last_not_whitespace = tokens[0]
+    last_was_subtraction = False
     current_line = ""
     prev_line_type = None
     is_child_type = False
@@ -60,6 +72,7 @@ def format(data, tab_size=2, insert_space=True):
     watch_parentheses = False
     parentheses_balance = 0
     bracket_tracker = [None]
+    type_balance = 0
     last_whitespace_contains_newline = False
     previous_indent_levels = 0
     max_line_length = 120
@@ -208,38 +221,54 @@ def format(data, tab_size=2, insert_space=True):
             last_whitespace_contains_newline = "\n" in str_item
             continue
 
+        if str_item in ("[", "("):
+            bracket_tracker.append(str_item)
+        elif str_item in ("]", ")"):
+            bracket_tracker.pop()
+
         if str_item in ("bind", "expr") and str(last_not_whitespace) == ":":
             is_expression = True
         elif str_item == ";":
             is_expression = False
 
+        if str_item == "<" and str(last_not_whitespace) in ("typeof", "as"):
+            type_balance += 1
+
         whitespace_required = (
             str_item in WHITESPACE_BEFORE
             or str(last_not_whitespace) in WHITESPACE_AFTER
-            or (str_item == "(" and end_str.endswith(": bind"))
         )
         whitespace_blockers = (
             str_item in NO_WHITESPACE_BEFORE
             or str(last_not_whitespace) in NO_WHITESPACE_AFTER
-            or (str_item == "<" and str(last_not_whitespace) == "typeof")
+            or (
+                type_balance > 0
+                and not (str_item == "<" and str(last_not_whitespace) == "as")
+            )
+            or (str(last_not_whitespace) == "-" and not last_was_subtraction)
         )
 
         this_or_last_is_ident = TokenType.IDENT in (item.type, last_not_whitespace.type)
         current_line_is_empty = len(current_line) == 0
-        is_function = str_item == "(" and not re.match(
-            r"^([A-Za-z_\-])+(: bind)?$", current_line
+        is_function = (
+            str_item == "("
+            and last_not_whitespace.type == TokenType.IDENT
+            and re.match(r"^([A-Za-z_\-:])+\s*(:\s*(bind|expr)|=>) ", current_line)
         )
 
         any_blockers = whitespace_blockers or current_line_is_empty or is_function
         if (whitespace_required or this_or_last_is_ident) and not any_blockers:
             current_line += " "
 
+        if str_item == ">" and type_balance > 0:
+            type_balance -= 1
+
         current_line += str_item
 
-        if str_item in ("[", "("):
-            bracket_tracker.append(str_item)
-        elif str_item in ("]", ")"):
-            bracket_tracker.pop()
+        last_was_subtraction = str_item == "-" and (
+            last_not_whitespace.type == TokenType.NUMBER
+            or str(last_not_whitespace) == ")"
+        )
 
         needs_newline_treatment = (
             str_item in NEWLINE_AFTER or item.type == TokenType.COMMENT

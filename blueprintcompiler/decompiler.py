@@ -64,7 +64,7 @@ class DecompileCtx:
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
 
-    @property
+    @cached_property
     def result(self) -> str:
         imports = ""
 
