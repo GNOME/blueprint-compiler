@@ -271,7 +271,7 @@ class TestLinter(unittest.TestCase):
                 tokens = tokenize(code)
                 ast, errors, warnings = parse(tokens)
 
-                if errors:
+                if errors:  # pragma: no cover
                     raise errors
 
                 problems = lint(ast, rule_ids=[rule_id])

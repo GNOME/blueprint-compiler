@@ -52,7 +52,7 @@ class TestDeprecations(unittest.TestCase):
             raise AssertionError()
 
     def test_class_deprecation(self):
-        if Gtk.check_version(4, 10, 0) is not None:
+        if Gtk.check_version(4, 10, 0) is not None:  # pragma: no cover
             self.skipTest(f"Gtk.Dialog is not deprecated in GTK {self.gtkVersion}")
 
         blueprint = """
@@ -71,7 +71,7 @@ class TestDeprecations(unittest.TestCase):
             "gobject-introspection does not currently write property deprecations to the typelib. See <https://gitlab.gnome.org/GNOME/gobject-introspection/-/merge_requests/410>."
         )
 
-        if Gtk.check_version(4, 4, 0) is not None:
+        if Gtk.check_version(4, 4, 0) is not None:  # pragma: no cover
             self.skipTest(
                 f"Gtk.DropTarget:drop is not deprecated in GTK {self.gtkVersion}"
             )
@@ -92,7 +92,7 @@ class TestDeprecations(unittest.TestCase):
         self.assertDeprecation(blueprint, message)
 
     def test_signal_deprecation(self):
-        if Gtk.check_version(4, 10, 0) is not None:
+        if Gtk.check_version(4, 10, 0) is not None:  # pragma: no cover
             self.skipTest(
                 f"Gtk.Window::keys-changed is not deprecated in GTK {self.gtkVersion}"
             )
