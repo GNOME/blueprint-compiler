@@ -25,7 +25,7 @@ from pathlib import Path
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk
+from gi.repository import GObject, Gtk
 
 from blueprintcompiler import decompiler, parser, tokenizer, utils
 from blueprintcompiler.ast_utils import AstNode
@@ -58,13 +58,13 @@ class TestSamples(unittest.TestCase):
             from gi.repository import Adw
 
             Adw.init()
-            if Adw.MINOR_VERSION >= 4:
+            if Adw.MINOR_VERSION >= 4:  # pragma: no cover
                 self.have_adw_1_4 = True
-            if Adw.MINOR_VERSION >= 5:
+            if Adw.MINOR_VERSION >= 5:  # pragma: no cover
                 self.have_adw_1_5 = True
-            if Gtk.MINOR_VERSION >= 22:
+            if Gtk.MINOR_VERSION >= 22:  # pragma: no cover
                 self.have_gtk_22 = True
-        except:
+        except:  # pragma: no cover
             pass
 
     def assert_ast_doesnt_crash(self, text, tokens, ast: AstNode):
@@ -78,6 +78,28 @@ class TestSamples(unittest.TestCase):
         ast.get_document_symbols()
         lint(ast)
 
+    def compile(self, blueprint: str, blpx: bool):
+        tokens = tokenizer.tokenize(blueprint)
+        ast, errors, warnings = parser.parse(tokens, blpx=blpx)
+
+        # Ignore deprecation warnings because some of the things we're testing
+        # are deprecated
+        warnings = [
+            warning
+            for warning in warnings
+            if not isinstance(warning, DeprecatedWarning)
+        ]
+
+        if errors:
+            raise errors
+        if len(warnings):
+            raise MultipleErrors(warnings)
+
+        xml = XmlOutput()
+        actual = xml.emit(ast)
+
+        return tokens, ast, actual
+
     def assert_sample(self, name: str, skip_run=False):
         print(f'assert_sample("{name}", skip_run={skip_run})')
         try:
@@ -86,24 +108,7 @@ class TestSamples(unittest.TestCase):
             with open((Path(__file__).parent / f"samples/{name}.ui").resolve()) as f:
                 expected = f.read()
 
-            tokens = tokenizer.tokenize(blueprint)
-            ast, errors, warnings = parser.parse(tokens, blpx=name.startswith("blpx_"))
-
-            # Ignore deprecation warnings because some of the things we're testing
-            # are deprecated
-            warnings = [
-                warning
-                for warning in warnings
-                if not isinstance(warning, DeprecatedWarning)
-            ]
-
-            if errors:
-                raise errors
-            if len(warnings):
-                raise MultipleErrors(warnings)
-
-            xml = XmlOutput()
-            actual = xml.emit(ast)
+            tokens, ast, actual = self.compile(blueprint, blpx=name.startswith("blpx_"))
             self.assertEqual(actual.strip(), expected.strip())
 
             self.assert_ast_doesnt_crash(blueprint, tokens, ast)
@@ -269,6 +274,44 @@ class TestSamples(unittest.TestCase):
             with self.subTest(sample_error):
                 self.assert_sample_error(sample_error)
 
+    def test_expressions(self):
+        def assert_expr(self, expr: str):
+            blueprint = f"""
+                using Gtk 4.0;
+
+                $Assertion assertion {{
+                    value: bind {expr};
+                }}
+            """
+
+            try:
+                tokens, ast, actual = self.compile(blueprint, blpx=True)
+            except PrintableError as e:  # pragma: no cover
+                e.pretty_print(expr, blueprint)
+                raise AssertionError()
+
+            builder = Gtk.Builder()
+            builder.set_scope(builder_scope)
+            builder.add_from_string(actual)
+            assertion = builder.get_object("assertion")
+            self.assertTrue(assertion.props.value)
+
+        for expr in [
+            "1 + 2 == 3",
+            "1 + 2 * 3 == 7",
+            "(1 + 2) * 3 == 9",
+            "1.5 + 2.5 == 4.0",
+            '"foo" + "bar" == "foobar"',
+            "true && true",
+            "true || false",
+            "!false",
+            "if false { false } elif 3 > 1 { true } else { false }",
+            "1_000_000_000_000 > 999_999_999_999",
+            "-1_000_000_000_000 < -999_999_999_999",
+        ]:
+            with self.subTest(expr):
+                assert_expr(self, expr)
+
 
 class BuilderScope(Gtk.BuilderCScope):
     __gtype_name__ = "BlpBuilderScope"
@@ -276,19 +319,76 @@ class BuilderScope(Gtk.BuilderCScope):
     def __init__(self):
         super().__init__()
 
-        for type in ("string", "float", "double", "int64", "uint64", "int", "uint"):
-            setattr(self, f"blpx_eq_{type}", lambda this, a, b: a == b)
-            setattr(self, f"blpx_ne_{type}", lambda this, a, b: a != b)
-            setattr(self, f"blpx_lt_{type}", lambda this, a, b: a < b)
-            setattr(self, f"blpx_le_{type}", lambda this, a, b: a <= b)
-            setattr(self, f"blpx_gt_{type}", lambda this, a, b: a > b)
-            setattr(self, f"blpx_ge_{type}", lambda this, a, b: a >= b)
-            setattr(self, f"blpx_add_{type}", lambda this, a, b: a + b)
+        for type, py_type in (
+            ("string", str),
+            ("float", float),
+            ("double", float),
+            ("int64", int),
+            ("uint64", int),
+            ("int", int),
+            ("uint", int),
+        ):
+            setattr(
+                self,
+                f"blpx_eq_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) == py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_ne_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) != py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_lt_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) < py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_le_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) <= py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_gt_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) > py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_ge_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) >= py_type(b),
+            )
+            setattr(
+                self,
+                f"blpx_add_{type}",
+                lambda this, a, b, py_type=py_type: py_type(a) + py_type(b),
+            )
             if type != "string":
-                setattr(self, f"blpx_sub_{type}", lambda this, a, b: a - b)
-                setattr(self, f"blpx_mul_{type}", lambda this, a, b: a * b)
-                setattr(self, f"blpx_div_{type}", lambda this, a, b: a / b)
-                setattr(self, f"blpx_mod_{type}", lambda this, a, b: a % b)
+                setattr(
+                    self,
+                    f"blpx_neg_{type}",
+                    lambda this, a, py_type=py_type: -py_type(a),
+                )
+                setattr(
+                    self,
+                    f"blpx_sub_{type}",
+                    lambda this, a, b, py_type=py_type: py_type(a) - py_type(b),
+                )
+                setattr(
+                    self,
+                    f"blpx_mul_{type}",
+                    lambda this, a, b, py_type=py_type: py_type(a) * py_type(b),
+                )
+                setattr(
+                    self,
+                    f"blpx_div_{type}",
+                    lambda this, a, b, py_type=py_type: py_type(a) / py_type(b),
+                )
+                setattr(
+                    self,
+                    f"blpx_mod_{type}",
+                    lambda this, a, b, py_type=py_type: py_type(a) % py_type(b),
+                )
 
     def blpx_or(self, this, a, b):
         return a or b
@@ -313,3 +413,15 @@ class BuilderScope(Gtk.BuilderCScope):
 
 
 builder_scope = BuilderScope()
+
+
+class Assertion(GObject.Object):
+    __gtype_name__ = "Assertion"
+
+    @GObject.Property(type=bool, default=False)
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        self._value = val
