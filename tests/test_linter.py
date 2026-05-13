@@ -247,6 +247,18 @@ class TestLinter(unittest.TestCase):
                     "line": 25,
                     "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
                 },
+                {
+                    "line": 34,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
+                {
+                    "line": 42,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
+                {
+                    "line": 51,
+                    "message": "Gtk.Adjustment properties should be ordered as lower, upper, and then value.",
+                },
             ],
         )
         self.check_file(

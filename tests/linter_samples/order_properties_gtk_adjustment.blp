@@ -29,12 +29,96 @@ Scale three {
   };
 }
 
-// Good Example
 Scale four {
+    width-request: 130;
+    adjustment: Adjustment {
+    upper: 100;
+    lower: 0;
+  };
+}
+
+Scale five {
+    width-request: 130;
+    adjustment: Adjustment {
+    value: 50;
+    step-increment: 1;
+    upper: 100;
+  };
+}
+
+Scale six {
+    width-request: 130;
+    adjustment: Adjustment {
+    value: 0;
+    page-size: 0;
+    lower: 0;
+  };
+}
+
+// Good Examples
+Scale seven {
     width-request: 130;
     adjustment: Adjustment {
     lower: 0;
     upper: 100;
     value: 50;
   };
+}
+
+Scale eight {
+    width-request: 130;
+    adjustment: Adjustment {
+    lower: 0;
+    upper: 100;
+  };
+}
+
+Scale nine {
+    width-request: 130;
+    adjustment: Adjustment {
+    lower: 0;
+    upper: 100;
+    value: 50;
+    page-increment: 10;
+    step-increment: 1;
+  };
+}
+
+Adjustment ten {}
+
+Adjustment eleven {
+  lower: 0;
+}
+
+Adjustment twelve {
+  upper: 100;
+}
+
+Adjustment thirteen {
+  value: 0;
+}
+
+Adjustment fourteen {
+  lower: 0;
+  value: 0;
+}
+
+Adjustment fifteen {
+  upper: 100;
+  value: 50;
+}
+
+Adjustment sixteen {
+  page-increment: 10;
+  page-size: 0;
+  step-increment: 1;
+}
+
+Adjustment seventeen {
+  step-increment: 1;
+  lower: 0;
+  page-increment: 10;
+  upper: 100;
+  page-size: 0;
+  value: 50;
 }
