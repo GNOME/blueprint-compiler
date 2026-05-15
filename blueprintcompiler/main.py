@@ -21,6 +21,7 @@
 import argparse
 import difflib
 import os
+import pathlib
 import sys
 import typing as T
 
@@ -235,10 +236,26 @@ class BlueprintApp:
             for gir_path in opts.gir_path:
                 add_gir_search_path(gir_path)
 
+        try:
+            input_dir_path = pathlib.Path(opts.input_dir).resolve(strict=True)
+        except FileNotFoundError:
+            print(
+                f"{Colors.RED}{Colors.BOLD}error: input directory '{opts.input_dir}' does not exist{Colors.CLEAR}"
+            )
+            sys.exit(1)
+
         for file in opts.inputs:
+            file_path = pathlib.Path(file.name).resolve(strict=True)
+
+            if not file_path.is_relative_to(input_dir_path):
+                print(
+                    f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}"
+                )
+                sys.exit(1)
+
             path = os.path.join(
                 opts.output_dir,
-                os.path.relpath(os.path.splitext(file.name)[0] + ".ui", opts.input_dir),
+                str(file_path.relative_to(input_dir_path).with_suffix(".ui")),
             )
 
             if os.path.isfile(path):
@@ -249,16 +266,8 @@ class BlueprintApp:
                     continue
 
             data = file.read()
-            file_abs = os.path.abspath(file.name)
-            input_dir_abs = os.path.abspath(opts.input_dir)
 
             try:
-                if not os.path.commonpath([file_abs, input_dir_abs]):
-                    print(
-                        f"{Colors.RED}{Colors.BOLD}error: input file '{file.name}' is not in input directory '{opts.input_dir}'{Colors.CLEAR}"
-                    )
-                    sys.exit(1)
-
                 xml, warnings = self._compile(data, minify=opts.minify)
 
                 for warning in warnings:
