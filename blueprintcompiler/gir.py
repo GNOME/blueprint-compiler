@@ -149,6 +149,7 @@ def get_namespace(namespace: str, version: str) -> "Namespace":
                     hints=[
                         "search path: " + os.pathsep.join(gir_repo.get_search_path())
                     ],
+                    fatal=namespace == "Gtk",
                 )
             else:
                 raise e
