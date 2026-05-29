@@ -10,3 +10,8 @@ Adw.Clamp clamp {
 Adw.ClampScrollable clamp_scrollable {
   ListView {}
 }
+
+// Extern type should not trigger the lint
+Adw.Clamp clamp2 {
+  $MyScrollable {}
+}

@@ -1,4 +1,5 @@
 from ..errors import CompileWarning
+from ..gir import ExternType
 from ..lsp_utils import CodeAction
 from .utils import LinterRule
 
@@ -11,8 +12,12 @@ class ScrollableParent(LinterRule):
     category = "technical"
 
     def check(self, type, child, stack):
-        if child.gir_class is not None and child.gir_class.assignable_to(
-            child.root.gir.get_type("Scrollable", "Gtk")
+        if (
+            child.gir_class is not None
+            and not isinstance(child.gir_class, ExternType)
+            and child.gir_class.assignable_to(
+                child.root.gir.get_type("Scrollable", "Gtk")
+            )
         ):
             if len(stack) > 0:
                 parent_class_name = stack[-1].class_name
