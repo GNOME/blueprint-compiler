@@ -1,3 +1,26 @@
+# v0.22.0
+
+## Build/Packaging Changes
+- The meson build now checks the minimum Python version (currently 3.9)
+- The installed blueprint-compiler executable's shebang line now hardcodes the absolute path to the python executable that blueprint was built with
+- `__pycache__` files from the source directory are no longer installed
+
+## Added
+- Added support for extern enum types (Jamie Gravendeel)
+- Added support for GList in expressions
+
+## Fixed
+- Fixed a bug where casting from uint to bool didn't work
+- Fixed test failures when using GTK <4.22
+- Fixed decompilation for try expressions
+- Fixed the decompiler adding unnecessary casts
+- Fixed a crash when running with some older Python versions
+- Fixed batch-compile to not allow input files that aren't in the input directory
+- Fixed a crash when the GTK typelib fails to load.
+
+## Documentation
+- Fixed the TryExpression syntax example (Jamie Gravendeel)
+
 # v0.20.0
 
 ## Added
