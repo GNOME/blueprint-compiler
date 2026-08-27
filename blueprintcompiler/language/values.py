@@ -452,6 +452,20 @@ class ArrayValue(AstNode):
             raise CompileError("Only string arrays are supported")
 
     @validate()
+    def validate_no_translated_strings(self) -> None:
+        errors = [
+            CompileError(
+                "Arrays can't contain translated strings",
+                range=value.child.range,
+            )
+            for value in self.values
+            if isinstance(value.child, Translated)
+        ]
+
+        if len(errors) > 0:
+            raise MultipleErrors(errors)
+
+    @validate()
     def validate_invalid_newline(self) -> None:
         expected_type = self.gir_type
         if isinstance(expected_type, gir.ArrayType) and isinstance(
@@ -472,13 +486,6 @@ class ArrayValue(AstNode):
                                 range=quoted_literal.range,
                             )
                         )
-                elif isinstance(value.child, Translated):
-                    errors.append(
-                        CompileError(
-                            "Arrays can't contain translated strings",
-                            range=value.child.range,
-                        )
-                    )
 
             if len(errors) > 0:
                 raise MultipleErrors(errors)
