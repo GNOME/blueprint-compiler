@@ -452,43 +452,32 @@ class ArrayValue(AstNode):
             raise CompileError("Only string arrays are supported")
 
     @validate()
-    def validate_no_translated_strings(self) -> None:
-        errors = [
-            CompileError(
-                "Arrays can't contain translated strings",
-                range=value.child.range,
-            )
-            for value in self.values
-            if isinstance(value.child, Translated)
-        ]
+    def validate_invalid_newline(self) -> None:
+        errors = []
+        for value in self.values:
+            if isinstance(value.child, Literal) and isinstance(
+                value.child.value, QuotedLiteral
+            ):
+                quoted_literal = value.child.value
+                literal_value = quoted_literal.value
+                # literal_value can be None if there's an invalid escape sequence
+                if literal_value is not None and "\n" in literal_value:
+                    errors.append(
+                        CompileError(
+                            "String literals inside arrays can't contain newlines",
+                            range=quoted_literal.range,
+                        )
+                    )
+            elif isinstance(value.child, Translated):
+                errors.append(
+                    CompileError(
+                        "Arrays can't contain translated strings",
+                        range=value.child.range,
+                    )
+                )
 
         if len(errors) > 0:
             raise MultipleErrors(errors)
-
-    @validate()
-    def validate_invalid_newline(self) -> None:
-        expected_type = self.gir_type
-        if isinstance(expected_type, gir.ArrayType) and isinstance(
-            expected_type.inner, StringType
-        ):
-            errors = []
-            for value in self.values:
-                if isinstance(value.child, Literal) and isinstance(
-                    value.child.value, QuotedLiteral
-                ):
-                    quoted_literal = value.child.value
-                    literal_value = quoted_literal.value
-                    # literal_value can be None if there's an invalid escape sequence
-                    if literal_value is not None and "\n" in literal_value:
-                        errors.append(
-                            CompileError(
-                                "String literals inside arrays can't contain newlines",
-                                range=quoted_literal.range,
-                            )
-                        )
-
-            if len(errors) > 0:
-                raise MultipleErrors(errors)
 
     @property
     def values(self) -> T.List[Value]:
