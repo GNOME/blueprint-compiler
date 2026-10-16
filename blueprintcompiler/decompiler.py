@@ -276,7 +276,7 @@ def decompile_element(ctx: DecompileCtx, gir: GirContext | None, xml: Element) -
 
 def decompile_xml(
     xml: Element,
-) -> T.Tuple[T.Any, T.Optional[MultipleErrors], T.List[CompileError], str]:
+) -> tuple[Any, MultipleErrors | None, list[CompileError], str]:
     from . import parser
 
     ctx = DecompileCtx()
