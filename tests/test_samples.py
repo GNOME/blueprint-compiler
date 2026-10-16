@@ -39,7 +39,7 @@ from blueprintcompiler.errors import (
 from blueprintcompiler.linter import lint
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
-from blueprintcompiler.utils import CompilerOptions
+from blueprintcompiler.utils import CompilerOptions, ExpressionFormat
 
 
 class TestSamples(unittest.TestCase):
@@ -79,10 +79,10 @@ class TestSamples(unittest.TestCase):
         ast.get_document_symbols()
         lint(ast)
 
-    def compile(self, blueprint: str, blpx: bool):
+    def compile(self, blueprint: str, expressions: ExpressionFormat | None):
         tokens = tokenizer.tokenize(blueprint)
         ast, errors, warnings = parser.parse(
-            tokens, opts=CompilerOptions(expressions="blpx" if blpx else None)
+            tokens, opts=CompilerOptions(expressions=expressions)
         )
 
         # Ignore deprecation warnings because some of the things we're testing
@@ -104,14 +104,16 @@ class TestSamples(unittest.TestCase):
         return tokens, ast, actual
 
     def assert_sample(self, name: str, skip_run=False):
-        print(f'assert_sample("{name}", skip_run={skip_run})')
         try:
             with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
                 blueprint = f.read()
             with open((Path(__file__).parent / f"samples/{name}.ui").resolve()) as f:
                 expected = f.read()
 
-            tokens, ast, actual = self.compile(blueprint, blpx=name.startswith("blpx_"))
+            tokens, ast, actual = self.compile(
+                blueprint,
+                expressions=ExpressionFormat.BLPX if name.startswith("blpx_") else None,
+            )
             self.assertEqual(actual.strip(), expected.strip())
 
             self.assert_ast_doesnt_crash(blueprint, tokens, ast)
@@ -126,7 +128,6 @@ class TestSamples(unittest.TestCase):
             builder.add_from_string(expected)
 
     def assert_sample_error(self, name):
-        print(f'assert_sample_error("{name}")')
         try:
             with open(
                 (Path(__file__).parent / f"sample_errors/{name}.blp").resolve()
@@ -137,8 +138,15 @@ class TestSamples(unittest.TestCase):
             ) as f:
                 expected = f.read()
 
+            blpx = name.startswith("blpx_")
+
             tokens = tokenizer.tokenize(blueprint)
-            ast, errors, warnings = parser.parse(tokens)
+            ast, errors, warnings = parser.parse(
+                tokens,
+                opts=CompilerOptions(
+                    expressions=ExpressionFormat.BLPX if blpx else None
+                ),
+            )
 
             if ast is not None:
                 self.assert_ast_doesnt_crash(blueprint, tokens, ast)
@@ -170,7 +178,6 @@ class TestSamples(unittest.TestCase):
             raise AssertionError("Expected a compiler error, but none was emitted")
 
     def assert_decompile(self, name):
-        print(f'assert_decompile("{name}")')
         try:
             if os.path.exists(
                 (Path(__file__).parent / f"samples/{name}_dec.blp").resolve()
@@ -278,7 +285,9 @@ class TestSamples(unittest.TestCase):
                 self.assert_sample_error(sample_error)
 
     def test_expressions(self):
-        def assert_expr(self, expr: str):
+        dynamic_scope = BuilderScope(dynamic=True)
+
+        def assert_expr(self, expr: str, expressions: ExpressionFormat | None):
             blueprint = f"""
                 using Gtk 4.0;
 
@@ -288,13 +297,17 @@ class TestSamples(unittest.TestCase):
             """
 
             try:
-                tokens, ast, actual = self.compile(blueprint, blpx=True)
+                tokens, ast, actual = self.compile(blueprint, expressions=expressions)
             except PrintableError as e:  # pragma: no cover
                 e.pretty_print(expr, blueprint)
                 raise AssertionError()
 
             builder = Gtk.Builder()
-            builder.set_scope(builder_scope)
+            builder.set_scope(
+                dynamic_scope
+                if expressions == ExpressionFormat.BLPX_DYNAMIC
+                else builder_scope
+            )
             builder.add_from_string(actual)
             assertion = builder.get_object("assertion")
             self.assertTrue(assertion.props.value)
@@ -311,96 +324,78 @@ class TestSamples(unittest.TestCase):
             "if false { false } elif 3 > 1 { true } else { false }",
             "1_000_000_000_000 > 999_999_999_999",
             "-1_000_000_000_000 < -999_999_999_999",
+            "1.5 + 1.5 == 3",
+            "true != false",
+            "assertion == assertion",
+            "!(assertion != assertion)",
         ]:
-            with self.subTest(expr):
-                assert_expr(self, expr)
+            with self.subTest("static " + expr):
+                assert_expr(self, expr, expressions=ExpressionFormat.BLPX)
+            with self.subTest("dynamic " + expr):
+                assert_expr(self, expr, expressions=ExpressionFormat.BLPX_DYNAMIC)
 
 
 class BuilderScope(Gtk.BuilderCScope):
     __gtype_name__ = "BlpBuilderScope"
 
-    def __init__(self):
+    def __init__(self, dynamic: bool = False):
         super().__init__()
 
-        for type, py_type in (
-            ("string", str),
-            ("float", float),
-            ("double", float),
-            ("int64", int),
-            ("uint64", int),
-            ("int", int),
-            ("uint", int),
-        ):
-            setattr(
-                self,
-                f"blpx_eq_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) == py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_ne_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) != py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_lt_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) < py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_le_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) <= py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_gt_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) > py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_ge_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) >= py_type(b),
-            )
-            setattr(
-                self,
-                f"blpx_add_{type}",
-                lambda this, a, b, py_type=py_type: py_type(a) + py_type(b),
-            )
-            if type != "string":
-                setattr(
-                    self,
-                    f"blpx_neg_{type}",
-                    lambda this, a, py_type=py_type: -py_type(a),
-                )
-                setattr(
-                    self,
-                    f"blpx_sub_{type}",
-                    lambda this, a, b, py_type=py_type: py_type(a) - py_type(b),
-                )
-                setattr(
-                    self,
-                    f"blpx_mul_{type}",
-                    lambda this, a, b, py_type=py_type: py_type(a) * py_type(b),
-                )
-                setattr(
-                    self,
-                    f"blpx_div_{type}",
-                    lambda this, a, b, py_type=py_type: py_type(a) / py_type(b),
-                )
-                setattr(
-                    self,
-                    f"blpx_mod_{type}",
-                    lambda this, a, b, py_type=py_type: py_type(a) % py_type(b),
-                )
+        numeric_types = [
+            "float",
+            "double",
+            "int64",
+            "uint64",
+            "int",
+            "uint",
+        ]
+
+        def add_func(name, func, types):
+            f = lambda this, *args: func(*args)
+            if dynamic:
+                setattr(self, f"blpx_{name}", f)
+            else:
+                for t in types:
+                    setattr(self, f"blpx_{name}_{t}", f)
+
+        add_func(
+            "if",
+            lambda condition, a, b: a if condition else b,
+            ["string", "ptr", "bool", *numeric_types],
+        )
+        add_func("eq", lambda a, b: a == b, ["string", "bool", "ptr", *numeric_types])
+        add_func("ne", lambda a, b: a != b, ["string", "bool", "ptr", *numeric_types])
+        add_func("lt", lambda a, b: a < b, numeric_types)
+        add_func("le", lambda a, b: a <= b, numeric_types)
+        add_func("gt", lambda a, b: a > b, numeric_types)
+        add_func("ge", lambda a, b: a >= b, numeric_types)
+        add_func("add", lambda a, b: a + b, ["string", *numeric_types])
+        add_func("sub", lambda a, b: a - b, numeric_types)
+        add_func("neg", lambda a: -a, numeric_types)
+        add_func("mul", lambda a, b: a * b, numeric_types)
+        add_func("div", lambda a, b: a / b, numeric_types)
+        add_func("mod", lambda a, b: a % b, numeric_types)
+
+        def add_cast(type_a, type_bs):
+            if not dynamic:
+                for type_b in type_bs:
+                    setattr(
+                        self, f"blpx_cast_{type_a}_{type_b}", lambda this, value: value
+                    )
+
+        add_cast("int64", ["uint64", "double"])
+        add_cast("uint64", ["int64", "double"])
+        add_cast("int", ["int64", "double"])
+        add_cast("uint", ["uint64", "double"])
+        add_cast("float", ["double"])
+        for numeric_type in numeric_types:
+            add_cast(numeric_type, numeric_types)
 
     def blpx_or(self, this, a, b):
         return a or b
 
     def blpx_and(self, this, a, b):
         return a and b
-
-    def blpx_if(self, this, condition, then_branch, else_branch):
-        return then_branch if condition else else_branch
 
     def blpx_not(self, this, value):
         return not value
@@ -412,7 +407,11 @@ class BuilderScope(Gtk.BuilderCScope):
         flags: Gtk.BuilderClosureFlags,
         object,
     ):
-        return getattr(self, function_name, None)
+        f = getattr(self, function_name, None)
+        if function_name.startswith("blpx_") and f is None:  # pragma: no cover
+            raise AttributeError(f"Closure function '{function_name}' not found")
+
+        return f
 
 
 builder_scope = BuilderScope()

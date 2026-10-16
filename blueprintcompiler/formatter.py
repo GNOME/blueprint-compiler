@@ -35,7 +35,7 @@ NEWLINE_AFTER = tuple(";") + OPENING_TOKENS + CLOSING_TOKENS
 NO_WHITESPACE_BEFORE = (",", ":", "::", ";", ")", ".", "]", "=")
 NO_WHITESPACE_AFTER = ("C_", "_", "(", ".", "$", "::", "[", "=", "!")
 
-OPERATORS = ("+", "-", "*", "/", "%", "&&", "||", ">", "<", "=")
+OPERATORS = ("+", "-", "*", "/", "%", "&&", "||", ">", "<", "=", "==", "!=", ">=", "<=")
 
 # NO_WHITESPACE_BEFORE takes precedence over WHITESPACE_AFTER
 WHITESPACE_AFTER = (

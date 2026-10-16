@@ -76,7 +76,6 @@ class Binding(AstNode):
         prev_ctx = self.parent.context[ValueTypeCtx]
         return ValueTypeCtx(
             prev_ctx.value_type,
-            must_infer_type=prev_ctx.must_infer_type,
             allow_null=True,
         )
 

@@ -1,0 +1,7 @@
+using Gtk 4.0;
+
+$MyObject obj {
+  prop1: bind try { unknown, true };
+  prop2: bind try { $test(), true };
+  prop3: bind try { obj.prop2, true, 10 };
+}

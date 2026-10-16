@@ -30,7 +30,6 @@ class TestFormatter(unittest.TestCase):
         self.maxDiff = None
 
     def assert_format_test(self, input_file, expected_file):
-        print("assert_format_test({}, {})".format(input_file, expected_file))
         with open((Path(__file__).parent / f"formatting/{input_file}").resolve()) as f:
             input_data = f.read()
         with open(

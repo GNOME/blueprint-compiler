@@ -10,7 +10,7 @@ Advanced Expressions
 
 This works, and many consider it cleaner than imperative code that pushes state updates from the application to the UI. However, it is still difficult to read and write. Advanced expressions make these expressions easier by adding new syntax for common operations. ``Note that you still have to implement the logic for these operations in your application code--advanced expressions just make it easier to call that logic from expressions.``
 
-To use advanced expressions, pass the ``--expressions=blpx`` flag to the compiler. Advanced expressions are still experimental and subject to change.
+To use advanced expressions, pass the ``--expressions=blpx`` or ``--expressions=blpx-dynamic`` flag to the compiler. Advanced expressions are still experimental and subject to change.
 
 .. _Syntax AdvancedExpression:
 
@@ -33,28 +33,74 @@ Advanced Expressions
 
 .. _Closure Specifications:
 
-========== ============ =============
- Operator   Arity [1]_   Function(s)
-========== ============ =============
- ``||``         2            ``blpx_or``
- ``&&``         2            ``blpx_and``
- ``if``         3            ``blpx_if`` [2]_
- ``==``         2            ``blpx_eq_string``, ``blpx_eq_float``, ``blpx_eq_double``, ``blpx_eq_int64``, ``blpx_eq_uint64``, ``blpx_eq_int``, ``blpx_eq_uint``
- ``!=``         2            ``blpx_ne_string``, ``blpx_ne_float``, ``blpx_ne_double``, ``blpx_ne_int64``, ``blpx_ne_uint64``, ``blpx_ne_int``, ``blpx_ne_uint``
- ``<``          2            ``blpx_lt_string``, ``blpx_lt_float``, ``blpx_lt_double``, ``blpx_lt_int64``, ``blpx_lt_uint64``, ``blpx_lt_int``, ``blpx_lt_uint``
- ``>``          2            ``blpx_gt_string``, ``blpx_gt_float``, ``blpx_gt_double``, ``blpx_gt_int64``, ``blpx_gt_uint64``, ``blpx_gt_int``, ``blpx_gt_uint``
- ``<=``         2            ``blpx_le_string``, ``blpx_le_float``, ``blpx_le_double``, ``blpx_le_int64``, ``blpx_le_uint64``, ``blpx_le_int``, ``blpx_le_uint``
- ``>=``         2            ``blpx_ge_string``, ``blpx_ge_float``, ``blpx_ge_double``, ``blpx_ge_int64``, ``blpx_ge_uint64``, ``blpx_ge_int``, ``blpx_ge_uint``
- ``+``          2            ``blpx_add_string``, ``blpx_add_float``, ``blpx_add_double``, ``blpx_add_int64``, ``blpx_add_uint64``, ``blpx_add_int``, ``blpx_add_uint``
- ``-``          2            ``blpx_sub_float``, ``blpx_sub_double``, ``blpx_sub_int64``, ``blpx_sub_uint64``, ``blpx_sub_int``, ``blpx_sub_uint``
- ``-``          1            ``blpx_neg_float``, ``blpx_neg_double``, ``blpx_neg_int64``, ``blpx_neg_uint64``, ``blpx_neg_int``, ``blpx_neg_uint``
- ``*``          2            ``blpx_mul_float``, ``blpx_mul_double``, ``blpx_mul_int64``, ``blpx_mul_uint64``, ``blpx_mul_int``, ``blpx_mul_uint``
- ``/``          2            ``blpx_div_float``, ``blpx_div_double``, ``blpx_div_int64``, ``blpx_div_uint64``, ``blpx_div_int``, ``blpx_div_uint``
- ``%``          2            ``blpx_mod_float``, ``blpx_mod_double``, ``blpx_mod_int64``, ``blpx_mod_uint64``, ``blpx_mod_int``, ``blpx_mod_uint``
- ``!``          1            ``blpx_not``
-========== ============ =============
+========== ========================== ===================== =======
+ Operator   Signature                  Function              T
+========== ========================== ===================== =======
+ ``||``     ``(bool, bool) -> bool``   ``blpx_or``
+ ``&&``     ``(bool, bool) -> bool``   ``blpx_and``
+ ``if``     ``(bool, T, T) -> T``      ``blpx_if`` [1]_      ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``, ``bool``, ``ptr``
+ ``==``     ``(T, T) -> bool``         ``blpx_eq``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``, ``bool``, ``ptr``
+ ``!=``     ``(T, T) -> bool``         ``blpx_ne``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``, ``bool``, ``ptr``
+ ``<``     ``(T, T) -> bool``          ``blpx_lt``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``>``     ``(T, T) -> bool``          ``blpx_gt``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``<=``     ``(T, T) -> bool``         ``blpx_le``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``>=``     ``(T, T) -> bool``         ``blpx_ge``           ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``+``     ``(T, T) -> T``             ``blpx_add``          ``string``, ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``-``     ``(T, T) -> T``             ``blpx_sub``          ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``-``     ``(T) -> T``                ``blpx_neg``          ``float``, ``double``, ``int64``, ``int``
+ ``*``     ``(T, T) -> T``             ``blpx_mul``          ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``/``     ``(T, T) -> T``             ``blpx_div``          ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``%``     ``(T, T) -> T``             ``blpx_mod``          ``float``, ``double``, ``int64``, ``uint64``, ``int``, ``uint``
+ ``!``     ``(bool) -> bool``          ``blpx_not``
+========== ========================== ===================== =======
 
-.. [1] Arity is the number of arguments an operator takes.
-.. [2] ``blpx_if`` is the ternary operator. The first argument is the condition, the second argument is the value if the condition is true, and the third argument is the value if the condition is false. ``elif`` clauses are compiled to nested ``blpx_if`` closures.
+.. [1] ``blpx_if`` is the ternary operator. The first argument is the condition, the second argument is the value if the condition is true, and the third argument is the value if the condition is false. ``elif`` clauses are compiled to nested ``blpx_if`` closures.
 
-Some closure names are suffixed with a type, such as ``blpx_eq_string``. These closures must convert their arguments to the specified type before performing the operation. For example, ``blpx_eq_string`` converts both of its arguments to strings, then compares them. ``blpx_mul_float`` converts both of its arguments to floats, multiplies them, and returns the result as a float.
+.. _Static vs. Dynamic Closures:
+
+Some application languages are dynamically typed, meaning that the type of a variable is determined at runtime rather than at compile time. In these languages, such as Python, a single closure can operate on values many different types:
+
+.. code-block:: python
+
+   def blpx_add(a, b):
+       return a + b
+
+   print(blpx_add(1, 2))         # Works with integers
+   print(blpx_add(1.5, 2.5))     # Works with floats
+   print(blpx_add("foo", "bar")) # Works with strings
+   print(blpx_add(1.5, 2.5))     # Even works with a mix of numeric types
+
+However, in statically typed languages like C, multiple closures would be needed, one for each type:
+
+.. code-block:: c
+
+   static int
+   blpx_add_int(int a, int b) {
+     return a + b;
+   }
+
+   static double
+   blpx_add_double(double a, double b) {
+     return a + b;
+   }
+
+   static char *
+   blpx_add_string(const char* a, const char* b) {
+     return g_strconcat(a, b, NULL);
+   }
+
+Blueprint has two modes for handling types in closures. With ``--expressions=blpx``, closures are suffixed with the type they operate on (noted as ``T`` in the table above). With ``--expressions=blpx-dynamic``, closures are not suffixed and are expected to handle types dynamically.
+
+The following closures perform numeric type casting. This is only necessary in static mode and is used to implement operations with mixed input types.
+
+=========== =========
+ Cast From   Cast To
+=========== =========
+ ``int64``   ``uint64``, ``double``
+ ``uint64``  ``int64``, ``double``
+ ``int``     ``int64``, ``double``
+ ``uint``    ``int``, ``uint64``, ``double``
+ ``float``   ``double``
+=========== =========
+
+For example, ``blpx_cast_int64_double`` casts an ``int64`` value to a ``double``.

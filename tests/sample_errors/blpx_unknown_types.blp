@@ -1,0 +1,13 @@
+using Gtk 4.0;
+
+$MyObject a {
+  prop1: bind a.prop2 < a.prop3;
+}
+
+Label {
+  visible: bind $test() == 1;
+}
+
+Label {
+  visible: bind unknown == 1;
+}

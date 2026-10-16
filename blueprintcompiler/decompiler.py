@@ -81,13 +81,15 @@ class DecompileCtx:
         return formatter.format(imports + self._result)
 
     def type_by_cname(self, cname: str) -> GirType | None:
-        if type := self.gir.get_type_by_cname(cname):
+        if not isinstance(type := self.gir.get_type_by_cname(cname), InvalidType):
             return type
 
         for ns, version in _NAMESPACES:
             try:
                 namespace = get_namespace(ns, version)
-                if type := namespace.get_type_by_cname(cname):
+                if not isinstance(
+                    type := namespace.get_type_by_cname(cname), InvalidType
+                ):
                     self.gir.add_namespace(namespace)
                     return type
             except:
@@ -276,7 +278,7 @@ def decompile_element(ctx: DecompileCtx, gir: GirContext | None, xml: Element) -
 
 def decompile_xml(
     xml: Element,
-) -> tuple[Any, MultipleErrors | None, list[CompileError], str]:
+) -> tuple[Any, MultipleErrors | None, list[CompileError], SourceCode]:
     from . import parser
 
     ctx = DecompileCtx()

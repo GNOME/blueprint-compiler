@@ -295,8 +295,6 @@ class TestLinter(unittest.TestCase):
 
     def check_file(self, name, rule_id, expected_problems):
         with self.subTest("linter/" + name):
-            print(f"assert_linter({name})")
-
             filepath = Path(__file__).parent.joinpath("linter_samples", f"{name}.blp")
 
             with open(filepath, "r+") as file:

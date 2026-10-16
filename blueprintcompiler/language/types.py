@@ -19,6 +19,7 @@
 
 
 from ..gir import Class, ExternType, Interface, Repository
+from ..types import InvalidType
 from .common import *
 
 
@@ -109,13 +110,13 @@ class TypeName(AstNode):
 
     @property
     def glib_type_name(self) -> str:
-        if gir_type := self.gir_type:
-            return gir_type.glib_type_name
-        else:
+        if isinstance(self.gir_type, InvalidType):
             if self.namespace:
                 return self.namespace + self.class_name
             else:
                 return self.class_name
+        else:
+            return self.gir_type.glib_type_name
 
     @docs("namespace")
     def namespace_docs(self):
@@ -169,7 +170,7 @@ class TemplateClassName(ClassName):
         return (
             not self.is_extern
             and self.namespace is None
-            and self.root.gir.get_type(self.class_name, "Gtk") is None
+            and isinstance(self.root.gir.get_type(self.class_name, "Gtk"), InvalidType)
         )
 
     @property

@@ -57,6 +57,9 @@ class TypeLiteral(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if expected_type is not None and not isinstance(expected_type, gir.TypeType):
             raise CompileError(f"Cannot convert GType to {expected_type.full_name}")
@@ -96,6 +99,9 @@ class QuotedLiteral(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if (
             isinstance(expected_type, gir.IntType)
@@ -161,6 +167,9 @@ class NumberLiteral(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if isinstance(expected_type, gir.IntType):
             if not isinstance(self.value, int):
@@ -212,6 +221,9 @@ class Flag(AstNode):
 
     @validate()
     def validate_for_type(self):
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if (
             isinstance(expected_type, gir.Bitfield)
@@ -238,6 +250,9 @@ class Flags(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if expected_type is not None and not isinstance(expected_type, gir.Bitfield):
             raise CompileError(f"{expected_type.full_name} is not a bitfield type")
@@ -265,6 +280,8 @@ class IdentLiteral(AstNode):
             return object.gir_class
         elif self.root.is_legacy_template(self.ident):
             return self.root.template.class_name.gir_type
+        elif self.ident == "null":
+            return gir.NullType()
         else:
             return InvalidType()
 
@@ -323,6 +340,9 @@ class IdentLiteral(AstNode):
                 and object.gir_class is not None
                 and not object.gir_class.assignable_to(expected_type)
             ):
+                if self.context[ValueTypeCtx].ignore_type_errors:
+                    return
+
                 raise CompileError(
                     f"Cannot assign {object.gir_class.full_name} to {expected_type.full_name}"
                 )
@@ -387,6 +407,9 @@ class ObjectValue(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if (
             expected_type is not None
@@ -407,6 +430,9 @@ class ExprValue(AstNode):
 
     @validate("expr")
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.parent.context[ValueTypeCtx].value_type
         expr_type = self.root.gir.get_type("Expression", "Gtk")
         if expected_type is not None and not expected_type.assignable_to(expr_type):
@@ -424,7 +450,7 @@ class ExprValue(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self):
-        return ValueTypeCtx(None, must_infer_type=True)
+        return ValueTypeCtx(None)
 
 
 class Value(AstNode):
@@ -442,6 +468,9 @@ class ArrayValue(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.gir_type
         if expected_type is not None and not isinstance(expected_type, gir.ArrayType):
             raise CompileError(f"Cannot assign array to {expected_type.full_name}")

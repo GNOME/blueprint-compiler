@@ -48,6 +48,9 @@ class Translated(AstNode):
 
     @validate()
     def validate_for_type(self) -> None:
+        if self.context[ValueTypeCtx].ignore_type_errors:
+            return
+
         expected_type = self.context[ValueTypeCtx].value_type
         if expected_type is not None and not expected_type.assignable_to(StringType()):
             raise CompileError(

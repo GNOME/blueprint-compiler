@@ -38,7 +38,10 @@ class GirType:
     def common_ancestor(types: list["GirType"]) -> "GirType" | None:
         """Returns the most specific type that both this and the other type can be assigned to, or None if there is no such type."""
 
-        if len(types) == 0:
+        if any(isinstance(t, InvalidType) for t in types):
+            return InvalidType()
+
+        if len(types) == 0 or None in types:
             return None
 
         def pairwise(a: GirType, b: GirType) -> GirType | None:
@@ -231,6 +234,22 @@ class BoolType(BasicType):
             or isinstance(other, Enumeration)
             or isinstance(other, StringType)
         )
+
+
+class NullType(BasicType):
+    """A marker type representing a literal `null` identifier."""
+
+    name = "null"
+
+    @property
+    def glib_type_name(self) -> str:
+        raise NotImplementedError()
+
+    def assignable_to(self, other: GirType | None) -> bool:
+        return False
+
+    def transformable_to(self, other: GirType) -> bool:
+        return False
 
 
 class NumericType(BasicType):

@@ -23,9 +23,19 @@ from functools import cached_property
 from typing import Any, cast
 
 from ..decompiler import Element, decompile_element, full_name
+from ..errors import ErrorReference
 from ..tokenizer import Range, TextEdit
-from ..types import Int64Type, LongType, UInt64Type, UIntType, ULongType
-from ..utils import TextEdit
+from ..types import (
+    BasicType,
+    Int64Type,
+    InvalidType,
+    LongType,
+    NumericType,
+    UInt64Type,
+    UIntType,
+    ULongType,
+)
+from ..utils import ExpressionFormat
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .translated import *
@@ -79,6 +89,10 @@ class ExprBase(AstNode):
         else:
             return None
 
+    def require_known_operand_type(self):
+        if self.type is None:
+            raise CompileError("The type of this operand is not known", self.range)
+
 
 class Expression(ExprBase):
     """An Expression contains a prefix node and optionally some infix operators."""
@@ -108,6 +122,9 @@ class Expression(ExprBase):
 
         if self.is_stub:
             # Avoid duplicate errors on expressions that just wrap another expression
+            return
+
+        if self.context[ValueTypeCtx].ignore_type_errors:
             return
 
         expected_type = self.context[ValueTypeCtx].value_type
@@ -153,6 +170,12 @@ class InfixExpr(ExprBase):
                 assert isinstance(prev, ExprBase)
                 return prev
 
+    @property
+    def range(self):
+        return Range(
+            self.lhs.range.start, super().range.end, self.lhs.range.source
+        )
+
 
 class LiteralExpr(ExprBase):
     grammar = LITERAL
@@ -183,7 +206,7 @@ class LiteralExpr(ExprBase):
         return self.children[Literal][0]
 
     @property
-    def type(self) -> GirType | None:
+    def type(self) -> GirType:
         return self.literal.value.type
 
     @validate()
@@ -216,7 +239,7 @@ class LookupOp(InfixExpr):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True)
+        return ValueTypeCtx(None)
 
     @property
     def property_name(self) -> str:
@@ -230,7 +253,7 @@ class LookupOp(InfixExpr):
             else:
                 return InvalidType()
 
-        if self.lhs.type is not None and self.lhs.type.incomplete:
+        if self.lhs.type is None or self.lhs.type.incomplete:
             return None
 
         return InvalidType()
@@ -301,22 +324,32 @@ class CastExpr(InfixExpr):
 
     @context(ValueTypeCtx)
     def value_type(self):
-        return ValueTypeCtx(self.type, allow_null=True)
+        return ValueTypeCtx(self.type, must_infer_type=False, allow_null=True)
 
     @property
-    def type(self) -> GirType | None:
+    def type(self) -> GirType:
         return self.children[TypeName][0].gir_type
+
+    @property
+    def cast_range(self):
+        return Range(self.group.start, self.group.end, self.group.source)
 
     @validate()
     def cast_makes_sense(self) -> None:
-        if self.type is None or self.lhs.type is None:
+        if (
+            isinstance(self.type, InvalidType)
+            or isinstance(self.lhs.type, InvalidType)
+            or self.type is None
+            or self.lhs.type is None
+        ):
             return
 
         if not self.type.castable_to(self.lhs.type) and not self.lhs.type.castable_to(
             self.type
         ):
             raise CompileError(
-                f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}."
+                f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}.",
+                range=self.cast_range,
             )
 
     @validate("lparen", "rparen")
@@ -338,16 +371,13 @@ class CastExpr(InfixExpr):
 
     @autofix
     def autofix_unnecessary_cast(self):
-        if self.type is None:
-            return []
-
         expected_type = self.parent.context[ValueTypeCtx].value_type
         if (
             expected_type is not None
             and self.type.assignable_to(expected_type)
             and expected_type.assignable_to(self.type)
         ):
-            return [TextEdit(self.range.with_preceding_whitespace, "")]
+            return [TextEdit(self.cast_range.with_preceding_whitespace, "")]
         else:
             return []
 
@@ -361,7 +391,7 @@ class ClosureArg(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True, allow_null=True)
+        return ValueTypeCtx(None, allow_null=True)
 
 
 class ClosureExpr(ExprBase):
@@ -375,7 +405,7 @@ class ClosureExpr(ExprBase):
 
     @property
     def type(self) -> GirType | None:
-        return self.context[ValueTypeCtx].value_type
+        return self.context[ValueTypeCtx].value_type or InvalidType()
 
     @property
     def closure_name(self) -> str:
@@ -387,7 +417,7 @@ class ClosureExpr(ExprBase):
 
     @validate()
     def return_type_known(self):
-        if self.type is None:
+        if self.context[ValueTypeCtx].value_type is None and self.tokens["extern"]:
             raise CompileError(
                 "Closure expression must be cast to the closure's return type",
                 hints=[
@@ -395,7 +425,7 @@ class ClosureExpr(ExprBase):
                 ],
             )
 
-    @validate()
+    @validate("name")
     def builtin_exists(self):
         if not self.tokens["extern"]:
             raise CompileError(f"{self.closure_name} is not a builtin function")
@@ -419,7 +449,9 @@ class TryExpr(ExprBase):
 
     @cached_property
     def type(self) -> GirType | None:
-        return None
+        types = [expr.type for expr in self.expressions if expr.type is not None]
+
+        return GirType.common_ancestor(cast(list[GirType], types))
 
     @docs("try")
     def ref_docs(self):
@@ -454,16 +486,40 @@ class TryExpr(ExprBase):
         if len(self.expressions) < 2:
             return
 
-        types = [expr.type for expr in self.expressions]
-        if None in types:
-            return None
+        types = [expr.type for expr in self.expressions if expr.type is not None]
 
         t = GirType.common_ancestor(cast(list[GirType], types))
 
         if t is None:
             raise CompileError(
-                "All branches of a try expression must have compatible types"
+                "All branches of a try expression must have compatible types",
+                references=[
+                    ErrorReference(
+                        e.range, f"this expression has type {e.type.full_name}"
+                    )
+                    for e in self.expressions
+                    if e.type is not None
+                ],
             )
+
+
+class ConvertExpr:
+    def __init__(self, source_type, target_type, child_expr):
+        self.target_type = target_type
+        self.source_type = source_type
+        self.child_expr = child_expr
+
+    @property
+    def type(self) -> GirType | None:
+        return self.target_type
+
+    @property
+    def closure_name(self) -> str:
+        return f"blpx_cast_{self.source_type.name}_{self.target_type.name}"
+
+    @property
+    def args(self) -> list[ExprBase]:
+        return [self.child_expr]
 
 
 class OpExpr(ExprBase):
@@ -477,7 +533,7 @@ class OpExpr(ExprBase):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True)
+        return ValueTypeCtx(None)
 
     @validate()
     def blpx_enabled(self):
@@ -499,13 +555,23 @@ class OpExpr(ExprBase):
                 range=Range(
                     start,
                     self.range.end,
-                    self.range.original_text,
+                    self.range.source,
                 ),
             )
 
     @docs()
     def ref_docs(self):
         return get_docs_section("Syntax AdvancedExpression")
+
+    def convert(self, operand, target_type):
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            # Type conversions are not needed in dynamic mode
+            return operand
+
+        if operand.type.name == target_type.name:
+            return operand
+
+        return ConvertExpr(operand.type, target_type, operand)
 
 
 class Parenthesized(ExprBase):
@@ -574,6 +640,10 @@ class UnaryOpExpr(OpExpr):
     def inner(self) -> ExprBase:
         return self.children[0]
 
+    @validate("op")
+    def known_type(self):
+        self.inner.require_known_operand_type()
+
 
 class BinaryOpExpr(OpExpr, InfixExpr):
     @property
@@ -594,6 +664,8 @@ class BinaryOpExpr(OpExpr, InfixExpr):
 
         if isinstance(lhs_type, StringType) and isinstance(rhs_type, StringType):
             return StringType()
+        elif isinstance(lhs_type, BoolType) and isinstance(rhs_type, BoolType):
+            return BoolType()
         elif isinstance(lhs_type, NumericType) and isinstance(rhs_type, NumericType):
             if lhs_type.floating or rhs_type.floating:
                 if max(lhs_type.size, rhs_type.size) <= 32:
@@ -610,46 +682,35 @@ class BinaryOpExpr(OpExpr, InfixExpr):
                     return UIntType()
                 else:
                     return UInt64Type()
+        else:
+            return GirType.common_ancestor([self.lhs.type, self.rhs.type])
 
-        return None
+    @validate()
+    def known_lhs_type(self):
+        self.lhs.require_known_operand_type()
+
+    @validate()
+    def known_rhs_type(self):
+        self.rhs.require_known_operand_type()
 
     def require_numeric_operands(self, operator: str):
+        if self.lhs.type is None or self.rhs.type is None:
+            return
+
         lhs_numeric = isinstance(self.lhs.type, NumericType)
         rhs_numeric = isinstance(self.rhs.type, NumericType)
 
-        if self.lhs.type is None:
-            # Literal values throw their own errors if the type isn't known
-            if isinstance(self.lhs, LiteralExpr):
-                return
-
-            raise CompileError(
-                f"Could not determine the type of this expression", range=self.lhs.range
-            )
-        elif self.rhs.type is None:
-            if isinstance(self.rhs, LiteralExpr):
-                return
-
-            raise CompileError(
-                f"Could not determine the type of this expression", range=self.rhs.range
-            )
-        elif not lhs_numeric and not rhs_numeric:
+        if not lhs_numeric and not rhs_numeric:
             raise CompileError(
                 f"Cannot apply {operator} to non-numeric types {self.lhs.type.full_name} and {self.rhs.type.full_name}",
-                Range(self.lhs.range.start, self.range.end, self.range.original_text),
             )
         elif not lhs_numeric:
             raise CompileError(
                 f"Cannot apply {operator} to non-numeric type {self.lhs.type.full_name}",
-                Range(
-                    self.lhs.range.start,
-                    self.ranges["after_op"].end,
-                    self.range.original_text,
-                ),
             )
         elif not rhs_numeric:
             raise CompileError(
                 f"Cannot apply {operator} to non-numeric type {self.rhs.type.full_name}",
-                self.range,
             )
 
 
@@ -662,10 +723,17 @@ class TernaryCondition(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(BoolType())
+        return ValueTypeCtx(BoolType(), ignore_type_errors=True)
+
+    @validate()
+    def boolean_condition(self):
+        if not isinstance(self.expression.type, (BoolType, InvalidType)):
+            raise CompileError(
+                f"Cannot use non-boolean type {self.expression.type.full_name} as a condition",
+            )
 
 
-ternary_expr = AnyOf()
+elif_expr = AnyOf()
 
 
 class TernaryExpr(OpExpr):
@@ -674,20 +742,26 @@ class TernaryExpr(OpExpr):
         "{",
         Expression,
         "}",
-        AnyOf(["elif", ternary_expr], ["else", "{", Expression, "}"]),
+        AnyOf(elif_expr, ["else", "{", Expression, "}"]),
     ]
-    closure_name = "blpx_if"
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True, allow_null=True)
+        return ValueTypeCtx(None, allow_null=True)
+
+    @property
+    def closure_name(self):
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            return "blpx_if"
+        else:
+            if isinstance(self.type, BasicType):
+                return f"blpx_if_{self.type.name}"
+            else:
+                return "blpx_if_ptr"
 
     @cached_property
     def type(self):
-        types = [self.true_branch.type, self.false_branch.type]
-        if None in types:
-            return None
-        return GirType.common_ancestor(cast(list[GirType], types))
+        return GirType.common_ancestor([self.true_branch.type, self.false_branch.type])
 
     @property
     def condition(self) -> TernaryCondition:
@@ -707,24 +781,45 @@ class TernaryExpr(OpExpr):
 
     @validate()
     def expressions_have_same_type(self):
-        types = [self.true_branch.type, self.false_branch.type]
-        if None in types:
-            return None
+        if self.true_branch.type is None or self.false_branch.type is None:
+            return
 
-        t = GirType.common_ancestor(cast(list[GirType], types))
+        t = GirType.common_ancestor([self.true_branch.type, self.false_branch.type])
 
         if t is None:
             raise CompileError(
-                "The true and false branches of a ternary expression must have compatible types"
+                "The true and false branches of a ternary expression must have compatible types",
+                references=[
+                    ErrorReference(
+                        self.true_branch.range,
+                        f"the true branch has type {self.true_branch.type.full_name}",
+                    ),
+                    ErrorReference(
+                        self.false_branch.range,
+                        f"the false branch has type {self.false_branch.type.full_name}",
+                    ),
+                ],
             )
 
+    @validate()
+    def known_true_type(self):
+        self.true_branch.require_known_operand_type()
 
-ternary_expr.children = [to_parse_node(TernaryExpr)]
+    @validate()
+    def known_false_type(self):
+        self.false_branch.require_known_operand_type()
+
+
+def make_ternary_expr(prefix: str):
+    return Group(TernaryExpr, [prefix, TernaryExpr.grammar])
+
+
+elif_expr.children = [make_ternary_expr("elif")]
 
 
 lvl8 = precedence(
     AnyOf(
-        ["if", TernaryExpr],
+        make_ternary_expr("if"),
         TranslatedExpr,
         TryExpr,
         ClosureExpr,
@@ -747,10 +842,10 @@ class NotExpr(UnaryOpExpr):
     @validate()
     def boolean_operand(self):
         operand = self.children[0]
-        if not isinstance(operand.type, BoolType):
+        if not isinstance(operand.type, BoolType) and operand.type is not None:
             raise CompileError(
                 f"Cannot apply ! to non-boolean type {operand.type.full_name}",
-                Range(operand.range.start, self.range.end, self.range.original_text),
+                Range(operand.range.start, self.range.end, self.range.source),
             )
 
 
@@ -761,54 +856,53 @@ lvl6 = precedence([lvl7, ZeroOrMore(AnyOf(CastExpr, LookupOp))])
 
 class MulExpr(BinaryOpExpr):
     grammar = [
-        AnyOf(Keyword("*"), Keyword("/"), Keyword("%")),
-        Mark("after_op"),
+        AnyOf(UseExact("op", "*"), UseExact("op", "/"), UseExact("op", "%")),
         lvl6,
     ]
     precedence = 5
 
     @property
     def closure_name(self) -> str:
-        if self.tokens["*"]:
-            op = "mul"
-        elif self.tokens["/"]:
-            op = "div"
-        elif self.tokens["%"]:
-            op = "mod"
-        return f"blpx_{op}_{self.type.name}"
+        op = {"*": "mul", "/": "div", "%": "mod"}[self.tokens["op"]]
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            return f"blpx_{op}"
+        else:
+            return f"blpx_{op}_{self.type.name}"
 
-    @validate()
+    @property
+    def args(self):
+        return [self.convert(self.lhs, self.type), self.convert(self.rhs, self.type)]
+
+    @validate("op")
     def numeric_operands(self):
-        operator = ""
-        if self.tokens["*"]:
-            operator = "*"
-        elif self.tokens["/"]:
-            operator = "/"
-        elif self.tokens["%"]:
-            operator = "%"
-        self.require_numeric_operands(operator)
+        self.require_numeric_operands(self.tokens["op"])
 
 
 lvl5 = precedence([lvl6, ZeroOrMore(MulExpr)])
 
 
 class AddExpr(BinaryOpExpr):
-    grammar = [AnyOf(Keyword("+"), Keyword("-")), Mark("after_op"), lvl5]
+    grammar = [AnyOf(UseExact("op", "+"), UseExact("op", "-")), lvl5]
     precedence = 4
 
     @property
     def closure_name(self) -> str:
-        if self.tokens["+"]:
-            op = "add"
-        elif self.tokens["-"]:
-            op = "sub"
-        return f"blpx_{op}_{self.type.name}"
+        op = {"+": "add", "-": "sub"}[self.tokens["op"]]
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            return f"blpx_{op}"
+        else:
+            return f"blpx_{op}_{self.type.name}"
+
+    @property
+    def args(self):
+        return [self.convert(self.lhs, self.type), self.convert(self.rhs, self.type)]
 
     @property
     def is_string_concatenation(self) -> bool:
-        return self.tokens["+"] and (
-            isinstance(self.lhs.type, StringType)
-            or isinstance(self.rhs.type, StringType)
+        return (
+            self.tokens["op"] == "+"
+            and isinstance(self.lhs.type, StringType)
+            and isinstance(self.rhs.type, StringType)
         )
 
     @property
@@ -818,22 +912,30 @@ class AddExpr(BinaryOpExpr):
         else:
             return super().type
 
-    @validate()
+    @validate("op")
     def numeric_operands(self):
-        if self.tokens["-"]:
-            self.require_numeric_operands("-")
-        elif self.tokens["+"]:
-            if not self.is_string_concatenation:
-                self.require_numeric_operands("+")
+        match self.tokens["op"]:
+            case "-":
+                self.require_numeric_operands("-")
+            case "+":
+                if not self.is_string_concatenation:
+                    self.require_numeric_operands("+")
 
 
 class NegateExpr(UnaryOpExpr):
-    grammar = [Keyword("-"), lvl8]
+    grammar = [UseExact("op", "-"), lvl8]
     precedence = 7
 
     @property
     def closure_name(self) -> str:
-        return f"blpx_neg_{self.type.name}"
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            return "blpx_neg"
+        else:
+            return f"blpx_neg_{self.type.name}"
+
+    @property
+    def args(self):
+        return [self.convert(self.inner, self.type)]
 
     @property
     def type(self):
@@ -850,13 +952,13 @@ class NegateExpr(UnaryOpExpr):
         else:
             return None
 
-    @validate()
+    @validate("op")
     def numeric_operand(self):
         operand = self.children[0]
-        if not isinstance(operand.type, NumericType):
+        if not isinstance(operand.type, NumericType) and operand.type is not None:
             raise CompileError(
                 f"Cannot negate non-numeric type {operand.type.full_name}",
-                Range(operand.range.start, self.range.end, self.range.original_text),
+                Range(operand.range.start, self.range.end, self.range.source),
             )
 
 
@@ -873,7 +975,6 @@ class CompareExpr(BinaryOpExpr):
             UseExact("op", ">"),
             UseExact("op", ">="),
         ),
-        Mark("after_op"),
         lvl4,
     ]
     precedence = 3
@@ -881,7 +982,21 @@ class CompareExpr(BinaryOpExpr):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None, must_infer_type=True)
+        return ValueTypeCtx(None)
+
+    @validate("op")
+    def numeric_operands(self):
+        if self.lhs.type is None or self.rhs.type is None:
+            return
+
+        if self.tokens["op"] in ("==", "!="):
+            t = GirType.common_ancestor([self.lhs.type, self.rhs.type])
+            if t is None:
+                raise CompileError(
+                    f"Cannot equate {self.lhs.type.full_name} and {self.rhs.type.full_name}",
+                )
+        else:
+            self.require_numeric_operands(self.tokens["op"])
 
     @property
     def closure_name(self) -> str:
@@ -894,35 +1009,82 @@ class CompareExpr(BinaryOpExpr):
             ">=": "ge",
         }[self.tokens["op"]]
 
-        return f"blpx_{op}_{self.lhs.type.name}"
+        if self.root.compiler_opts.expressions == ExpressionFormat.BLPX_DYNAMIC:
+            return f"blpx_{op}"
+        else:
+            if isinstance(self.operand_type, BasicType):
+                return f"blpx_{op}_{self.operand_type.name}"
+            else:
+                return f"blpx_{op}_ptr"
+
+    @property
+    def operand_type(self):
+        return super().type
+
+    @property
+    def args(self):
+        return [
+            self.convert(self.lhs, self.operand_type),
+            self.convert(self.rhs, self.operand_type),
+        ]
 
 
 lvl3 = precedence([lvl4, ZeroOrMore(CompareExpr)])
 
 
-class AndExpr(BinaryOpExpr):
-    grammar = [Keyword("&&"), Mark("after_op"), lvl3]
-    precedence = 2
-    closure_name = "blpx_and"
+class BooleanBinaryOpExpr(BinaryOpExpr):
     type = BoolType()
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(BoolType())
+        return ValueTypeCtx(BoolType(), ignore_type_errors=True)
+
+    @validate()
+    def boolean_operands(self):
+        if self.lhs.type is None or self.rhs.type is None:
+            return
+
+        left_bool = isinstance(self.lhs.type, BoolType)
+        right_bool = isinstance(self.rhs.type, BoolType)
+
+        if not left_bool and not right_bool:
+            raise CompileError(
+                f"Cannot apply {self.tokens['op']} to non-boolean types {self.lhs.type.full_name} and {self.rhs.type.full_name}",
+                self.range,
+            )
+        elif not left_bool:
+            raise CompileError(
+                f"Cannot apply {self.tokens['op']} to non-boolean type {self.lhs.type.full_name}",
+                Range(
+                    self.range.start,
+                    self.group.tokens["op"].end,
+                    self.range.source,
+                ),
+            )
+        elif not right_bool:
+            raise CompileError(
+                f"Cannot apply {self.tokens['op']} to non-boolean type {self.rhs.type.full_name}",
+                Range(
+                    self.group.tokens["op"].start,
+                    self.range.end,
+                    self.range.source,
+                ),
+            )
+
+
+class AndExpr(BooleanBinaryOpExpr):
+    grammar = [UseExact("op", "&&"), lvl3]
+    precedence = 2
+    closure_name = "blpx_and"
 
 
 lvl2 = precedence([lvl3, ZeroOrMore(AndExpr)])
 
 
-class OrExpr(BinaryOpExpr):
-    grammar = [Keyword("||"), Mark("after_op"), lvl2]
+class OrExpr(BooleanBinaryOpExpr):
+    grammar = [UseExact("op", "||"), lvl2]
     precedence = 1
     closure_name = "blpx_or"
-    type = BoolType()
-
-    @context(ValueTypeCtx)
-    def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(BoolType())
 
 
 lvl1 = precedence([lvl2, ZeroOrMore(OrExpr)])
@@ -1039,10 +1201,9 @@ def decompile_if(ctx: DecompileCtx, gir: gir.GirContext, element: Element):
     decompile_element(ctx, gir, element.children[1])
     ctx.print("}")
 
-    if (
-        element.children[2].tag == "closure"
-        and element.children[2].attrs.get("function") == "blpx_if"
-    ):
+    if element.children[2].tag == "closure" and element.children[2].attrs.get(
+        "function", ""
+    ).startswith("blpx_if"):
         ctx.print("elif ")
         decompile_if(ctx, gir, element.children[2])
     else:
@@ -1057,10 +1218,15 @@ def decompile_closure(ctx: DecompileCtx, gir: gir.GirContext, function: str, typ
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
 
-    if function == "blpx_if":
+    if function.startswith("blpx_if"):
         assert ctx.current_node is not None
         ctx.print("if ")
         decompile_if(ctx, gir, ctx.current_node)
+        return
+
+    if function.startswith("blpx_cast_"):
+        assert ctx.current_node is not None
+        decompile_element(ctx, gir, ctx.current_node.children[0])
         return
 
     for op in OPERATORS:

@@ -23,4 +23,12 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
       </try>
     </binding>
   </object>
+  <object class="MyObject" id="obj">
+    <binding name="prop1">
+      <try>
+        <lookup name="prop2" type="MyObject">obj</lookup>
+        <constant type="gboolean">true</constant>
+      </try>
+    </binding>
+  </object>
 </interface>

@@ -11,6 +11,7 @@ from .expression import (
     CastExpr,
     ClosureArg,
     ClosureExpr,
+    ConvertExpr,
     ExprBase,
     Expression,
     LiteralExpr,

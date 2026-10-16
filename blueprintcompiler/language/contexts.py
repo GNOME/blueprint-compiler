@@ -29,7 +29,11 @@ from .gtkbuilder_template import Template
 class ValueTypeCtx:
     value_type: GirType | None
     allow_null: bool = False
-    must_infer_type: bool = False
+    must_infer_type: bool = True
+    # In some contexts, the parent emits the type error rather than the child.
+    # For example, the expression `1 || true` should emit "Cannot apply || to non-boolean type 1"
+    # rather than "Cannot convert number to bool".
+    ignore_type_errors: bool = False
 
 
 @dataclass

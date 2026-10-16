@@ -24,7 +24,7 @@ import traceback
 from difflib import SequenceMatcher
 from typing import Callable
 
-from . import decompiler, formatter, language, parser, tokenizer, utils, xml_reader
+from . import decompiler, formatter, language, parser, tokenizer, xml_reader
 from .ast_utils import AstNode
 from .completions import complete
 from .errors import CompileError, MultipleErrors
@@ -32,6 +32,7 @@ from .linter import lint
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
 from .tokenizer import Range, SourceCode, TextEdit
+from .utils import CompilerOptions, ExpressionFormat
 
 
 def printerr(*args, **kwargs):
@@ -75,7 +76,10 @@ class OpenFile:
     def _update(self) -> None:
         self.diagnostics: list[CompileError] = []
         try:
-            self.ast, errors, warnings = parser.parse(self.source, blpx=True)
+            self.source = tokenizer.tokenize(self.text)
+            self.ast, errors, warnings = parser.parse(
+                self.source, opts=CompilerOptions(expressions=ExpressionFormat.BLPX)
+            )
             self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors

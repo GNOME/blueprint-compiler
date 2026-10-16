@@ -1,0 +1,13 @@
+using Gtk 4.0;
+
+Label {
+  visible: bind true > false;
+}
+
+Label {
+  visible: bind 1 < 2 < 3;
+}
+
+Label a {
+  visible: bind a == 1;
+}

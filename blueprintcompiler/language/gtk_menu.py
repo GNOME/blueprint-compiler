@@ -110,7 +110,7 @@ class MenuAttribute(AstNode):
 
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
-        return ValueTypeCtx(None)
+        return ValueTypeCtx(None, must_infer_type=False)
 
     @validate("name")
     def unique(self):

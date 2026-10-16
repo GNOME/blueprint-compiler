@@ -526,6 +526,10 @@ class ExternType(ObjectType):
         return [self._repo.get_type("Object", "GObject")]
 
     @property
+    def name(self) -> str:
+        return self.full_name
+
+    @property
     def full_name(self) -> str:
         if self._ns:
             return f"${self._ns}.{self._name}"
@@ -892,11 +896,11 @@ class Namespace(GirNode):
             if isinstance(entry, Class)
         }
 
-    def get_type(self, name) -> GirType | None:
+    def get_type(self, name) -> GirType:
         """Gets a type (class, interface, enum, etc.) from this namespace."""
-        return self.entries.get(name)
+        return self.entries.get(name, InvalidType())
 
-    def get_type_by_cname(self, cname: str) -> GirType | None:
+    def get_type_by_cname(self, cname: str) -> GirType:
         """Gets a type from this namespace by its C name."""
         for basic in BASIC_TYPES.values():
             if basic.glib_type_name == cname:
@@ -909,9 +913,9 @@ class Namespace(GirNode):
                 and item.cname == cname
             ):
                 return item
-        return None
+        return InvalidType()
 
-    def lookup_type(self, type_name: str) -> GirType | None:
+    def lookup_type(self, type_name: str) -> GirType:
         """Looks up a type in the scope of this namespace (including in the
         namespace's dependencies)."""
 
@@ -930,7 +934,7 @@ class Repository(GirNode):
 
         self._namespace = Namespace(self, gir_repo, ns)
 
-    def get_type(self, name: str, ns: str) -> GirType | None:
+    def get_type(self, name: str, ns: str) -> GirType:
         return self.lookup_namespace(ns).get_type(name)
 
     def lookup_namespace(self, ns: str):
@@ -996,20 +1000,20 @@ class GirContext:
 
         self.namespaces[namespace.name] = namespace
 
-    def get_type_by_cname(self, name: str) -> GirType | None:
+    def get_type_by_cname(self, name: str) -> GirType:
         for ns in self.namespaces.values():
             if type := ns.get_type_by_cname(name):
                 return type
-        return None
+        return InvalidType()
 
-    def get_type(self, name: str, ns: str) -> GirType | None:
+    def get_type(self, name: str, ns: str) -> GirType:
         if ns is None and name in BASIC_TYPES:
             return BASIC_TYPES[name]()
 
         ns = ns or "Gtk"
 
         if ns not in self.namespaces:
-            return None
+            return InvalidType()
 
         return self.namespaces[ns].get_type(name)
 
@@ -1036,7 +1040,7 @@ class GirContext:
 
         ns = ns or "Gtk"
 
-        if type is None:
+        if isinstance(type, InvalidType):
             raise CompileError(
                 f"Namespace {ns} does not contain a type called {name}",
                 did_you_mean=(name, self.namespaces[ns].classes.keys()),

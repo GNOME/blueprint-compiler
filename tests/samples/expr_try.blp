@@ -4,3 +4,7 @@ Button button {
   label: bind try { button.label, $backup_label(button), "Hello, world!" };
   child: bind try { $expr1() as <Label>, $expr2() as <Button> };
 }
+
+$MyObject obj {
+  prop1: bind try { obj.prop2, true };
+}

@@ -61,7 +61,7 @@ class Template(Object):
         )
 
     @property
-    def gir_class(self) -> GirType | None:
+    def gir_class(self) -> GirType:
         if isinstance(self.class_name.gir_type, ExternType):
             if gir := self.parent_type:
                 return TemplateType(self.class_name.gir_type.full_name, gir.gir_type)

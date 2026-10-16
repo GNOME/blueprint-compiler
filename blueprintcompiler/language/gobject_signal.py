@@ -17,6 +17,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from blueprintcompiler.types import InvalidType
+
+from ..types import InvalidType
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import Object
@@ -182,7 +185,7 @@ class Signal(AstNode):
 
     @validate("name")
     def signal_exists(self):
-        if self.gir_class is None or self.gir_class.incomplete:
+        if self.gir_class.incomplete:
             # Objects that we have no gir data on should not be validated
             # This happens for classes defined by the app itself
             return

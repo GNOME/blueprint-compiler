@@ -8,10 +8,10 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <requires lib="gtk" version="4.0"/>
   <object class="GtkStack">
     <binding name="visible-child">
-      <closure function="blpx_if" type="GtkLabel">
+      <closure function="blpx_if_ptr" type="GtkLabel">
         <constant type="gboolean">true</constant>
         <constant>label1</constant>
-        <closure function="blpx_if" type="GtkLabel">
+        <closure function="blpx_if_ptr" type="GtkLabel">
           <constant type="gboolean">false</constant>
           <constant>label2</constant>
           <constant>label3</constant>

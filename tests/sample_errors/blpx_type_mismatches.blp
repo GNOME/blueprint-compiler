@@ -1,0 +1,20 @@
+using Gtk 4.0;
+
+$MyObject a {
+  prop1: bind if 1 { true } else { false };
+  prop2: bind if a { true } else { false };
+
+  // no error, $test() is inferred to return bool
+  prop3: bind if $test() { true } else { false };
+
+  prop4: bind if true { null } else { false };
+
+  // Boolean operators
+  prop5: bind 1 && 4;
+  prop6: bind 1 && true;
+  prop7: bind false || $test() as <float>;
+
+  prop8: bind if $thing() as <unknown> { true } else { false };
+
+  prop9: bind if true { $test1() } else { true };
+}

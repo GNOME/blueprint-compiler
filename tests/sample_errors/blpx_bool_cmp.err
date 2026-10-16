@@ -1,0 +1,3 @@
+4,22,1,Cannot apply > to non-numeric types bool and bool
+8,23,1,Cannot apply < to non-numeric type bool
+12,19,2,Cannot equate Gtk.Label and int

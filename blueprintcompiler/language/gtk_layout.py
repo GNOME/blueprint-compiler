@@ -52,7 +52,7 @@ class LayoutProperty(AstNode):
     @context(ValueTypeCtx)
     def value_type(self) -> ValueTypeCtx:
         # there isn't really a way to validate these
-        return ValueTypeCtx(None)
+        return ValueTypeCtx(None, must_infer_type=False)
 
     @validate("name")
     def unique_in_parent(self):

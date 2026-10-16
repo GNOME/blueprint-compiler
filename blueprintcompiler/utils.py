@@ -146,6 +146,7 @@ def unescape_quote(string: str) -> str:
 
 class ExpressionFormat(str, Enum):
     BLPX = "blpx"
+    BLPX_DYNAMIC = "blpx-dynamic"
 
 
 @dataclass
