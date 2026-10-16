@@ -799,7 +799,7 @@ lvl5 = precedence([lvl6, ZeroOrMore(MulExpr)])
 
 
 class AddExpr(BinaryOpExpr):
-    grammar = [AnyOf(Keyword("+"), Keyword("-")), lvl5]
+    grammar = [AnyOf(Keyword("+"), Keyword("-")), Mark("after_op"), lvl5]
     precedence = 4
 
     @property
@@ -879,6 +879,7 @@ class CompareExpr(BinaryOpExpr):
             UseExact("op", ">"),
             UseExact("op", ">="),
         ),
+        Mark("after_op"),
         lvl4,
     ]
     precedence = 3
@@ -906,7 +907,7 @@ lvl3 = precedence([lvl4, ZeroOrMore(CompareExpr)])
 
 
 class AndExpr(BinaryOpExpr):
-    grammar = [Keyword("&&"), lvl3]
+    grammar = [Keyword("&&"), Mark("after_op"), lvl3]
     precedence = 2
     closure_name = "blpx_and"
     type = BoolType()
@@ -920,7 +921,7 @@ lvl2 = precedence([lvl3, ZeroOrMore(AndExpr)])
 
 
 class OrExpr(BinaryOpExpr):
-    grammar = [Keyword("||"), lvl2]
+    grammar = [Keyword("||"), Mark("after_op"), lvl2]
     precedence = 1
     closure_name = "blpx_or"
     type = BoolType()
