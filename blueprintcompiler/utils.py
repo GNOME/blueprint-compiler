@@ -1,5 +1,4 @@
 # utils.py
-#
 # Copyright 2021 James Westman <james@jwestman.net>
 #
 # This file is free software; you can redistribute it and/or modify it
@@ -17,7 +16,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
+from collections.abc import Collection
 from dataclasses import dataclass
 
 
@@ -38,7 +37,7 @@ def terminal_link(text: str, url: str):
     return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
 
 
-def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
+def did_you_mean(word: str, options: Collection[str]) -> str | None:
     if len(options) == 0:
         return None
 
@@ -77,7 +76,7 @@ def did_you_mean(word: str, options: T.List[str]) -> T.Optional[str]:
     return None
 
 
-def idx_to_pos(idx: int, text: str) -> T.Tuple[int, int]:
+def idx_to_pos(idx: int, text: str) -> tuple[int, int]:
     if idx == 0 or len(text) == 0:
         return (0, 0)
     line_num = text.count("\n", 0, idx) + 1
@@ -201,14 +200,14 @@ class Range:
         return Range(start, self.end, self.original_text)
 
     @staticmethod
-    def join(a: T.Optional["Range"], b: T.Optional["Range"]) -> T.Optional["Range"]:
+    def join(a: "Range" | None, b: "Range" | None) -> "Range" | None:
         if a is None:
             return b
         if b is None:
             return a
         return Range(min(a.start, b.start), max(a.end, b.end), a.original_text)
 
-    def __contains__(self, other: T.Union[int, "Range"]) -> bool:
+    def __contains__(self, other: int | "Range") -> bool:
         if isinstance(other, int):
             return self.start <= other <= self.end
         else:
@@ -230,7 +229,7 @@ class TextEdit:
         return {"range": self.range.to_json(), "newText": self.newText}
 
     @staticmethod
-    def apply_edits(string: str, edits: T.List["TextEdit"]):
+    def apply_edits(string: str, edits: list["TextEdit"]):
         offset = 0
         edits = sorted(edits, key=lambda e: e.range.start)
         for edit in edits:

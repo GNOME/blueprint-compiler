@@ -21,7 +21,6 @@
 
 import json
 import os
-import typing as T
 from dataclasses import dataclass
 
 from . import gir
@@ -29,7 +28,7 @@ from . import gir
 
 @dataclass
 class Annotation:
-    translatable_properties: T.List[str]
+    translatable_properties: list[str]
 
 
 def is_property_user_facing_string(property: gir.Property):
@@ -219,6 +218,6 @@ def load_stats():
     return stats
 
 
-def get_common_completions(class_name: str) -> T.List[str]:
+def get_common_completions(class_name: str) -> list[str]:
     stats = load_stats()
     return stats.get(class_name, [])

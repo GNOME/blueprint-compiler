@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
 from functools import cached_property
 from xml import sax
 
@@ -44,17 +43,17 @@ PARSE_GIR = set(
 
 
 class Element:
-    def __init__(self, tag: str, attrs: T.Dict[str, str]):
+    def __init__(self, tag: str, attrs: dict[str, str]):
         self.tag = tag
         self.attrs = attrs
-        self.children: T.List["Element"] = []
-        self.cdata_chunks: T.List[str] = []
+        self.children: list["Element"] = []
+        self.cdata_chunks: list[str] = []
 
     @cached_property
-    def cdata(self):
+    def cdata(self) -> str:
         return "".join(self.cdata_chunks)
 
-    def get_elements(self, name: str) -> T.List["Element"]:
+    def get_elements(self, name: str) -> list["Element"]:
         return [child for child in self.children if child.tag == name]
 
     def __getitem__(self, key: str):

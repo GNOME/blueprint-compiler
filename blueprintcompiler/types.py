@@ -17,32 +17,31 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-
-import typing as T
+from typing import Iterable
 
 
 class GirType:
     @property
-    def doc(self) -> T.Optional[str]:
+    def doc(self) -> str | None:
         return None
 
-    def assignable_to(self, other: "GirType") -> bool:
+    def assignable_to(self, other: "GirType" | None) -> bool:
         raise NotImplementedError()
 
     def castable_to(self, other: "GirType") -> bool:
         return self.assignable_to(other)
 
-    def parent_types(self) -> T.Iterable["GirType"]:
+    def parent_types(self) -> Iterable["GirType"]:
         return []
 
     @staticmethod
-    def common_ancestor(types: T.List["GirType"]) -> T.Optional["GirType"]:
+    def common_ancestor(types: list["GirType"]) -> "GirType" | None:
         """Returns the most specific type that both this and the other type can be assigned to, or None if there is no such type."""
 
         if len(types) == 0:
             return None
 
-        def pairwise(a: GirType, b: GirType) -> T.Optional[GirType]:
+        def pairwise(a: GirType, b: GirType) -> GirType | None:
             for ancestor_a in [a] + list(a.parent_types()):
                 for ancestor_b in [b] + list(b.parent_types()):
                     if ancestor_a.assignable_to(ancestor_b):
@@ -84,7 +83,7 @@ class GirType:
         return False
 
     @property
-    def deprecated_doc(self) -> T.Optional[str]:
+    def deprecated_doc(self) -> str | None:
         return None
 
 
@@ -97,7 +96,7 @@ class ArrayType(GirType):
     def __init__(self, inner: GirType) -> None:
         self._inner = inner
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, ArrayType) and self._inner.assignable_to(other._inner)
 
     @property
@@ -119,7 +118,7 @@ class GListType(GirType):
     def __init__(self, inner: GirType) -> None:
         self._inner = inner
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, GListType) and self._inner.assignable_to(other._inner)
 
     @property
@@ -156,7 +155,7 @@ class VoidType(GirType):
     def transformable_to(self, other: GirType):
         return False
 
-    def assignable_to(self, other: GirType):
+    def assignable_to(self, other: GirType | None):
         return False
 
 
@@ -178,7 +177,7 @@ class CharType(CharacterType):
     name = "char"
     glib_type_name: str = "gchar"
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, CharType)
 
 
@@ -186,7 +185,7 @@ class UCharType(CharacterType):
     name = "uchar"
     glib_type_name: str = "guchar"
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, UCharType) or isinstance(other, CharType)
 
 
@@ -194,7 +193,7 @@ class BoolType(BasicType):
     name = "bool"
     glib_type_name: str = "gboolean"
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, BoolType)
 
     def transformable_to(self, other: GirType) -> bool:
@@ -215,7 +214,7 @@ class NumericType(BasicType):
     size: int
     floating: bool
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         if not isinstance(other, NumericType):
             return False
 
@@ -363,7 +362,7 @@ class StringType(BasicType):
     name = "string"
     glib_type_name: str = "gchararray"
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, StringType)
 
     def transformable_to(self, other: GirType) -> bool:
@@ -374,7 +373,7 @@ class TypeType(BasicType):
     name = "GType"
     glib_type_name: str = "GType"
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, TypeType)
 
 

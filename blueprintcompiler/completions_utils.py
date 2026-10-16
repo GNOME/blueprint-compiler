@@ -18,9 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable, Generator
 
 from .ast_utils import AstNode
 from .lsp_utils import Completion
@@ -39,7 +39,7 @@ class CompletionPriority(Enum):
 
 
 def get_sort_key(
-    priority: CompletionPriority, name: str, popularity: T.Optional[int] = None
+    priority: CompletionPriority, name: str, popularity: int | None = None
 ) -> str:
     if popularity is not None:
         return f"0 {priority.value} {popularity:02d} {name}"
@@ -47,7 +47,7 @@ def get_sort_key(
         return f"1 {priority.value} {name}"
 
 
-def pop_label(name: str, pop: T.Optional[int]) -> str:
+def pop_label(name: str, pop: int | None) -> str:
     return ("\u2605 " if pop is not None else "") + name
 
 
@@ -55,7 +55,7 @@ def pop_label(name: str, pop: T.Optional[int]) -> str:
 class CompletionContext:
     client_supports_completion_choice: bool
     ast_node: AstNode
-    match_variables: T.List[str]
+    match_variables: list[str]
     next_token: Token
     index: int
 
@@ -68,13 +68,11 @@ new_statement_patterns = [
 ]
 
 
-def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None):
+def completer(applies_in: list, matches: list = [], applies_in_subclass=None):
     def decorator(
-        func: T.Callable[[CompletionContext], T.Generator[Completion, None, None]],
+        func: Callable[[CompletionContext], Generator[Completion, None, None]],
     ):
-        def inner(
-            prev_tokens: T.List[Token], next_token: Token, ast_node, lsp, idx: int
-        ):
+        def inner(prev_tokens: list[Token], next_token: Token, ast_node, lsp, idx: int):
             # For completers that apply in ObjectContent nodes, we can further
             # check that the object is the right class
             if applies_in_subclass is not None:
@@ -85,7 +83,7 @@ def completer(applies_in: T.List, matches: T.List = [], applies_in_subclass=None
                     return
 
             any_match = len(matches) == 0
-            match_variables: T.List[str] = []
+            match_variables: list[str] = []
 
             for pattern in matches:
                 match_variables = []

@@ -63,11 +63,11 @@ class ExtAdwResponseDialogResponse(AstNode):
         return self.tokens["id"]
 
     @property
-    def flags(self) -> T.List[ExtAdwResponseDialogFlag]:
+    def flags(self) -> list[ExtAdwResponseDialogFlag]:
         return self.children[ExtAdwResponseDialogFlag]
 
     @property
-    def appearance(self) -> T.Optional[str]:
+    def appearance(self) -> str | None:
         if any(flag.flag == "destructive" for flag in self.flags):
             return "destructive"
         elif any(flag.flag == "suggested" for flag in self.flags):
@@ -80,11 +80,11 @@ class ExtAdwResponseDialogResponse(AstNode):
         return not any(flag.flag == "disabled" for flag in self.flags)
 
     @property
-    def value(self) -> T.Optional[StringValue]:
+    def value(self) -> StringValue | None:
         return self.children[0]
 
     @property
-    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+    def document_symbol(self) -> DocumentSymbol | None:
         if self.value is None:
             return None
 
@@ -113,7 +113,7 @@ class ExtAdwResponseDialog(AstNode):
     ]
 
     @property
-    def responses(self) -> T.List[ExtAdwResponseDialogResponse]:
+    def responses(self) -> list[ExtAdwResponseDialogResponse]:
         return self.children
 
     @property

@@ -17,8 +17,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from __future__ import annotations
+
 import re
-import typing as T
 from dataclasses import dataclass
 from enum import Enum
 
@@ -76,7 +77,7 @@ def format(data, tab_size=2, insert_space=True):
 
         @dataclass
         class Frame:
-            parent: T.Optional["Frame"]
+            parent: Frame | None
             level: int
             indent: int
             extra_indent: bool = False

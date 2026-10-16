@@ -39,7 +39,7 @@ class Property(AstNode):
         return self.tokens["name"]
 
     @property
-    def value(self) -> T.Union[Binding, ExprValue, ObjectValue, Value, ArrayValue]:
+    def value(self) -> Binding | ExprValue | ObjectValue | Value | ArrayValue:
         return self.children[0]
 
     @property
@@ -47,7 +47,7 @@ class Property(AstNode):
         return self.parent.parent.gir_class
 
     @property
-    def gir_property(self) -> T.Optional[gir.Property]:
+    def gir_property(self) -> gir.Property | None:
         if hasattr(self.gir_class, "properties"):
             return self.gir_class.properties.get(self.tokens["name"])
         else:

@@ -19,7 +19,6 @@
 
 
 import re
-import typing as T
 from enum import Enum
 
 from .utils import Range
@@ -73,7 +72,7 @@ class Token:
         else:
             return self.range
 
-    def get_number(self) -> T.Union[int, float]:
+    def get_number(self) -> int | float:
         from .errors import CompileError, CompilerBugError
 
         if self.type != TokenType.NUMBER:
@@ -115,5 +114,5 @@ def _tokenize(ui_ml: str):
     yield Token(TokenType.EOF, i, i, ui_ml)
 
 
-def tokenize(data: str) -> T.List[Token]:
+def tokenize(data: str) -> list[Token]:
     return list(_tokenize(data))

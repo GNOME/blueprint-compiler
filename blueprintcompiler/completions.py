@@ -17,27 +17,27 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
+from typing import Iterator
 
 from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
 from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
-from .parser import SKIP_TOKENS
+from .parse_tree import SKIP_TOKENS
 from .tokenizer import Token, TokenType
 
-Pattern = T.List[T.Tuple[TokenType, T.Optional[str]]]
+Pattern = list[tuple[TokenType, str | None]]
 
 
 def _complete(
     lsp,
     ast_node: AstNode,
-    tokens: T.List[Token],
+    tokens: list[Token],
     idx: int,
     token_idx: int,
     next_token: Token,
-) -> T.Iterator[Completion]:
+) -> Iterator[Completion]:
     for child in ast_node.children:
         if child.group.start <= idx and (
             idx < child.group.end or (idx == child.group.end and child.incomplete)
@@ -45,7 +45,7 @@ def _complete(
             yield from _complete(lsp, child, tokens, idx, token_idx, next_token)
             return
 
-    prev_tokens: T.List[Token] = []
+    prev_tokens: list[Token] = []
 
     # collect the 5 previous non-skipped tokens
     while len(prev_tokens) < 5 and token_idx >= 0:
@@ -59,8 +59,8 @@ def _complete(
 
 
 def complete(
-    lsp, ast_node: AstNode, tokens: T.List[Token], idx: int
-) -> T.Iterator[Completion]:
+    lsp, ast_node: AstNode, tokens: list[Token], idx: int
+) -> Iterator[Completion]:
     token_idx = 0
     # find the current token
     for i, token in enumerate(tokens):

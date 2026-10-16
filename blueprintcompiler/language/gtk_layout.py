@@ -33,7 +33,7 @@ class LayoutProperty(AstNode):
         return self.tokens["name"]
 
     @property
-    def value(self) -> T.Optional[Value]:
+    def value(self) -> Value | None:
         if len(self.children[Value]) > 0:
             return self.children[Value][0]
         else:

@@ -47,7 +47,7 @@ class TypeName(AstNode):
         return self.tokens["class_name"]
 
     @property
-    def namespace(self) -> T.Optional[str]:
+    def namespace(self) -> str | None:
         return self.tokens["namespace"]
 
     @validate()
@@ -89,13 +89,13 @@ class TypeName(AstNode):
             )
 
     @property
-    def gir_ns(self) -> T.Optional[gir.Namespace]:
+    def gir_ns(self) -> gir.Namespace | None:
         if not self.is_extern:
             return self.root.gir.namespaces.get(self.namespace or "Gtk")
         return None
 
     @property
-    def gir_type(self) -> T.Optional[gir.GirType]:
+    def gir_type(self) -> gir.GirType | None:
         if self.class_name is not None and not self.is_extern:
             return self.root.gir.get_type(self.class_name, self.namespace)
 
@@ -175,7 +175,7 @@ class TemplateClassName(ClassName):
         )
 
     @property
-    def gir_type(self) -> T.Optional[gir.GirType]:
+    def gir_type(self) -> gir.GirType | None:
         if self.is_legacy:
             return gir.ExternType(self.root.gir, self.namespace, self.class_name)
         else:

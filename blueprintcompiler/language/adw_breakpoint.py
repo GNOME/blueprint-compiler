@@ -73,26 +73,26 @@ class AdwBreakpointSetter(AstNode):
         return self.tokens["object"]
 
     @property
-    def object(self) -> T.Optional[Object]:
+    def object(self) -> Object | None:
         return self.context[ScopeCtx].objects.get(self.object_id)
 
     @property
-    def property_name(self) -> T.Optional[str]:
+    def property_name(self) -> str | None:
         return self.tokens["property"]
 
     @property
-    def value(self) -> T.Optional[Value]:
+    def value(self) -> Value | None:
         return self.children[Value][0] if len(self.children[Value]) > 0 else None
 
     @property
-    def gir_class(self) -> T.Optional[GirType]:
+    def gir_class(self) -> GirType | None:
         if self.object is not None:
             return self.object.gir_class
         else:
             return None
 
     @property
-    def gir_property(self) -> T.Optional[gir.Property]:
+    def gir_property(self) -> gir.Property | None:
         if (
             self.gir_class is not None
             and not isinstance(self.gir_class, ExternType)
@@ -106,7 +106,7 @@ class AdwBreakpointSetter(AstNode):
             return None
 
     @property
-    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+    def document_symbol(self) -> DocumentSymbol | None:
         if self.value is None:
             return None
 
@@ -118,7 +118,7 @@ class AdwBreakpointSetter(AstNode):
             self.value.range.text,
         )
 
-    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+    def get_reference(self, idx: int) -> LocationLink | None:
         if idx in self.group.tokens["object"].range:
             if self.object is not None:
                 return LocationLink(
@@ -190,7 +190,7 @@ class AdwBreakpointSetters(AstNode):
     ]
 
     @property
-    def setters(self) -> T.List[AdwBreakpointSetter]:
+    def setters(self) -> list[AdwBreakpointSetter]:
         return self.children[AdwBreakpointSetter]
 
     @property

@@ -1,6 +1,3 @@
-import typing as T
-
-from blueprintcompiler.errors import T
 from blueprintcompiler.lsp_utils import DocumentSymbol
 
 from ..ast_utils import AstNode, validate
@@ -43,7 +40,7 @@ class ExtListItemFactory(AstNode):
         )
 
     @property
-    def type_name(self) -> T.Optional[TypeName]:
+    def type_name(self) -> TypeName | None:
         if len(self.children[TypeName]) == 1:
             return self.children[TypeName][0]
         else:

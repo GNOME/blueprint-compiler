@@ -17,8 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
-
 from blueprintcompiler.language.values import StringValue
 
 from .common import *
@@ -57,7 +55,7 @@ class Menu(AstNode):
         return self.tokens["tag"]
 
     @property
-    def items(self) -> T.List[T.Union["Menu", "MenuAttribute"]]:
+    def items(self) -> list["Menu" | "MenuAttribute"]:
         return self.children
 
     @validate("id")

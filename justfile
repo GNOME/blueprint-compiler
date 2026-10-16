@@ -14,7 +14,7 @@ test: mypy unittest
 
 # Check typings with mypy
 mypy:
-    mypy --python-version=3.9 blueprintcompiler/
+    mypy --python-version=3.11 blueprintcompiler/
 
 # Test code with unittest
 unittest:

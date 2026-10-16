@@ -30,7 +30,7 @@ class Item(AstNode):
     ]
 
     @property
-    def name(self) -> T.Optional[str]:
+    def name(self) -> str | None:
         return self.tokens["name"]
 
     @property
@@ -113,7 +113,7 @@ def decompile_item(
     ctx: DecompileCtx,
     gir: gir.GirContext,
     cdata: str,
-    id: T.Optional[str] = None,
+    id: str | None = None,
     translatable="false",
     comments=None,
     context=None,

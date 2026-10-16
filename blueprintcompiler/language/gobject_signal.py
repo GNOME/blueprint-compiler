@@ -17,8 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
-
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import Object
@@ -92,7 +90,7 @@ class Signal(AstNode):
         return self.tokens["name"]
 
     @property
-    def detail_name(self) -> T.Optional[str]:
+    def detail_name(self) -> str | None:
         return self.tokens["detail_name"]
 
     @property
@@ -107,22 +105,22 @@ class Signal(AstNode):
         return self.tokens["handler"]
 
     @property
-    def object_id(self) -> T.Optional[str]:
+    def object_id(self) -> str | None:
         return self.tokens["object"]
 
     @property
-    def object(self) -> T.Optional[Object]:
+    def object(self) -> Object | None:
         return self.context[ScopeCtx].objects.get(self.object_id)
 
     @property
-    def flags(self) -> T.List[SignalFlag]:
+    def flags(self) -> list[SignalFlag]:
         return self.children[SignalFlag]
 
     # Returns True if the "swapped" flag is present, False if "not-swapped" is present, and None if neither are present.
     # GtkBuilder's default if swapped is not specified is to not swap the arguments if no object is specified, and to
     # swap them if an object is specified.
     @property
-    def is_swapped(self) -> T.Optional[bool]:
+    def is_swapped(self) -> bool | None:
         for flag in self.flags:
             if flag.flag == "swapped":
                 return True
@@ -135,7 +133,7 @@ class Signal(AstNode):
         return any(x.flag == "after" for x in self.flags)
 
     @property
-    def gir_signal(self) -> T.Optional[gir.Signal]:
+    def gir_signal(self) -> gir.Signal | None:
         if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
             return self.gir_class.signals.get(self.tokens["name"])
         else:
@@ -156,7 +154,7 @@ class Signal(AstNode):
             detail.text if detail is not None else None,
         )
 
-    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+    def get_reference(self, idx: int) -> LocationLink | None:
         if self.object_id is not None and idx in self.group.tokens["object"].range:
             obj = self.context[ScopeCtx].objects.get(self.object_id)
             if obj is not None:

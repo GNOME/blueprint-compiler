@@ -19,7 +19,7 @@
 
 import sys
 import traceback
-import typing as T
+from collections.abc import Collection
 from dataclasses import dataclass
 
 from . import utils
@@ -52,13 +52,13 @@ class CompileError(PrintableError):
     def __init__(
         self,
         message: str,
-        range: T.Optional[Range] = None,
-        did_you_mean: T.Optional[T.Tuple[str, T.List[str]]] = None,
-        hints: T.Optional[T.List[str]] = None,
-        actions: T.Optional[T.List["CodeAction"]] = None,
+        range: Range | None = None,
+        did_you_mean: tuple[str, Collection[str]] | None = None,
+        hints: list[str] | None = None,
+        actions: list["CodeAction"] | None = None,
         fatal: bool = False,
-        references: T.Optional[T.List[ErrorReference]] = None,
-        id: T.Optional[str] = None,
+        references: list[ErrorReference] | None = None,
+        id: str | None = None,
     ) -> None:
         super().__init__(message)
 
@@ -81,7 +81,7 @@ class CompileError(PrintableError):
         self.hints.append(hint)
         return self
 
-    def _did_you_mean(self, word: str, options: T.List[str]) -> None:
+    def _did_you_mean(self, word: str, options: Collection[str]) -> None:
         if word.replace("_", "-") in options:
             self.hint(f"use '-', not '_': `{word.replace('_', '-')}`")
             return
@@ -198,8 +198,8 @@ class UnexpectedTokenError(CompileError):
 class CodeAction:
     title: str
     replace_with: str
-    edit_range: T.Optional[Range] = None
-    additional_edits: T.Optional[list[TextEdit]] = None
+    edit_range: Range | None = None
+    additional_edits: list[TextEdit] | None = None
 
 
 class MultipleErrors(PrintableError):
@@ -207,7 +207,7 @@ class MultipleErrors(PrintableError):
     a list and re-thrown using the MultipleErrors exception. It will
     pretty-print all of the errors and a count of how many errors there are."""
 
-    def __init__(self, errors: T.List[CompileError]) -> None:
+    def __init__(self, errors: list[CompileError]) -> None:
         super().__init__()
         self.errors = errors
 
@@ -222,7 +222,7 @@ class CompilerBugError(Exception):
     """Emitted on assertion errors"""
 
 
-def assert_true(truth: bool, message: T.Optional[str] = None):
+def assert_true(truth: bool, message: str | None = None):
     if not truth:
         raise CompilerBugError(message)
 

@@ -18,15 +18,15 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .errors import MultipleErrors, PrintableError
-from .language import OBJECT_CONTENT_HOOKS, UI, Template
-from .parse_tree import *
-from .tokenizer import TokenType
+from .errors import CompileError, MultipleErrors
+from .language import UI
+from .parse_tree import AnyOf, ParseContext
+from .tokenizer import Token
 
 
 def parse(
-    tokens: T.List[Token],
-) -> T.Tuple[T.Optional[UI], T.Optional[MultipleErrors], T.List[CompileError]]:
+    tokens: list[Token],
+) -> tuple[UI | None, MultipleErrors | None, list[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
 
     try:

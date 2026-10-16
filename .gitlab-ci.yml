@@ -13,7 +13,7 @@ build:
     - black --check --diff ./ tests
     - isort --version
     - isort --check --diff --profile black ./ tests
-    - mypy --python-version=3.9 blueprintcompiler/
+    - mypy --python-version=3.11 blueprintcompiler/
     - G_DEBUG=fatal-warnings xvfb-run coverage run -m unittest
     - coverage report
     - coverage html
