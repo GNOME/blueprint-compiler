@@ -39,6 +39,7 @@ from blueprintcompiler.errors import (
 from blueprintcompiler.linter import lint
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
+from blueprintcompiler.utils import CompilerOptions
 
 
 class TestSamples(unittest.TestCase):
@@ -80,7 +81,9 @@ class TestSamples(unittest.TestCase):
 
     def compile(self, blueprint: str, blpx: bool):
         tokens = tokenizer.tokenize(blueprint)
-        ast, errors, warnings = parser.parse(tokens, blpx=blpx)
+        ast, errors, warnings = parser.parse(
+            tokens, opts=CompilerOptions(expressions="blpx" if blpx else None)
+        )
 
         # Ignore deprecation warnings because some of the things we're testing
         # are deprecated

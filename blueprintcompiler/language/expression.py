@@ -488,14 +488,14 @@ class OpExpr(ExprBase):
                 return
             parent = parent.parent
 
-        if not self.root.blpx_enabled:
+        if self.root.compiler_opts.expressions is None:
             start = (
                 self.lhs.range.start
                 if isinstance(self, InfixExpr) and self.lhs is not None
                 else self.range.start
             )
             raise CompileError(
-                f"Enable --blpx to use advanced expression features",
+                f"Enable --expressions=blpx to use advanced expression features",
                 range=Range(
                     start,
                     self.range.end,

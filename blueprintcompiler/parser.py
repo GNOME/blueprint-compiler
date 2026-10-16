@@ -22,20 +22,22 @@ from .errors import CompileError, MultipleErrors
 from .language import UI
 from .parse_tree import AnyOf, ParseContext
 from .tokenizer import SourceCode
+from .utils import CompilerOptions
 
 
 def parse(
-    source: SourceCode,
-    blpx: bool = False,
+    source: SourceCode, opts: CompilerOptions | None = None
 ) -> tuple[UI | None, MultipleErrors | None, list[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
+
+    opts = opts or CompilerOptions()
 
     try:
         ctx = ParseContext(source)
         AnyOf(UI).parse(ctx)
 
         assert ctx.last_group is not None
-        ast_node = ctx.last_group.to_ast(blpx=blpx)
+        ast_node = ctx.last_group.to_ast(compiler_opts=opts)
         assert isinstance(ast_node, UI)
 
         errors = [*ctx.errors, *ast_node.errors]

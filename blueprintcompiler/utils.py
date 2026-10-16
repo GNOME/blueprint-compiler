@@ -18,6 +18,7 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass
+from enum import Enum
 
 
 class Colors:
@@ -141,3 +142,12 @@ def unescape_quote(string: str) -> str:
         i += 1
 
     return result
+
+
+class ExpressionFormat(str, Enum):
+    BLPX = "blpx"
+
+
+@dataclass
+class CompilerOptions:
+    expressions: T.Optional[ExpressionFormat] = None
