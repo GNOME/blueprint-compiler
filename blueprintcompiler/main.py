@@ -35,7 +35,7 @@ from .errors import (
 from .gir import add_gir_search_path, add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
-from .utils import Colors
+from .utils import Colors, CompilerOptions, ExpressionFormat
 
 VERSION = "uninstalled"
 DATADIR = None
@@ -54,7 +54,7 @@ class BlueprintApp:
         compile.add_argument("--typelib-path", nargs="?", action="append")
         compile.add_argument("--gir-path", nargs="?", action="append")
         compile.add_argument(
-            "--blpx", help="Enable advanced expressions", action="store_true"
+            "--expressions", help="Enable advanced expressions", type=ExpressionFormat
         )
         compile.add_argument(
             "--minify",
@@ -74,7 +74,7 @@ class BlueprintApp:
         batch_compile.add_argument("--typelib-path", nargs="?", action="append")
         batch_compile.add_argument("--gir-path", nargs="?", action="append")
         batch_compile.add_argument(
-            "--blpx", help="Enable advanced expressions", action="store_true"
+            "--expressions", help="Enable advanced expressions", type=ExpressionFormat
         )
         batch_compile.add_argument(
             "--minify",
@@ -217,7 +217,11 @@ class BlueprintApp:
 
         data = opts.input.read()
         try:
-            xml, warnings = self._compile(data, minify=opts.minify, blpx=opts.blpx)
+            xml, warnings = self._compile(
+                data,
+                minify=opts.minify,
+                opts=CompilerOptions(expressions=opts.expressions),
+            )
 
             for warning in warnings:
                 warning.pretty_print(opts.input.name, data, stream=sys.stderr)
@@ -272,7 +276,11 @@ class BlueprintApp:
             data = file.read()
 
             try:
-                xml, warnings = self._compile(data, minify=opts.minify, blpx=opts.blpx)
+                xml, warnings = self._compile(
+                    data,
+                    minify=opts.minify,
+                    opts=CompilerOptions(expressions=opts.expressions),
+                )
 
                 for warning in warnings:
                     warning.pretty_print(file.name, data, stream=sys.stderr)
@@ -477,10 +485,10 @@ class BlueprintApp:
         interactive_port.run(opts)
 
     def _compile(
-        self, data: str, *, minify: bool = False, blpx: bool = False
+        self, data: str, *, minify: bool = False, opts: CompilerOptions | None = None
     ) -> tuple[str, list[CompileError]]:
         tokens = tokenizer.tokenize(data)
-        ast, errors, warnings = parser.parse(tokens, blpx=blpx)
+        ast, errors, warnings = parser.parse(tokens, opts=opts)
 
         if errors:
             raise errors

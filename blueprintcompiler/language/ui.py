@@ -20,6 +20,7 @@
 from functools import cached_property
 
 from .. import gir
+from ..utils import CompilerOptions, ExpressionFormat
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import Object
@@ -86,9 +87,9 @@ class UI(AstNode):
         else:
             return None
 
-    @property
-    def blpx_enabled(self) -> bool:
-        return self.tokens["blpx"]
+    @cached_property
+    def compiler_opts(self) -> CompilerOptions:
+        return self.tokens["compiler_opts"] or CompilerOptions()
 
     @property
     def contents(self) -> list[Object | Template | Menu]:

@@ -10,7 +10,7 @@ Advanced Expressions
 
 This works, and many consider it cleaner than imperative code that pushes state updates from the application to the UI. However, it is still difficult to read and write. Advanced expressions make these expressions easier by adding new syntax for common operations. ``Note that you still have to implement the logic for these operations in your application code--advanced expressions just make it easier to call that logic from expressions.``
 
-To use advanced expressions, pass the ``--blpx`` flag to the compiler. Advanced expressions are still experimental and subject to change.
+To use advanced expressions, pass the ``--expressions=blpx`` flag to the compiler. Advanced expressions are still experimental and subject to change.
 
 .. _Syntax AdvancedExpression:
 

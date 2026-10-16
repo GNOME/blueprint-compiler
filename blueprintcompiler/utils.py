@@ -18,6 +18,7 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass
+from enum import Enum
 
 
 class Colors:
@@ -241,3 +242,12 @@ class TextEdit:
             offset += len(edit.newText) - edit.range.length
 
         return string
+
+
+class ExpressionFormat(str, Enum):
+    BLPX = "blpx"
+
+
+@dataclass
+class CompilerOptions:
+    expressions: T.Optional[ExpressionFormat] = None

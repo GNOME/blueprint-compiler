@@ -21,13 +21,15 @@
 from .errors import MultipleErrors
 from .language import UI
 from .parse_tree import *
+from .utils import CompilerOptions
 
 
 def parse(
-    tokens: list[Token],
-    blpx: bool = False,
+    tokens: list[Token], opts: CompilerOptions | None = None
 ) -> tuple[UI | None, MultipleErrors | None, list[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
+
+    opts = opts or CompilerOptions()
 
     try:
         original_text = tokens[0].string if len(tokens) else ""
@@ -35,7 +37,7 @@ def parse(
         AnyOf(UI).parse(ctx)
 
         assert ctx.last_group is not None
-        ast_node = ctx.last_group.to_ast(blpx=blpx)
+        ast_node = ctx.last_group.to_ast(compiler_opts=opts)
         assert isinstance(ast_node, UI)
 
         errors = [*ctx.errors, *ast_node.errors]
