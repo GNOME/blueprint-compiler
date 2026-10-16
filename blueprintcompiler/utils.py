@@ -150,4 +150,4 @@ class ExpressionFormat(str, Enum):
 
 @dataclass
 class CompilerOptions:
-    expressions: T.Optional[ExpressionFormat] = None
+    expressions: ExpressionFormat | None = None

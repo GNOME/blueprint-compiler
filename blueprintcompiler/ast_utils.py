@@ -37,6 +37,9 @@ class Children:
     def __iter__(self) -> Iterator["AstNode"]:
         return iter(self._children)
 
+    def __len__(self):
+        return len(self._children)
+
     @overload
     def __getitem__(self, key: type[TType]) -> list[TType]: ...
 

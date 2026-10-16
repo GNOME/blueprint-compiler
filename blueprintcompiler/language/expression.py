@@ -20,7 +20,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import cast
+from typing import Any, cast
 
 from ..decompiler import Element, decompile_element, full_name
 from ..tokenizer import Range, TextEdit
@@ -83,7 +83,7 @@ class ExprBase(AstNode):
 class Expression(ExprBase):
     """An Expression contains a prefix node and optionally some infix operators."""
 
-    grammar: T.Any = expr
+    grammar: Any = expr
 
     @property
     def last(self) -> ExprBase:
@@ -472,7 +472,7 @@ class OpExpr(ExprBase):
         raise NotImplementedError()
 
     @property
-    def args(self) -> T.List[ExprBase]:
+    def args(self) -> list[ExprBase]:
         raise NotImplementedError()
 
     @context(ValueTypeCtx)
@@ -520,7 +520,7 @@ class Parenthesized(ExprBase):
         return self.children[Expression][0]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return self.child.type
 
     @autofix
@@ -558,7 +558,7 @@ class Parenthesized(ExprBase):
             return []
 
 
-def precedence(g) -> T.Type[Expression]:
+def precedence(g) -> type[Expression]:
     class Precedence(Expression):
         grammar = g
 
@@ -567,7 +567,7 @@ def precedence(g) -> T.Type[Expression]:
 
 class UnaryOpExpr(OpExpr):
     @property
-    def args(self) -> T.List[ExprBase]:
+    def args(self) -> list[ExprBase]:
         return self.children
 
     @property
@@ -577,7 +577,7 @@ class UnaryOpExpr(OpExpr):
 
 class BinaryOpExpr(OpExpr, InfixExpr):
     @property
-    def args(self) -> T.List[ExprBase]:
+    def args(self) -> list[ExprBase]:
         return [self.lhs, *self.children]
 
     @property
@@ -687,7 +687,7 @@ class TernaryExpr(OpExpr):
         types = [self.true_branch.type, self.false_branch.type]
         if None in types:
             return None
-        return GirType.common_ancestor(T.cast(T.List[GirType], types))
+        return GirType.common_ancestor(cast(list[GirType], types))
 
     @property
     def condition(self) -> TernaryCondition:
@@ -711,7 +711,7 @@ class TernaryExpr(OpExpr):
         if None in types:
             return None
 
-        t = GirType.common_ancestor(T.cast(T.List[GirType], types))
+        t = GirType.common_ancestor(cast(list[GirType], types))
 
         if t is None:
             raise CompileError(
