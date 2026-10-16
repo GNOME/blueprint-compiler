@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
+from typing import Iterator
 
 from blueprintcompiler.gir import ArrayType
 from blueprintcompiler.lsp_utils import SemanticToken
@@ -153,7 +153,7 @@ class NumberLiteral(AstNode):
             return gir.FloatType()
 
     @property
-    def value(self) -> T.Union[int, float]:
+    def value(self) -> int | float:
         if self.tokens["sign"] == "-":
             return -self.tokens["value"]
         else:
@@ -186,7 +186,7 @@ class Flag(AstNode):
         return self.tokens["value"]
 
     @property
-    def value(self) -> T.Optional[str]:
+    def value(self) -> str | None:
         type = self.context[ValueTypeCtx].value_type
         if not isinstance(type, Enumeration):
             return None
@@ -195,7 +195,7 @@ class Flag(AstNode):
         else:
             return None
 
-    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+    def get_semantic_tokens(self) -> Iterator[SemanticToken]:
         yield SemanticToken(
             self.group.tokens["value"].start,
             self.group.tokens["value"].end,
@@ -233,7 +233,7 @@ class Flags(AstNode):
     grammar = [Flag, "|", Flag, ZeroOrMore(["|", Flag])]
 
     @property
-    def flags(self) -> T.List[Flag]:
+    def flags(self) -> list[Flag]:
         return self.children
 
     @validate()
@@ -255,7 +255,7 @@ class IdentLiteral(AstNode):
         return self.tokens["value"]
 
     @property
-    def type(self) -> T.Optional[gir.GirType]:
+    def type(self) -> gir.GirType | None:
         # If the expected type is known, then use that. Otherwise, guess.
         if expected_type := self.context[ValueTypeCtx].value_type:
             return expected_type
@@ -328,7 +328,7 @@ class IdentLiteral(AstNode):
                 )
 
     @docs()
-    def docs(self) -> T.Optional[str]:
+    def docs(self) -> str | None:
         expected_type = self.context[ValueTypeCtx].value_type
         if isinstance(expected_type, gir.BoolType):
             return None
@@ -346,13 +346,13 @@ class IdentLiteral(AstNode):
         else:
             return None
 
-    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+    def get_semantic_tokens(self) -> Iterator[SemanticToken]:
         type = self.context[ValueTypeCtx].value_type
         if isinstance(type, gir.Enumeration):
             token = self.group.tokens["value"]
             yield SemanticToken(token.start, token.end, SemanticTokenType.EnumMember)
 
-    def get_reference(self, _idx: int) -> T.Optional[LocationLink]:
+    def get_reference(self, _idx: int) -> LocationLink | None:
         ref = self.context[ScopeCtx].objects.get(self.ident)
         if ref is None and self.root.is_legacy_template(self.ident):
             ref = self.root.template
@@ -374,7 +374,7 @@ class Literal(AstNode):
     @property
     def value(
         self,
-    ) -> T.Union[TypeLiteral, QuotedLiteral, NumberLiteral, IdentLiteral]:
+    ) -> TypeLiteral | QuotedLiteral | NumberLiteral | IdentLiteral:
         return self.children[0]
 
 
@@ -433,7 +433,7 @@ class Value(AstNode):
     @property
     def child(
         self,
-    ) -> T.Union[Translated, Flags, Literal]:
+    ) -> Translated | Flags | Literal:
         return self.children[0]
 
 
@@ -480,7 +480,7 @@ class ArrayValue(AstNode):
             raise MultipleErrors(errors)
 
     @property
-    def values(self) -> T.List[Value]:
+    def values(self) -> list[Value]:
         return self.children
 
     @property
@@ -501,7 +501,7 @@ class StringValue(AstNode):
     @property
     def child(
         self,
-    ) -> T.Union[Translated, QuotedLiteral]:
+    ) -> Translated | QuotedLiteral:
         return self.children[0]
 
     @property

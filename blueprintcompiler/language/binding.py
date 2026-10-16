@@ -85,11 +85,11 @@ class Binding(AstNode):
         return self.children[Expression][0]
 
     @property
-    def flags(self) -> T.List[BindingFlag]:
+    def flags(self) -> list[BindingFlag]:
         return self.children[BindingFlag]
 
     @property
-    def simple_binding(self) -> T.Optional["SimpleBinding"]:
+    def simple_binding(self) -> "SimpleBinding" | None:
         expr = self.expression.last
 
         if isinstance(expr, CastExpr):

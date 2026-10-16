@@ -17,8 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
-
 from blueprintcompiler.language.common import GirType
 
 from ..gir import TemplateType
@@ -61,14 +59,14 @@ class Template(Object):
         )
 
     @property
-    def gir_class(self) -> T.Optional[GirType]:
+    def gir_class(self) -> GirType | None:
         if isinstance(self.class_name.gir_type, ExternType):
             if gir := self.parent_type:
                 return TemplateType(self.class_name.gir_type.full_name, gir.gir_type)
         return self.class_name.gir_type
 
     @property
-    def parent_type(self) -> T.Optional[ClassName]:
+    def parent_type(self) -> ClassName | None:
         if len(self.children[ClassName]) == 2:
             return self.children[ClassName][1]
         else:

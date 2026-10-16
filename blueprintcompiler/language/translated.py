@@ -39,7 +39,7 @@ class Translated(AstNode):
         return self.tokens["string"]
 
     @property
-    def translate_context(self) -> T.Optional[str]:
+    def translate_context(self) -> str | None:
         return self.tokens["context"]
 
     @property

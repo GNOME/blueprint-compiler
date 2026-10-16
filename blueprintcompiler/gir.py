@@ -19,8 +19,8 @@
 
 import os
 import sys
-import typing as T
 from functools import cached_property
+from typing import Iterable, TypeVar
 
 import gi  # type: ignore
 from gi.repository import GLib, GObject  # type: ignore
@@ -111,11 +111,11 @@ except ValueError:
 
     value_info_get_value = GIRepository.value_info_get_value
 
-_namespace_cache: T.Dict[str, "Namespace"] = {}
-_xml_cache: T.Dict[str, xml_reader.Element] = {}
+_namespace_cache: dict[str, "Namespace"] = {}
+_xml_cache: dict[str, xml_reader.Element] = {}
 
-_user_typelib_search_paths = []
-_user_gir_search_paths = []
+_user_typelib_search_paths: list[str] = []
+_user_gir_search_paths: list[str] = []
 
 
 def add_typelib_search_path(path: str):
@@ -160,7 +160,7 @@ def get_namespace(namespace: str, version: str) -> "Namespace":
 _available_namespaces: list[tuple[str, str]] = []
 
 
-def get_available_namespaces() -> T.List[T.Tuple[str, str]]:
+def get_available_namespaces() -> list[tuple[str, str]]:
     if len(_available_namespaces):
         return _available_namespaces
 
@@ -248,19 +248,19 @@ ONLINE_DOCS = {
 }
 
 
-TNode = T.TypeVar("TNode", bound="GirNode")
+TNode = TypeVar("TNode", bound="GirNode")
 
 
 class GirNode:
     xml_tag: str
 
     def __init__(
-        self, container: T.Optional["GirNode"], info: T.Optional[GIRepository.BaseInfo]
+        self, container: "GirNode" | None, info: GIRepository.BaseInfo | None
     ) -> None:
         self.container = container
         self.info = info
 
-    def get_containing(self, container_type: T.Type[TNode]) -> TNode:
+    def get_containing(self, container_type: type[TNode]) -> TNode:
         if self.container is None:
             raise CompilerBugError()
         elif isinstance(self.container, container_type):
@@ -292,7 +292,7 @@ class GirNode:
         return self.xml.get("version")
 
     @cached_property
-    def detail(self) -> T.Optional[str]:
+    def detail(self) -> str | None:
         try:
             el = self.xml.get_elements("doc")
             if len(el) == 1:
@@ -303,7 +303,7 @@ class GirNode:
             return None
 
     @cached_property
-    def doc(self) -> T.Optional[str]:
+    def doc(self) -> str | None:
         sections = []
 
         if self.signature:
@@ -324,11 +324,11 @@ class GirNode:
         return "\n\n---\n\n".join(sections)
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         return None
 
     @property
-    def signature(self) -> T.Optional[str]:
+    def signature(self) -> str | None:
         return None
 
     @property
@@ -343,7 +343,7 @@ class GirNode:
             return self.info.is_deprecated()
 
     @property
-    def deprecated_doc(self) -> T.Optional[str]:
+    def deprecated_doc(self) -> str | None:
         try:
             return self.xml.get_elements("doc-deprecated")[0].cdata.strip()
         except:
@@ -353,9 +353,7 @@ class GirNode:
 class Property(GirNode):
     xml_tag = "property"
 
-    def __init__(
-        self, klass: T.Union["Class", "Interface"], info: GIRepository.BaseInfo
-    ):
+    def __init__(self, klass: "Class" | "Interface", info: GIRepository.BaseInfo):
         super().__init__(klass, info)
 
     @cached_property
@@ -379,7 +377,7 @@ class Property(GirNode):
         return bool(flags & GObject.ParamFlags.CONSTRUCT_ONLY)
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             assert self.container is not None
             return f"{ns}property.{self.container.name}.{self.name}.html"
@@ -402,7 +400,7 @@ class Signature(GirNode):
         super().__init__(container, info)
 
     @cached_property
-    def args(self) -> T.List[Argument]:
+    def args(self) -> list[Argument]:
         result = []
         for i in range(callable_info_get_n_args(self.info)):
             arg_info = callable_info_get_arg(self.info, i)
@@ -420,7 +418,7 @@ class Signal(GirNode):
     xml_tag = "glib:signal"
 
     def __init__(
-        self, klass: T.Union["Class", "Interface"], info: GIRepository.BaseInfo
+        self, klass: "Class" | "Interface", info: GIRepository.BaseInfo
     ) -> None:
         super().__init__(klass, info)
 
@@ -439,7 +437,7 @@ class Signal(GirNode):
         return result
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             assert self.container is not None
             return f"{ns}signal.{self.container.name}.{self.name}.html"
@@ -454,7 +452,7 @@ class Interface(GirNode, ObjectType):
         super().__init__(ns, info)
 
     @cached_property
-    def properties(self) -> T.Mapping[str, Property]:
+    def properties(self) -> dict[str, Property]:
         n_properties = interface_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
@@ -463,7 +461,7 @@ class Interface(GirNode, ObjectType):
         return result
 
     @cached_property
-    def signals(self) -> T.Mapping[str, Signal]:
+    def signals(self) -> dict[str, Signal]:
         n_signals = interface_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
@@ -472,7 +470,7 @@ class Interface(GirNode, ObjectType):
         return result
 
     @cached_property
-    def prerequisites(self) -> T.List[T.Union["Class", "Interface"]]:
+    def prerequisites(self) -> list["Class" | "Interface"]:
         n_prerequisites = interface_info_get_n_prerequisites(self.info)
         if n_prerequisites == 0:
             gobject = self.get_containing(Repository).get_type("Object", "GObject")
@@ -485,7 +483,7 @@ class Interface(GirNode, ObjectType):
             result.append(self.get_containing(Repository)._resolve_entry(entry))
         return result
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         if self == other:
             return True
         for pre in self.prerequisites:
@@ -493,7 +491,7 @@ class Interface(GirNode, ObjectType):
                 return True
         return False
 
-    def parent_types(self) -> T.Iterable[GirType]:
+    def parent_types(self) -> Iterable[GirType]:
         for pre in self.prerequisites:
             yield pre
             yield from pre.parent_types()
@@ -507,7 +505,7 @@ class Interface(GirNode, ObjectType):
         return self.glib_type_name
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             return f"{ns}iface.{self.name}.html"
         else:
@@ -515,13 +513,13 @@ class Interface(GirNode, ObjectType):
 
 
 class ExternType(ObjectType):
-    def __init__(self, repo: "Repository", ns: T.Optional[str], name: str) -> None:
+    def __init__(self, repo: "Repository", ns: str | None, name: str) -> None:
         super().__init__()
         self._name = name
         self._ns = ns
         self._repo = repo
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         return isinstance(other, ObjectType)
 
     def parent_types(self):
@@ -561,7 +559,7 @@ class Class(GirNode, ObjectType):
             return GIRepository.object_info_get_abstract(self.info)
 
     @cached_property
-    def implements(self) -> T.List[Interface]:
+    def implements(self) -> list[Interface]:
         n_interfaces = object_info_get_n_interfaces(self.info)
         result = []
         for i in range(n_interfaces):
@@ -570,7 +568,7 @@ class Class(GirNode, ObjectType):
         return result
 
     @cached_property
-    def own_properties(self) -> T.Mapping[str, Property]:
+    def own_properties(self) -> dict[str, Property]:
         n_properties = object_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
@@ -579,7 +577,7 @@ class Class(GirNode, ObjectType):
         return result
 
     @cached_property
-    def own_signals(self) -> T.Mapping[str, Signal]:
+    def own_signals(self) -> dict[str, Signal]:
         n_signals = object_info_get_n_signals(self.info)
         result = {}
         for i in range(n_signals):
@@ -588,7 +586,7 @@ class Class(GirNode, ObjectType):
         return result
 
     @cached_property
-    def parent(self) -> T.Optional["Class"]:
+    def parent(self) -> "Class" | None:
         if entry := object_info_get_parent(self.info):
             return self.get_containing(Repository)._resolve_entry(entry)
         else:
@@ -608,11 +606,11 @@ class Class(GirNode, ObjectType):
         return result
 
     @cached_property
-    def properties(self) -> T.Mapping[str, Property]:
+    def properties(self) -> dict[str, Property]:
         return {p.name: p for p in self._enum_properties()}
 
     @cached_property
-    def signals(self) -> T.Mapping[str, Signal]:
+    def signals(self) -> dict[str, Signal]:
         return {s.name: s for s in self._enum_signals()}
 
     @cached_property
@@ -623,7 +621,7 @@ class Class(GirNode, ObjectType):
     def cname(self) -> str:
         return self.glib_type_name
 
-    def assignable_to(self, other: GirType) -> bool:
+    def assignable_to(self, other: GirType | None) -> bool:
         if self == other:
             return True
         elif self.parent and self.parent.assignable_to(other):
@@ -635,12 +633,12 @@ class Class(GirNode, ObjectType):
 
             return False
 
-    def parent_types(self) -> T.Iterable["Class"]:
+    def parent_types(self) -> Iterable["Class"]:
         if self.parent:
             yield self.parent
             yield from self.parent.parent_types()
 
-    def _enum_properties(self) -> T.Iterable[Property]:
+    def _enum_properties(self) -> Iterable[Property]:
         yield from self.own_properties.values()
 
         if self.parent is not None:
@@ -649,7 +647,7 @@ class Class(GirNode, ObjectType):
         for impl in self.implements:
             yield from impl.properties.values()
 
-    def _enum_signals(self) -> T.Iterable[Signal]:
+    def _enum_signals(self) -> Iterable[Signal]:
         yield from self.own_signals.values()
 
         if self.parent is not None:
@@ -659,7 +657,7 @@ class Class(GirNode, ObjectType):
             yield from impl.signals.values()
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             return f"{ns}class.{self.name}.html"
         else:
@@ -667,7 +665,7 @@ class Class(GirNode, ObjectType):
 
 
 class TemplateType(ObjectType):
-    def __init__(self, name: str, parent: T.Optional[GirType]):
+    def __init__(self, name: str, parent: GirType | None):
         self._name = name
         self.parent = parent
 
@@ -684,20 +682,20 @@ class TemplateType(ObjectType):
         return self._name
 
     @cached_property
-    def properties(self) -> T.Mapping[str, Property]:
+    def properties(self) -> dict[str, Property]:
         if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
             return self.parent.properties
 
     @cached_property
-    def signals(self) -> T.Mapping[str, Signal]:
+    def signals(self) -> dict[str, Signal]:
         if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
             return self.parent.signals
 
-    def assignable_to(self, other: "GirType") -> bool:
+    def assignable_to(self, other: "GirType" | None) -> bool:
         if self == other:
             return True
         elif isinstance(other, Interface):
@@ -735,7 +733,7 @@ class EnumMember(GirNode):
         return self.name.replace("_", "-")
 
     @property
-    def c_ident(self) -> T.Optional[str]:
+    def c_ident(self) -> str | None:
         if self.info is None:
             return None
         else:
@@ -761,7 +759,7 @@ class Enumeration(GirNode, GirType):
         return registered_type_info_get_type_name(self.info)
 
     @cached_property
-    def members(self) -> T.Dict[str, EnumMember]:
+    def members(self) -> dict[str, EnumMember]:
         members = {}
         get_n_values, get_value = (
             (GIRepository.EnumInfo.get_n_values, GIRepository.EnumInfo.get_value)
@@ -778,11 +776,11 @@ class Enumeration(GirNode, GirType):
     def signature(self) -> str:
         return f"enum {self.full_name}"
 
-    def assignable_to(self, type: GirType) -> bool:
+    def assignable_to(self, type: GirType | None) -> bool:
         return type == self
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             return f"{ns}enum.{self.name}.html"
         else:
@@ -803,11 +801,11 @@ class Boxed(GirNode, GirType):
     def signature(self) -> str:
         return f"boxed {self.full_name}"
 
-    def assignable_to(self, type) -> bool:
+    def assignable_to(self, type: GirType | None) -> bool:
         return type == self
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         if ns := self.get_containing(Namespace).online_docs:
             return f"{ns}boxed.{self.name}.html"
         else:
@@ -859,7 +857,7 @@ class Namespace(GirNode):
                 return Boxed(self, entry)
 
     @cached_property
-    def entries(self) -> T.Mapping[str, GirType]:
+    def entries(self) -> dict[str, GirType]:
         entries: dict[str, GirType] = {}
 
         n_entries = self.gir_repo.get_n_infos(self.name)
@@ -887,18 +885,18 @@ class Namespace(GirNode):
         return f"namespace {self.name} {self.version}"
 
     @cached_property
-    def classes(self) -> T.Mapping[str, Class]:
+    def classes(self) -> dict[str, Class]:
         return {
             name: entry
             for name, entry in self.entries.items()
             if isinstance(entry, Class)
         }
 
-    def get_type(self, name) -> T.Optional[GirType]:
+    def get_type(self, name) -> GirType | None:
         """Gets a type (class, interface, enum, etc.) from this namespace."""
         return self.entries.get(name)
 
-    def get_type_by_cname(self, cname: str) -> T.Optional[GirType]:
+    def get_type_by_cname(self, cname: str) -> GirType | None:
         """Gets a type from this namespace by its C name."""
         for basic in BASIC_TYPES.values():
             if basic.glib_type_name == cname:
@@ -913,7 +911,7 @@ class Namespace(GirNode):
                 return item
         return None
 
-    def lookup_type(self, type_name: str) -> T.Optional[GirType]:
+    def lookup_type(self, type_name: str) -> GirType | None:
         """Looks up a type in the scope of this namespace (including in the
         namespace's dependencies)."""
 
@@ -921,7 +919,7 @@ class Namespace(GirNode):
         return self.get_containing(Repository).get_type(name, ns)
 
     @property
-    def online_docs(self) -> T.Optional[str]:
+    def online_docs(self) -> str | None:
         return ONLINE_DOCS.get(f"{self.name}-{self.version}")
 
 
@@ -932,7 +930,7 @@ class Repository(GirNode):
 
         self._namespace = Namespace(self, gir_repo, ns)
 
-    def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
+    def get_type(self, name: str, ns: str) -> GirType | None:
         return self.lookup_namespace(ns).get_type(name)
 
     def lookup_namespace(self, ns: str):
@@ -985,9 +983,9 @@ class Repository(GirNode):
 
 
 class GirContext:
-    def __init__(self):
-        self.namespaces = {}
-        self.not_found_namespaces: T.Set[str] = set()
+    def __init__(self) -> None:
+        self.namespaces: dict[str, Namespace] = {}
+        self.not_found_namespaces: set[str] = set()
 
     def add_namespace(self, namespace: Namespace):
         other = self.namespaces.get(namespace.name)
@@ -998,13 +996,13 @@ class GirContext:
 
         self.namespaces[namespace.name] = namespace
 
-    def get_type_by_cname(self, name: str) -> T.Optional[GirType]:
+    def get_type_by_cname(self, name: str) -> GirType | None:
         for ns in self.namespaces.values():
             if type := ns.get_type_by_cname(name):
                 return type
         return None
 
-    def get_type(self, name: str, ns: str) -> T.Optional[GirType]:
+    def get_type(self, name: str, ns: str) -> GirType | None:
         if ns is None and name in BASIC_TYPES:
             return BASIC_TYPES[name]()
 
@@ -1015,7 +1013,7 @@ class GirContext:
 
         return self.namespaces[ns].get_type(name)
 
-    def get_class(self, ns: str, name: str) -> T.Optional[Class]:
+    def get_class(self, ns: str, name: str) -> Class | None:
         type = self.get_type(ns, name)
         if isinstance(type, Class):
             return type

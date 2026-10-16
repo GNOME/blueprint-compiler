@@ -1,12 +1,10 @@
-import typing as T
-
 from ...language import *
 from .. import OutputFormat
 from .xml_emitter import XmlEmitter
 
 
 class XmlOutput(OutputFormat):
-    def __init__(self, indent: T.Optional[int] = 2, generated_notice: bool = True):
+    def __init__(self, indent: int | None = 2, generated_notice: bool = True):
         self.indent = indent
         self.generated_notice = generated_notice
 
@@ -55,7 +53,7 @@ class XmlOutput(OutputFormat):
         xml.end_tag()
 
     def _emit_object_or_template(
-        self, obj: T.Union[Object, Template, ExtListItemFactory], xml: XmlEmitter
+        self, obj: Object | Template | ExtListItemFactory, xml: XmlEmitter
     ):
         for child in obj.content.children:
             if isinstance(child, Property):
@@ -101,7 +99,7 @@ class XmlOutput(OutputFormat):
     def _emit_property(self, property: Property, xml: XmlEmitter):
         value = property.value
 
-        props: T.Dict[str, T.Optional[str]] = {
+        props: dict[str, str | None] = {
             "name": property.name,
         }
 
@@ -167,8 +165,8 @@ class XmlOutput(OutputFormat):
             raise CompilerBugError()
 
     def _translated_string_attrs(
-        self, translated: T.Optional[T.Union[QuotedLiteral, Translated]]
-    ) -> T.Dict[str, T.Optional[str]]:
+        self, translated: QuotedLiteral | Translated | None
+    ) -> dict[str, str | None]:
         if translated is None:
             return {}
         elif isinstance(translated, QuotedLiteral):
@@ -314,7 +312,7 @@ class XmlOutput(OutputFormat):
         tag: str,
         attr: str,
         name: str,
-        value: T.Union[Value, StringValue],
+        value: Value | StringValue,
         xml: XmlEmitter,
     ):
         attrs = {attr: name}

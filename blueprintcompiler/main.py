@@ -23,14 +23,12 @@ import difflib
 import os
 import pathlib
 import sys
-import typing as T
 
 from . import formatter, interactive_port, linter, parser, tokenizer
 from .decompiler import decompile_string
 from .errors import (
     CompileError,
     CompilerBugError,
-    CompileWarning,
     PrintableError,
     report_bug,
 )
@@ -473,7 +471,7 @@ class BlueprintApp:
 
     def _compile(
         self, data: str, *, minify: bool = False
-    ) -> T.Tuple[str, T.List[CompileError]]:
+    ) -> tuple[str, list[CompileError]]:
         tokens = tokenizer.tokenize(data)
         ast, errors, warnings = parser.parse(tokens)
 

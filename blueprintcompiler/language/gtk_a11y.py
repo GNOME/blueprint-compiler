@@ -17,8 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
-
 from .common import *
 from .contexts import ValueTypeCtx
 from .gobject_object import ObjectContent, validate_parent_type
@@ -146,7 +144,7 @@ class A11yProperty(AstNode):
         return self.tokens["name"].replace("_", "-")
 
     @property
-    def values(self) -> T.List[Value]:
+    def values(self) -> list[Value]:
         return list(self.children)
 
     @context(ValueTypeCtx)
@@ -207,7 +205,7 @@ class ExtAccessibility(AstNode):
     ]
 
     @property
-    def properties(self) -> T.List[A11yProperty]:
+    def properties(self) -> list[A11yProperty]:
         return self.children[A11yProperty]
 
     @property

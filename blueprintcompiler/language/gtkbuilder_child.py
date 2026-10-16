@@ -24,7 +24,7 @@ from .common import *
 from .gobject_object import Object
 from .response_id import ExtResponse, decompile_response_type
 
-ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [
+ALLOWED_PARENTS: list[tuple[str, str]] = [
     ("Gtk", "Buildable"),
     ("Gio", "ListStore"),
 ]
@@ -62,7 +62,7 @@ class ChildAnnotation(AstNode):
     grammar = ["[", AnyOf(ChildInternal, ChildExtension, ChildType), "]"]
 
     @property
-    def child(self) -> T.Union[ChildInternal, ChildExtension, ChildType]:
+    def child(self) -> ChildInternal | ChildExtension | ChildType:
         return self.children[0]
 
 
@@ -73,7 +73,7 @@ class Child(AstNode):
     ]
 
     @property
-    def annotation(self) -> T.Optional[ChildAnnotation]:
+    def annotation(self) -> ChildAnnotation | None:
         annotations = self.children[ChildAnnotation]
         return annotations[0] if len(annotations) else None
 
@@ -102,7 +102,7 @@ class Child(AstNode):
                 )
 
     @cached_property
-    def response_id(self) -> T.Optional[ExtResponse]:
+    def response_id(self) -> ExtResponse | None:
         """Get action widget's response ID.
 
         If child is not action widget, returns `None`.

@@ -17,6 +17,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from typing import Iterator
+
 from .common import *
 from .gobject_object import ObjectContent, validate_parent_type
 from .values import StringValue
@@ -48,11 +50,11 @@ class ExtScaleMark(AstNode):
             return self.tokens["value"]
 
     @property
-    def position(self) -> T.Optional[str]:
+    def position(self) -> str | None:
         return self.tokens["position"]
 
     @property
-    def label(self) -> T.Optional[StringValue]:
+    def label(self) -> StringValue | None:
         if len(self.children[StringValue]) == 1:
             return self.children[StringValue][0]
         else:
@@ -68,7 +70,7 @@ class ExtScaleMark(AstNode):
             self.label.string if self.label else None,
         )
 
-    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+    def get_semantic_tokens(self) -> Iterator[SemanticToken]:
         if range := self.ranges["position"]:
             yield SemanticToken(
                 range.start,
@@ -77,7 +79,7 @@ class ExtScaleMark(AstNode):
             )
 
     @docs("position")
-    def position_docs(self) -> T.Optional[str]:
+    def position_docs(self) -> str | None:
         if member := self.root.gir.get_type("PositionType", "Gtk").members.get(
             self.position
         ):
@@ -107,7 +109,7 @@ class ExtScaleMarks(AstNode):
     ]
 
     @property
-    def marks(self) -> T.List[ExtScaleMark]:
+    def marks(self) -> list[ExtScaleMark]:
         return self.children
 
     @property

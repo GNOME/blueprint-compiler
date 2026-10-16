@@ -18,10 +18,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
 from functools import cached_property
+from typing import Any
 
-from blueprintcompiler.errors import T
 from blueprintcompiler.lsp_utils import DocumentSymbol
 
 from .common import *
@@ -51,7 +50,7 @@ class ObjectContent(AstNode):
 
 
 class Object(AstNode):
-    grammar: T.Any = [
+    grammar: Any = [
         Mark("sig_start"),
         ConcreteClassName,
         Optional(UseIdent("id")),
@@ -88,7 +87,7 @@ class Object(AstNode):
         return self.ranges["sig_start", "sig_end"]
 
     @property
-    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+    def document_symbol(self) -> DocumentSymbol | None:
         return DocumentSymbol(
             self.class_name.as_string,
             SymbolKind.Object,
@@ -98,13 +97,13 @@ class Object(AstNode):
         )
 
     @property
-    def gir_class(self) -> T.Optional[GirType]:
+    def gir_class(self) -> GirType | None:
         if self.class_name is None:
             raise CompilerBugError()
         return self.class_name.gir_type
 
     @cached_property
-    def action_widgets(self) -> T.List[ExtResponse]:
+    def action_widgets(self) -> list[ExtResponse]:
         """Get list of widget's action widgets.
 
         Empty if object doesn't have action widgets.

@@ -20,7 +20,6 @@
 
 import difflib
 import os
-import typing as T
 
 from . import decompiler
 from .errors import CompilerBugError, PrintableError
@@ -39,7 +38,7 @@ def change_suffix(f):
     return f.removesuffix(".ui") + ".blp"
 
 
-def decompile_file(in_file, out_file) -> T.Union[str, CouldNotPort]:
+def decompile_file(in_file, out_file) -> str | CouldNotPort:
     if os.path.exists(out_file):
         return CouldNotPort("already exists")
 

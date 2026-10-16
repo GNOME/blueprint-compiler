@@ -21,8 +21,8 @@
 import enum
 import json
 import os
-import typing as T
 from dataclasses import dataclass, field
+from typing import Any
 
 from .errors import *
 from .tokenizer import Range
@@ -80,14 +80,14 @@ class ErrorCode(enum.IntEnum):
 class Completion:
     label: str
     kind: CompletionItemKind
-    signature: T.Optional[str] = None
+    signature: str | None = None
     deprecated: bool = False
-    sort_text: T.Optional[str] = None
-    docs: T.Optional[str] = None
-    text: T.Optional[str] = None
-    snippet: T.Optional[str] = None
-    detail: T.Optional[str] = None
-    additional_text_edits: T.Optional[T.List["TextEdit"]] = None
+    sort_text: str | None = None
+    docs: str | None = None
+    text: str | None = None
+    snippet: str | None = None
+    detail: str | None = None
+    additional_text_edits: list["TextEdit"] | None = None
 
     def to_json(self, snippets: bool):
         insert_text = self.text or self.label
@@ -183,8 +183,8 @@ class DocumentSymbol:
     kind: SymbolKind
     range: Range
     selection_range: Range
-    detail: T.Optional[str] = None
-    children: T.List["DocumentSymbol"] = field(default_factory=list)
+    detail: str | None = None
+    children: list["DocumentSymbol"] = field(default_factory=list)
 
 
 @dataclass
@@ -202,10 +202,10 @@ class LocationLink:
         }
 
 
-_docs_sections: T.Optional[dict[str, T.Any]] = None
+_docs_sections: dict[str, Any] | None = None
 
 
-def get_docs_section(section_name: str) -> T.Optional[str]:
+def get_docs_section(section_name: str) -> str | None:
     global _docs_sections
 
     if _docs_sections is None:

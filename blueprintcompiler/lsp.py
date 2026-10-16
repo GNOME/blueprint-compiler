@@ -21,8 +21,8 @@
 import json
 import sys
 import traceback
-import typing as T
 from difflib import SequenceMatcher
+from typing import Callable
 
 from . import decompiler, formatter, language, parser, tokenizer, utils, xml_reader
 from .ast_utils import AstNode
@@ -51,8 +51,8 @@ class OpenFile:
         self.uri = uri
         self.text = text
         self.version = version
-        self.ast: T.Optional[AstNode] = None
-        self.tokens: T.Optional[list[Token]] = None
+        self.ast: AstNode | None = None
+        self.tokens: list[Token] | None = None
 
         self._update()
 
@@ -89,7 +89,7 @@ class OpenFile:
         except CompileError as e:
             self.diagnostics.append(e)
 
-    def calc_semantic_tokens(self) -> T.List[int]:
+    def calc_semantic_tokens(self) -> list[int]:
         if self.ast is None:
             return []
 
@@ -115,12 +115,12 @@ class OpenFile:
 
 
 class LanguageServer:
-    commands: T.Dict[str, T.Callable] = {}
+    commands: dict[str, Callable] = {}
 
     def __init__(self):
         self.client_capabilities = {}
         self.client_supports_completion_choice = False
-        self._open_files: T.Dict[str, OpenFile] = {}
+        self._open_files: dict[str, OpenFile] = {}
         self._exited = False
 
     def run(self):

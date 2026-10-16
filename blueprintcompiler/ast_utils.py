@@ -17,15 +17,17 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
 from collections import ChainMap, defaultdict
+from collections.abc import Collection
 from functools import cached_property
+from typing import Callable, Generator, Iterator, TypeVar, overload, cast
+from .parse_tree import ParseGroup
 
 from .errors import *
 from .lsp_utils import DocumentSymbol, LocationLink, SemanticToken
-from .tokenizer import Range
+from .tokenizer import Range, Token
 
-TType = T.TypeVar("TType")
+TType = TypeVar("TType")
 
 
 class Children:
@@ -34,13 +36,13 @@ class Children:
     def __init__(self, children):
         self._children = children
 
-    def __iter__(self) -> T.Iterator["AstNode"]:
+    def __iter__(self) -> Iterator["AstNode"]:
         return iter(self._children)
 
-    @T.overload
-    def __getitem__(self, key: T.Type[TType]) -> T.List[TType]: ...
+    @overload
+    def __getitem__(self, key: type[TType]) -> list[TType]: ...
 
-    @T.overload
+    @overload
     def __getitem__(self, key: int) -> "AstNode": ...
 
     def __getitem__(self, key):
@@ -54,10 +56,10 @@ class Children:
 
 
 class Ranges:
-    def __init__(self, ranges: T.Dict[str, Range]):
+    def __init__(self, ranges: dict[str, Range]):
         self._ranges = ranges
 
-    def __getitem__(self, key: T.Union[str, tuple[str, str]]) -> T.Optional[Range]:
+    def __getitem__(self, key: str | tuple[str, str]) -> Range | None:
         if isinstance(key, str):
             return self._ranges.get(key)
         elif isinstance(key, tuple):
@@ -65,8 +67,8 @@ class Ranges:
             return Range.join(self._ranges.get(start), self._ranges.get(end))
 
 
-TCtx = T.TypeVar("TCtx")
-TAttr = T.TypeVar("TAttr")
+TCtx = TypeVar("TCtx")
+TAttr = TypeVar("TAttr")
 
 
 class Ctx:
@@ -75,7 +77,7 @@ class Ctx:
     def __init__(self, node: "AstNode") -> None:
         self.node = node
 
-    def __getitem__(self, key: T.Type[TCtx]) -> T.Optional[TCtx]:
+    def __getitem__(self, key: type[TCtx]) -> TCtx | None:
         attrs = self.node._attrs_by_type(Context)
         for name, attr in attrs:
             if attr.type == key:
@@ -89,16 +91,22 @@ class Ctx:
 class AstNode:
     """Base class for nodes in the abstract syntax tree."""
 
-    completers: T.List = []
-    attrs_by_type: T.Dict[T.Type, T.List] = {}
+    completers: list = []
+    attrs_by_type: dict[type, list] = {}
 
-    def __init__(self, group, children, tokens, incomplete=False):
+    def __init__(
+        self,
+        group,
+        children,
+        tokens,
+        incomplete,
+    ):
         self.group = group
         self.children = Children(children)
         self.tokens = ChainMap(tokens, defaultdict(lambda: None))
         self.incomplete = incomplete
 
-        self.parent: AstNode = None
+        self.parent = None
         for child in self.children:
             child.parent = self
 
@@ -128,7 +136,7 @@ class AstNode:
     def range(self) -> Range:
         return Range(self.group.start, self.group.end, self.group.text)
 
-    def parent_by_type(self, type: T.Type[TType]) -> TType:
+    def parent_by_type(self, type: type[TType]) -> TType:
         if self.parent is None:
             raise CompilerBugError()
         elif isinstance(self.parent, type):
@@ -169,7 +177,7 @@ class AstNode:
         for child in self.children:
             yield from child._get_errors()
 
-    def _attrs_by_type(self, attr_type: T.Type[TAttr]) -> T.List[T.Tuple[str, TAttr]]:
+    def _attrs_by_type(self, attr_type: type[TAttr]) -> list[tuple[str, TAttr]]:
         if attr_type not in self.attrs_by_type:
             self.attrs_by_type[attr_type] = []
             for name in dir(type(self)):
@@ -178,14 +186,14 @@ class AstNode:
                     self.attrs_by_type[attr_type].append((name, item))
         return self.attrs_by_type[attr_type]
 
-    def autofix(self) -> T.Generator[TextEdit, None, None]:
+    def autofix(self) -> Generator[TextEdit, None, None]:
         fixes = [getattr(self, name) for name, attr in self._attrs_by_type(Autofix)]
         yield from [f for f in fixes if f is not None]
 
         for child in self.children:
             yield from child.autofix()
 
-    def get_docs(self, idx: int) -> T.Optional[str]:
+    def get_docs(self, idx: int) -> str | None:
         for name, attr in self._attrs_by_type(Docs):
             if attr.token_name:
                 token = self.group.tokens.get(attr.token_name)
@@ -203,11 +211,11 @@ class AstNode:
 
         return None
 
-    def get_semantic_tokens(self) -> T.Iterator[SemanticToken]:
+    def get_semantic_tokens(self) -> Iterator[SemanticToken]:
         for child in self.children:
             yield from child.get_semantic_tokens()
 
-    def get_reference(self, idx: int) -> T.Optional[LocationLink]:
+    def get_reference(self, idx: int) -> LocationLink | None:
         for child in self.children:
             if idx in child.range:
                 if ref := child.get_reference(idx):
@@ -215,10 +223,10 @@ class AstNode:
         return None
 
     @property
-    def document_symbol(self) -> T.Optional[DocumentSymbol]:
+    def document_symbol(self) -> DocumentSymbol | None:
         return None
 
-    def get_document_symbols(self) -> T.List[DocumentSymbol]:
+    def get_document_symbols(self) -> list[DocumentSymbol]:
         result = []
         for child in self.children:
             if s := child.document_symbol:
@@ -229,7 +237,7 @@ class AstNode:
         return result
 
     def validate_unique_in_parent(
-        self, error: str, check: T.Optional[T.Callable[["AstNode"], bool]] = None
+        self, error: str, check: Callable[["AstNode"], bool] | None = None
     ):
         for child in self.parent.children:
             if child is self:
@@ -249,8 +257,8 @@ class AstNode:
 
 
 def validate(
-    token_name: T.Optional[str] = None,
-    end_token_name: T.Optional[str] = None,
+    token_name: str | None = None,
+    end_token_name: str | None = None,
     skip_incomplete: bool = False,
 ):
     """Decorator for functions that validate an AST node. Exceptions raised
@@ -299,7 +307,7 @@ def validate(
 
 
 class Autofix:
-    def __init__(self, func: T.Callable[[], T.Optional[TextEdit]]):
+    def __init__(self, func: Callable[[], TextEdit | None]):
         self.func = func
 
     def __get__(self, instance, owner):
@@ -335,7 +343,7 @@ def docs(*args, **kwargs):
 
 
 class Context:
-    def __init__(self, type: T.Type[TCtx], func: T.Callable[[AstNode], TCtx]) -> None:
+    def __init__(self, type: type[TCtx], func: Callable[[AstNode], TCtx]) -> None:
         self.type = type
         self.func = func
 
@@ -350,10 +358,10 @@ class Context:
             return ctx
 
 
-def context(type: T.Type[TCtx]):
+def context(type: type[TCtx]):
     """Decorator for functions that return a context object, which is passed down to ."""
 
-    def decorator(func: T.Callable[[AstNode], TCtx]) -> Context:
+    def decorator(func: Callable[[AstNode], TCtx]) -> Context:
         return Context(type, func)
 
     return decorator

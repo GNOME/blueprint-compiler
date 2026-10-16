@@ -18,15 +18,13 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-import typing as T
-
 from .common import *
 
 
 class ExtResponse(AstNode):
     """Response ID of action widget."""
 
-    ALLOWED_PARENTS: T.List[T.Tuple[str, str]] = [("Gtk", "Dialog"), ("Gtk", "InfoBar")]
+    ALLOWED_PARENTS: list[tuple[str, str]] = [("Gtk", "Dialog"), ("Gtk", "InfoBar")]
 
     grammar = [
         Keyword("action"),

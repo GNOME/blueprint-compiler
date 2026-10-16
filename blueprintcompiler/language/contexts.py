@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
 from dataclasses import dataclass
 from functools import cached_property
 
@@ -28,7 +27,7 @@ from .gtkbuilder_template import Template
 
 @dataclass
 class ValueTypeCtx:
-    value_type: T.Optional[GirType]
+    value_type: GirType | None
     allow_null: bool = False
     must_infer_type: bool = False
 
@@ -48,7 +47,7 @@ class ScopeCtx:
             return self.node
 
     @cached_property
-    def objects(self) -> T.Dict[str, Object]:
+    def objects(self) -> dict[str, Object]:
         return {
             obj.tokens["id"]: obj
             for obj in self._iter_recursive(self.node)

@@ -17,10 +17,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import typing as T
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from . import formatter
 from .errors import MultipleErrors
@@ -53,13 +53,13 @@ class LineType(Enum):
 
 
 class DecompileCtx:
-    def __init__(self, parent_gir: T.Optional[GirContext] = None) -> None:
+    def __init__(self, parent_gir: GirContext | None = None) -> None:
         self.sub_decompiler = parent_gir is not None
         self._result: str = ""
         self.gir = parent_gir or GirContext()
-        self._blocks_need_end: T.List[str] = []
+        self._blocks_need_end: list[str] = []
         self._last_line_type: LineType = LineType.NONE
-        self._obj_type_stack: list[T.Optional[GirType]] = []
+        self._obj_type_stack: list[GirType | None] = []
         self._node_stack: list[Element] = []
 
         self.gir.add_namespace(get_namespace("Gtk", "4.0"))
@@ -80,7 +80,7 @@ class DecompileCtx:
 
         return formatter.format(imports + self._result)
 
-    def type_by_cname(self, cname: str) -> T.Optional[GirType]:
+    def type_by_cname(self, cname: str) -> GirType | None:
         if type := self.gir.get_type_by_cname(cname):
             return type
 
@@ -105,35 +105,35 @@ class DecompileCtx:
         self._obj_type_stack.pop()
 
     @property
-    def current_obj_type(self) -> T.Optional[GirType]:
+    def current_obj_type(self) -> GirType | None:
         return next((x for x in reversed(self._obj_type_stack) if x is not None), None)
 
-    def push_obj_type(self, type: T.Optional[GirType]) -> None:
+    def push_obj_type(self, type: GirType | None) -> None:
         self._obj_type_stack[-1] = type
 
     @property
-    def current_node(self) -> T.Optional[Element]:
+    def current_node(self) -> Element | None:
         if len(self._node_stack) == 0:
             return None
         else:
             return self._node_stack[-1]
 
     @property
-    def parent_node(self) -> T.Optional[Element]:
+    def parent_node(self) -> Element | None:
         if len(self._node_stack) < 2:
             return None
         else:
             return self._node_stack[-2]
 
     @property
-    def root_node(self) -> T.Optional[Element]:
+    def root_node(self) -> Element | None:
         if len(self._node_stack) == 0:
             return None
         else:
             return self._node_stack[0]
 
     @property
-    def template_class(self) -> T.Optional[str]:
+    def template_class(self) -> str | None:
         assert self.root_node is not None
         for child in self.root_node.children:
             if child.tag == "template":
@@ -141,13 +141,13 @@ class DecompileCtx:
 
         return None
 
-    def find_object(self, id: str) -> T.Optional[Element]:
+    def find_object(self, id: str) -> Element | None:
         assert self.root_node is not None
         for child in self.root_node.children:
             if child.tag == "template" and child["class"] == id:
                 return child
 
-        def find_in_children(node: Element) -> T.Optional[Element]:
+        def find_in_children(node: Element) -> Element | None:
             if node.tag in ["object", "menu"] and node["id"] == id:
                 return node
             else:
@@ -174,9 +174,9 @@ class DecompileCtx:
     def decompile_value(
         self,
         value: str,
-        type: T.Optional[GirType],
-        translatable: T.Optional[T.Tuple[str, str, str]] = None,
-    ) -> T.Tuple[str, str]:
+        type: GirType | None,
+        translatable: tuple[str, str, str] | None = None,
+    ) -> tuple[str, str]:
         def get_enum_name(value):
             for member in type.members.values():
                 if (
@@ -235,9 +235,7 @@ class DecompileCtx:
             return "", escape_quote(value)
 
 
-def decompile_element(
-    ctx: DecompileCtx, gir: T.Optional[GirContext], xml: Element
-) -> None:
+def decompile_element(ctx: DecompileCtx, gir: GirContext | None, xml: Element) -> None:
     try:
         decompilers = [d for d in _DECOMPILERS[xml.tag] if d._filter(ctx)]
         if len(decompilers) == 0:
@@ -247,7 +245,7 @@ def decompile_element(
 
         if decompiler._element:
             args = [ctx, gir, xml]
-            kwargs: T.Dict[str, T.Optional[str]] = {}
+            kwargs: dict[str, str | None] = {}
         else:
             args = [ctx, gir]
             kwargs = {canon(name): value for name, value in xml.attrs.items()}
@@ -295,7 +293,7 @@ def decompile_xml(xml: Element):
 
 def decompile(
     data: str,
-) -> T.Tuple[T.Any, T.Optional[MultipleErrors], T.List[CompileError], str]:
+) -> tuple[Any, MultipleErrors | None, list[CompileError], str]:
     return decompile_xml(parse(data))
 
 
@@ -319,7 +317,7 @@ def full_name(gir: GirType) -> str:
     return gir.name if gir.full_name.startswith("Gtk.") else gir.full_name
 
 
-def lookup_by_cname(gir, cname: str) -> T.Optional[GirType]:
+def lookup_by_cname(gir, cname: str) -> GirType | None:
     if isinstance(gir, GirContext):
         return gir.get_type_by_cname(cname)
     else:
@@ -329,8 +327,8 @@ def lookup_by_cname(gir, cname: str) -> T.Optional[GirType]:
 def decompiler(
     tag,
     cdata=False,
-    parent_type: T.Optional[str] = None,
-    parent_tag: T.Optional[str] = None,
+    parent_type: str | None = None,
+    parent_tag: str | None = None,
     skip_children=False,
     element=False,
 ):
@@ -380,10 +378,10 @@ def decompile_placeholder(ctx, gir):
 
 def decompile_translatable(
     string: str,
-    translatable: T.Optional[str],
-    context: T.Optional[str],
-    comments: T.Optional[str],
-) -> T.Tuple[str, str]:
+    translatable: str | None,
+    context: str | None,
+    comments: str | None,
+) -> tuple[str, str]:
     if translatable is not None and truthy(translatable):
         if comments is None:
             comments = ""
@@ -478,7 +476,7 @@ def decompile_attributes(ctx, gir):
 @dataclass
 class UnsupportedError(Exception):
     message: str = "unsupported feature"
-    tag: T.Optional[str] = None
+    tag: str | None = None
 
     def print(self, filename: str):
         print(f"\n{Colors.RED}{Colors.BOLD}error: {self.message}{Colors.CLEAR}")

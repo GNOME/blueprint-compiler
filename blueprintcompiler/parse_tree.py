@@ -19,8 +19,8 @@
 
 """Utilities for parsing an AST from a token stream."""
 
-import typing as T
 from enum import Enum
+from typing import Any
 
 from . import utils
 from .ast_utils import AstNode
@@ -63,21 +63,21 @@ class ParseGroup:
     be converted to AST nodes by passing the children and key=value pairs to
     the AST node constructor."""
 
-    def __init__(self, ast_type: T.Type[AstNode], start: int, text: str):
+    def __init__(self, ast_type: type[AstNode], start: int, text: str):
         self.ast_type = ast_type
-        self.children: T.List[ParseGroup] = []
-        self.keys: T.Dict[str, T.Any] = {}
-        self.tokens: T.Dict[str, T.Optional[Token]] = {}
-        self.ranges: T.Dict[str, Range] = {}
+        self.children: list[ParseGroup] = []
+        self.keys: dict[str, Any] = {}
+        self.tokens: dict[str, Token | None] = {}
+        self.ranges: dict[str, Range] = {}
         self.start = start
-        self.end: T.Optional[int] = None
+        self.end: int | None = None
         self.incomplete = False
         self.text = text
 
     def add_child(self, child: "ParseGroup"):
         self.children.append(child)
 
-    def set_val(self, key: str, val: T.Any, token: T.Optional[Token]):
+    def set_val(self, key: str, val: Any, token: Token | None):
         assert_true(key not in self.keys)
 
         self.keys[key] = val
@@ -104,22 +104,22 @@ class ParseGroup:
 class ParseContext:
     """Contains the state of the parser."""
 
-    def __init__(self, tokens: T.List[Token], text: str, index=0):
+    def __init__(self, tokens: list[Token], text: str, index=0):
         self.tokens = tokens
         self.text = text
 
         self.binding_power = 0
         self.index = index
         self.start = index
-        self.group: T.Optional[ParseGroup] = None
-        self.group_keys: T.Dict[str, T.Tuple[T.Any, T.Optional[Token]]] = {}
-        self.group_children: T.List[ParseGroup] = []
-        self.group_ranges: T.Dict[str, Range] = {}
-        self.last_group: T.Optional[ParseGroup] = None
+        self.group: ParseGroup | None = None
+        self.group_keys: dict[str, tuple[Any, Token | None]] = {}
+        self.group_children: list[ParseGroup] = []
+        self.group_ranges: dict[str, Range] = {}
+        self.last_group: ParseGroup | None = None
         self.group_incomplete = False
 
-        self.errors: T.List[CompileError] = []
-        self.warnings: T.List[CompileWarning] = []
+        self.errors: list[CompileError] = []
+        self.warnings: list[CompileWarning] = []
 
     def create_child(self) -> "ParseContext":
         """Creates a new ParseContext at this context's position. The new
@@ -163,12 +163,12 @@ class ParseContext:
         elif other.last_group:
             self.last_group = other.last_group
 
-    def start_group(self, ast_type: T.Type[AstNode]):
+    def start_group(self, ast_type: type[AstNode]):
         """Sets this context to have its own match group."""
         assert_true(self.group is None)
         self.group = ParseGroup(ast_type, self.tokens[self.index].start, self.text)
 
-    def set_group_val(self, key: str, value: T.Any, token: T.Optional[Token]):
+    def set_group_val(self, key: str, value: Any, token: Token | None):
         """Sets a matched key=value pair on the current match group."""
         assert_true(key not in self.group_keys)
         self.group_keys[key] = (value, token)
@@ -302,7 +302,7 @@ class Fail(ParseNode):
 class Group(ParseNode):
     """ParseNode that creates a match group."""
 
-    def __init__(self, ast_type: T.Type[AstNode], child):
+    def __init__(self, ast_type: type[AstNode], child):
         self.ast_type = ast_type
         self.child = to_parse_node(child)
 
@@ -472,7 +472,7 @@ class Match(ParseNode):
         token = ctx.next_token()
         return str(token) == self.op
 
-    def expected(self, expect: T.Optional[str] = None):
+    def expected(self, expect: str | None = None):
         """Convenience method for err()."""
         if expect is None:
             return self.err(f"Expected '{self.op}'")
@@ -562,7 +562,7 @@ class UseLiteral(ParseNode):
     pair on the containing group. Useful for, e.g., property and signal flags:
     `Sequence(Keyword("swapped"), UseLiteral("swapped", True))`"""
 
-    def __init__(self, key: str, literal: T.Any):
+    def __init__(self, key: str, literal: Any):
         self.key = key
         self.literal = literal
 

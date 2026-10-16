@@ -74,7 +74,7 @@ class ExtLevelBarOffsets(AstNode):
     ]
 
     @property
-    def offsets(self) -> T.List[ExtLevelBarOffset]:
+    def offsets(self) -> list[ExtLevelBarOffset]:
         return self.children
 
     @property

@@ -10,7 +10,7 @@ name = 'blueprint-compiler'
 description = 'Markup compiler for GTK user interface definitions'
 dynamic = ['version']
 readme = 'README.md'
-requires-python = '>=3.9'
+requires-python = '>=3.11'
 license = {file = 'COPYING'}
 authors = [
     {name = 'James Westman', email = 'james@jwestman.net'},

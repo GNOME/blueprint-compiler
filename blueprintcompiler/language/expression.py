@@ -19,6 +19,7 @@
 
 
 from functools import cached_property
+from typing import cast
 
 from ..decompiler import decompile_element, full_name
 from ..utils import TextEdit
@@ -39,11 +40,11 @@ class ExprBase(AstNode):
             return self.parent.context[ValueTypeCtx]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         raise NotImplementedError()
 
     @property
-    def rhs(self) -> T.Optional["ExprBase"]:
+    def rhs(self) -> "ExprBase" | None:
         if isinstance(self.parent, Expression):
             children = list(self.parent.children)
             if children.index(self) + 1 < len(children):
@@ -62,7 +63,7 @@ class Expression(ExprBase):
         return self.children[-1]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return self.last.type
 
     @validate()
@@ -125,7 +126,7 @@ class LiteralExpr(ExprBase):
         return self.children[Literal][0]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return self.literal.value.type
 
     @validate()
@@ -162,7 +163,7 @@ class LookupOp(InfixExpr):
         return self.tokens["property"]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         if isinstance(self.lhs.type, gir.Class) or isinstance(
             self.lhs.type, gir.Interface
         ):
@@ -249,7 +250,7 @@ class CastExpr(InfixExpr):
         return ValueTypeCtx(self.type, allow_null=True)
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return self.children[TypeName][0].gir_type
 
     @validate()
@@ -317,7 +318,7 @@ class ClosureExpr(ExprBase):
     ]
 
     @property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return self.context[ValueTypeCtx].value_type
 
     @property
@@ -325,7 +326,7 @@ class ClosureExpr(ExprBase):
         return self.tokens["name"]
 
     @property
-    def args(self) -> T.List[ClosureArg]:
+    def args(self) -> list[ClosureArg]:
         return self.children[ClosureArg]
 
     @validate()
@@ -357,11 +358,11 @@ class TryExpr(ExprBase):
     ]
 
     @property
-    def expressions(self) -> T.List[Expression]:
+    def expressions(self) -> list[Expression]:
         return self.children[Expression]
 
     @cached_property
-    def type(self) -> T.Optional[GirType]:
+    def type(self) -> GirType | None:
         return None
 
     @docs("try")
@@ -401,7 +402,7 @@ class TryExpr(ExprBase):
         if None in types:
             return None
 
-        t = GirType.common_ancestor(T.cast(T.List[GirType], types))
+        t = GirType.common_ancestor(cast(list[GirType], types))
 
         if t is None:
             raise CompileError(
@@ -421,7 +422,7 @@ def decompile_lookup(
     gir: gir.GirContext,
     cdata: str,
     name: str,
-    type: T.Optional[str] = None,
+    type: str | None = None,
 ):
     if ctx.parent_node is not None and ctx.parent_node.tag == "property":
         ctx.print("expr ")
@@ -464,7 +465,7 @@ def decompile_constant(
     ctx: DecompileCtx,
     gir: gir.GirContext,
     cdata: str,
-    type: T.Optional[str] = None,
+    type: str | None = None,
     translatable="false",
     context=None,
     comment=None,

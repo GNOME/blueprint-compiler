@@ -7,8 +7,8 @@ from ..language import Literal, Object, Property, QuotedLiteral, Translated, Val
 
 class LinterRule:
     id: str
-    severity: T.Union[T.Literal["problem"], T.Literal["suggestion"]]
-    platform: T.Optional[str] = None
+    severity: T.Literal["problem"] | T.Literal["suggestion"]
+    platform: str | None = None
     category: str
 
     def __init__(self, problems: list[CompileError]):

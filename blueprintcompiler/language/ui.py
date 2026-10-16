@@ -71,7 +71,7 @@ class UI(AstNode):
         return gir_ctx
 
     @property
-    def using(self) -> T.List[Import]:
+    def using(self) -> list[Import]:
         return self.children[Import]
 
     @property
@@ -79,7 +79,7 @@ class UI(AstNode):
         return self.children[GtkDirective][0]
 
     @property
-    def translation_domain(self) -> T.Optional[TranslationDomain]:
+    def translation_domain(self) -> TranslationDomain | None:
         domains = self.children[TranslationDomain]
         if len(domains):
             return domains[0]
@@ -87,7 +87,7 @@ class UI(AstNode):
             return None
 
     @property
-    def contents(self) -> T.List[T.Union[Object, Template, Menu]]:
+    def contents(self) -> list[Object | Template | Menu]:
         return [
             child
             for child in self.children
@@ -97,7 +97,7 @@ class UI(AstNode):
         ]
 
     @property
-    def template(self) -> T.Optional[Template]:
+    def template(self) -> Template | None:
         if len(self.children[Template]):
             return self.children[Template][0]
         else:
@@ -129,7 +129,7 @@ class UI(AstNode):
         )
 
     @cached_property
-    def used_imports(self) -> T.Optional[T.Set[str]]:
+    def used_imports(self) -> set[str] | None:
         def _iter_recursive(node: AstNode):
             yield node
             for child in node.children:
