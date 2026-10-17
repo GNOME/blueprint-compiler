@@ -27,6 +27,7 @@ from .types import ClassName, TemplateClassName
 
 class Template(Object):
     grammar = [
+        Mark("sig_start"),
         UseExact("id", "template"),
         to_parse_node(TemplateClassName).expected("template type"),
         Optional(
@@ -35,6 +36,7 @@ class Template(Object):
                 to_parse_node(ClassName).expected("parent class"),
             ]
         ),
+        Mark("sig_end"),
         ObjectContent,
     ]
 
