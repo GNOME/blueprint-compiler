@@ -21,17 +21,16 @@
 from .errors import CompileError, MultipleErrors
 from .language import UI
 from .parse_tree import AnyOf, ParseContext
-from .tokenizer import Token
+from .tokenizer import SourceCode
 
 
 def parse(
-    tokens: list[Token],
+    source: SourceCode,
 ) -> tuple[UI | None, MultipleErrors | None, list[CompileError]]:
     """Parses a list of tokens into an abstract syntax tree."""
 
     try:
-        original_text = tokens[0].string if len(tokens) else ""
-        ctx = ParseContext(tokens, original_text)
+        ctx = ParseContext(source)
         AnyOf(UI).parse(ctx)
 
         assert ctx.last_group is not None

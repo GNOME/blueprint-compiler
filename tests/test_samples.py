@@ -149,7 +149,7 @@ class TestSamples(unittest.TestCase):
             ]
 
             def error_str(error: CompileError):
-                line, col = utils.idx_to_pos(error.range.start + 1, blueprint)
+                line, col = error.range.source.idx_to_pos(error.range.start + 1)
                 len = error.range.length
                 return ",".join([str(line + 1), str(col), str(len), error.message])
 
@@ -180,7 +180,7 @@ class TestSamples(unittest.TestCase):
 
             ast, errors, warnings, actual = decompiler.decompile(ui_path)
 
-            self.assertEqual(actual.strip(), expected)
+            self.assertEqual(actual.text.strip(), expected)
         except PrintableError as e:  # pragma: no cover
             e.pretty_print(name + ".blp", expected)
             raise AssertionError()

@@ -22,7 +22,7 @@ from functools import cached_property
 from typing import cast
 
 from ..decompiler import decompile_element, full_name
-from ..utils import TextEdit
+from ..tokenizer import Range, TextEdit
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .translated import *
@@ -84,9 +84,7 @@ class Expression(ExprBase):
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
                 if self.type.castable_to(expected_type):
-                    range = Range(
-                        self.range.end, self.range.end, self.range.original_text
-                    )
+                    range = Range(self.range.end, self.range.end, self.range.source)
                     return TextEdit(range, f" as <{expected_type.full_name}>")
 
 

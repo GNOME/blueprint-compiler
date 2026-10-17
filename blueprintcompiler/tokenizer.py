@@ -17,11 +17,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from enum import Enum
-
-from .utils import Range
 
 
 class TokenType(Enum):
@@ -52,25 +52,40 @@ _TOKENS = [(type, re.compile(regex)) for (type, regex) in _tokens]
 
 
 class Token:
-    def __init__(self, type: TokenType, start: int, end: int, string: str):
+    def __init__(
+        self, type: TokenType, start: int, end: int, source: SourceCode, index: int
+    ):
         self.type = type
         self.start = start
         self.end = end
-        self.string = string
+        self.source = source
+        self.index = index
 
     def __str__(self) -> str:
-        return self.string[self.start : self.end]
+        return self.source.text[self.start : self.end]
 
     @property
     def range(self) -> Range:
-        return Range(self.start, self.end, self.string)
+        return Range(self.start, self.end, self.source)
 
     @property
     def range_without_quotes(self) -> Range:
         if self.type == TokenType.QUOTED:
-            return Range(self.start + 1, self.end - 1, self.string)
+            return Range(self.start + 1, self.end - 1, self.source)
         else:
             return self.range
+
+    @property
+    def next(self) -> Token | None:
+        if self.index + 1 < len(self.source.tokens):
+            return self.source.tokens[self.index + 1]
+        return None
+
+    @property
+    def prev(self) -> Token | None:
+        if self.index > 0:
+            return self.source.tokens[self.index - 1]
+        return None
 
     def get_number(self) -> int | float:
         from .errors import CompileError, CompilerBugError
@@ -90,29 +105,151 @@ class Token:
             raise CompileError(f"{str(self)} is not a valid number literal", self.range)
 
 
-def _tokenize(ui_ml: str):
+@dataclass
+class SourceCode:
+    text: str
+    tokens: list[Token]
+
+    def token_at(self, idx: int) -> Token | None:
+        """Gets the token at the specified character index, or None if the index is invalid."""
+
+        first = 0
+        last = len(self.tokens)
+        while first < last:
+            mid = (first + last) // 2
+            token = self.tokens[mid]
+            if token.start <= idx < token.end:
+                return token
+            elif idx < token.start:
+                last = mid
+            else:
+                first = mid + 1
+
+        if idx == len(self.text):
+            return self.tokens[-1]
+
+        return None
+
+    def pos_to_idx(self, line: int, col: int) -> int:
+        lines = self.text.splitlines(keepends=True)
+        return sum([len(line) for line in lines[:line]]) + col
+
+    def idx_to_pos(self, idx: int) -> tuple[int, int]:
+        if idx == 0 or len(self.text) == 0:
+            return (0, 0)
+        line_num = self.text.count("\n", 0, idx) + 1
+        col_num = idx - self.text.rfind("\n", 0, idx) - 1
+        return (line_num - 1, col_num)
+
+    def idxs_to_range(self, start: int, end: int):
+        start_l, start_c = self.idx_to_pos(start)
+        end_l, end_c = self.idx_to_pos(end)
+        return {
+            "start": {
+                "line": start_l,
+                "character": start_c,
+            },
+            "end": {
+                "line": end_l,
+                "character": end_c,
+            },
+        }
+
+
+def _tokenize(blueprint: str, source: SourceCode):
     from .errors import CompileError
 
     i = 0
-    while i < len(ui_ml):
-        matched = False
+    t = 0
+    while i < len(blueprint):
         for type, regex in _TOKENS:
-            match = regex.match(ui_ml, i)
-
-            if match is not None:
-                yield Token(type, match.start(), match.end(), ui_ml)
+            if match := regex.match(blueprint, i):
+                yield Token(type, match.start(), match.end(), source, t)
                 i = match.end()
-                matched = True
+                t += 1
                 break
-
-        if not matched:
+        else:
             raise CompileError(
                 "Could not determine what kind of syntax is meant here",
-                Range(i, i, ui_ml),
+                Range(i, i, source),
             )
 
-    yield Token(TokenType.EOF, i, i, ui_ml)
+    yield Token(TokenType.EOF, i, i, source, t)
 
 
-def tokenize(data: str) -> list[Token]:
-    return list(_tokenize(data))
+def tokenize(data: str) -> SourceCode:
+    source = SourceCode(text=data, tokens=[])
+    source.tokens.extend(_tokenize(data, source))
+    return source
+
+
+@dataclass
+class Range:
+    start: int
+    end: int
+    source: SourceCode
+
+    @property
+    def length(self) -> int:
+        return self.end - self.start
+
+    @property
+    def text(self) -> str:
+        return self.source.text[self.start : self.end]
+
+    @property
+    def with_trailing_newline(self) -> "Range":
+        if len(self.source.text) > self.end and self.source.text[self.end] == "\n":
+            return Range(self.start, self.end + 1, self.source)
+        else:
+            return self
+
+    @property
+    def with_preceding_whitespace(self) -> "Range":
+        start = self.start
+        while start > 0 and self.source.text[start - 1].isspace():
+            start -= 1
+        return Range(start, self.end, self.source)
+
+    @staticmethod
+    def join(a: "Range" | None, b: "Range" | None) -> "Range" | None:
+        if a is None:
+            return b
+        if b is None:
+            return a
+        return Range(min(a.start, b.start), max(a.end, b.end), a.source)
+
+    def __contains__(self, other: int | "Range") -> bool:
+        if isinstance(other, int):
+            return self.start <= other <= self.end
+        else:
+            return self.start <= other.start and self.end >= other.end
+
+    def to_json(self):
+        return self.source.idxs_to_range(self.start, self.end)
+
+    def overlaps(self, other: "Range") -> bool:
+        return not (self.end < other.start or self.start > other.end)
+
+
+@dataclass
+class TextEdit:
+    range: Range
+    newText: str
+
+    def to_json(self):
+        return {"range": self.range.to_json(), "newText": self.newText}
+
+    @staticmethod
+    def apply_edits(string: str, edits: list["TextEdit"]):
+        offset = 0
+        edits = sorted(edits, key=lambda e: e.range.start)
+        for edit in edits:
+            string = (
+                string[: edit.range.start + offset]
+                + edit.newText
+                + string[edit.range.end + offset :]
+            )
+            offset += len(edit.newText) - edit.range.length
+
+        return string

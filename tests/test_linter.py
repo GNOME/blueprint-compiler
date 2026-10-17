@@ -290,6 +290,8 @@ class TestLinter(unittest.TestCase):
                 self.assertEqual(len(problems), len(expected_problems))
 
                 for actual, expected in zip(problems, expected_problems):
-                    line_num, col_num = utils.idx_to_pos(actual.range.start + 1, code)
+                    line_num, col_num = actual.range.source.idx_to_pos(
+                        actual.range.start + 1
+                    )
                     self.assertEqual(line_num + 1, expected["line"])
                     self.assertEqual(actual.message, expected["message"])

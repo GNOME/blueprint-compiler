@@ -1,6 +1,6 @@
 from ..errors import CodeAction, CompileWarning
 from ..language import Child, Property
-from ..utils import TextEdit
+from ..tokenizer import TextEdit
 from .utils import LinterRule
 
 

@@ -20,6 +20,7 @@
 from functools import cached_property
 
 from .. import gir
+from ..tokenizer import Range
 from .common import *
 from .contexts import ScopeCtx
 from .gobject_object import Object
@@ -119,7 +120,7 @@ class UI(AstNode):
             if import_.namespace is not None and ns.lower() > import_.namespace.lower():
                 pos = import_.range.end
 
-        return Range(pos, pos, self.group.text)
+        return Range(pos, pos, self.group.source)
 
     def import_code_action(self, ns: str, version: str) -> CodeAction:
         return CodeAction(

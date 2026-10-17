@@ -17,9 +17,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from ..tokenizer import Range
 from .common import *
 from .gobject_object import ObjectContent, validate_parent_type
-from .values import StringValue
 
 
 class ExtLevelBarOffset(AstNode):

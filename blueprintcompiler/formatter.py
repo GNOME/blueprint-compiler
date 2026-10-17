@@ -50,7 +50,7 @@ class LineType(Enum):
 
 def format(data, tab_size=2, insert_space=True):
     indent_levels = 0
-    tokens = tokenizer.tokenize(data)
+    tokens = tokenizer.tokenize(data).tokens
     end_str = ""
     last_not_whitespace = tokens[0]
     current_line = ""
@@ -67,7 +67,7 @@ def format(data, tab_size=2, insert_space=True):
     min_line_content_length = 40
 
     def wrap_line(line: str):
-        line_tokens = tokenizer.tokenize(line)
+        line_tokens = tokenizer.tokenize(line).tokens
 
         @dataclass
         class Break:

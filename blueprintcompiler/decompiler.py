@@ -25,8 +25,8 @@ from typing import Any
 from . import formatter
 from .errors import MultipleErrors
 from .gir import *
-from .tokenizer import tokenize
-from .utils import Colors, TextEdit, escape_quote
+from .tokenizer import SourceCode, TextEdit, tokenize
+from .utils import Colors, escape_quote
 from .xml_reader import Element, parse, parse_string
 
 __all__ = ["decompile"]
@@ -280,26 +280,25 @@ def decompile_xml(xml: Element):
     ctx = DecompileCtx()
     decompile_element(ctx, None, xml)
 
-    tokens = tokenize(ctx.result)
-    ast, errors, warnings = parser.parse(tokens)
+    source = tokenize(ctx.result)
+    ast, errors, warnings = parser.parse(source)
 
-    result = ctx.result
     if ast is not None:
         fixes = [*ast.autofix()]
-        result = TextEdit.apply_edits(ctx.result, fixes)
+        source = tokenize(TextEdit.apply_edits(ctx.result, fixes))
 
-    return ast, errors, warnings, result
+    return ast, errors, warnings, source
 
 
 def decompile(
     data: str,
-) -> tuple[Any, MultipleErrors | None, list[CompileError], str]:
+) -> tuple[Any, MultipleErrors | None, list[CompileError], SourceCode]:
     return decompile_xml(parse(data))
 
 
 def decompile_string(data: str) -> str:
-    ast, errors, warnings, result = decompile_xml(parse_string(data))
-    return result
+    ast, errors, warnings, source = decompile_xml(parse_string(data))
+    return source.text
 
 
 def canon(string: str) -> str:

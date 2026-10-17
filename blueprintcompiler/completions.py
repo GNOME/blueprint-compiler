@@ -23,9 +23,9 @@ from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
 from .language.types import ClassName
-from .lsp_utils import Completion, CompletionItemKind, TextEdit, get_docs_section
+from .lsp_utils import Completion, CompletionItemKind, get_docs_section
 from .parse_tree import SKIP_TOKENS
-from .tokenizer import Token, TokenType
+from .tokenizer import SourceCode, TextEdit, Token, TokenType
 
 Pattern = list[tuple[TokenType, str | None]]
 
@@ -35,52 +35,59 @@ def _complete(
     ast_node: AstNode,
     tokens: list[Token],
     idx: int,
-    token_idx: int,
-    next_token: Token,
+    token: Token | None,
+    next_token: Token | None,
 ) -> Iterator[Completion]:
     for child in ast_node.children:
         if child.group.start <= idx and (
             idx < child.group.end or (idx == child.group.end and child.incomplete)
         ):
-            yield from _complete(lsp, child, tokens, idx, token_idx, next_token)
+            yield from _complete(lsp, child, tokens, idx, token, next_token)
             return
 
     prev_tokens: list[Token] = []
 
     # collect the 5 previous non-skipped tokens
-    while len(prev_tokens) < 5 and token_idx >= 0:
-        token = tokens[token_idx]
+    while len(prev_tokens) < 5 and token is not None:
         if token.type not in SKIP_TOKENS:
             prev_tokens.insert(0, token)
-        token_idx -= 1
+        token = token.prev
 
     for completer in ast_node.completers:
         yield from completer(prev_tokens, next_token, ast_node, lsp, idx)
 
 
 def complete(
-    lsp, ast_node: AstNode, tokens: list[Token], idx: int
+    lsp, ast_node: AstNode, source: SourceCode, idx: int
 ) -> Iterator[Completion]:
-    token_idx = 0
-    # find the current token
-    for i, token in enumerate(tokens):
-        if token.start < idx <= token.end:
-            token_idx = i
-
-    if tokens[token_idx].type == TokenType.EOF:
-        next_token = tokens[token_idx]
+    if idx == 0:
+        token = source.token_at(0)
     else:
-        next_token_idx = token_idx + 1
-        while tokens[next_token_idx].type == TokenType.WHITESPACE:
-            next_token_idx += 1
-        next_token = tokens[next_token_idx]
+        token = source.token_at(idx - 1)
 
-    # if the current token is an identifier or whitespace, move to the token before it
-    while tokens[token_idx].type in [TokenType.IDENT, TokenType.WHITESPACE]:
-        idx = tokens[token_idx].start
-        token_idx -= 1
+    if token is None:
+        # out of bounds
+        return
 
-    yield from _complete(lsp, ast_node, tokens, idx, token_idx, next_token)
+    # Find the next non-whitespace token. This is used e.g. to avoid
+    # adding a { if that's already the next token.
+    if token.type == TokenType.EOF:
+        next_token = token
+    else:
+        assert token.next is not None
+        next_token = token.next
+        while next_token.type == TokenType.WHITESPACE:
+            assert next_token.next is not None
+            next_token = next_token.next
+
+    # If the current token is an identifier or whitespace, move to the token before it
+    while (
+        token.type in [TokenType.IDENT, TokenType.WHITESPACE] and token.prev is not None
+    ):
+        idx = token.start
+        token = token.prev
+
+    yield from _complete(lsp, ast_node, source.tokens, idx, token, next_token)
 
 
 @completer([language.GtkDirective])

@@ -23,8 +23,8 @@ from collections.abc import Collection
 from dataclasses import dataclass
 
 from . import utils
-from .tokenizer import Range
-from .utils import Colors, TextEdit, terminal_link
+from .tokenizer import Range, TextEdit
+from .utils import Colors, terminal_link
 
 DIAGNOSTIC_URL = "https://gnome.pages.gitlab.gnome.org/blueprint-compiler/reference/diagnostics.html#"
 
@@ -100,8 +100,8 @@ class CompileError(PrintableError):
     def pretty_print(self, filename: str, code: str, stream=sys.stdout) -> None:
         assert self.range is not None
 
-        line_num, col_num = utils.idx_to_pos(self.range.start + 1, code)
-        end_line_num, end_col_num = utils.idx_to_pos(self.range.end + 1, code)
+        line_num, col_num = self.range.source.idx_to_pos(self.range.start + 1)
+        end_line_num, end_col_num = self.range.source.idx_to_pos(self.range.end + 1)
         code_lines = code.splitlines(True)
         # When the code ends in a newline (or is an empty string), splitlines() does not add a newline
         # for the final, empty "line" (the newline is considered part of the previous line).
@@ -158,7 +158,7 @@ at {filename} line {line_num} column {col_num}:
                 )
 
         for ref in self.references:
-            line_num, col_num = utils.idx_to_pos(ref.range.start + 1, code)
+            line_num, col_num = ref.range.source.idx_to_pos(ref.range.start + 1)
             line = code.splitlines(True)[line_num]
             line_num += 1
 

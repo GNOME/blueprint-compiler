@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .errors import *
-from .tokenizer import Range
+from .tokenizer import Range, TextEdit
 from .utils import *
 
 

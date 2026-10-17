@@ -450,7 +450,7 @@ class BlueprintApp:
                 )
                 for problem in problems:
                     problem.pretty_print(
-                        file.name, problem.range.original_text, stream=sys.stderr
+                        file.name, problem.range.source.text, stream=sys.stderr
                     )
                     panic = True
 
@@ -472,8 +472,8 @@ class BlueprintApp:
     def _compile(
         self, data: str, *, minify: bool = False
     ) -> tuple[str, list[CompileError]]:
-        tokens = tokenizer.tokenize(data)
-        ast, errors, warnings = parser.parse(tokens)
+        source = tokenizer.tokenize(data)
+        ast, errors, warnings = parser.parse(source)
 
         if errors:
             raise errors

@@ -23,6 +23,7 @@ from typing import Any
 
 from blueprintcompiler.lsp_utils import DocumentSymbol
 
+from ..tokenizer import Range
 from .common import *
 from .response_id import ExtResponse
 from .types import ClassName, ConcreteClassName

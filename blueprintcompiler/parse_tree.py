@@ -31,7 +31,7 @@ from .errors import (
     UnexpectedTokenError,
     assert_true,
 )
-from .tokenizer import Range, Token, TokenType
+from .tokenizer import Range, SourceCode, Token, TokenType
 
 SKIP_TOKENS = [TokenType.COMMENT, TokenType.WHITESPACE]
 
@@ -63,7 +63,7 @@ class ParseGroup:
     be converted to AST nodes by passing the children and key=value pairs to
     the AST node constructor."""
 
-    def __init__(self, ast_type: type[AstNode], start: int, text: str):
+    def __init__(self, ast_type: type[AstNode], start: int, source: SourceCode):
         self.ast_type = ast_type
         self.children: list[ParseGroup] = []
         self.keys: dict[str, Any] = {}
@@ -72,7 +72,7 @@ class ParseGroup:
         self.start = start
         self.end: int | None = None
         self.incomplete = False
-        self.text = text
+        self.source = source
 
     def add_child(self, child: "ParseGroup"):
         self.children.append(child)
@@ -104,9 +104,8 @@ class ParseGroup:
 class ParseContext:
     """Contains the state of the parser."""
 
-    def __init__(self, tokens: list[Token], text: str, index=0):
-        self.tokens = tokens
-        self.text = text
+    def __init__(self, source: SourceCode, index=0):
+        self.source = source
 
         self.binding_power = 0
         self.index = index
@@ -126,7 +125,7 @@ class ParseContext:
         context will be used to parse one node. If parsing is successful, the
         new context will be applied to "self". If parsing fails, the new
         context will be discarded."""
-        ctx = ParseContext(self.tokens, self.text, self.index)
+        ctx = ParseContext(self.source, self.index)
         ctx.errors = self.errors
         ctx.warnings = self.warnings
         ctx.binding_power = self.binding_power
@@ -144,7 +143,7 @@ class ParseContext:
                 other.group.add_child(child)
             for key, range in other.group_ranges.items():
                 other.group.set_range(key, range)
-            other.group.end = other.tokens[other.index - 1].end
+            other.group.end = self.source.tokens[other.index - 1].end
             other.group.incomplete = other.group_incomplete
             self.group_children.append(other.group)
         else:
@@ -166,7 +165,9 @@ class ParseContext:
     def start_group(self, ast_type: type[AstNode]):
         """Sets this context to have its own match group."""
         assert_true(self.group is None)
-        self.group = ParseGroup(ast_type, self.tokens[self.index].start, self.text)
+        self.group = ParseGroup(
+            ast_type, self.source.tokens[self.index].start, self.source
+        )
 
     def set_group_val(self, key: str, value: Any, token: Token | None):
         """Sets a matched key=value pair on the current match group."""
@@ -176,7 +177,9 @@ class ParseContext:
     def set_mark(self, key: str):
         """Sets a zero-length range on the current match group at the current position."""
         self.group_ranges[key] = Range(
-            self.tokens[self.index].start, self.tokens[self.index].start, self.text
+            self.source.tokens[self.index].start,
+            self.source.tokens[self.index].start,
+            self.source,
         )
 
     def set_group_incomplete(self):
@@ -187,32 +190,32 @@ class ParseContext:
     def skip(self):
         """Skips whitespace and comments."""
         while (
-            self.index < len(self.tokens)
-            and self.tokens[self.index].type in SKIP_TOKENS
+            self.index < len(self.source.tokens)
+            and self.source.tokens[self.index].type in SKIP_TOKENS
         ):
             self.index += 1
 
     def next_token(self) -> Token:
         """Advances the token iterator and returns the next token."""
         self.skip()
-        token = self.tokens[self.index]
+        token = self.source.tokens[self.index]
         self.index += 1
         return token
 
     def peek_token(self) -> Token:
         """Returns the next token without advancing the iterator."""
         self.skip()
-        token = self.tokens[self.index]
+        token = self.source.tokens[self.index]
         return token
 
     def skip_unexpected_token(self):
         """Skips a token and logs an "unexpected token" error."""
 
         self.skip()
-        start = self.tokens[self.index].start
+        start = self.source.tokens[self.index].start
         self.next_token()
         self.skip()
-        end = self.tokens[self.index - 1].end
+        end = self.source.tokens[self.index - 1].end
 
         if (
             len(self.errors)
@@ -221,10 +224,13 @@ class ParseContext:
         ):
             err.range.end = end
         else:
-            self.errors.append(UnexpectedTokenError(Range(start, end, self.text)))
+            self.errors.append(UnexpectedTokenError(Range(start, end, self.source)))
 
     def is_eof(self) -> bool:
-        return self.index >= len(self.tokens) or self.peek_token().type == TokenType.EOF
+        return (
+            self.index >= len(self.source.tokens)
+            or self.peek_token().type == TokenType.EOF
+        )
 
 
 class ParseNode:
@@ -267,13 +273,12 @@ class Err(ParseNode):
 
     def _parse(self, ctx: ParseContext):
         if self.child.parse(ctx).failed():
-            start_idx = ctx.start
-            while ctx.tokens[start_idx].type in SKIP_TOKENS:
-                start_idx += 1
-            start_token = ctx.tokens[start_idx]
+            start_token = ctx.source.tokens[ctx.start]
+            while start_token.type in SKIP_TOKENS:
+                start_token = start_token.next
 
             raise CompileError(
-                self.message, Range(start_token.start, start_token.start, ctx.text)
+                self.message, Range(start_token.start, start_token.start, ctx.source)
             )
         return True
 
@@ -287,12 +292,10 @@ class Fail(ParseNode):
 
     def _parse(self, ctx: ParseContext):
         if self.child.parse(ctx).succeeded():
-            start_idx = ctx.start
-            while ctx.tokens[start_idx].type in SKIP_TOKENS:
-                start_idx += 1
-
-            start_token = ctx.tokens[start_idx]
-            end_token = ctx.tokens[ctx.index]
+            start_token = ctx.source.tokens[ctx.start]
+            while start_token.type in SKIP_TOKENS:
+                start_token = start_token.next
+            end_token = ctx.source.tokens[ctx.index]
             raise CompileError(
                 self.message, Range.join(start_token.range, end_token.range)
             )
@@ -546,8 +549,8 @@ class UseQuoted(ParseNode):
         try:
             unescaped = utils.unescape_quote(str(token))
         except utils.UnescapeError as e:
-            start = ctx.tokens[ctx.index - 1].start
-            range = Range(start + e.start, start + e.end, ctx.text)
+            start = token.start
+            range = Range(start + e.start, start + e.end, ctx.source)
             ctx.errors.append(
                 CompileError(f"Invalid escape sequence '{range.text}'", range)
             )

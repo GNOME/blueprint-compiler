@@ -46,7 +46,7 @@ def decompile_file(in_file, out_file) -> str | CouldNotPort:
         ast, errors, warnings, decompiled = decompiler.decompile(in_file)
 
         for warning in warnings:
-            warning.pretty_print(out_file, decompiled)
+            warning.pretty_print(out_file, decompiled.text)
 
         if errors:
             raise errors
@@ -56,9 +56,9 @@ def decompile_file(in_file, out_file) -> str | CouldNotPort:
         output = XmlOutput()
         output.emit(ast)
 
-        return decompiled
+        return decompiled.text
     except PrintableError as e:
-        e.pretty_print(out_file, decompiled)
+        e.pretty_print(out_file, decompiled.text)
 
         print(
             f"{Colors.RED}{Colors.BOLD}error: the generated file does not compile{Colors.CLEAR}"

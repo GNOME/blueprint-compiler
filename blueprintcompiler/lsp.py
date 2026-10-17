@@ -31,7 +31,7 @@ from .errors import CompileError, MultipleErrors
 from .linter import lint
 from .lsp_utils import *
 from .outputs.xml import XmlOutput
-from .tokenizer import Token
+from .tokenizer import Range, SourceCode, TextEdit
 
 
 def printerr(*args, **kwargs):
@@ -52,7 +52,7 @@ class OpenFile:
         self.text = text
         self.version = version
         self.ast: AstNode | None = None
-        self.tokens: list[Token] | None = None
+        self.source: SourceCode = tokenizer.tokenize(self.text)
 
         self._update()
 
@@ -61,15 +61,13 @@ class OpenFile:
             if "range" not in change:
                 self.text = change["text"]
                 continue
-            start = utils.pos_to_idx(
+            start = self.source.pos_to_idx(
                 change["range"]["start"]["line"],
                 change["range"]["start"]["character"],
-                self.text,
             )
-            end = utils.pos_to_idx(
+            end = self.source.pos_to_idx(
                 change["range"]["end"]["line"],
                 change["range"]["end"]["character"],
-                self.text,
             )
             self.text = self.text[:start] + change["text"] + self.text[end:]
         self._update()
@@ -77,8 +75,8 @@ class OpenFile:
     def _update(self) -> None:
         self.diagnostics: list[CompileError] = []
         try:
-            self.tokens = tokenizer.tokenize(self.text)
-            self.ast, errors, warnings = parser.parse(self.tokens)
+            self.source = tokenizer.tokenize(self.text)
+            self.ast, errors, warnings = parser.parse(self.source)
             self.diagnostics += warnings
             if errors is not None:
                 self.diagnostics += errors.errors
@@ -96,7 +94,7 @@ class OpenFile:
         tokens = list(self.ast.get_semantic_tokens())
         token_lists = [
             [
-                *utils.idx_to_pos(token.start, self.text),  # line and column
+                *self.source.idx_to_pos(token.start),  # line and column
                 token.end - token.start,  # length
                 token.type,
                 0,  # token modifiers
@@ -260,10 +258,9 @@ class LanguageServer:
     def hover(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
         docs = open_file.ast and open_file.ast.get_docs(
-            utils.pos_to_idx(
+            open_file.source.pos_to_idx(
                 params["position"]["line"],
                 params["position"]["character"],
-                open_file.text,
             )
         )
         if docs:
@@ -287,10 +284,10 @@ class LanguageServer:
             self._send_response(id, [])
             return
 
-        idx = utils.pos_to_idx(
-            params["position"]["line"], params["position"]["character"], open_file.text
+        idx = open_file.source.pos_to_idx(
+            params["position"]["line"], params["position"]["character"]
         )
-        completions = complete(self, open_file.ast, open_file.tokens, idx)
+        completions = complete(self, open_file.ast, open_file.source, idx)
         self._send_response(
             id, [completion.to_json(True) for completion in completions]
         )
@@ -320,7 +317,7 @@ class LanguageServer:
             if tag in ("replace", "insert", "delete"):
                 lst.append(
                     TextEdit(
-                        Range(i1, i2, open_file.text),
+                        Range(i1, i2, open_file.source),
                         "" if tag == "delete" else formatted_blp[j1:j2],
                     ).to_json()
                 )
@@ -335,15 +332,13 @@ class LanguageServer:
             self._send_response(id, [])
             return
 
-        range_start = utils.pos_to_idx(
+        range_start = open_file.source.pos_to_idx(
             params["range"]["start"]["line"],
             params["range"]["start"]["character"],
-            open_file.text,
         )
-        range_end = utils.pos_to_idx(
+        range_end = open_file.source.pos_to_idx(
             params["range"]["end"]["line"],
             params["range"]["end"]["character"],
-            open_file.text,
         )
 
         hints = []
@@ -352,15 +347,15 @@ class LanguageServer:
             if node.range.end < range_start or node.range.start > range_end:
                 return
 
-            start_line = utils.idx_to_pos(node.range.start, node.range.original_text)[0]
-            end_line = utils.idx_to_pos(node.range.end, node.range.original_text)[0]
+            start_line = node.range.source.idx_to_pos(node.range.start)[0]
+            end_line = node.range.source.idx_to_pos(node.range.end)[0]
 
             # Don't show hints for very short blocks
             if end_line - start_line < 3:
                 return
 
             if isinstance(node, (language.Object)):
-                line, col = utils.idx_to_pos(node.range.end, node.range.original_text)
+                line, col = node.range.source.idx_to_pos(node.range.end)
                 hints.append(
                     {
                         "position": {"line": line, "character": col},
@@ -428,17 +423,15 @@ class LanguageServer:
         open_file = self._open_files[params["textDocument"]["uri"]]
 
         range = Range(
-            utils.pos_to_idx(
+            open_file.source.pos_to_idx(
                 params["range"]["start"]["line"],
                 params["range"]["start"]["character"],
-                open_file.text,
             ),
-            utils.pos_to_idx(
+            open_file.source.pos_to_idx(
                 params["range"]["end"]["line"],
                 params["range"]["end"]["character"],
-                open_file.text,
             ),
-            open_file.text,
+            open_file.source,
         )
 
         def action_to_json(action: CodeAction, diagnostic: CompileError):
@@ -497,8 +490,8 @@ class LanguageServer:
     @command("textDocument/definition")
     def definition(self, id, params):
         open_file = self._open_files[params["textDocument"]["uri"]]
-        idx = utils.pos_to_idx(
-            params["position"]["line"], params["position"]["character"], open_file.text
+        idx = open_file.source.pos_to_idx(
+            params["position"]["line"], params["position"]["character"]
         )
         definition = open_file.ast.get_reference(idx)
         if definition is None:

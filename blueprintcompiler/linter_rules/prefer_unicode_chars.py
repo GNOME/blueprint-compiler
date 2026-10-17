@@ -5,7 +5,8 @@ from .. import annotations
 from ..errors import CompileWarning
 from ..language import Property
 from ..lsp_utils import CodeAction
-from ..utils import Range, adjust_quote_pos
+from ..tokenizer import Range
+from ..utils import adjust_quote_pos
 from .utils import LinterRule
 
 
@@ -93,7 +94,7 @@ class PreferUnicodeChars(LinterRule):
                 problem_range = Range(
                     range.start + start_adjusted,
                     range.start + end_adjusted,
-                    original_text=range.original_text,
+                    range.source,
                 )
 
                 self.problems.append(

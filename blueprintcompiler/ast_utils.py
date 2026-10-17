@@ -23,6 +23,7 @@ from typing import Callable, Generator, Iterator, TypeVar, overload
 
 from .errors import *
 from .lsp_utils import DocumentSymbol, LocationLink, SemanticToken
+from .tokenizer import Range, TextEdit
 
 TType = TypeVar("TType")
 
@@ -131,7 +132,7 @@ class AstNode:
 
     @property
     def range(self) -> Range:
-        return Range(self.group.start, self.group.end, self.group.text)
+        return Range(self.group.start, self.group.end, self.group.source)
 
     def parent_by_type(self, type: type[TType]) -> TType:
         if self.parent is None:
