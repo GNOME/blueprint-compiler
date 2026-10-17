@@ -1,0 +1,34 @@
+using Gtk 4.0;
+
+// Ignored
+Label l1 {
+  label: _("FOO"); /* @ignore avoid_all_caps */
+}
+
+Label l2/* @ignore missing_user_facing_text */ {}
+
+// Ignored
+Overlay b {
+  // @ignore wrong_parent
+  StackPage {
+    name: "hello";
+  }
+}
+
+// Not ignored: another comment in between
+/* @ignore missing_user_facing_text */ /* */
+Label l3 {}
+
+// Not ignored: multiple newlines
+
+/* @ignore missing_user_facing_text */
+
+Label l4 {}
+
+// Comment only ignores the line it is on
+Label l5 {} /* @ignore missing_user_facing_text */
+Label l6 {}
+
+// Not ignored: comment on the next line
+Label l7 {}
+/* @ignore missing_user_facing_text */

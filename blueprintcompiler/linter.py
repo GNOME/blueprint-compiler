@@ -74,4 +74,5 @@ def lint(
             rule.check(type, child, stack)
 
     walk_ast(ast, visit_node)
-    return problems
+
+    return [p for p in problems if not p.ignored]

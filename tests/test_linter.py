@@ -21,7 +21,6 @@
 import unittest
 from pathlib import Path
 
-from blueprintcompiler import utils
 from blueprintcompiler.linter import lint
 from blueprintcompiler.parser import parse
 from blueprintcompiler.tokenizer import tokenize
@@ -33,6 +32,28 @@ class TestLinter(unittest.TestCase):
         self.maxDiff = None
 
     def test_linter_samples(self):
+        self.check_file(
+            "ignore",
+            "all",
+            [
+                {
+                    "line": 20,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+                {
+                    "line": 26,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+                {
+                    "line": 30,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+                {
+                    "line": 33,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+            ],
+        )
         self.check_file(
             "label_with_child",
             "number_of_children",

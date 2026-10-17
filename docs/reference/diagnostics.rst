@@ -2,7 +2,6 @@
 Diagnostics
 ===========
 
-
 .. _Diagnostic abstract_class:
 
 abstract_class
@@ -190,6 +189,25 @@ This version of blueprint-compiler is for GTK 4 blueprints only. Future GTK vers
 
 Linter Rules
 ------------
+
+Ignoring Warnings
+~~~~~~~~~~~~~~~~~
+
+Linter warnings can be ignored using an ``@ignore`` comment with the name of the rule to ignore. This comment should be placed on the line on which the warning occurs or the line before it.
+
+Example
++++++++
+
+.. code-block:: blueprint
+
+   /* @ignore missing_user_facing_text */
+   Label {
+   }
+
+   // Also acceptable:
+
+   Label { // @ignore missing_user_facing_text
+   }
 
 .. _Diagnostic adjustment_prop_order:
 

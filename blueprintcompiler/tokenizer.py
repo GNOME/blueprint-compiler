@@ -211,6 +211,62 @@ class Range:
             start -= 1
         return Range(start, self.end, self.source)
 
+    @property
+    def applicable_comments(self) -> list[Token]:
+        """Returns comments that apply to this range.
+
+        A comment is considered applicable if it is:
+        - Intersecting this range, or
+        - The first comment before this range, and on the same line, or
+        - The first comment before this range, on the previous line, and not preceded by any text on its line, or
+        - The first comment after this range and on the same line."""
+
+        result = []
+
+        first_token = self.source.token_at(self.start)
+        assert first_token is not None
+        last_token = self.source.token_at(
+            self.end - 1 if self.end > self.start else self.end
+        )
+        assert last_token is not None
+
+        token = first_token.prev
+        line_breaks = 0
+        while token is not None:
+            if token.type == TokenType.COMMENT:
+                # If the comment is on the previous line, it must not be preceded by any text on its line.
+                if (
+                    line_breaks == 0
+                    or token.prev is None
+                    or (
+                        token.prev.type == TokenType.WHITESPACE
+                        and ("\n" in str(token.prev) or token.prev.prev is None)
+                    )
+                ):
+                    result.append(token)
+                break
+            elif token.type == TokenType.WHITESPACE and "\n" in str(token):
+                line_breaks += str(token).count("\n")
+                if line_breaks > 1:
+                    break
+            token = token.prev
+
+        for i in range(first_token.index, last_token.index + 1):
+            token = self.source.tokens[i]
+            if token.type == TokenType.COMMENT:
+                result.append(token)
+
+        token = last_token.next
+        while token is not None:
+            if token.type == TokenType.COMMENT:
+                result.append(token)
+                break
+            elif token.type == TokenType.WHITESPACE and "\n" in str(token):
+                break
+            token = token.next
+
+        return result
+
     @staticmethod
     def join(a: "Range" | None, b: "Range" | None) -> "Range" | None:
         if a is None:

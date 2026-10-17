@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import re
 import sys
 import traceback
 from collections.abc import Collection
@@ -169,6 +170,24 @@ at {filename} line {line_num} column {col_num}:
             )
 
         stream.write("\n")
+
+    @property
+    def ignored(self) -> bool:
+        if self.category == "error":
+            # errors cannot be ignored
+            return False
+        elif self.id is None:
+            return False
+        elif self.range is None:
+            raise CompilerBugError()
+
+        comments = self.range.applicable_comments
+        for comment in comments:
+            ignores = re.findall(r"@ignore\s+(\S+)", str(comment))
+            if self.id in ignores:
+                return True
+
+        return False
 
 
 class CompileWarning(CompileError):
