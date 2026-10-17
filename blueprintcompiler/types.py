@@ -87,6 +87,30 @@ class GirType:
         return None
 
 
+class InvalidType(GirType):
+    """Represents an invalid type that has already emitted an error.
+    This is used to prevent duplicate error messages, and is different from
+    None in that None represents an unknown type that is not necessarily an
+    error."""
+
+    name = "(invalid)"
+    full_name = "(invalid)"
+    incomplete = True
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def assignable_to(self, other: GirType | None) -> bool:
+        return False
+
+    def castable_to(self, other: GirType) -> bool:
+        return False
+
+
 class ObjectType(GirType):
     def castable_to(self, other: GirType) -> bool:
         return self.assignable_to(other) or other.assignable_to(self)

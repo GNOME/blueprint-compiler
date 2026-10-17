@@ -1013,13 +1013,6 @@ class GirContext:
 
         return self.namespaces[ns].get_type(name)
 
-    def get_class(self, ns: str, name: str) -> Class | None:
-        type = self.get_type(ns, name)
-        if isinstance(type, Class):
-            return type
-        else:
-            return None
-
     def validate_ns(self, ns: str) -> None:
         """Raises an exception if there is a problem looking up the given
         namespace."""

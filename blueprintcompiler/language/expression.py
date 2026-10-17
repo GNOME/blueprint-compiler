@@ -68,6 +68,9 @@ class Expression(ExprBase):
 
     @validate()
     def validate_for_type(self):
+        if isinstance(self.type, InvalidType):
+            return
+
         expected_type = self.parent.context[ValueTypeCtx].value_type
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
@@ -162,20 +165,20 @@ class LookupOp(InfixExpr):
 
     @property
     def type(self) -> GirType | None:
-        if isinstance(self.lhs.type, gir.Class) or isinstance(
-            self.lhs.type, gir.Interface
-        ):
+        if isinstance(self.lhs.type, (gir.Class, gir.Interface)):
             if property := self.lhs.type.properties.get(self.property_name):
                 return property.type
+            else:
+                return InvalidType()
 
-        return None
+        if self.lhs.type is not None and self.lhs.type.incomplete:
+            return None
+
+        return InvalidType()
 
     @docs("property")
     def property_docs(self):
-        if not (
-            isinstance(self.lhs.type, gir.Class)
-            or isinstance(self.lhs.type, gir.Interface)
-        ):
+        if not (isinstance(self.lhs.type, (gir.Class, gir.Interface))):
             return None
 
         if property := self.lhs.type.properties.get(self.property_name):
@@ -184,10 +187,6 @@ class LookupOp(InfixExpr):
     @validate("property")
     def property_exists(self):
         if self.lhs.type is None:
-            # Literal values throw their own errors if the type isn't known
-            if isinstance(self.lhs, LiteralExpr):
-                return
-
             raise CompileError(
                 f"Could not determine the type of the preceding expression",
                 hints=[
@@ -198,9 +197,7 @@ class LookupOp(InfixExpr):
         if self.lhs.type.incomplete:
             return
 
-        elif not isinstance(self.lhs.type, gir.Class) and not isinstance(
-            self.lhs.type, gir.Interface
-        ):
+        elif not isinstance(self.lhs.type, (gir.Class, gir.Interface)):
             raise CompileError(
                 f"Type {self.lhs.type.full_name} does not have properties"
             )
@@ -213,9 +210,8 @@ class LookupOp(InfixExpr):
 
     @validate("property")
     def property_deprecated(self):
-        if self.lhs.type is None or not (
-            isinstance(self.lhs.type, gir.Class)
-            or isinstance(self.lhs.type, gir.Interface)
+        if self.lhs.type is None or not isinstance(
+            self.lhs.type, (gir.Class, gir.Interface)
         ):
             return
 

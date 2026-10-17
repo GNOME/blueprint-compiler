@@ -38,15 +38,7 @@ from ..errors import (
     UnusedWarning,
     UpgradeWarning,
 )
-from ..gir import (
-    BoolType,
-    Enumeration,
-    ExternType,
-    FloatType,
-    GirType,
-    IntType,
-    StringType,
-)
+from ..gir import Enumeration, ExternType
 from ..lsp_utils import (
     Completion,
     CompletionItemKind,
@@ -58,6 +50,7 @@ from ..lsp_utils import (
     get_docs_section,
 )
 from ..parse_tree import *
+from ..types import BoolType, FloatType, GirType, IntType, InvalidType, StringType
 
 OBJECT_CONTENT_HOOKS = AnyOf()
 LITERAL = AnyOf()

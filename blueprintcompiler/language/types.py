@@ -95,9 +95,11 @@ class TypeName(AstNode):
         return None
 
     @property
-    def gir_type(self) -> gir.GirType | None:
+    def gir_type(self) -> gir.GirType:
         if self.class_name is not None and not self.is_extern:
-            return self.root.gir.get_type(self.class_name, self.namespace)
+            return (
+                self.root.gir.get_type(self.class_name, self.namespace) or InvalidType()
+            )
 
         return gir.ExternType(
             self.root.gir.get_type("Widget", "Gtk").get_containing(Repository),
@@ -138,11 +140,7 @@ class TypeName(AstNode):
 class ClassName(TypeName):
     @validate("namespace", "class_name")
     def gir_class_exists(self):
-        if (
-            self.gir_type is not None
-            and not isinstance(self.gir_type, ExternType)
-            and not isinstance(self.gir_type, Class)
-        ):
+        if not isinstance(self.gir_type, (Class, ExternType, InvalidType)):
             if isinstance(self.gir_type, Interface):
                 raise CompileError(
                     f"{self.gir_type.full_name} is an interface, not a class"
@@ -175,7 +173,7 @@ class TemplateClassName(ClassName):
         )
 
     @property
-    def gir_type(self) -> gir.GirType | None:
+    def gir_type(self) -> gir.GirType:
         if self.is_legacy:
             return gir.ExternType(self.root.gir, self.namespace, self.class_name)
         else:

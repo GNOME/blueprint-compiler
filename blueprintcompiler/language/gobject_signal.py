@@ -134,7 +134,7 @@ class Signal(AstNode):
 
     @property
     def gir_signal(self) -> gir.Signal | None:
-        if self.gir_class is not None and not isinstance(self.gir_class, ExternType):
+        if not isinstance(self.gir_class, (ExternType, InvalidType)):
             return self.gir_class.signals.get(self.tokens["name"])
         else:
             return None

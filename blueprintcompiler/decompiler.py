@@ -437,7 +437,7 @@ def decompile_property(
     elif gir is None or gir.properties.get(name) is None:
         ctx.print(f"{name}: {escape_quote(cdata)};")
     elif (
-        gir.assignable_to(ctx.gir.get_class("BuilderListItemFactory", "Gtk"))
+        gir.assignable_to(ctx.gir.get_type("BuilderListItemFactory", "Gtk"))
         and name == "bytes"
     ):
         sub_ctx = DecompileCtx(ctx.gir)

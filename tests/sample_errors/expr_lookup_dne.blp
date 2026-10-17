@@ -3,3 +3,8 @@ using Gtk 4.0;
 Overlay overlay {
   margin-bottom: bind overlay.child as (Label).not-a-property;
 }
+
+$MyObject obj {
+  prop1: bind obj.prop2.prop3;
+  prop2: bind overlay.not-a-property.prop4;
+}

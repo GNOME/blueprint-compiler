@@ -1,3 +1,8 @@
 using Gtk 4.0;
 
 template $TestTemplate : Gtk.NotARealClass {}
+
+Gtk.NotARealClass {
+  not-a-real-property: "value";
+  not-a-real-signal => $handler();
+}

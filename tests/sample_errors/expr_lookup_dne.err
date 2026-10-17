@@ -1,1 +1,3 @@
 4,48,14,Gtk.Label does not have a property called not-a-property
+8,25,5,Could not determine the type of the preceding expression
+9,23,14,Gtk.Overlay does not have a property called not-a-property

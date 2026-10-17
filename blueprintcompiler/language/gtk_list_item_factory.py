@@ -69,7 +69,9 @@ class ExtListItemFactory(AstNode):
     @validate("typename_start", "typename_end")
     def type_is_list_item(self):
         if self.type_name is not None:
-            if self.type_name.glib_type_name not in (
+            if not isinstance(
+                self.gir_class, InvalidType
+            ) and self.type_name.glib_type_name not in (
                 "GtkListItem",
                 "GtkListHeader",
                 "GtkColumnViewRow",

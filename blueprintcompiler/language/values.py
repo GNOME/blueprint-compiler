@@ -255,7 +255,7 @@ class IdentLiteral(AstNode):
         return self.tokens["value"]
 
     @property
-    def type(self) -> gir.GirType | None:
+    def type(self) -> gir.GirType:
         # If the expected type is known, then use that. Otherwise, guess.
         if expected_type := self.context[ValueTypeCtx].value_type:
             return expected_type
@@ -266,7 +266,7 @@ class IdentLiteral(AstNode):
         elif self.root.is_legacy_template(self.ident):
             return self.root.template.class_name.gir_type
         else:
-            return None
+            return InvalidType()
 
     @validate()
     def validate_for_type(self) -> None:
