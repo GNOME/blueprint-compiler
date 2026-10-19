@@ -18,29 +18,75 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-from .errors import CompileError, MultipleErrors
+from dataclasses import dataclass, field
+
+from .errors import CompileError, CompileWarning, MultipleErrors
 from .language import UI
+from .linter import lint
 from .parse_tree import AnyOf, ParseContext
-from .tokenizer import SourceCode
+from .tokenizer import SourceCode, tokenize
+
+
+@dataclass
+class CompileOptions:
+    lint_categories: list[str] = field(default_factory=list)
+    lint_rule_ids: list[str] = field(default_factory=list)
+    lint_platform: str | None = None
+    lint_no_suggestions: bool = False
+
+
+@dataclass
+class CompileResult:
+    success: bool
+    source: SourceCode
+    ast: UI
+    errors: list[CompileError]
+    warnings: list[CompileWarning]
+    lint_warnings: list[CompileWarning]
+
+    @property
+    def diagnostics(self) -> list[CompileError]:
+        return self.errors + self.warnings + self.lint_warnings
 
 
 def parse(
-    source: SourceCode,
-) -> tuple[UI | None, MultipleErrors | None, list[CompileError]]:
-    """Parses a list of tokens into an abstract syntax tree."""
+    blueprint: str,
+    opts: CompileOptions | None = None,
+) -> CompileResult:
+    """Parses Blueprint source code into an abstract syntax tree."""
 
-    try:
-        ctx = ParseContext(source)
-        AnyOf(UI).parse(ctx)
+    opts = opts or CompileOptions()
 
-        assert ctx.last_group is not None
-        ast_node = ctx.last_group.to_ast()
+    source = tokenize(blueprint)
 
-        errors = [*ctx.errors, *ast_node.errors]
-        warnings = [*ctx.warnings, *ast_node.warnings]
+    errors: list[CompileError] = []
+    warnings: list[CompileWarning] = []
+    lint_warnings: list[CompileWarning] = []
 
-        return (ast_node, MultipleErrors(errors) if len(errors) else None, warnings)
-    except MultipleErrors as e:
-        return (None, e, [])
-    except CompileError as e:
-        return (None, MultipleErrors([e]), [])
+    ctx = ParseContext(source)
+    AnyOf(UI).parse(ctx)
+    assert ctx.last_group is not None
+    ast_node = ctx.last_group.to_ast()
+
+    errors = [*ctx.errors, *ast_node.errors]
+    warnings = [*ctx.warnings, *ast_node.warnings]
+
+    if len(opts.lint_categories) > 0:
+        lint_warnings = lint(
+            ast_node,
+            categories=opts.lint_categories,
+            rule_ids=opts.lint_rule_ids,
+            platform=opts.lint_platform,
+            no_suggestions=opts.lint_no_suggestions,
+        )
+    else:
+        lint_warnings = []
+
+    return CompileResult(
+        success=len(errors) == 0,
+        source=source,
+        ast=ast_node,
+        errors=errors,
+        warnings=warnings,
+        lint_warnings=lint_warnings,
+    )

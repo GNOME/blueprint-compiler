@@ -21,9 +21,7 @@
 import unittest
 from pathlib import Path
 
-from blueprintcompiler.linter import lint
-from blueprintcompiler.parser import parse
-from blueprintcompiler.tokenizer import tokenize
+from blueprintcompiler.parser import CompileOptions, parse
 
 
 class TestLinter(unittest.TestCase):
@@ -301,16 +299,20 @@ class TestLinter(unittest.TestCase):
 
             with open(filepath, "r+") as file:
                 code = file.read()
-                tokens = tokenize(code)
-                ast, errors, warnings = parse(tokens)
+                result = parse(
+                    code,
+                    opts=CompileOptions(
+                        lint_categories=["all"],
+                        lint_rule_ids=[rule_id],
+                        lint_no_suggestions=False,
+                        lint_platform="adw",
+                    ),
+                )
+                self.assertTrue(result.success)
 
-                if errors:
-                    raise errors
+                self.assertEqual(len(result.lint_warnings), len(expected_problems))
 
-                problems = lint(ast, rule_ids=[rule_id])
-                self.assertEqual(len(problems), len(expected_problems))
-
-                for actual, expected in zip(problems, expected_problems):
+                for actual, expected in zip(result.lint_warnings, expected_problems):
                     line_num, col_num = actual.range.source.idx_to_pos(
                         actual.range.start + 1
                     )

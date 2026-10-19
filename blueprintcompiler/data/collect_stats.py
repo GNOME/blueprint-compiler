@@ -85,12 +85,11 @@ def collect_stats(dir: str):
             with open(path, "r") as f:
                 content = f.read()
 
-            tokens = tokenize(content)
-            ast, errors, warnings = parse(tokens)
-            if errors is not None or ast is None:
+            result = parse(content)
+            if not result.success:
                 continue
 
-            walk_ast(ast)
+            walk_ast(result.ast)
 
     results = {k: v.summarize() for k, v in class_stats.items()}
     results = {k: v for k, v in results.items() if v is not None}

@@ -27,8 +27,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
-from blueprintcompiler import decompiler, parser, tokenizer, utils
-from blueprintcompiler.ast_utils import AstNode
+from blueprintcompiler import decompiler, parser
 from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import (
     CompileError,
@@ -36,9 +35,9 @@ from blueprintcompiler.errors import (
     MultipleErrors,
     PrintableError,
 )
-from blueprintcompiler.linter import lint
 from blueprintcompiler.lsp import LanguageServer
 from blueprintcompiler.outputs.xml import XmlOutput
+from blueprintcompiler.parser import CompileOptions, CompileResult
 
 
 class TestSamples(unittest.TestCase):
@@ -67,49 +66,54 @@ class TestSamples(unittest.TestCase):
         except:
             pass
 
-    def assert_ast_doesnt_crash(self, text, tokens, ast: AstNode):
+    def assert_ast_doesnt_crash(self, result: CompileResult):
         lsp = LanguageServer()
-        for i in range(len(text) + 1):
-            ast.get_docs(i)
-        for i in range(len(text) + 1):
-            list(complete(lsp, ast, tokens, i))
-        for i in range(len(text) + 1):
-            ast.get_reference(i)
-        ast.get_document_symbols()
-        lint(ast)
+        for i in range(len(result.source.text) + 1):
+            result.ast.get_docs(i)
+        for i in range(len(result.source.text) + 1):
+            list(complete(lsp, result.ast, result.source, i))
+        for i in range(len(result.source.text) + 1):
+            result.ast.get_reference(i)
+        result.ast.get_document_symbols()
 
     def assert_sample(self, name, skip_run=False):
         print(f'assert_sample("{name}", skip_run={skip_run})')
-        try:
-            with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
-                blueprint = f.read()
-            with open((Path(__file__).parent / f"samples/{name}.ui").resolve()) as f:
-                expected = f.read()
 
-            tokens = tokenizer.tokenize(blueprint)
-            ast, errors, warnings = parser.parse(tokens)
+        with open((Path(__file__).parent / f"samples/{name}.blp").resolve()) as f:
+            blueprint = f.read()
+        with open((Path(__file__).parent / f"samples/{name}.ui").resolve()) as f:
+            expected = f.read()
 
-            # Ignore deprecation warnings because some of the things we're testing
-            # are deprecated
-            warnings = [
-                warning
-                for warning in warnings
-                if not isinstance(warning, DeprecatedWarning)
-            ]
+        result = parser.parse(
+            blueprint,
+            opts=CompileOptions(
+                lint_categories=["all"], lint_rule_ids=["all"], lint_platform="adw"
+            ),
+        )
 
-            if errors:
-                raise errors
-            if len(warnings):
-                raise MultipleErrors(warnings)
+        # Ignore deprecation warnings because some of the things we're testing
+        # are deprecated
+        warnings = [
+            warning
+            for warning in result.warnings
+            if not isinstance(warning, DeprecatedWarning)
+        ]
 
-            xml = XmlOutput()
-            actual = xml.emit(ast)
-            self.assertEqual(actual.strip(), expected.strip())
-
-            self.assert_ast_doesnt_crash(blueprint, tokens, ast)
-        except PrintableError as e:  # pragma: no cover
-            e.pretty_print(name + ".blp", blueprint)
+        if not result.success:
+            for error in result.errors:
+                error.pretty_print(name + ".blp", blueprint)
             raise AssertionError()
+
+        if len(warnings):
+            for warning in warnings:
+                warning.pretty_print(name + ".blp", blueprint)
+            raise AssertionError()
+
+        xml = XmlOutput()
+        actual = xml.emit(result.ast)
+        self.assertEqual(actual.strip(), expected.strip())
+
+        self.assert_ast_doesnt_crash(result)
 
         # Make sure the sample runs
         if not skip_run:
@@ -117,47 +121,37 @@ class TestSamples(unittest.TestCase):
 
     def assert_sample_error(self, name):
         print(f'assert_sample_error("{name}")')
-        try:
-            with open(
-                (Path(__file__).parent / f"sample_errors/{name}.blp").resolve()
-            ) as f:
-                blueprint = f.read()
-            with open(
-                (Path(__file__).parent / f"sample_errors/{name}.err").resolve()
-            ) as f:
-                expected = f.read()
 
-            tokens = tokenizer.tokenize(blueprint)
-            ast, errors, warnings = parser.parse(tokens)
+        with open((Path(__file__).parent / f"sample_errors/{name}.blp").resolve()) as f:
+            blueprint = f.read()
+        with open((Path(__file__).parent / f"sample_errors/{name}.err").resolve()) as f:
+            expected = f.read()
 
-            if ast is not None:
-                self.assert_ast_doesnt_crash(blueprint, tokens, ast)
+        result = parser.parse(blueprint)
 
-            if errors:
-                raise errors
-            if len(ast.errors):
-                raise MultipleErrors(ast.errors)
-            if len(warnings):
-                raise MultipleErrors(warnings)
-        except PrintableError as e:
+        if result.ast is not None:
+            self.assert_ast_doesnt_crash(result)
+
+        if len(result.errors) > 0:
+            # If there are any errors, test them. Only test warnings if there are no errors.
+            errors = result.errors
+        else:
             # Ignore deprecation warnings because new versions of libraries can introduce
             # new deprecations, which would cause the tests to fail
             errors = [
                 error
-                for error in (e.errors if isinstance(e, MultipleErrors) else [e])
+                for error in result.warnings
                 if (name == "deprecations" or not isinstance(error, DeprecatedWarning))
             ]
 
-            def error_str(error: CompileError):
-                line, col = error.range.source.idx_to_pos(error.range.start + 1)
-                len = error.range.length
-                return ",".join([str(line + 1), str(col), str(len), error.message])
+        def error_str(error: CompileError):
+            line, col = error.range.source.idx_to_pos(error.range.start + 1)
+            error_len = error.range.length
+            return ",".join([str(line + 1), str(col), str(error_len), error.message])
 
-            actual = "\n".join([error_str(error) for error in errors])
+        actual = "\n".join([error_str(error) for error in errors])
 
-            self.assertEqual(actual.strip(), expected.strip())
-        else:  # pragma: no cover
-            raise AssertionError("Expected a compiler error, but none was emitted")
+        self.assertEqual(actual.strip(), expected.strip())
 
     def assert_decompile(self, name):
         print(f'assert_decompile("{name}")')
@@ -178,7 +172,7 @@ class TestSamples(unittest.TestCase):
             name = name.removesuffix("_dec")
             ui_path = (Path(__file__).parent / f"samples/{name}.ui").resolve()
 
-            ast, errors, warnings, actual = decompiler.decompile(ui_path)
+            errors, warnings, actual = decompiler.decompile(ui_path)
 
             self.assertEqual(actual.text.strip(), expected)
         except PrintableError as e:  # pragma: no cover

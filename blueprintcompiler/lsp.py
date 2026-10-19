@@ -73,19 +73,15 @@ class OpenFile:
         self._update()
 
     def _update(self) -> None:
-        self.diagnostics: list[CompileError] = []
-        try:
-            self.source = tokenizer.tokenize(self.text)
-            self.ast, errors, warnings = parser.parse(self.source)
-            self.diagnostics += warnings
-            if errors is not None:
-                self.diagnostics += errors.errors
-            if self.ast is not None:
-                self.diagnostics += lint(self.ast)
-        except MultipleErrors as e:
-            self.diagnostics += e.errors
-        except CompileError as e:
-            self.diagnostics.append(e)
+        result = parser.parse(
+            self.text,
+            opts=parser.CompileOptions(
+                lint_categories=["all"], lint_rule_ids=["all"], lint_platform="adw"
+            ),
+        )
+        self.source = result.source
+        self.ast = result.ast
+        self.diagnostics = result.diagnostics
 
     def calc_semantic_tokens(self) -> list[int]:
         if self.ast is None:

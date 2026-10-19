@@ -33,6 +33,7 @@ class TokenType(Enum):
     WHITESPACE = 5
     COMMENT = 6
     PUNCTUATION = 7
+    INVALID = 8
 
 
 _tokens = [
@@ -156,30 +157,27 @@ class SourceCode:
         }
 
 
-def _tokenize(blueprint: str, source: SourceCode):
-    from .errors import CompileError
-
+def _tokenize(source: SourceCode):
     i = 0
     t = 0
-    while i < len(blueprint):
+    while i < len(source.text):
         for type, regex in _TOKENS:
-            if match := regex.match(blueprint, i):
+            if match := regex.match(source.text, i):
                 yield Token(type, match.start(), match.end(), source, t)
                 i = match.end()
                 t += 1
                 break
         else:
-            raise CompileError(
-                "Could not determine what kind of syntax is meant here",
-                Range(i, i, source),
-            )
+            yield Token(TokenType.INVALID, i, i + 1, source, t)
+            i += 1
+            t += 1
 
     yield Token(TokenType.EOF, i, i, source, t)
 
 
 def tokenize(data: str) -> SourceCode:
     source = SourceCode(text=data, tokens=[])
-    source.tokens.extend(_tokenize(data, source))
+    source.tokens.extend(_tokenize(source))
     return source
 
 

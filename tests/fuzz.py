@@ -4,10 +4,12 @@ import sys
 from pythonfuzz.main import PythonFuzz
 
 from blueprintcompiler.outputs.xml import XmlOutput
+from blueprintcompiler.parse_tree import AstNode
+from blueprintcompiler.tokenizer import SourceCode
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from blueprintcompiler import gir, parser, tokenizer
+from blueprintcompiler import gir, parser
 from blueprintcompiler.completions import complete
 from blueprintcompiler.errors import (
     CompilerBugError,
@@ -24,15 +26,14 @@ def fuzz(buf: bytes):
     try:
         blueprint = buf.decode("ascii")
 
-        tokens = tokenizer.tokenize(blueprint)
-        ast, errors, warnings = parser.parse(tokens)
+        result = parser.parse(blueprint)
 
         if fuzz_level >= 1:
-            assert_ast_doesnt_crash(blueprint, tokens, ast)
+            assert_ast_doesnt_crash(result.source, result.ast)
 
         xml = XmlOutput()
-        if errors is None and ast is not None:
-            xml.emit(ast)
+        if result.success:
+            xml.emit(result.ast)
     except CompilerBugError as e:
         raise e
     except PrintableError:
@@ -41,13 +42,13 @@ def fuzz(buf: bytes):
         pass
 
 
-def assert_ast_doesnt_crash(text, tokens, ast):
+def assert_ast_doesnt_crash(source: SourceCode, ast: AstNode):
     lsp = LanguageServer()
-    for i in range(len(text) + 1):
+    for i in range(len(source.text) + 1):
         ast.get_docs(i)
-    for i in range(len(text) + 1):
-        list(complete(lsp, ast, tokens, i))
-    for i in range(len(text) + 1):
+    for i in range(len(source.text) + 1):
+        list(complete(lsp, ast, source, i))
+    for i in range(len(source.text) + 1):
         ast.get_reference(i)
     ast.get_document_symbols()
     lint(ast)

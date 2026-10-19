@@ -280,24 +280,23 @@ def decompile_xml(xml: Element):
     ctx = DecompileCtx()
     decompile_element(ctx, None, xml)
 
-    source = tokenize(ctx.result)
-    ast, errors, warnings = parser.parse(source)
+    result = parser.parse(ctx.result)
 
-    if ast is not None:
-        fixes = [*ast.autofix()]
-        source = tokenize(TextEdit.apply_edits(ctx.result, fixes))
+    fixes = [*result.ast.autofix()]
+    if len(fixes):
+        result = parser.parse(TextEdit.apply_edits(ctx.result, fixes))
 
-    return ast, errors, warnings, source
+    return result.errors, result.warnings, result.source
 
 
 def decompile(
-    data: str,
-) -> tuple[Any, MultipleErrors | None, list[CompileError], SourceCode]:
-    return decompile_xml(parse(data))
+    filename: str,
+) -> tuple[list[CompileError], list[CompileError], SourceCode]:
+    return decompile_xml(parse(filename))
 
 
 def decompile_string(data: str) -> str:
-    ast, errors, warnings, source = decompile_xml(parse_string(data))
+    errors, warnings, source = decompile_xml(parse_string(data))
     return source.text
 
 

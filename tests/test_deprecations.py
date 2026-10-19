@@ -39,17 +39,12 @@ class TestDeprecations(unittest.TestCase):
         self.gtkVersion = f"{Gtk.get_major_version()}.{Gtk.get_minor_version()}.{Gtk.get_micro_version()}"
 
     def assertDeprecation(self, blueprint: str, message: str):
-        try:
-            tokens = tokenizer.tokenize(blueprint)
-            _ast, errors, warnings = parser.parse(tokens)
+        result = parser.parse(blueprint)
 
-            self.assertIsNone(errors)
-            self.assertEqual(len(warnings), 1)
-            self.assertIsInstance(warnings[0], DeprecatedWarning)
-            self.assertEqual(warnings[0].message, message)
-        except PrintableError as e:  # pragma: no cover
-            e.pretty_print("<deprecations test>", blueprint)
-            raise AssertionError()
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.warnings), 1)
+        self.assertIsInstance(result.warnings[0], DeprecatedWarning)
+        self.assertEqual(result.warnings[0].message, message)
 
     def test_class_deprecation(self):
         if Gtk.check_version(4, 10, 0) is not None:

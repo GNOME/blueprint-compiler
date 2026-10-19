@@ -43,34 +43,28 @@ def decompile_file(in_file, out_file) -> str | CouldNotPort:
         return CouldNotPort("already exists")
 
     try:
-        ast, errors, warnings, decompiled = decompiler.decompile(in_file)
+        errors, warnings, decompiled = decompiler.decompile(in_file)
+
+        if errors:
+            for error in errors:
+                error.pretty_print(out_file, decompiled.text)
+
+            print(
+                f"{Colors.RED}{Colors.BOLD}error: the generated file does not compile{Colors.CLEAR}"
+            )
+            print(f"in {Colors.UNDERLINE}{out_file}{Colors.NO_UNDERLINE}")
+            print(
+                f"""{Colors.FAINT}Either the original XML file had an error, or there is a bug in the
+    porting tool. If you think it's a bug, please file an issue on GitLab:
+    {Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n"""
+            )
+
+            return CouldNotPort("does not compile")
 
         for warning in warnings:
             warning.pretty_print(out_file, decompiled.text)
 
-        if errors:
-            raise errors
-        if not ast:
-            raise CompilerBugError()
-
-        output = XmlOutput()
-        output.emit(ast)
-
         return decompiled.text
-    except PrintableError as e:
-        e.pretty_print(out_file, decompiled.text)
-
-        print(
-            f"{Colors.RED}{Colors.BOLD}error: the generated file does not compile{Colors.CLEAR}"
-        )
-        print(f"in {Colors.UNDERLINE}{out_file}{Colors.NO_UNDERLINE}")
-        print(
-            f"""{Colors.FAINT}Either the original XML file had an error, or there is a bug in the
-porting tool. If you think it's a bug (which is likely), please file an issue on GitLab:
-{Colors.BLUE}{Colors.UNDERLINE}https://gitlab.gnome.org/GNOME/blueprint-compiler/-/issues/new?issue{Colors.CLEAR}\n"""
-        )
-
-        return CouldNotPort("does not compile")
 
     except decompiler.UnsupportedError as e:
         e.print(in_file)

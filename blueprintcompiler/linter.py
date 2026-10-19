@@ -54,7 +54,7 @@ def lint(
     ast: AstNode,
     categories: list[str] = ["all"],
     rule_ids: list[str] = ["all"],
-    platform: str = "adw",
+    platform: str | None = "adw",
     no_suggestions: bool = False,
 ):
     problems: list[CompileError] = []

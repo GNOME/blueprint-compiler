@@ -24,17 +24,16 @@ import os
 import pathlib
 import sys
 
-from . import formatter, interactive_port, linter, parser, tokenizer
+from . import formatter, interactive_port, parser
 from .decompiler import decompile_string
 from .errors import (
-    CompileError,
-    CompilerBugError,
     PrintableError,
     report_bug,
 )
 from .gir import add_gir_search_path, add_typelib_search_path
 from .lsp import LanguageServer
 from .outputs import XmlOutput
+from .parser import CompileOptions, CompileResult
 from .utils import Colors
 
 VERSION = "uninstalled"
@@ -210,20 +209,20 @@ class BlueprintApp:
                 add_gir_search_path(gir_path)
 
         data = opts.input.read()
-        try:
-            xml, warnings = self._compile(data, minify=opts.minify)
 
-            for warning in warnings:
-                warning.pretty_print(opts.input.name, data, stream=sys.stderr)
+        result, xml = self._compile(data, minify=opts.minify)
 
-            if opts.output == "-":
-                print(xml)
-            else:
-                with open(opts.output, "w") as file:
-                    file.write(xml)
-        except PrintableError as e:
-            e.pretty_print(opts.input.name, data, stream=sys.stderr)
+        for warning in result.diagnostics:
+            warning.pretty_print(opts.input.name, data, stream=sys.stderr)
+
+        if not result.success:
             sys.exit(1)
+
+        if opts.output == "-":
+            print(xml)
+        else:
+            with open(opts.output, "w") as file:
+                file.write(xml)
 
     def cmd_batch_compile(self, opts):
         if opts.typelib_path != None:
@@ -265,18 +264,17 @@ class BlueprintApp:
 
             data = file.read()
 
-            try:
-                xml, warnings = self._compile(data, minify=opts.minify)
+            result, xml = self._compile(data, minify=opts.minify)
 
-                for warning in warnings:
-                    warning.pretty_print(file.name, data, stream=sys.stderr)
+            for diagnostic in result.diagnostics:
+                diagnostic.pretty_print(file.name, data, stream=sys.stderr)
 
-                os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, "w") as file:
-                    file.write(xml)
-            except PrintableError as e:
-                e.pretty_print(file.name, data)
+            if not result.success:
                 sys.exit(1)
+
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as file:
+                file.write(xml)
 
     def cmd_format(self, opts):
         input_files = []
@@ -299,19 +297,15 @@ class BlueprintApp:
         for file in input_files:
             with open(file, "r+") as file:
                 data = file.read()
-                errored = False
 
-                try:
-                    self._compile(data)
-                except:
-                    errored = True
+                result = parser.parse(data)
 
                 formatted_str = formatter.format(data, opts.spaces_num, not opts.tabs)
 
                 if data != formatted_str:
                     happened = "Would format"
 
-                    if opts.fix and not errored:
+                    if opts.fix and result.success:
                         file.seek(0)
                         file.truncate()
                         file.write(formatted_str)
@@ -337,7 +331,7 @@ class BlueprintApp:
                         print("".join(diff_lines))
 
                     to_print = Colors.BOLD
-                    if errored:
+                    if not result.success:
                         to_print += f"{Colors.RED}Skipped {file.name}: Will not overwrite file with compile errors"
                         panic = True
                         skipped_files += 1
@@ -429,30 +423,21 @@ class BlueprintApp:
         for file in input_files:
             with open(file, "r+") as file:
                 data = file.read()
-                errored = False
 
-                tokens = tokenizer.tokenize(data)
-                ast, errors, warnings = parser.parse(tokens)
-
-                if errors:
-                    errors.pretty_print(file.name, data)
-                    panic = True
-                    continue
-                if ast is None:
-                    raise CompilerBugError()
-
-                problems = linter.lint(
-                    ast,
-                    categories=opts.category.lower().split(","),
-                    rule_ids=opts.rule.lower().split(","),
-                    platform=opts.platform.lower(),
-                    no_suggestions=opts.no_suggestions,
+                result = parser.parse(
+                    data,
+                    opts=CompileOptions(
+                        lint_categories=opts.category.lower().split(","),
+                        lint_rule_ids=opts.rule.lower().split(","),
+                        lint_platform=opts.platform.lower(),
+                        lint_no_suggestions=opts.no_suggestions,
+                    ),
                 )
-                for problem in problems:
-                    problem.pretty_print(
-                        file.name, problem.range.source.text, stream=sys.stderr
-                    )
+
+                if len(result.diagnostics) > 0:
                     panic = True
+                    for diagnostic in result.diagnostics:
+                        diagnostic.pretty_print(file.name, data, stream=sys.stderr)
 
         if panic:
             sys.exit(1)
@@ -471,21 +456,18 @@ class BlueprintApp:
 
     def _compile(
         self, data: str, *, minify: bool = False
-    ) -> tuple[str, list[CompileError]]:
-        source = tokenizer.tokenize(data)
-        ast, errors, warnings = parser.parse(source)
+    ) -> tuple[CompileResult, str | None]:
+        result = parser.parse(data)
 
-        if errors:
-            raise errors
-        if ast is None:
-            raise CompilerBugError()
+        if result.success:
+            if minify:
+                formatter = XmlOutput(indent=None, generated_notice=False)
+            else:
+                formatter = XmlOutput()
 
-        if minify:
-            formatter = XmlOutput(indent=None, generated_notice=False)
+            return result, formatter.emit(result.ast)
         else:
-            formatter = XmlOutput()
-
-        return formatter.emit(ast), warnings
+            return result, None
 
 
 def main():
