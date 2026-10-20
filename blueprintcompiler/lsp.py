@@ -534,6 +534,8 @@ class LanguageServer:
 
         if err.id is not None:
             result["code"] = err.id
+            if err.docs_url is not None:
+                result["codeDescription"] = {"href": err.docs_url}
 
         if isinstance(err, DeprecatedWarning):
             result["tags"] = [DiagnosticTag.Deprecated]
