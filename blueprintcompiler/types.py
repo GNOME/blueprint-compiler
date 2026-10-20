@@ -26,9 +26,19 @@ class GirType:
         return None
 
     def assignable_to(self, other: "GirType" | None) -> bool:
+        """Whether an expression of this type can certainly be directly assigned to another type without casting."""
         raise NotImplementedError()
 
     def castable_to(self, other: "GirType") -> bool:
+        """Whether an expression of this type can be assigned to another type with a cast.
+
+        For example, since Label inherits Widget, Widget can be cast to Label (since
+        it's possible that it is a Label) even though it cannot be assigned.
+
+        Another example is converting a uint to a boolean. While the GObject type system allows
+        this conversion, blueprint does not allow it in direct property assignments and warns
+        if such a conversion is done in an expression without a cast.
+        """
         return self.assignable_to(other)
 
     def parent_types(self) -> Iterable["GirType"]:
@@ -166,6 +176,7 @@ class BasicType(GirType):
         return self.name
 
     def transformable_to(self, other: GirType):
+        """Whether this type can be transformed to another type via g_value_transform()"""
         raise NotImplementedError()
 
     def castable_to(self, other: GirType):
