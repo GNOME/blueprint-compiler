@@ -71,19 +71,31 @@ class Expression(ExprBase):
         if isinstance(self.type, InvalidType):
             return
 
-        expected_type = self.parent.context[ValueTypeCtx].value_type
-        if self.type is not None and expected_type is not None:
-            if not self.type.assignable_to(expected_type):
-                castable = (
-                    " without casting" if self.type.castable_to(expected_type) else ""
-                )
+        expected_type = self.context[ValueTypeCtx].value_type
+        if (
+            self.type is not None
+            and expected_type is not None
+            and not self.type.assignable_to(expected_type)
+        ):
+            if self.type.castable_to(expected_type):
                 raise CompileWarning(
-                    f"Cannot assign {self.type.full_name} to {expected_type.full_name}{castable}"
+                    f"Unusual type conversion from {self.type.full_name} to {expected_type.full_name}",
+                    actions=[
+                        CodeAction(
+                            "Add a cast to make the conversion explicit",
+                            f" as <{expected_type.full_name}>",
+                            Range(self.range.end, self.range.end, self.range.source),
+                        )
+                    ],
+                )
+            else:
+                raise CompileError(
+                    f"Cannot assign {self.type.full_name} to {expected_type.full_name}"
                 )
 
     @autofix
     def autofix_cast(self):
-        expected_type = self.parent.context[ValueTypeCtx].value_type
+        expected_type = self.context[ValueTypeCtx].value_type
         if self.type is not None and expected_type is not None:
             if not self.type.assignable_to(expected_type):
                 if self.type.castable_to(expected_type):
@@ -249,12 +261,15 @@ class CastExpr(InfixExpr):
 
     @validate()
     def cast_makes_sense(self) -> None:
-        if self.type is None or self.lhs.type is None:
+        if (
+            self.type is None
+            or self.lhs.type is None
+            or isinstance(self.type, InvalidType)
+            or isinstance(self.lhs.type, InvalidType)
+        ):
             return
 
-        if not self.type.castable_to(self.lhs.type) and not self.lhs.type.castable_to(
-            self.type
-        ):
+        if not self.lhs.type.castable_to(self.type):
             raise CompileError(
                 f"Invalid cast. No instance of {self.lhs.type.full_name} can be an instance of {self.type.full_name}."
             )
@@ -439,6 +454,8 @@ def decompile_lookup(
     ):
         constant = ctx.current_node.children[0].cdata
 
+    is_closure = False
+
     if constant is not None:
         if constant == ctx.template_class:
             ctx.print("template." + name)
@@ -448,10 +465,16 @@ def decompile_lookup(
             ctx.print(constant + "." + name)
         return
     else:
-        for child in ctx.current_node.children:
-            decompile.decompile_element(ctx, gir, child)
+        child = ctx.current_node.children[0]
+        decompile.decompile_element(ctx, gir, child)
+        if child.tag == "closure":
+            is_closure = True
 
-    ctx.print(f" as <{type}>.{name}")
+    if not is_closure:
+        # Closures already emit a cast to their return type
+        ctx.print(f" as <{type}>")
+
+    ctx.print(f".{name}")
 
 
 @decompiler("constant", cdata=True)
