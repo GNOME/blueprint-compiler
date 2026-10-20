@@ -513,14 +513,24 @@ class Interface(GirNode, ObjectType):
 
 
 class ExternType(ObjectType):
-    def __init__(self, repo: "Repository", ns: str | None, name: str) -> None:
+    def __init__(
+        self,
+        repo: "Repository",
+        ns: str | None,
+        name: str,
+        known_is_class: bool = False,
+    ) -> None:
         super().__init__()
         self._name = name
         self._ns = ns
         self._repo = repo
+        self.known_is_class = known_is_class
 
     def assignable_to(self, other: GirType | None) -> bool:
-        return isinstance(other, ObjectType)
+        if self.known_is_class:
+            return isinstance(other, ObjectType)
+        else:
+            return True
 
     def parent_types(self):
         return [self._repo.get_type("Object", "GObject")]

@@ -105,6 +105,7 @@ class TypeName(AstNode):
             self.root.gir.get_type("Widget", "Gtk").get_containing(Repository),
             self.namespace,
             self.class_name,
+            known_is_class=isinstance(self, ClassName),
         )
 
     @property
