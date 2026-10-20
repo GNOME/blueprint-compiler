@@ -85,17 +85,16 @@ class AdwBreakpointSetter(AstNode):
         return self.children[Value][0] if len(self.children[Value]) > 0 else None
 
     @property
-    def gir_class(self) -> GirType | None:
+    def gir_class(self) -> GirType:
         if self.object is not None:
             return self.object.gir_class
         else:
-            return None
+            return InvalidType()
 
     @property
     def gir_property(self) -> gir.Property | None:
         if (
-            self.gir_class is not None
-            and not isinstance(self.gir_class, ExternType)
+            not isinstance(self.gir_class, (ExternType, InvalidType))
             and self.property_name is not None
         ):
             assert isinstance(self.gir_class, gir.Class) or isinstance(
