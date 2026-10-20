@@ -196,7 +196,7 @@ class CompileWarning(CompileError):
 
 
 class DeprecatedWarning(CompileWarning):
-    pass
+    id = "deprecated"
 
 
 class UnusedWarning(CompileWarning):
@@ -206,6 +206,7 @@ class UnusedWarning(CompileWarning):
 class UpgradeWarning(CompileWarning):
     category = "upgrade"
     color = Colors.PURPLE
+    id = "upgrade"
 
 
 class UnexpectedTokenError(CompileError):

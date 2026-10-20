@@ -2,31 +2,36 @@
 Diagnostics
 ===========
 
+Errors
+------
+
+Errors are issues that prevent the blueprint from being compiled successfully.
+
 .. _Diagnostic abstract_class:
 
 abstract_class
---------------
+~~~~~~~~~~~~~~
 Objects can't be created from abstract classes. Abstract classes are used as base classes for other classes, but they don't have functionality on their own. You may want to use a non-abstract subclass instead.
 
 
 .. _Diagnostic bad_syntax:
 
 bad_syntax
-----------
+~~~~~~~~~~
 The tokenizer encountered an unexpected sequence of characters that aren't part of any known blueprint syntax.
 
 
 .. _Diagnostic child_not_accepted:
 
 child_not_accepted
-------------------
+~~~~~~~~~~~~~~~~~~
 The parent class does not have child objects (it does not implement `Gtk.Buildable <https://docs.gtk.org/gtk4/iface.Buildable.html>`_ and is not a subclass of `Gio.ListStore <https://docs.gtk.org/gio/class.ListStore.html>`_). Some classes use properties instead of children to add widgets. Check the parent class's documentation.
 
 
 .. _Diagnostic conversion_error:
 
 conversion_error
-----------------
+~~~~~~~~~~~~~~~~
 The value's type cannot be converted to the target type.
 
 Subclasses may be converted to their superclasses, but not vice versa. A type that implements an interface can be converted to that interface's type. Many boxed types can be parsed from strings in a type-specific way.
@@ -35,56 +40,56 @@ Subclasses may be converted to their superclasses, but not vice versa. A type th
 .. _Diagnostic expected_bool:
 
 expected_bool
--------------
+~~~~~~~~~~~~~
 A boolean value was expected, but the value is not ``true`` or ``false``.
 
 
 .. _Diagnostic extension_not_repeatable:
 
 extension_not_repeatable
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 This extension can't be used more than once in an object.
 
 
 .. _Diagnostic extension_wrong_parent_type:
 
 extension_wrong_parent_type
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 No extension with the given name exists for this object's class (or, for a :ref:`child extension<Syntax ChildExtension>`, the parent class).
 
 
 .. _Diagnostic invalid_number_literal:
 
 invalid_number_literal
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 The tokenizer encountered what it thought was a number, but it couldn't parse it as a number.
 
 
 .. _Diagnostic member_dne:
 
 member_dne
-----------
+~~~~~~~~~~
 The value is being interpreted as a member of an enum or flag type, but that type doesn't have a member with the given name.
 
 
 .. _Diagnostic missing_gtk_declaration:
 
 missing_gtk_declaration
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 All blueprint files must start with a GTK declaration, e.g. ``using Gtk 4.0;``.
 
 
 .. _Diagnostic multiple_templates:
 
 multiple_templates
-------------------
+~~~~~~~~~~~~~~~~~~
 Only one :ref:`template<Syntax Template>` is allowed per blueprint file, but there are multiple. The template keyword indicates which object is the one being instantiated.
 
 
 .. _Diagnostic namespace_not_found:
 
 namespace_not_found
---------------------
+~~~~~~~~~~~~~~~~~~~
 The ``.typelib`` files for the given namespace could not be found. There are several possibilities:
 
 * There is a typo in the namespace name, e.g. ``Adwaita`` instead of ``Adw``
@@ -99,70 +104,70 @@ The ``.typelib`` files for the given namespace could not be found. There are sev
 .. _Diagnostic namespace_not_imported:
 
 namespace_not_imported
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 The given namespace was not imported at the top of the file. Importing the namespace is necessary because it tells blueprint-compiler which version of the library to use.
 
 
 .. _Diagnostic object_dne:
 
 object_dne
-----------
+~~~~~~~~~~
 No object with the given ID exists in the current scope.
 
 
 .. _Diagnostic property_dne:
 
 property_dne
-------------
+~~~~~~~~~~~~
 The class or interface doesn't have a property with the given name.
 
 
 .. _Diagnostic property_convert_error:
 
 property_convert_error
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 The value given for the property can't be converted to the property's type.
 
 
 .. _Diagnostic property_construct_only:
 
 property_construct_only
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 The property can't be bound because it is a construct-only property, meaning it can only be set once when the object is first constructed. Binding it to an expression could cause its value to change later.
 
 
 .. _Diagnostic property_read_only:
 
 property_read_only
-------------------
+~~~~~~~~~~~~~~~~~~
 This property can't be set because it is marked as read-only.
 
 
 .. _Diagnostic signal_dne:
 
 signal_dne
-----------
+~~~~~~~~~~
 The class or interface doesn't have a signal with the given name.
 
 
 .. _Diagnostic type_dne:
 
 type_dne
---------
+~~~~~~~~
 The given type doesn't exist in the namespace.
 
 
 .. _Diagnostic type_not_a_class:
 
 type_not_a_class
-----------------
+~~~~~~~~~~~~~~~~
 The given type exists in the namespace, but it isn't a class. An object's type must be a concrete (not abstract) class, not an interface or boxed type.
 
 
 .. _Diagnostic version_conflict:
 
 version_conflict
-----------------
+~~~~~~~~~~~~~~~~
 This error occurs when two versions of a namespace are imported (possibly transitively) in the same file. For example, this will cause a version conflict:
 
 .. code-block:: blueprint
@@ -183,17 +188,86 @@ because libhandy imports ``Gtk 3.0``.
 .. _Diagnostic wrong_compiler_version:
 
 wrong_compiler_version
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 This version of blueprint-compiler is for GTK 4 blueprints only. Future GTK versions will use different versions of blueprint-compiler.
+
+Warnings
+--------
+
+These are generally non-critical issues that do not prevent the blueprint from being compiled, but indicate code that is confusing or unlikely to have the intended effect.
+
+Warnings can be ignored using an ``@ignore`` comment. This comment should be placed on the line on which the warning occurs or the line before it.
+
+.. note::
+
+   Warnings may be added or removed in future versions of Blueprint, including in minor releases.
+
+
+.. _Diagnostic confusing_object_id:
+
+confusing_object_id
+~~~~~~~~~~~~~~~~~~~
+An object has an ID that is a common keyword. This could make it confusing or difficult to reference in the blueprint or in application code.
+
+
+.. _Diagnostic deprecated:
+
+deprecated
+~~~~~~~~~~
+A class, property, signal, or other introspectable feature has been marked as deprecated. Check the library's documentation for recommended alternatives or migration paths.
+
+
+.. _Diagnostic gettext_unrecognizable:
+
+gettext_unrecognizable
+~~~~~~~~~~~~~~~~~~~~~~
+A string marked for translation uses single quotes. The usual gettext settings, which borrow its C parser, expect double quotes and will not recognize the single-quoted string. Switch to double quotes instead.
+
+
+.. _Diagnostic single_branch_try:
+
+single_branch_try
+~~~~~~~~~~~~~~~~~
+A try expression has only one branch. This returns the value of that single branch directly, so the ``try`` expression does nothing.
+
+
+.. _Diagnostic swapped_unnecessary:
+
+swapped_unnecessary
+~~~~~~~~~~~~~~~~~~~
+A signal handler has a ``swapped`` or ``not-swapped`` flag that matches the default behavior, making the flag unnecessary.
+
+Signal handlers default to ``swapped`` when an object is specified (e.g. ``clicked => $handler(some_object)``) and to ``not-swapped`` when no object is specified (e.g. ``clicked => $handler()``).
+
+
+.. _Diagnostic unused_import:
+
+unused_import
+~~~~~~~~~~~~~
+The imported namespace is not used anywhere in the blueprint.
+
+
+.. _Diagnostic unusual_type_conversion:
+
+unusual_type_conversion
+~~~~~~~~~~~~~~~~~~~~~~~
+
+An assignment is made from one type to another that could be correct, but is unusual. For example, an int can be assigned to a boolean, but this hides the fact that a type conversion is taking place. A cast would make it explicit that the type conversion is intentional.
+
+
+.. _Diagnostic upgrade:
+
+upgrade
+~~~~~~~
+The code uses deprecated blueprint syntax. Change the syntax to according to the suggestion. These changes are usually trivial.
 
 
 Linter Rules
 ------------
 
-Ignoring Warnings
-~~~~~~~~~~~~~~~~~
+These are suggestions that aim to improve code quality and user experience, such as adherence to accessibility and typography guidelines. Some of them also flag best practices when using platform libraries such as libadwaita.
 
-Linter warnings can be ignored using an ``@ignore`` comment with the name of the rule to ignore. This comment should be placed on the line on which the warning occurs or the line before it.
+Many of these are subjective or depend on the specific context the blueprint is used in; for example, ``missing_user_facing_text`` could be a false positive if the text is supplied in application code. In this case, linter warnings can be ignored using an ``@ignore`` comment just like regular warnings.
 
 Example
 +++++++

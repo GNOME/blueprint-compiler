@@ -87,6 +87,7 @@ class Expression(ExprBase):
                             Range(self.range.end, self.range.end, self.range.source),
                         )
                     ],
+                    id="unusual_type_conversion",
                 )
             else:
                 raise CompileError(
@@ -409,6 +410,7 @@ class TryExpr(ExprBase):
                         ],
                     )
                 ],
+                id="single_branch_try",
             )
 
     @validate()

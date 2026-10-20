@@ -122,7 +122,9 @@ class Object(AstNode):
         from .gtkbuilder_template import Template
 
         if not isinstance(self, Template) and self.id in RESERVED_IDS:
-            raise CompileWarning(f"{self.id} may be a confusing object ID")
+            raise CompileWarning(
+                f"{self.id} may be a confusing object ID", id="confusing_object_id"
+            )
 
 
 def validate_parent_type(node, ns: str, name: str, err_msg: str):

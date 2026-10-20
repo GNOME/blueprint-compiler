@@ -98,6 +98,7 @@ class Import(AstNode):
                 actions=[
                     CodeAction("Remove import", "", self.range.with_trailing_newline)
                 ],
+                id="unused_import",
             )
 
     @property

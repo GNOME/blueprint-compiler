@@ -69,7 +69,7 @@ def parse(
     ast_node = ctx.last_group.to_ast()
 
     errors = [*ctx.errors, *ast_node.errors]
-    warnings = [*ctx.warnings, *ast_node.warnings]
+    warnings = [w for w in [*ctx.warnings, *ast_node.warnings] if not w.ignored]
 
     if len(opts.lint_categories) > 0:
         lint_warnings = lint(

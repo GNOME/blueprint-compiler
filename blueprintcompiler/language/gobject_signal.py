@@ -50,14 +50,16 @@ class SignalFlag(AstNode):
     @validate()
     def swapped_unnecessary(self):
         if self.flag == "not-swapped" and self.parent.object_id is None:
-            raise CompileWarning(
+            raise UnusedWarning(
                 "'not-swapped' is the default for handlers that do not specify an object",
                 actions=[CodeAction("Remove 'not-swapped' flag", "")],
+                id="swapped_unnecessary",
             )
         elif self.flag == "swapped" and self.parent.object_id is not None:
-            raise CompileWarning(
+            raise UnusedWarning(
                 "'swapped' is the default for handlers that specify an object",
                 actions=[CodeAction("Remove 'swapped' flag", "")],
+                id="swapped_unnecessary",
             )
 
     @docs()

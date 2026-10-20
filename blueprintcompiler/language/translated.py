@@ -60,12 +60,28 @@ class Translated(AstNode):
             return
 
         if not str(self.group.tokens["context"]).startswith('"'):
-            raise CompileWarning("gettext may not recognize single-quoted strings")
+            raise CompileWarning(
+                "gettext may not recognize single-quoted strings",
+                actions=[
+                    CodeAction(
+                        "Convert to double quotes", utils.escape_quote(self.context)
+                    )
+                ],
+                id="gettext_unrecognizable",
+            )
 
     @validate("string")
     def string_double_quoted(self):
         if not str(self.group.tokens["string"]).startswith('"'):
-            raise CompileWarning("gettext may not recognize single-quoted strings")
+            raise CompileWarning(
+                "gettext may not recognize single-quoted strings",
+                actions=[
+                    CodeAction(
+                        "Convert to double quotes", utils.escape_quote(self.string)
+                    )
+                ],
+                id="gettext_unrecognizable",
+            )
 
     @docs()
     def ref_docs(self):

@@ -61,7 +61,9 @@ class Menu(AstNode):
     @validate("id")
     def object_id_not_reserved(self):
         if self.id in RESERVED_IDS:
-            raise CompileWarning(f"{self.id} may be a confusing object ID")
+            raise CompileWarning(
+                f"{self.id} may be a confusing object ID", id="confusing_object_id"
+            )
 
     @docs("menu")
     def ref_docs_menu(self):
