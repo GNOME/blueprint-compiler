@@ -113,6 +113,15 @@ class InfixExpr(ExprBase):
 class LiteralExpr(ExprBase):
     grammar = LITERAL
 
+    @context(ValueTypeCtx)
+    def child_value(self) -> ValueTypeCtx:
+        prev_ctx = self.value_type
+        return ValueTypeCtx(
+            prev_ctx.value_type,
+            allow_null=prev_ctx.allow_null,
+            must_infer_type=prev_ctx.must_infer_type or prev_ctx.value_type is None,
+        )
+
     @property
     def is_object(self) -> bool:
         from .values import IdentLiteral

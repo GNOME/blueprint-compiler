@@ -200,6 +200,7 @@ class TestSamples(unittest.TestCase):
             SKIP_RUN = [
                 "adw_breakpoint_template",
                 "cast_strv",
+                "enum_in_extern",
                 "expr_cast_lookup",
                 "expr_closure",
                 "expr_closure_inferred_type",
