@@ -10,4 +10,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <property name="label">\\'Test 1 2 3
  &amp; 4 "5' 6 	</property>
   </object>
+  <object class="GtkLabel">
+    <property name="label">I♥🐱</property>
+  </object>
 </interface>

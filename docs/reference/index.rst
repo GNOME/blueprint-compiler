@@ -48,3 +48,5 @@ QUOTED
 ~~~~~~
 
 Quotes begin with an ASCII single quote ``'`` or double quote ``"`` and end with the same character they started with. An ASCII backslash ``\`` begins an escape sequence; this allows newlines ``\n``, tabs ``\t``, and quotes ``\'``, ``\"`` to be inserted. It also allows multiline strings by escaping a newline character, which will be ignored.
+
+Special characters can be inserted using ``\xHH``, ``\uHHHH``, and ``\UHHHHHHHH`` escape sequences, where ``H`` represents a hexadecimal digit. Blueprint files are generally UTF-8, so this is not strictly necessary, but it can be useful for including characters that are difficult to type or see directly. These escape sequences are converted to the corresponding Unicode characters in the output.

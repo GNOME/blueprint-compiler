@@ -118,6 +118,7 @@ def unescape_quote(string: str) -> str:
         '"': '"',
         "'": "'",
     }
+    HEX_ESCAPES = {"x": 2, "u": 4, "U": 8}
 
     result = ""
     i = 0
@@ -131,7 +132,18 @@ def unescape_quote(string: str) -> str:
 
                 raise CompilerBugError()
 
-            if r := REPLACEMENTS.get(string[i]):
+            esc = string[i]
+
+            if digits := HEX_ESCAPES.get(esc):
+                hex_value = string[i + 1 : i + 1 + digits].strip()
+                if len(hex_value) != digits:
+                    raise UnescapeError(i, i + 2 + len(hex_value))
+                try:
+                    result += chr(int(hex_value, 16))
+                except ValueError:
+                    raise UnescapeError(i, i + 1 + digits)
+                i += digits
+            elif r := REPLACEMENTS.get(string[i]):
                 result += r
             else:
                 raise UnescapeError(i, i + 2)
