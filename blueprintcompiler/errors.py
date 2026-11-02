@@ -133,7 +133,7 @@ class CompileError(PrintableError):
 
         stream.write(
             f"""{self.color}{Colors.BOLD}{self.category}: {self.message}{Colors.FAINT}{diagnostic_id}{Colors.CLEAR}
-at {filename} line {line_num} column {col_num}:
+at {filename}:{line_num}:{col_num}:
 {Colors.FAINT}{line_num :>4} |{Colors.CLEAR}{line.rstrip()}\n     {Colors.FAINT}|{" "*n_spaces}{"^"*n_carets}{Colors.CLEAR}\n"""
         )
 
