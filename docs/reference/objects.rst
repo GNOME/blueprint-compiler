@@ -76,10 +76,10 @@ Example
    }
 
    Button {
-     /* Inline object value. Notice the semicolon after the object. */
+     /* Inline object value. A semicolon after a closing brace is optional. */
      child: Image {
        /* ... */
-     };
+     }
    }
 
 

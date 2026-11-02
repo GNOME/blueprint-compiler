@@ -1,0 +1,13 @@
+using Gtk 4.0;
+
+Label a {
+  label: "test1";
+}
+
+Label b {
+  label: "test2";
+}
+
+Label {
+  label: bind try { a.label, b.label };
+}

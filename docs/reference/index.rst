@@ -9,6 +9,7 @@ The grammar is expressed as a `parsing expression grammar <https://en.wikipedia.
 Blueprint uses C-style line comments (``// comment for the rest of the line``) and block comments (``/* multiline comment... */``).
 
 Wherever commas are used as delimiters in repetition (expressed in this reference as ``( <rule> ),*``), the trailing comma is permitted and optional.
+Semicolons after code blocks are optional, e.g. ``object-property: Object {}`` and ``list-property: [ element ]``` are ok.
 
 .. toctree::
    :maxdepth: 1

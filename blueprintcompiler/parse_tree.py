@@ -208,6 +208,13 @@ class ParseContext:
         token = self.source.tokens[self.index]
         return token
 
+    def peek_previous_token(self) -> Token:
+        """Returns the last consumed token that is not whitespace or a comment."""
+        index = self.index - 1
+        while index > 0 and self.source.tokens[index].type in SKIP_TOKENS:
+            index -= 1
+        return self.source.tokens[index]
+
     def skip_unexpected_token(self):
         """Skips a token and logs an "unexpected token" error."""
 
@@ -346,10 +353,12 @@ class Statement(ParseNode):
                 return True
 
         token = ctx.peek_token()
-        if str(token) != ";":
-            ctx.errors.append(CompileError("Expected `;`", token.range))
-        else:
+        if str(token) == ";":
             ctx.next_token()
+        elif str(ctx.peek_previous_token()) in ["}", "]"]:
+            pass
+        else:
+            ctx.errors.append(CompileError("Expected `;`", token.range))
         return True
 
 
