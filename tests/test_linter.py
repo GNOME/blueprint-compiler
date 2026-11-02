@@ -290,6 +290,16 @@ class TestLinter(unittest.TestCase):
                 }
             ],
         )
+        self.check_file(
+            "subblueprint",
+            "missing_user_facing_text",
+            [
+                {
+                    "line": 6,
+                    "message": "Gtk.Label is missing required user-facing text property",
+                },
+            ],
+        )
 
     def check_file(self, name, rule_id, expected_problems):
         with self.subTest("linter/" + name):

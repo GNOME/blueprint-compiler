@@ -22,8 +22,23 @@ from typing import Callable
 
 from .ast_utils import AstNode
 from .errors import CompileError
-from .language import UI, Child, Object, Property
+from .language import UI, Child, ExtListItemFactory, Object, Property
 from .linter_rules import LINTER_RULES
+
+
+def walk_children(
+    node: Object, func: Callable[[str, Object, list[Object]], None], stack: list[Object]
+):
+    for child in node.content.children[Child]:
+        walk_ast(child.object, func, stack)
+
+    # for properties that have object as value
+    for prop in node.content.children[Property]:
+        if hasattr(prop, "value") and hasattr(prop.value, "object"):
+            walk_ast(prop.value.object, func, stack)
+
+    for prop in node.content.children[ExtListItemFactory]:
+        walk_children(prop, func, [])
 
 
 def walk_ast(
@@ -36,18 +51,12 @@ def walk_ast(
             if isinstance(child, Object):
                 walk_ast(child, func, stack)
 
-    if isinstance(node, Object):
-        if node.class_name.gir_type is not None:
-            type = node.class_name.gir_type.full_name
+    elif isinstance(node, Object):
+        if node.gir_class is not None:
+            type = node.gir_class.full_name
             func(type, node, stack)
 
-        for child in node.content.children[Child]:
-            walk_ast(child.object, func, stack + [node])
-
-        # for properties that have object as value
-        for prop in node.content.children[Property]:
-            if hasattr(prop, "value") and hasattr(prop.value, "object"):
-                walk_ast(prop.value.object, func, stack + [node])
+        walk_children(node, func, stack + [node])
 
 
 def lint(
