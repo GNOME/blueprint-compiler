@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from ..gir import ObjectType
 from .common import *
 from .contexts import ScopeCtx, ValueTypeCtx
 from .gobject_object import Object, validate_parent_type
@@ -236,18 +237,20 @@ def decompile_setter(ctx: DecompileCtx, gir, element):
         if child.tag == "setter":
             object_id = child["object"]
             property_name = child["property"]
-            obj = ctx.find_object(object_id)
-            if obj is not None:
+
+            property_type = None
+            if obj := ctx.find_object(object_id):
                 gir_class = ctx.type_by_cname(obj["class"])
-            else:
-                gir_class = None
+                if gir_class is not None and isinstance(gir_class, ObjectType):
+                    if property := gir_class.properties.get(property_name):
+                        property_type = property.type
 
             if object_id == ctx.template_class:
                 object_id = "template"
 
             comments, string = ctx.decompile_value(
                 child.cdata,
-                gir_class,
+                property_type,
                 (child["translatable"], child["context"], child["comments"]),
             )
             ctx.print(f"{comments} {object_id}.{property_name}: {string};")
