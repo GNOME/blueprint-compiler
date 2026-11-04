@@ -210,8 +210,10 @@ class UpgradeWarning(CompileWarning):
 
 
 class UnexpectedTokenError(CompileError):
-    def __init__(self, range: Range) -> None:
-        super().__init__("Unexpected tokens", range)
+    def __init__(self, range: Range, eof: bool = False) -> None:
+        super().__init__(
+            "Unexpected end of document" if eof else "Unexpected tokens", range
+        )
 
 
 @dataclass

@@ -120,6 +120,8 @@ class ParseContext:
         self.errors: list[CompileError] = []
         self.warnings: list[CompileWarning] = []
 
+        self.emitted_eof = False
+
     def create_child(self) -> "ParseContext":
         """Creates a new ParseContext at this context's position. The new
         context will be used to parse one node. If parsing is successful, the
@@ -161,6 +163,8 @@ class ParseContext:
             self.last_group = other.group
         elif other.last_group:
             self.last_group = other.last_group
+
+        self.emitted_eof |= other.emitted_eof
 
     def start_group(self, ast_type: type[AstNode]):
         """Sets this context to have its own match group."""
@@ -218,6 +222,13 @@ class ParseContext:
     def skip_unexpected_token(self):
         """Skips a token and logs an "unexpected token" error."""
 
+        if self.is_eof():
+            if not self.emitted_eof:
+                self.emitted_eof = True
+                raise UnexpectedTokenError(self.source.tokens[-1].range, eof=True)
+            else:
+                return
+
         self.skip()
         start = self.source.tokens[self.index].start
         self.next_token()
@@ -248,14 +259,19 @@ class ParseNode:
         start_idx = ctx.index
         inner_ctx = ctx.create_child()
 
-        if self._parse(inner_ctx):
-            ctx.apply_child(inner_ctx)
-            if ctx.index == start_idx:
-                return ParseResult.EMPTY
+        try:
+            if self._parse(inner_ctx):
+                ctx.apply_child(inner_ctx)
+                if ctx.index == start_idx:
+                    return ParseResult.EMPTY
+                else:
+                    return ParseResult.SUCCESS
             else:
-                return ParseResult.SUCCESS
-        else:
-            return ParseResult.FAILURE
+                return ParseResult.FAILURE
+        except CompileError:
+            # Advance the scanner past the error
+            ctx.index = inner_ctx.index
+            raise
 
     def _parse(self, ctx: ParseContext) -> bool:
         raise NotImplementedError()
@@ -399,7 +415,8 @@ class Until(ParseNode):
     def _parse(self, ctx: ParseContext):
         while not self.delimiter.parse(ctx).succeeded():
             if ctx.is_eof():
-                return False
+                ctx.skip_unexpected_token()
+                return True
 
             try:
                 if not self.child.parse(ctx).matched():
@@ -412,12 +429,10 @@ class Until(ParseNode):
                     if self.delimiter.parse(ctx).succeeded():
                         return True
                     else:
-                        if ctx.is_eof():
-                            return False
-                        ctx.skip_unexpected_token()
+                        if not ctx.is_eof():
+                            ctx.skip_unexpected_token()
             except CompileError as e:
                 ctx.errors.append(e)
-                ctx.next_token()
 
         return True
 
