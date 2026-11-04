@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
+from ..gir import ObjectType
 from .binding import Binding
 from .common import *
 from .contexts import ValueTypeCtx
@@ -48,7 +49,7 @@ class Property(AstNode):
 
     @property
     def gir_property(self) -> gir.Property | None:
-        if hasattr(self.gir_class, "properties"):
+        if isinstance(self.gir_class, ObjectType):
             return self.gir_class.properties.get(self.tokens["name"])
         else:
             return None

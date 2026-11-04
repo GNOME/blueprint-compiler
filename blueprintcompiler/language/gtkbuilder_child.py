@@ -20,6 +20,7 @@
 
 from functools import cached_property
 
+from ..gir import ObjectType
 from .common import *
 from .gobject_object import Object
 from .response_id import ExtResponse, decompile_response_type
@@ -92,7 +93,10 @@ class Child(AstNode):
                 hints = [
                     "only Gio.ListStore or Gtk.Buildable implementors can have children"
                 ]
-                if hasattr(gir_class, "properties") and "child" in gir_class.properties:
+                if (
+                    isinstance(gir_class, ObjectType)
+                    and "child" in gir_class.properties
+                ):
                     hints.append(
                         "did you mean to assign this object to the 'child' property?"
                     )

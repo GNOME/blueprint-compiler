@@ -121,11 +121,6 @@ class InvalidType(GirType):
         return False
 
 
-class ObjectType(GirType):
-    def castable_to(self, other: GirType) -> bool:
-        return self.assignable_to(other) or other.assignable_to(self)
-
-
 class ArrayType(GirType):
     def __init__(self, inner: GirType) -> None:
         self._inner = inner

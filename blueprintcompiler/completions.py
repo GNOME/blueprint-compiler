@@ -22,6 +22,7 @@ from typing import Iterator
 from . import annotations, gir, language
 from .ast_utils import AstNode
 from .completions_utils import *
+from .gir import ObjectType
 from .language.types import ClassName
 from .lsp_utils import Completion, CompletionItemKind, get_docs_section
 from .parse_tree import SKIP_TOKENS
@@ -271,7 +272,7 @@ def gtk_object_completer(ctx: CompletionContext):
 )
 def property_completer(ctx: CompletionContext):
     assert isinstance(ctx.ast_node, language.ObjectContent)
-    if ctx.ast_node.gir_class and hasattr(ctx.ast_node.gir_class, "properties"):
+    if isinstance(ctx.ast_node.gir_class, ObjectType):
         pop_stats = annotations.get_common_completions(ctx.ast_node.gir_class.full_name)
         for prop_name, prop in ctx.ast_node.gir_class.properties.items():
             if str(ctx.next_token) == ":":
@@ -411,7 +412,7 @@ def prop_value_completer(ctx: CompletionContext):
 def signal_completer(ctx: CompletionContext):
     assert isinstance(ctx.ast_node, language.ObjectContent)
 
-    if ctx.ast_node.gir_class and hasattr(ctx.ast_node.gir_class, "signals"):
+    if isinstance(ctx.ast_node.gir_class, ObjectType):
         pop_stats = annotations.get_common_completions(ctx.ast_node.gir_class.full_name)
         for signal_name, signal in ctx.ast_node.gir_class.signals.items():
             if str(ctx.next_token) == "=>":

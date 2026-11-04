@@ -20,7 +20,7 @@
 import os
 import sys
 from functools import cached_property
-from typing import Iterable, TypeVar
+from typing import Iterable, Mapping, TypeVar
 
 import gi  # type: ignore
 from gi.repository import GLib, GObject  # type: ignore
@@ -445,6 +445,19 @@ class Signal(GirNode):
             return None
 
 
+class ObjectType(GirType):
+    def castable_to(self, other: GirType) -> bool:
+        return self.assignable_to(other) or other.assignable_to(self)
+
+    @property
+    def properties(self) -> Mapping[str, Property]:
+        raise NotImplementedError()
+
+    @property
+    def signals(self) -> Mapping[str, Signal]:
+        raise NotImplementedError()
+
+
 class Interface(GirNode, ObjectType):
     xml_tag = "interface"
 
@@ -452,7 +465,7 @@ class Interface(GirNode, ObjectType):
         super().__init__(ns, info)
 
     @cached_property
-    def properties(self) -> dict[str, Property]:
+    def properties(self) -> Mapping[str, Property]:
         n_properties = interface_info_get_n_properties(self.info)
         result = {}
         for i in range(n_properties):
@@ -553,6 +566,14 @@ class ExternType(ObjectType):
     def incomplete(self) -> bool:
         return True
 
+    @property
+    def properties(self) -> Mapping[str, Property]:
+        return {}
+
+    @property
+    def signals(self) -> Mapping[str, Signal]:
+        return {}
+
 
 class Class(GirNode, ObjectType):
     xml_tag = "class"
@@ -616,11 +637,11 @@ class Class(GirNode, ObjectType):
         return result
 
     @cached_property
-    def properties(self) -> dict[str, Property]:
+    def properties(self) -> Mapping[str, Property]:
         return {p.name: p for p in self._enum_properties()}
 
     @cached_property
-    def signals(self) -> dict[str, Signal]:
+    def signals(self) -> Mapping[str, Signal]:
         return {s.name: s for s in self._enum_signals()}
 
     @cached_property
@@ -692,14 +713,14 @@ class TemplateType(ObjectType):
         return self._name
 
     @cached_property
-    def properties(self) -> dict[str, Property]:
+    def properties(self) -> Mapping[str, Property]:
         if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
             return self.parent.properties
 
     @cached_property
-    def signals(self) -> dict[str, Signal]:
+    def signals(self) -> Mapping[str, Signal]:
         if not (isinstance(self.parent, Class) or isinstance(self.parent, Interface)):
             return {}
         else:
@@ -769,7 +790,7 @@ class Enumeration(GirNode, GirType):
         return registered_type_info_get_type_name(self.info)
 
     @cached_property
-    def members(self) -> dict[str, EnumMember]:
+    def members(self) -> Mapping[str, EnumMember]:
         members = {}
         get_n_values, get_value = (
             (GIRepository.EnumInfo.get_n_values, GIRepository.EnumInfo.get_value)
