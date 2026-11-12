@@ -51,7 +51,7 @@ if meson.is_subproject()
     error('Building a wheel from a subproject is not supported')
   endif
 
-  meson.override_find_program('blueprint-compiler', blueprint_compiler)
+  meson.override_find_program('blueprint-compiler', find_program('blueprint-compiler.py'))
 else
   if get_option('python_wheel')
     pkgconfig_path = 'share' / 'pkgconfig'
